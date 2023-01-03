@@ -1,0 +1,7 @@
+--
+-- Sandbox project
+--
+
+Project "SandboxProject" 
+
+	DefaultScene "TestScene"
