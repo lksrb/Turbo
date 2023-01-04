@@ -43,6 +43,7 @@ namespace Turbo
                 if (camera.Primary)
                 {
                     cameraEntity = { entity, this };
+                    
                 }
             }
 
@@ -84,7 +85,7 @@ namespace Turbo
         return entity;
     }
 
-    void Scene::OnViewportResize(u32 width, u32 height)
+    void Scene::SetViewportSize(u32 width, u32 height)
     {
         m_ViewportWidth = width;
         m_ViewportHeight = height;
@@ -120,6 +121,8 @@ namespace Turbo
     template<>
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
     {
+        if(m_ViewportWidth > 0 && m_ViewportHeight > 0)
+            component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
     }
 
     template<>

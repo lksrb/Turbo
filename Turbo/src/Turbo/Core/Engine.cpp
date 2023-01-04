@@ -131,7 +131,6 @@ namespace Turbo
                     Renderer::Submit([this]() { m_UI->EndUI(); });
                 }
 
-                //m_RenderThread = std::thread([this]()
                 // TODO: To be on render thread
                 {
                     m_ViewportWindow->AcquireNewFrame();

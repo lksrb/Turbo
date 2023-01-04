@@ -97,7 +97,7 @@ namespace Turbo::Ed
         m_CurrentScene = m_CurrentProject->GetDefaultScene();
 
         // Resize scene
-        m_CurrentScene->OnViewportResize(m_ViewportWidth, m_ViewportHeight);
+        m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         UpdateTitle();
 
@@ -122,7 +122,7 @@ namespace Turbo::Ed
         m_SceneRenderer->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         if (m_CurrentScene)
-            m_CurrentScene->OnViewportResize(m_ViewportWidth, m_ViewportHeight);
+            m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         return true;
     }

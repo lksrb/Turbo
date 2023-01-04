@@ -5,7 +5,7 @@ include "Dependencies.lua"
 
 workspace "Turbo"
     architecture "x86_64"
-	startproject "Turbo-Editor"
+	startproject "PacManGame"
 
 	solution_items {
 		".editorconfig"
@@ -33,6 +33,8 @@ group "Core"
 
 group "Core-Tools"
 	include "Turbo-Editor"
-
-group "Runtime"
-	include "Turbo-Runtime"
+	
+	--group "Runtime"
+	--	include "Turbo-Runtime"
+group "Game"
+	include "PacManGame"

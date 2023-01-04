@@ -5,8 +5,8 @@
 
 namespace Turbo
 {
-    SceneRenderer::SceneRenderer(Scene* scene)
-        : m_CurrentScene(scene), m_ViewportWidth(0), m_ViewportHeight(0)
+    SceneRenderer::SceneRenderer()
+        : m_ViewportWidth(0), m_ViewportHeight(0)
     {
     }
 

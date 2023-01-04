@@ -1,7 +1,7 @@
 
---Turbo Runtime
+--PacMan
 
-project "Turbo-Runtime"
+project "PacManGame"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
@@ -19,7 +19,8 @@ project "Turbo-Runtime"
 	{
 		"%{wks.location}/Turbo/src",
 		"%{wks.location}/dependencies/spdlog/include",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}"
 	}
 	links 
 	{

@@ -4,12 +4,10 @@
 
 namespace Turbo
 {
-    class Scene;
-
     class SceneRenderer
     {
     public:
-        SceneRenderer(Scene* scene = nullptr);
+        SceneRenderer();
         ~SceneRenderer();
 
         void SetViewportSize(u32 width, u32 height);
@@ -23,7 +21,6 @@ namespace Turbo
 
         u32 m_ViewportWidth;
         u32 m_ViewportHeight;
-        Scene* m_CurrentScene;
     };
 }
 

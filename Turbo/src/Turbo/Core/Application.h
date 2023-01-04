@@ -31,8 +31,8 @@ namespace Turbo
         virtual void OnInitialize() {};
         virtual void OnShutdown() {};
         virtual void OnUpdate() {};
-        virtual void OnEvent(Event& event) {};
         virtual void OnDraw() {};
+        virtual void OnEvent(Event& event) {};
         virtual void OnDrawUI() {}
     protected:
         Turbo::Engine* Engine;

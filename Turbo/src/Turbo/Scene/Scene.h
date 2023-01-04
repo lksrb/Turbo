@@ -18,8 +18,8 @@ namespace Turbo
     public:
         struct Config
         {
-            Filepath RelativePath;
             FString64 Name;
+            Filepath RelativePath;
         };
 
         Scene(const Config& config);
@@ -34,7 +34,7 @@ namespace Turbo
         Entity CreateEntity(const FString64& tag = "");
         Entity CreateEntityWithUUID(UUID uuid, const FString64& tag = "");
 
-        void OnViewportResize(u32 width, u32 height);
+        void SetViewportSize(u32 width, u32 height);
 
         const FString64& GetName() const { return m_Config.Name; }
 
