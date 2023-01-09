@@ -93,9 +93,6 @@ namespace PacMan
         // Update player movement
         m_Player->OnUpdate(ts);
 
-        // Update UI
-        m_UI->OnUpdate(ts);
-        
         // Checking loot entities
         for (auto& e : m_EntityUnderPlayer.GetComponent<TileComponent>().Neighbours)
         {
@@ -138,7 +135,9 @@ namespace PacMan
         // Check if player won
         if (m_Collected == m_LootMaxCount)
         {
+            // To ensure that this is not triggered again
             m_Collected++;
+
             OnGameEvent(GameEvent::GameOverPlayerWon, nullptr);
         }
     }

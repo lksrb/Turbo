@@ -42,9 +42,9 @@ namespace PacMan::AI
         std::list<Entity> randomPath;
 
         Entity tested = start;
+
         // Available directions
         std::vector<Direction> dirAvailable;
-
         for (auto& neighbour : start.GetComponent<TileComponent>().Neighbours)
         {
             Entity e = neighbour.Entity;
@@ -72,13 +72,14 @@ namespace PacMan::AI
             }
         }
 
-        if (dirAvailable.size() == 0)
+        if (dirAvailable.empty())
             return {};
 
+        // Choose random direction from available directions
         i32 random = Random(0, (i32)(dirAvailable.size() - 1));
-
         auto& randomDirection = dirAvailable[random];
 
+        // Process that direction until a wall is hit
         while (tested.GetComponent<TileComponent>().Type != TileType::Wall)
         {
             auto& testedPos = tested.Transform().Translation;
@@ -116,10 +117,9 @@ namespace PacMan::AI
         }
 
         if (fullPath.empty())
-        {
             return {};
-        }
 
+        // Choose random length
         i32 randomLength = Random(1, static_cast<i32>(fullPath.size() - 1));
 
         for (i32 i = 0; i < randomLength; ++i)

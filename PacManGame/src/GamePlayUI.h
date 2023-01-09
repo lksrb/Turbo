@@ -18,7 +18,6 @@ namespace PacMan
         GamePlayUI(Scene* scene, u32 collectibleCount);
         ~GamePlayUI();
 
-        void OnUpdate(Time_T ts);
         void OnGameEvent(GameEvent e, const std::any& data);
     private:
         SubTexture2D* GetSubTextureFromString(const std::string& strCount, u32 index);

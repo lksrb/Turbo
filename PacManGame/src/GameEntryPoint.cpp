@@ -2,6 +2,7 @@
 
 #include "Game.h"
 
+// Main function is abstracted by the engine
 Turbo::Application* Turbo::CreateApplication()
 {
     Turbo::Application::Config config;

@@ -45,9 +45,6 @@ namespace PacMan
 
     bool MainMenu::OnPressedKeyEvent(KeyPressedEvent& e)
     {
-        /*if (e.GetRepeatCount())
-            return false;*/
-
         switch (e.GetKeyCode())
         {
             case Key::Up:

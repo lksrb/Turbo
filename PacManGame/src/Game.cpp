@@ -15,6 +15,8 @@ namespace PacMan
         // Create menu
         m_MainMenu = new MainMenu;
         m_MainMenu->SetViewportSize(Window->GetWidth(), Window->GetHeight());
+
+        // Event callback for main menu
         m_MainMenu->SetGameEventCallback(TBO_BIND_FN(Game::OnGameEvent));
 
         m_CurrentScene = m_MainMenu->GetScene();
@@ -29,6 +31,7 @@ namespace PacMan
 
     void Game::OnUpdate()
     {
+        // Game over screen with simple timer 5s
         if (m_WaitForGameOverScreen)
         {
             m_TimeTillSwitch -= Time.DeltaTime;
@@ -49,12 +52,13 @@ namespace PacMan
             }
         }
 
+        // Do not update game while in gameover screen
         if (m_WaitForGameOverScreen == false)
         {
             switch (m_CurrentMode)
             {
-                case Mode::MainMenu:m_MainMenu->OnUpdate(Time.DeltaTime); break;
                 case Mode::InGame:  m_Gameplay->OnUpdate(Time.DeltaTime); break;
+                case Mode::MainMenu:m_MainMenu->OnUpdate(Time.DeltaTime); break;
             }
         }
 
@@ -65,6 +69,7 @@ namespace PacMan
 
     void Game::OnEvent(Event& e)
     {
+        // Catching events 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowResizeEvent>(TBO_BIND_FN(Game::OnWindowResize));
         dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Game::OnKeyPressedEvent));
@@ -75,6 +80,8 @@ namespace PacMan
         // Create new scene containing actual game
         m_Gameplay = new Gameplay;
         m_Gameplay->SetViewportSize(Window->GetWidth(), Window->GetHeight());
+
+        // Event callback for game
         m_Gameplay->SetGameEventCallback(TBO_BIND_FN(Game::OnGameEvent));
 
         m_CurrentMode = Mode::InGame;

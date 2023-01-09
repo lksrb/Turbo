@@ -71,6 +71,7 @@ namespace PacMan
             m_CollectedDisplayEntities[i].GetComponent<SpriteRendererComponent>().SubTexture = nullptr;
             m_MaxCollectedDisplayEntities[i].GetComponent<SpriteRendererComponent>().SubTexture = nullptr;
         }
+        // TODO: Reference counting
         if(m_GameOverEntity.HasComponent<SpriteRendererComponent>())
             m_GameOverEntity.GetComponent<SpriteRendererComponent>().Texture = nullptr;
 
@@ -85,18 +86,13 @@ namespace PacMan
         delete m_NumbersSpriteSheet;
     }
 
-    void GamePlayUI::OnUpdate(Time_T ts)
-    {
-
-    }
-
     void GamePlayUI::OnGameEvent(GameEvent e, const std::any& data)
     {
         switch (e)
         {
             case GameEvent::OnCollectibleAcquired:
             {
-                // Collected
+                // Collectibles count
                 u32 collected = std::any_cast<u32>(data);
                 std::string stringify = std::to_string(collected);
 

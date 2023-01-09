@@ -170,7 +170,6 @@ namespace Turbo
     {
         if (!m_ViewportWindow->IsMinimized())
         {
-            //   m_SwapChain.Resize(e.GetWidth(), e.GetHeight());
             TBO_ENGINE_TRACE("Window resized! {0}, {1}", e.GetWidth(), e.GetHeight());
         }
         return false;
