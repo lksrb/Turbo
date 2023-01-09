@@ -11,7 +11,7 @@ Turbo::Application* Turbo::CreateApplication()
     config.VSync = true;
     config.Resizable = true;
     config.StartMaximized = false;
-    //specification.EnableUI = false;
+    config.EnableUI = false;
 
     return new PacMan::Game(config);
 }

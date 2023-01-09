@@ -2,6 +2,7 @@
 
 #include "Turbo/Core/Common.h"
 #include "Turbo/Renderer/Framebuffer.h"
+#include "Turbo/Renderer/Image2D.h"
 
 namespace Turbo
 {
@@ -10,6 +11,7 @@ namespace Turbo
     public:
         struct Config
         {
+            Ptr<Image2D> DepthAttachment;
         };
 
         static RenderPass* Create(const RenderPass::Config& config);

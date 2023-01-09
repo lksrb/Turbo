@@ -38,6 +38,14 @@ namespace Turbo
             return component;
         }
 
+        template<typename Component, typename... Args>
+        Component& AddCustomComponent(Args&&... args)
+        {
+            TBO_ENGINE_ASSERT(!HasComponent<Component>(), "Entity already has this component!");
+            Component& component = m_Scene->m_Registry.emplace<Component>(m_Handle, std::forward<Args>(args)...);
+            return component;
+        }
+
         template<typename Component>
         Component& GetComponent()
         {
@@ -45,18 +53,25 @@ namespace Turbo
             return m_Scene->m_Registry.get<Component>(m_Handle);
         }
 
+        template<typename... Components>
+        decltype(auto) GetComponents()
+        {
+            TBO_ENGINE_ASSERT(HasComponent<Components...>(), "Entity does not have this component!"); // TODO: Error checking
+            return m_Scene->m_Registry.get<Components...>(m_Handle);
+        }
+
         template<typename Component>
         void RemoveComponent()
         {
             TBO_ENGINE_ASSERT(HasComponent<Component>(), "Entity does not have this component!");
-            return m_Scene->m_Registry.remove<Component>(m_Handle);
+            m_Scene->m_Registry.remove<Component>(m_Handle);
         }
 
-        template<typename Component>
+        template<typename... Component>
         bool HasComponent()
         {
             TBO_ENGINE_ASSERT(IsValid(), "Entity is not valid!");
-            return m_Scene->m_Registry.all_of<Component>(m_Handle);
+            return m_Scene->m_Registry.all_of<Component...>(m_Handle);
         }
 
         FString64 GetName() { return GetComponent<TagComponent>().Tag; }

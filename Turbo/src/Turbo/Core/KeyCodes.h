@@ -153,7 +153,7 @@ namespace Turbo
             Down = VK_DOWN,
             Left = VK_LEFT,
             Right = VK_RIGHT,
-
+            Enter = VK_RETURN
         };
 #endif
     }

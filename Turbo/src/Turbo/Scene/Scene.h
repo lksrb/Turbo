@@ -6,7 +6,11 @@
 
 #include "Turbo/Scene/Components.h"
 
+#include <map>
+
 #include <entt.hpp>
+
+class b2World;
 
 namespace Turbo
 {
@@ -18,16 +22,19 @@ namespace Turbo
     public:
         struct Config
         {
-            FString64 Name;
-            Filepath RelativePath;
+            // For scene serialization
+            FString64 Name;         
+            Filepath RelativePath; 
         };
 
-        Scene(const Config& config);
+        Scene(const Scene::Config& config);
         ~Scene();
 
         void OnEditorUpdate(Time_T ts) {}
         void OnEditorRender(SceneRenderer* renderer) {}
 
+        void OnRuntimeStart();
+        void OnRuntimeStop();
         void OnRuntimeUpdate(Time_T ts);
         void OnRuntimeRender(SceneRenderer* renderer);
 
@@ -47,12 +54,16 @@ namespace Turbo
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:
+        void CreatePhysicsWorld2D();
+    private:
         entt::registry m_Registry;
 
         bool m_Running;
 
         u32 m_ViewportWidth;
         u32 m_ViewportHeight;
+
+        b2World* m_PhysicsWorld;
 
         Scene::Config m_Config;
 

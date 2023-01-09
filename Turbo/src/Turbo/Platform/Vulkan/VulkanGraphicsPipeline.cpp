@@ -145,21 +145,19 @@ namespace Turbo
             depthAndStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
             depthAndStencilState.depthTestEnable = VK_TRUE;
             depthAndStencilState.depthWriteEnable = VK_TRUE;
-            depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+            depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
             depthAndStencilState.depthBoundsTestEnable = VK_FALSE;
             depthAndStencilState.minDepthBounds = 0.0f; // Optional
             depthAndStencilState.maxDepthBounds = 1.0f; // Optional
             depthAndStencilState.stencilTestEnable = VK_FALSE;
-
-            /*
-            depthAndStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-            depthAndStencil.depthBoundsTestEnable = VK_FALSE;
-            depthAndStencil.back.failOp = VK_STENCIL_OP_KEEP;
-            depthAndStencil.back.passOp = VK_STENCIL_OP_KEEP;
-            depthAndStencil.back.compareOp = VK_COMPARE_OP_ALWAYS;
-            depthAndStencil.stencilTestEnable = VK_FALSE;
-            depthAndStencil.front = depthAndStencil.back;
-            */
+            
+           /* depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+            depthAndStencilState.depthBoundsTestEnable = VK_FALSE;
+            depthAndStencilState.back.failOp = VK_STENCIL_OP_KEEP;
+            depthAndStencilState.back.passOp = VK_STENCIL_OP_KEEP;
+            depthAndStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+            depthAndStencilState.stencilTestEnable = VK_FALSE;
+            depthAndStencilState.front = depthAndStencilState.back;*/
         }
 
         // ###############################################################################################################
@@ -173,7 +171,7 @@ namespace Turbo
         for (u32 i = 0; i < targetFbConfig.AttachmentsCount; ++i)
         {
             auto& framebufferAttachment = targetFbConfig.Attachments[i];
-
+            
             colorBlendAttachments[i].colorWriteMask = (VkColorComponentFlags)framebufferAttachment.ColorMask;
             colorBlendAttachments[i].blendEnable = framebufferAttachment.EnableBlend;
             colorBlendAttachments[i].srcColorBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor;
@@ -183,17 +181,6 @@ namespace Turbo
             colorBlendAttachments[i].dstAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
             colorBlendAttachments[i].alphaBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
         }
-
-        //VkPipelineColorBlendAttachmentState colorBlendAttachment1 = {};
-        //
-        //colorBlendAttachment1.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        //colorBlendAttachment1.blendEnable = VK_TRUE;
-        //colorBlendAttachment1.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        //colorBlendAttachment1.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        //colorBlendAttachment1.colorBlendOp = VK_BLEND_OP_ADD; // Optional
-        //colorBlendAttachment1.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        //colorBlendAttachment1.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        //colorBlendAttachment1.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
         
         VkPipelineColorBlendStateCreateInfo colorBlendState{};
         colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

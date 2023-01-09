@@ -59,7 +59,7 @@ namespace Turbo {
 
     void Win32_Window::InitializeWindow()
     {
-        Filepath currentDirectory = Platform::GetCurrentPath() / "Resources" / "Icons" / "EditorIcon.ico";
+        Filepath currentDirectory = Platform::GetCurrentPath() / "Assets" / "Icon.ico";
 
         m_Instance = ::GetModuleHandle(NULL);
         WNDCLASS wndClass = {};
@@ -221,7 +221,7 @@ namespace Turbo {
                     else
                     {
                         lastKey = -1;
-                        key_released_event e(static_cast<KeyCode>(key));
+                        KeyReleasedEvent e(static_cast<KeyCode>(key));
                         m_Callback(e);
                     }
                 }

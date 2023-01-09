@@ -32,7 +32,7 @@ namespace Turbo
         imageConfig.Usage = Image2D::ImageUsageFlags_Sampled | Image2D::ImageUsageFlags_Transfer_Destination;
         imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
         imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
-        imageConfig.ImageFormat = Image2D::Format_BGRA8_Unorm;
+        imageConfig.ImageFormat = Image2D::Format_RGBA8_SRGB;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(texWidth, texHeight);
 
@@ -61,7 +61,7 @@ namespace Turbo
         imageConfig.Usage = Image2D::ImageUsageFlags_Sampled | Image2D::ImageUsageFlags_Transfer_Destination;
         imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
         imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
-        imageConfig.ImageFormat = Image2D::Format_BGRA8_Unorm;
+        imageConfig.ImageFormat = Image2D::Format_RGBA8_SRGB;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(1, 1);
 
@@ -198,8 +198,8 @@ namespace Turbo
 
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.magFilter = VK_FILTER_NEAREST;
+        samplerInfo.minFilter = VK_FILTER_NEAREST;
         samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;

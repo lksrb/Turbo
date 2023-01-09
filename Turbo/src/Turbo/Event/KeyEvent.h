@@ -33,9 +33,9 @@ namespace Turbo {
         u16 m_RepeatCount;
     };
 
-    class key_released_event : public KeyEvent {
+    class KeyReleasedEvent : public KeyEvent {
     public:
-        key_released_event(KeyCode code)
+        KeyReleasedEvent(KeyCode code)
             : KeyEvent(code)
         {
         }
@@ -44,9 +44,9 @@ namespace Turbo {
 
     };
 
-    class key_typed_event : public KeyEvent {
+    class KeyTypedEvent : public KeyEvent {
     public:
-        key_typed_event(KeyCode code)
+        KeyTypedEvent(KeyCode code)
             : KeyEvent(code)
         {
         }

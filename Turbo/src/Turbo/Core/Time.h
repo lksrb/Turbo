@@ -24,7 +24,6 @@ namespace Turbo
         }
 
         operator f32() const { return m_Time; }
-
     private:
         f32 m_Time;
     };

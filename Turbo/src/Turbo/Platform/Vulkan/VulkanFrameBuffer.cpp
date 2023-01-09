@@ -19,6 +19,8 @@ namespace Turbo
 
     void VulkanFrameBuffer::Invalidate(u32 width, u32 height)
     {
+        TBO_ENGINE_ASSERT(m_Config.AttachmentsCount < 10);
+        
         VkDevice device = RendererContext::GetDevice();
 
         VkFramebufferCreateInfo createInfo = {};
@@ -28,6 +30,7 @@ namespace Turbo
         createInfo.width = width;
         createInfo.height = height;
         createInfo.layers = 1;
+        createInfo.attachmentCount = m_Config.AttachmentsCount;
 
         VkImageView attachments[10] = {};
 
@@ -35,7 +38,14 @@ namespace Turbo
         {
             attachments[i] = (dynamic_cast<VulkanImage2D*>(m_Config.Attachments[i].Image))->GetImageView();
         }
-        createInfo.attachmentCount = m_Config.AttachmentsCount;
+
+
+        if (m_Config.DepthBuffer)
+        {
+            attachments[m_Config.AttachmentsCount] = m_Config.DepthBuffer.As<VulkanImage2D>()->GetImageView();
+            createInfo.attachmentCount = m_Config.AttachmentsCount + 1;
+        }
+
         createInfo.pAttachments = attachments;
 
         TBO_VK_ASSERT(vkCreateFramebuffer(device, &createInfo, nullptr, &m_Framebuffer));

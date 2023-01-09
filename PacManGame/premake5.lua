@@ -20,11 +20,15 @@ project "PacManGame"
 		"%{wks.location}/Turbo/src",
 		"%{wks.location}/dependencies/spdlog/include",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{wks.location}/dependencies/imgui",
+		"%{IncludeDir.box2d}"
 	}
 	links 
 	{
-		"Turbo"
+		"Turbo",
+		"ImGui",
+		"box2d"
 	}
 
 	-- Ignore already defined symbols warning(LNK4006), symbols not found(LNK4099)
@@ -51,6 +55,7 @@ project "PacManGame"
 			}
 
 		filter "configurations:Release"
+			kind "WindowedApp"
 			defines "TBO_RELEASE"
 			runtime "Release"
 			optimize "on"

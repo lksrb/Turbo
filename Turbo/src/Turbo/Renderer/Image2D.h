@@ -9,7 +9,10 @@ namespace Turbo
     public:
         enum Format : u32
         {
-            Format_BGRA8_Unorm = 44
+            Format_RGBA8_SRGB = 43,
+            Format_BGRA8_Unorm = 44,
+            Format_BGRA8_SRGB = 50,
+            Format_D32_SFloat_S8_Uint = 130
         };
 
         enum ImageTiling : u32

@@ -23,6 +23,7 @@ namespace Turbo
             bool VSync;
             bool StartMaximized;
             bool Resizable;
+            bool EnableUI;
         };
     protected:
         Application(const Application::Config& config);

@@ -56,7 +56,8 @@ namespace Turbo
 
         Renderer::Initialize();
 
-        m_UI = UserInterface::Create();
+        if(m_Application->m_Config.EnableUI)
+            m_UI = UserInterface::Create();
 
         // Client access
         m_Application->Engine = this;
@@ -72,8 +73,8 @@ namespace Turbo
 
         RendererContext::WaitIdle();
 
-        delete m_Application;
         delete m_ViewportWindow;
+        delete m_Application;
 
         Renderer::Shutdown();
         delete m_UI;
@@ -96,6 +97,7 @@ namespace Turbo
 
         m_Application->OnInitialize();
 
+        // First resize
         m_ViewportWindow->Show();
 
         f32 lastFrame = 0.0f;
@@ -125,6 +127,7 @@ namespace Turbo
                 Renderer::Submit([this]() { m_Application->OnDraw(); });
 
                 // Render UI
+                if(m_Application->m_Config.EnableUI)
                 {
                     Renderer::Submit([this]() { m_UI->BeginUI(); });
                     Renderer::Submit([this]() { m_Application->OnDrawUI(); });
@@ -156,7 +159,8 @@ namespace Turbo
         dispatcher.Dispatch<WindowResizeEvent>(TBO_BIND_FN(Engine::WindowResized));
         dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Engine::WindowClosed));
 
-        m_UI->OnEvent(e);
+        if(m_Application->m_Config.EnableUI)
+            m_UI->OnEvent(e);
 
         if (e.Handled == false)
             m_Application->OnEvent(e);

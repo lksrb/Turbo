@@ -2,6 +2,11 @@
 
 #include "Turbo/Renderer/RendererContext.h"
 #include "Turbo/Renderer/SwapChain.h"
+#include "Turbo/Renderer/Image2D.h"
+
+#include "Turbo/Renderer/RenderPass.h"
+#include "Turbo/Platform/Vulkan/VulkanRenderPass.h"
+#include "Turbo/Platform/Vulkan/VulkanFrameBuffer.h"
 
 #include <vulkan/vulkan.h>
 
@@ -22,8 +27,10 @@ namespace Turbo
         
         VkCommandBuffer GetCurrentRenderCommandBuffer() const;
         VkFramebuffer GetCurrentFramebuffer() const;
-        VkRenderPass GetRenderPass() const;
+        VulkanRenderPass* GetRenderPass() const;
         u32 GetCurrentFrame() const;
+
+        Ptr<Image2D> GetDepthBuffer() const { return m_DepthBuffer; }
     private:
         void Initialize();
         void Shutdown();
@@ -40,7 +47,8 @@ namespace Turbo
         void Cleanup();
     private:
         VkSwapchainKHR m_Swapchain;
-        VkRenderPass m_Renderpass;
+        VulkanRenderPass* m_Renderpass;
+
         VkSemaphore m_RenderFinishedSemaphores[TBO_MAX_FRAMESINFLIGHT];
         VkSemaphore m_PresentSemaphores[TBO_MAX_FRAMESINFLIGHT];
         VkFence m_InFlightFences[TBO_MAX_FRAMESINFLIGHT];
@@ -48,6 +56,9 @@ namespace Turbo
         VkImage m_Images[TBO_MAX_FRAMESINFLIGHT];
         VkFramebuffer m_Framebuffers[TBO_MAX_FRAMESINFLIGHT];
         VkCommandBuffer m_RenderCommandBuffers[TBO_MAX_FRAMESINFLIGHT];
+
+        // Temporary
+        Ptr<Image2D> m_DepthBuffer;
 
         VkFormat m_SwapchainFormat;
 

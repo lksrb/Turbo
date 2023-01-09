@@ -15,12 +15,20 @@
 
 namespace Turbo
 {
+    class Entity;
+
     struct TagComponent
     {
         FString64 Tag;
 
         TagComponent() = default;
         TagComponent(const FString64& tagName) : Tag(tagName) {}
+    };
+
+    struct RelationshipComponent
+    {
+        UUID Parent;
+        std::vector<UUID> Children;
     };
 
     struct IDComponent
@@ -57,21 +65,50 @@ namespace Turbo
     {
         glm::vec4 Color{ 1.0f };
         f32 Tiling{ 1.0f };
-        Ptr<Texture2D> Texture;
+        Ptr<Texture2D> Texture; // TODO: Combine texture and subtexture
+        Ptr<SubTexture2D> SubTexture;
+
+        ~SpriteRendererComponent()
+        {
+            delete SubTexture;
+            delete Texture;
+        }
+    };
+
+    // Physics
+    struct Rigidbody2DComponent
+    {
+        enum class BodyType { Static = 0, Dynamic, Kinematic };
+        BodyType Type = BodyType::Dynamic;
+        bool FixedRotation = false;
+        bool Gravity = true;
+        bool Enabled = true;
+
+        // Storage for runtime
+        void* RuntimeBody = nullptr;
     };
 
     struct BoxCollider2DComponent
     {
-        glm::vec2 Offset{ 0.0f, 0.0f };
-        glm::vec2 Size{ 0.5f, 0.5f };
+        glm::vec2 Offset = { 0.0f, 0.0f };
+        glm::vec2 Size = { 0.5f, 0.5f };
 
-        f32 Density{ 1.0f };
-        f32 Friction{ 0.5f };
-        f32 Restitution{ 0.0f };
-        f32 RestitutionThreshold{ 0.5f };
-        bool  IsSensor{ false };
+        f32 Density = 1.0f;
+        f32 Friction = 0.5f;
+        f32 Restitution = 0.0f;
+        f32 RestitutionThreshold = 0.5f;
+        bool IsSensor = false;
+    };
 
-        // Storage for runtime
-        void* RuntimeFixture = nullptr;
+    struct CircleCollider2DComponent
+    {
+        glm::vec2 Offset = { 0.0f, 0.0f };
+        f32 Radius = 0.5f;
+
+        f32 Density = 1.0f;
+        f32 Friction = 0.5f;
+        f32 Restitution = 0.0f;
+        f32 RestitutionThreshold = 0.5f;
+        bool IsSensor = false;
     };
 }

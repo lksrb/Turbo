@@ -53,6 +53,7 @@ namespace Turbo
             RenderPass* Renderpass;
             Attachment Attachments[TBO_FRAMEBUFFER_MAX_ATTACHMENTS];
             u32 AttachmentsCount;
+            Ptr<Image2D> DepthBuffer;
         };
 
         virtual ~FrameBuffer();

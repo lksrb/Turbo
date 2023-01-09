@@ -59,7 +59,5 @@ layout(location = 1) out int o_EntityID;
 void main()
 {
 	o_EntityID = in_EntityID;
-
-	vec4 test = vec4(1.0,0.0,0.0,1.0);
     o_Color = Input.Color * texture(u_Textures[in_TexIndex], Input.TexCoord * Input.TilingFactor);
 }

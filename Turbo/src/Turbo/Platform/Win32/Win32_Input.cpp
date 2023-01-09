@@ -8,11 +8,11 @@ namespace Turbo
 {
     bool Input::IsKeyPressed(KeyCode keyCode)
     {
-        return (::GetKeyState(static_cast<int>(keyCode)) & 0x8000) != 0;
+        return (::GetAsyncKeyState(static_cast<int>(keyCode)) & 0x8000) != 0;
     }
 
     bool Input::IsKeyReleased(KeyCode keyCode)
     {
-        return (::GetKeyState(static_cast<int>(keyCode)) & 0x8000) == 0;
+        return (::GetAsyncKeyState(static_cast<int>(keyCode)) & 0x8000) == 0;
     }
 }

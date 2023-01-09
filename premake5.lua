@@ -1,4 +1,5 @@
---Pangolin Workspace
+
+--Turbo Workspace
 
 include "./dependencies/premake/premake_customization/solution_items.lua"
 include "Dependencies.lua"
@@ -25,11 +26,9 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}";
 group ".Dependencies"
 	include "dependencies/ImGui"
 	include "dependencies/lua"
-	--include "dependencies/yaml-cpp"
-	--include "dependencies/box2d"
+	include "dependencies/box2d"
 group "Core"
 	include "Turbo"
-	--include "Pangolin-ScriptCore"
 
 group "Core-Tools"
 	include "Turbo-Editor"

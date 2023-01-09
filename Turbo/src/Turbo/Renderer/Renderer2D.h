@@ -15,6 +15,8 @@
 #include "Material.h"
 
 #include <array>
+
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 namespace Turbo
@@ -48,8 +50,11 @@ namespace Turbo
         void DrawQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entityID = -1);
         void DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entityID = -1);
         void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ptr<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/);
+        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ptr<SubTexture2D> subTexture, f32 tiling, i32 entityID /*= -1*/);
 
         Statistics GetStatistics() const { return m_Statistics; }
+
+        void SetClearColor(const glm::vec4& color) { TBO_ENGINE_ASSERT(false, "Not implemented yet"); m_ClearColor = color; }
     private:
         void Initialize();
         void Shutdown();
@@ -98,6 +103,8 @@ namespace Turbo
 
         Ptr<RenderPass> m_RenderPass;
 
+        //Ptr<Image2D> m_DepthImage;
+
         Image2D* m_RenderImages[TBO_MAX_FRAMESINFLIGHT];
         FrameBuffer* m_Framebuffers[TBO_MAX_FRAMESINFLIGHT];
 
@@ -106,6 +113,8 @@ namespace Turbo
         // Texture slots
         std::array<Ptr<Texture2D>, MaxTextureSlots> m_TextureSlots;
         u32 m_TextureSlotsIndex;
+
+        glm::vec4 m_ClearColor;
 
         u32 m_ViewportWidth;
         u32 m_ViewportHeight;

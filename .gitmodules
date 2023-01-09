@@ -15,3 +15,6 @@
 [submodule "dependencies/IconFontCppHeaders"]
 	path = dependencies/IconFontCppHeaders
 	url = https://github.com/lksrb/IconFontCppHeaders.git
+[submodule "dependencies/box2d"]
+	path = dependencies/box2d
+	url = https://github.com/lksrb/box2d.git

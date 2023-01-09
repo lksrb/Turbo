@@ -38,8 +38,8 @@ project "Turbo"
         "%{IncludeDir.lua}",
         "%{IncludeDir.IconFontCppHeaders}",
         "%{IncludeDir.entt}",
-        "%{IncludeDir.stb}"
-        --"%{IncludeDir.box2d}",
+        "%{IncludeDir.stb}",
+        "%{IncludeDir.box2d}"
         --"%{IncludeDir.ImGuizmo}",
         --"%{IncludeDir.mono}"
     }
@@ -48,9 +48,9 @@ project "Turbo"
         "ImGui",
         "Lua",
         "Shlwapi.lib",
-        --"box2d",
-        --"%{Library.mono}",
+        "box2d",
         "%{Library.Vulkan}"
+        --"%{Library.mono}",
     }
 
     -- Ignore already defined symbols warning(LNK4006), symbols not found(LNK4099)

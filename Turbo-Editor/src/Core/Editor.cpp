@@ -30,7 +30,7 @@ namespace Turbo::Ed
 
         m_SceneRenderer = new SceneRenderer;
 
-        t = Texture2D::Create({ "Resources/test.png" });
+        t = Texture2D::Create({ "Assets/PacMan.png" });
     }
 
     void Editor::OnShutdown()
