@@ -13,7 +13,7 @@ namespace Turbo
             u32* Indices;
         };
 
-        static IndexBuffer* Create(const IndexBuffer::Config& config);
+        static Ref<IndexBuffer> Create(const IndexBuffer::Config& config);
         virtual ~IndexBuffer();
     protected:
         IndexBuffer(const IndexBuffer::Config& config);

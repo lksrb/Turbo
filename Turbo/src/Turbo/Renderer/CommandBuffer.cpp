@@ -15,9 +15,9 @@ namespace Turbo
     {
     }
 
-    CommandBuffer* CommandBuffer::Create(CommandBufferLevel type)
+    Ref<CommandBuffer> CommandBuffer::Create(CommandBufferLevel type)
     {
-        return new VulkanCommandBuffer(type);
+        return Ref<VulkanCommandBuffer>::Create(type);
     }
 
 

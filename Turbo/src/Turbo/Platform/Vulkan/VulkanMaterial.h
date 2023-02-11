@@ -18,7 +18,7 @@ namespace Turbo
 
         void Set(const FString32& resourceName, const glm::mat4& matrix) override;
         void Set(const FString32& resourceName, const void* data, size_t size) override;
-        void Set(const FString32& resourceName, const Ptr<Texture2D>& texture, u32 index) override;
+        void Set(const FString32& resourceName, const Ref<Texture2D>& texture, u32 index) override;
 
         void Update() override;
     private:
@@ -30,7 +30,7 @@ namespace Turbo
         std::unordered_map<std::string, VkWriteDescriptorSet> m_DescriptorWrites;
 
         std::vector<VkDescriptorImageInfo> m_TextureDescriptorInfos;
-        std::vector<Ptr<Texture2D>> m_Textures;
+        std::vector<Ref<Texture2D>> m_Textures;
         //std::unordered_map<FString32, UniformBuffer> m_UniformBufferMap;
     };
 }

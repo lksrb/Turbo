@@ -14,8 +14,8 @@ namespace Turbo
     {
     }
 
-    GraphicsPipeline* GraphicsPipeline::Create(const GraphicsPipeline::Config& config)
+    Ref<GraphicsPipeline> GraphicsPipeline::Create(const GraphicsPipeline::Config& config)
     {
-        return new VulkanGraphicsPipeline(config);
+        return Ref<VulkanGraphicsPipeline>::Create(config);
     }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Turbo/Core/Memory.h"
 #include "Turbo/Core/PrimitiveTypes.h"
 
 namespace Turbo
@@ -7,7 +8,7 @@ namespace Turbo
     class SwapChain
     {
     public:
-        static SwapChain* Create();
+        static Ref<SwapChain> Create();
         virtual ~SwapChain();
 
         virtual void NewFrame() = 0;

@@ -49,8 +49,8 @@ namespace Turbo
 
         void DrawQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entityID = -1);
         void DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entityID = -1);
-        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ptr<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/);
-        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ptr<SubTexture2D> subTexture, f32 tiling, i32 entityID /*= -1*/);
+        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/);
+        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entityID /*= -1*/);
 
         Statistics GetStatistics() const { return m_Statistics; }
 
@@ -92,26 +92,26 @@ namespace Turbo
         QuadVertex* m_QuadVertexBufferBase;
         QuadVertex* m_QuadVertexBufferPointer;
 
-        Ptr<VertexBuffer> m_QuadVertexBuffer;
-        Ptr<IndexBuffer> m_QuadIndexBuffer;
-        Ptr<Material> m_QuadMaterial;
+        Ref<VertexBuffer> m_QuadVertexBuffer;
+        Ref<IndexBuffer> m_QuadIndexBuffer;
+        Ref<Material> m_QuadMaterial;
 
-        Ptr<Shader> m_QuadShader;
-        Ptr<GraphicsPipeline> m_QuadPipeline;
+        Ref<Shader> m_QuadShader;
+        Ref<GraphicsPipeline> m_QuadPipeline;
         
-        Ptr<Texture2D> m_WhiteTexture;
+        Ref<Texture2D> m_WhiteTexture;
 
-        Ptr<RenderPass> m_RenderPass;
+        Ref<RenderPass> m_RenderPass;
 
         //Ptr<Image2D> m_DepthImage;
 
-        Image2D* m_RenderImages[TBO_MAX_FRAMESINFLIGHT];
-        FrameBuffer* m_Framebuffers[TBO_MAX_FRAMESINFLIGHT];
+        Ref<Image2D> m_RenderImages[TBO_MAX_FRAMESINFLIGHT];
+        Ref<FrameBuffer> m_Framebuffers[TBO_MAX_FRAMESINFLIGHT];
 
-        Ptr<CommandBuffer> m_RenderBuffers[TBO_MAX_FRAMESINFLIGHT];
+        Ref<CommandBuffer> m_RenderBuffers[TBO_MAX_FRAMESINFLIGHT];
 
         // Texture slots
-        std::array<Ptr<Texture2D>, MaxTextureSlots> m_TextureSlots;
+        std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;
         u32 m_TextureSlotsIndex;
 
         glm::vec4 m_ClearColor;

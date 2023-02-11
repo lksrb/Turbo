@@ -26,7 +26,7 @@ namespace Turbo
         VkFramebufferCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         createInfo.pNext = nullptr;
-        createInfo.renderPass = dynamic_cast<VulkanRenderPass*>(m_Config.Renderpass)->GetRenderPass();
+        createInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
         createInfo.width = width;
         createInfo.height = height;
         createInfo.layers = 1;
@@ -36,7 +36,7 @@ namespace Turbo
 
         for (u32 i = 0; i < m_Config.AttachmentsCount; ++i)
         {
-            attachments[i] = (dynamic_cast<VulkanImage2D*>(m_Config.Attachments[i].Image))->GetImageView();
+            attachments[i] = m_Config.Attachments[i].Image.As<VulkanImage2D>()->GetImageView();
         }
 
 

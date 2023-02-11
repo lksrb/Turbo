@@ -14,9 +14,9 @@ namespace Turbo
     {
     }
 
-    Image2D* Image2D::Create(const Image2D::Config& config)
+    Ref<Image2D> Image2D::Create(const Image2D::Config& config)
     {
-        return new VulkanImage2D(config);
+        return Ref<VulkanImage2D>::Create(config);
     }
 
     void Image2D::SetExtent(u32 width, u32 height)

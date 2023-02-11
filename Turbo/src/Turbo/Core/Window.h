@@ -38,7 +38,7 @@ namespace Turbo {
         virtual void SetTitle(const FString64& title) = 0;
         bool IsFocused() const;
 
-        Ptr<SwapChain> GetSwapchain() const;
+        Ref<SwapChain> GetSwapchain() const;
         const FString64& GetTitle() const;
         u32 GetWidth() const;
         u32 GetHeight() const;
@@ -49,7 +49,7 @@ namespace Turbo {
         Window(const Window::Config& specification);
         virtual void InitializeSwapchain() = 0;
     protected:
-        Ptr<SwapChain> m_Swapchain;
+        Ref<SwapChain> m_Swapchain;
 
         bool m_Focused;
         bool m_Minimized;

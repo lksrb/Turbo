@@ -42,7 +42,6 @@ namespace Turbo
 
     VulkanImage2D::~VulkanImage2D()
     {
-
     }
 
     void VulkanImage2D::Invalidate(u32 width, u32 height)

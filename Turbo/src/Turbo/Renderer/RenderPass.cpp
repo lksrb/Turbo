@@ -10,9 +10,9 @@ namespace Turbo
     {
     }
 
-    RenderPass* RenderPass::Create(const RenderPass::Config& config)
+    Ref<RenderPass> RenderPass::Create(const RenderPass::Config& config)
     {
-        return new VulkanRenderPass(config);
+        return Ref<VulkanRenderPass>::Create(config);
     }
 
     RenderPass::~RenderPass()

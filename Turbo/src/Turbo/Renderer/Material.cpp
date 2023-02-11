@@ -14,9 +14,9 @@ namespace Turbo
     {
     }
 
-    Material* Material::Create(const Material::Config& config)
+    Ref<Material> Material::Create(const Material::Config& config)
     {
-        return new VulkanMaterial(config);
+        return Ref<VulkanMaterial>::Create(config);
     }
 
 }

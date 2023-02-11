@@ -20,18 +20,18 @@ namespace Turbo
     {
     }
 
-    Ptr<Texture2D> Texture2D::Create(const Texture2D::Config& config)
+    Ref<Texture2D> Texture2D::Create(const Texture2D::Config& config)
     {
-        return new VulkanTexture2D(config);
+        return Ref<VulkanTexture2D>::Create(config);
     }
 
-    Ptr<Texture2D> Texture2D::Create(u32 color)
+    Ref<Texture2D> Texture2D::Create(u32 color)
     {
-        return new VulkanTexture2D(color);
+        return Ref<VulkanTexture2D>::Create(color);
     }
 
     // SubTexture2D
-    SubTexture2D::SubTexture2D(Ptr<Texture2D> texture, const glm::vec2& min, const glm::vec2 max)
+    SubTexture2D::SubTexture2D(Ref<Texture2D> texture, const glm::vec2& min, const glm::vec2 max)
         : m_Texture(texture)
     {
         m_TexCoords[0] = { min.x, min.y };
@@ -40,10 +40,10 @@ namespace Turbo
         m_TexCoords[3] = { min.x, max.y };
     }
 
-    Ptr<SubTexture2D> SubTexture2D::CreateFromTexture(Ptr<Texture2D> texture, const glm::vec2& coords, const glm::vec2 spriteSize)
+    Ref<SubTexture2D> SubTexture2D::CreateFromTexture(Ref<Texture2D> texture, const glm::vec2& coords, const glm::vec2 spriteSize)
     {
         glm::vec2 min = { (coords.x * spriteSize.x) / texture->GetWidth(), (coords.y * spriteSize.y) / texture->GetHeight() };
         glm::vec2 max = { ((coords.x + 1) * spriteSize.x) / texture->GetWidth(), ((coords.y + 1) * spriteSize.y) / texture->GetHeight() };
-        return new SubTexture2D(texture, min, max);
+        return Ref<SubTexture2D>::Create(texture, min, max);
     }
 }

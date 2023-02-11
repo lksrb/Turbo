@@ -10,7 +10,7 @@ namespace Turbo
             size_t Size;
         };
         
-        static VertexBuffer* Create(const VertexBuffer::Config& config);
+        static Ref<VertexBuffer> Create(const VertexBuffer::Config& config);
         virtual ~VertexBuffer();
 
         virtual void SetData(void* data, u32 size) = 0;

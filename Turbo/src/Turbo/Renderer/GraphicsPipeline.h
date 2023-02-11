@@ -4,6 +4,7 @@
 
 #include "Shader.h"
 #include "RenderPass.h"
+#include "Framebuffer.h"
 
 namespace Turbo 
 {
@@ -18,14 +19,14 @@ namespace Turbo
     public:
         struct Config 
         {
-            Ptr<RenderPass> Renderpass;
-            Ptr<Shader> Shader;
-            Ptr<FrameBuffer> TargetFramebuffer;
+            Ref<RenderPass> Renderpass;
+            Ref<Shader> Shader;
+            Ref<FrameBuffer> TargetFramebuffer;
             PrimitiveTopology Topology;
             bool DepthTesting;
         };
 
-        static GraphicsPipeline* Create(const GraphicsPipeline::Config& config);
+        static Ref<GraphicsPipeline> Create(const GraphicsPipeline::Config& config);
         virtual ~GraphicsPipeline();
 
         virtual void Invalidate() = 0;

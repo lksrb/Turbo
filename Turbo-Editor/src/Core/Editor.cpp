@@ -19,8 +19,6 @@ namespace Turbo::Ed
     {
     }
 
-    static Ptr<Texture2D> t;
-
     void Editor::OnInitialize()
     {
         m_CurrentPath = Platform::GetCurrentPath();
@@ -29,14 +27,10 @@ namespace Turbo::Ed
         m_NewProjectPopup.SetCallback(TBO_BIND_FN(Editor::OnCreateProject));
 
         m_SceneRenderer = new SceneRenderer;
-
-        t = Texture2D::Create({ "Assets/PacMan.png" });
     }
 
     void Editor::OnShutdown()
     {
-        delete t;
-
         delete m_CurrentProject;
         m_CurrentProject = nullptr;
 
@@ -193,14 +187,14 @@ namespace Turbo::Ed
                     TBO_ENGINE_WARN("Entity Added!");
                     Entity e = m_CurrentScene->CreateEntity();
 
-                    auto& transform = e.Transform();
+                   /* auto& transform = e.Transform();
 
                     static float x = 0.0f;
                     transform.Translation.y = x;
                     ++x;
                     auto& src = e.AddComponent<SpriteRendererComponent>();
 
-                    src.Texture = t;
+                    src.Texture = t;*/
                 }
 
                 if (ImGui::MenuItem("New Camera Entity"))

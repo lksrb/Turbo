@@ -2,8 +2,8 @@
 
 #include "Turbo/Core/Common.h"
 
-//#include "Turbo/Renderer/Image2D.h"
-//#include "Turbo/Renderer/RenderPass.h"
+#include "Turbo/Renderer/Image2D.h"
+#include "Turbo/Renderer/RenderPass.h"
 
 #define TBO_FRAMEBUFFER_MAX_ATTACHMENTS 4
 
@@ -39,7 +39,7 @@ namespace Turbo
 
         struct Attachment
         {
-            Image2D* Image;
+            Ref<Image2D> Image;
 
             ColorWriteMask ColorMask;
             bool EnableBlend;
@@ -50,15 +50,15 @@ namespace Turbo
 
         struct Config
         {
-            RenderPass* Renderpass;
+            Ref<RenderPass> Renderpass;
             Attachment Attachments[TBO_FRAMEBUFFER_MAX_ATTACHMENTS];
             u32 AttachmentsCount;
-            Ptr<Image2D> DepthBuffer;
+            Ref<Image2D> DepthBuffer;
         };
 
         virtual ~FrameBuffer();
 
-        static FrameBuffer* Create(const FrameBuffer::Config& config);
+        static Ref<FrameBuffer> Create(const FrameBuffer::Config& config);
         
         const FrameBuffer::Config& GetConfig() const { return m_Config; }
 

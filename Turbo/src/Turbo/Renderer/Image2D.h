@@ -61,7 +61,7 @@ namespace Turbo
 
         virtual ~Image2D();
 
-        static Image2D* Create(const Image2D::Config& config);
+        static Ref<Image2D> Create(const Image2D::Config& config);
 
         const Image2D::Config& GetConfig() const { return m_Config; }
         u32 GetWidth() const { return m_Width; }

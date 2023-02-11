@@ -78,7 +78,6 @@ namespace Turbo
 
     VulkanTexture2D::~VulkanTexture2D()
     {
-        delete m_TextureImage;
     }
 
     void VulkanTexture2D::Invalidate(u32 width, u32 height)

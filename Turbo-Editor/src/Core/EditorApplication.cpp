@@ -8,10 +8,10 @@ Turbo::Application* Turbo::CreateApplication()
     config.Width = 1600;
     config.Height = 900;
     config.Title = "TurboEditor";
-    config.VSync = true;
+    config.VSync = true; // TODO: Swapchain enable vsync
     config.Resizable = true;
     config.StartMaximized = false;
-    //specification.EnableUI = false;
+    config.EnableUI = true;
 
     return new Turbo::Ed::Editor(config);
 }

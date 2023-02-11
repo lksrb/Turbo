@@ -15,7 +15,7 @@ namespace Turbo
             u32 MemoryFlags;    // VkMemoryPropertyFlags
             bool Temporary;
         };
-        static RendererBuffer* Create(const RendererBuffer::Config& config);
+        static Ref<RendererBuffer> Create(const RendererBuffer::Config& config);
         virtual ~RendererBuffer();
 
         virtual void SetData(const void* data) = 0;

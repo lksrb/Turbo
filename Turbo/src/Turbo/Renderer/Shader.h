@@ -64,7 +64,7 @@ namespace Turbo
             TextureSamplerArray TextureSamplerArray;
         };
 
-        static Shader* Create(const Shader::Config& config);
+        static Ref<Shader> Create(const Shader::Config& config);
         virtual ~Shader();
 
         // TODO: Hot reloading

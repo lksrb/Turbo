@@ -10,14 +10,13 @@ namespace Turbo
     {
     }
 
-    VertexBuffer* VertexBuffer::Create(const VertexBuffer::Config& config)
+    Ref<VertexBuffer> VertexBuffer::Create(const VertexBuffer::Config& config)
     {
-        return new VulkanVertexBuffer(config);
+        return Ref<VulkanVertexBuffer>::Create(config);
     }
 
     VertexBuffer::~VertexBuffer()
     {
-
     }
 
 }

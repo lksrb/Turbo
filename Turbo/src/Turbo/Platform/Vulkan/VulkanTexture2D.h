@@ -21,13 +21,13 @@ namespace Turbo
         u64 GetHash() const override { return (u64)m_TextureImage.As<VulkanImage2D>()->GetImageView(); }
 
         VkSampler GetSampler() const { return m_Sampler; }
-        Ptr<Image2D> GetImage2D() const { return m_TextureImage; }
+        Ref<Image2D> GetImage2D() const { return m_TextureImage; }
     private:
         void Transfer(const void* pixels, size_t size);
 
         void CreateTextureSampler();
 
         VkSampler m_Sampler;
-        Ptr<Image2D> m_TextureImage;
+        Ref<Image2D> m_TextureImage;
     };
 }

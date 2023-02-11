@@ -14,9 +14,9 @@ namespace Turbo
     {
     }
 
-    IndexBuffer* IndexBuffer::Create(const IndexBuffer::Config& config)
+    Ref<IndexBuffer> IndexBuffer::Create(const IndexBuffer::Config& config)
     {
-        return new VulkanIndexBuffer(config);
+        return Ref<VulkanIndexBuffer>::Create(config);
     }
 
 }

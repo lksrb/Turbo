@@ -37,7 +37,7 @@ namespace Turbo
         buffer->SetData(data);
     }
 
-    void VulkanMaterial::Set(const FString32& resourceName, const Ptr<Texture2D>& texture, u32 index)
+    void VulkanMaterial::Set(const FString32& resourceName, const Ref<Texture2D>& texture, u32 index)
     {
         VkDevice device = RendererContext::GetDevice();
 
@@ -46,7 +46,7 @@ namespace Turbo
         TBO_ENGINE_ASSERT(resource != m_DescriptorWrites.end()); // No such descriptor exists
 
         // Convert texture2D 
-        const VulkanTexture2D* vulkanTexture = texture.As<VulkanTexture2D>();
+        Ref<VulkanTexture2D> vulkanTexture = texture.As<VulkanTexture2D>();
 
         // Set texture index with specific write descriptor 
         m_TextureDescriptorInfos[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -99,7 +99,7 @@ namespace Turbo
         });
 
         // Writing to Descriptor set
-        VulkanShader* shader = m_Config.MaterialShader.As<VulkanShader>();
+        Ref<VulkanShader> shader = m_Config.MaterialShader.As<VulkanShader>();
         Shader::Resources resources = shader->GetResources();
         {
             // Uniform buffers

@@ -10,7 +10,7 @@
 namespace Turbo {
    
     Window::Window(const Window::Config& specification)
-        : m_Config(specification), m_Callback(nullptr), m_Swapchain(nullptr), m_Minimized(false), m_Focused(false)
+        : m_Config(specification), m_Callback(nullptr), m_Minimized(false), m_Focused(false)
     {
     }
 
@@ -41,7 +41,7 @@ namespace Turbo {
         return m_Focused;
 	}
 
-    Ptr<SwapChain> Window::GetSwapchain() const
+    Ref<SwapChain> Window::GetSwapchain() const
     {
         return m_Swapchain;
     }

@@ -45,7 +45,7 @@ namespace Turbo {
 
     Win32_Window::~Win32_Window()
     {
-        delete m_Swapchain;
+        //m_Swapchain.Reset();
 
         ::DestroyWindow(m_Handle);
         ::UnregisterClass(s_ClassName, m_Instance);
@@ -59,7 +59,7 @@ namespace Turbo {
 
     void Win32_Window::InitializeWindow()
     {
-        Filepath currentDirectory = Platform::GetCurrentPath() / "Assets" / "Icon.ico";
+        Filepath currentDirectory = Platform::GetCurrentPath() / "Resources" / "Icons" / "EditorIcon.ico";
 
         m_Instance = ::GetModuleHandle(NULL);
         WNDCLASS wndClass = {};

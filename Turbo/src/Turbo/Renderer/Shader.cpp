@@ -14,9 +14,9 @@ namespace Turbo
     {
     }
 
-    Shader* Shader::Create(const Shader::Config& config)
+    Ref<Shader> Shader::Create(const Shader::Config& config)
     {
         TBO_ENGINE_ASSERT(config.Language == ShaderLanguage::GLSL, "HLSL not supported yet!");
-        return new VulkanShader(config);
+        return Ref<VulkanShader>::Create(config);
     }
 }

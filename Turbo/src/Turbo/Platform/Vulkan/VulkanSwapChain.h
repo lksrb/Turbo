@@ -27,10 +27,10 @@ namespace Turbo
         
         VkCommandBuffer GetCurrentRenderCommandBuffer() const;
         VkFramebuffer GetCurrentFramebuffer() const;
-        VulkanRenderPass* GetRenderPass() const;
+        Ref<RenderPass> GetRenderPass() const;
         u32 GetCurrentFrame() const;
 
-        Ptr<Image2D> GetDepthBuffer() const { return m_DepthBuffer; }
+        Ref<Image2D> GetDepthBuffer() const { return m_DepthBuffer; }
     private:
         void Initialize();
         void Shutdown();
@@ -47,7 +47,7 @@ namespace Turbo
         void Cleanup();
     private:
         VkSwapchainKHR m_Swapchain;
-        VulkanRenderPass* m_Renderpass;
+        Ref<RenderPass> m_Renderpass;
 
         VkSemaphore m_RenderFinishedSemaphores[TBO_MAX_FRAMESINFLIGHT];
         VkSemaphore m_PresentSemaphores[TBO_MAX_FRAMESINFLIGHT];
@@ -58,7 +58,7 @@ namespace Turbo
         VkCommandBuffer m_RenderCommandBuffers[TBO_MAX_FRAMESINFLIGHT];
 
         // Temporary
-        Ptr<Image2D> m_DepthBuffer;
+        Ref<Image2D> m_DepthBuffer;
 
         VkFormat m_SwapchainFormat;
 

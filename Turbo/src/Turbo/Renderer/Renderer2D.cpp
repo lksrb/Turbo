@@ -41,7 +41,7 @@ namespace Turbo
         m_RenderPass->Invalidate();*/
 
         // TODO: Separate swapchain from rendering
-        VulkanSwapChain* swapChain = Engine::Get().GetViewportWindow()->GetSwapchain().As<VulkanSwapChain>();
+        Ref<VulkanSwapChain> swapChain = Engine::Get().GetViewportWindow()->GetSwapchain().As<VulkanSwapChain>();
         m_RenderPass = swapChain->GetRenderPass();
 
         // Render images
@@ -135,7 +135,6 @@ namespace Turbo
             shaderConfig.ShaderPath = "assets\\Shaders\\Renderer2D_Quad.glsl";
             m_QuadShader = Shader::Create(shaderConfig);
 
-
             // Graphics pipeline
             GraphicsPipeline::Config config = {};
             config.Shader = m_QuadShader;
@@ -160,23 +159,7 @@ namespace Turbo
 
     void Renderer2D::Shutdown()
     {
-        delete m_WhiteTexture;
-        delete m_QuadMaterial;
-        delete m_QuadShader;
-        delete m_QuadPipeline;
-        delete m_QuadVertexBuffer;
         delete m_QuadVertexBufferBase;
-        delete m_QuadIndexBuffer;
-
-        //delete m_DepthImage;
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
-        {
-            delete m_RenderBuffers[i];
-            delete m_RenderImages[i];
-            delete m_Framebuffers[i];
-        }
-
-        delete m_RenderPass;
     }
 
     void Renderer2D::Begin(const Camera& camera)
@@ -247,7 +230,7 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ptr<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/)
+    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
@@ -297,7 +280,7 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ptr<SubTexture2D> subTexture, f32 tiling, i32 entityID /*= -1*/)
+    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entityID /*= -1*/)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
@@ -377,7 +360,7 @@ namespace Turbo
 
             // Record buffer
             Window* viewportWindow = Engine::Get().GetViewportWindow();
-            VulkanSwapChain* swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+            Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
 
             u32 currentFrame = swapChain->GetCurrentFrame();
             u32 windowWidth = viewportWindow->GetWidth();
@@ -387,7 +370,7 @@ namespace Turbo
 
             VkCommandBufferInheritanceInfo inheritanceInfo = {};
             inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-            inheritanceInfo.renderPass = swapChain->GetRenderPass()->GetRenderPass();
+            inheritanceInfo.renderPass = swapChain->GetRenderPass().As<VulkanRenderPass>()->GetRenderPass();
             inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
 
             VkCommandBufferBeginInfo cmdBufInfo = {};

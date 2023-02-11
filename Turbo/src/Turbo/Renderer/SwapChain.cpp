@@ -13,8 +13,8 @@ namespace Turbo
     {
     }
 
-    SwapChain* SwapChain::Create()
+    Ref<SwapChain> SwapChain::Create()
     {
-        return new VulkanSwapChain;
+        return Ref<VulkanSwapChain>::Create();
     }
 }

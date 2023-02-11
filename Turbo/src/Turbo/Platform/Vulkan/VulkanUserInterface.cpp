@@ -279,14 +279,14 @@ namespace Turbo
          {
              const Window* viewportWindow = Engine::Get().GetViewportWindow();
 
-             VulkanSwapChain* swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+             Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
 
              u32 width = viewportWindow->GetWidth();
              u32 height = viewportWindow->GetHeight();
              u32 currentFrame = swapChain->GetCurrentFrame();
              VkCommandBufferInheritanceInfo inheritanceInfo = {};
              inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-             inheritanceInfo.renderPass = swapChain->GetRenderPass()->GetRenderPass();
+             inheritanceInfo.renderPass = swapChain->GetRenderPass().As<VulkanRenderPass>()->GetRenderPass();
              inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
 
              VkCommandBufferBeginInfo cmdBufInfo = {};
@@ -414,7 +414,10 @@ namespace Turbo
         init_info.Allocator = nullptr;
         init_info.CheckVkResultFn = CheckVkResult;
 
-        ImGui_ImplVulkan_Init(&init_info, viewportWindow->GetSwapchain().As<VulkanSwapChain>()->GetRenderPass()->GetRenderPass());
+        auto swapchain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+        auto renderPass = swapchain->GetRenderPass().As<VulkanRenderPass>();
+
+        ImGui_ImplVulkan_Init(&init_info, renderPass->GetRenderPass());
 
         // Submits and wait till the command buffer is finished
         RendererContext::ImmediateSubmit([](VkCommandBuffer commandBuffer)

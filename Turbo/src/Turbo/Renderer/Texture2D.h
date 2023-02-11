@@ -15,8 +15,8 @@ namespace Turbo
             Filepath FilePath;
         };
 
-        static Ptr<Texture2D> Create(const Texture2D::Config& config);
-        static Ptr<Texture2D> Create(u32 color);
+        static Ref<Texture2D> Create(const Texture2D::Config& config);
+        static Ref<Texture2D> Create(u32 color);
 
         u32 GetWidth() const { return m_Width; }
         u32 GetHeight() const { return m_Height; }
@@ -35,19 +35,19 @@ namespace Turbo
         Texture2D::Config m_Config;
     };
 
+    // TODO: Remove and make this an texture2D feature
     class SubTexture2D
     {
     public:
-        static Ptr<SubTexture2D> CreateFromTexture(Ptr<Texture2D> texture, const glm::vec2& coords, const glm::vec2 spriteSize);
+        SubTexture2D(Ref<Texture2D> texture, const glm::vec2& min, const glm::vec2 max);
 
-        Ptr<Texture2D> GetTexture() const { return m_Texture; }
+        static Ref<SubTexture2D> CreateFromTexture(Ref<Texture2D> texture, const glm::vec2& coords, const glm::vec2 spriteSize);
+
+        Ref<Texture2D> GetTexture() const { return m_Texture; }
 
         std::array<glm::vec2, 4> GetCoords() const { return m_TexCoords; }
-    private:
-        SubTexture2D(Ptr<Texture2D> texture, const glm::vec2& min, const glm::vec2 max);
-
+    protected:
         std::array<glm::vec2, 4> m_TexCoords;
-
-        Ptr<Texture2D> m_Texture;
+        Ref<Texture2D> m_Texture;
     };
 }

@@ -13,7 +13,7 @@ namespace Turbo
     class CommandBuffer
     {
     public:
-        static CommandBuffer* Create(CommandBufferLevel type);
+        static Ref<CommandBuffer> Create(CommandBufferLevel type);
         virtual ~CommandBuffer();
 
         virtual void Begin() = 0;

@@ -14,10 +14,10 @@ namespace Turbo
     {
     }
 
-    RendererBuffer* RendererBuffer::Create(const RendererBuffer::Config& config)
+    Ref<RendererBuffer> RendererBuffer::Create(const RendererBuffer::Config& config)
     {
-        TBO_ENGINE_ASSERT(config.Size);
-        return new VulkanBuffer(config);
+        TBO_ENGINE_ASSERT(config.Size != 0);
+        return Ref<VulkanBuffer>::Create(config);
     }
 
 

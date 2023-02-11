@@ -41,7 +41,7 @@ namespace Turbo
         m_DepthBuffer = Image2D::Create(imageConfig);
         m_DepthBuffer->Invalidate(1600, 900);
 
-        m_Renderpass = new VulkanRenderPass({ m_DepthBuffer });
+        m_Renderpass = RenderPass::Create({ m_DepthBuffer }); 
 
         CreateRenderpass();
         CreateSyncObjects();
@@ -54,8 +54,6 @@ namespace Turbo
 
         TBO_VK_ASSERT(vkAllocateCommandBuffers(RendererContext::GetDevice(),
             &allocInfo, m_RenderCommandBuffers));
-
-        
 
         /* // Depth buffer
         {
@@ -71,7 +69,7 @@ namespace Turbo
 
         Cleanup();
 
-        delete m_DepthBuffer;
+        //m_DepthBuffer.Reset();
         //delete m_Renderpass;
         //vkDestroySurfaceKHR(RendererContext::GetInstance(), I->Surface, nullptr);
         //vkDestroyRenderPass(device, m_Renderpass, nullptr);
@@ -178,7 +176,7 @@ namespace Turbo
         return m_Framebuffers[m_ImageIndex];
     }
 
-    VulkanRenderPass* VulkanSwapChain::GetRenderPass() const
+    Ref<RenderPass> VulkanSwapChain::GetRenderPass() const
     {
         return m_Renderpass;
     }
@@ -227,7 +225,7 @@ namespace Turbo
 
                 VkRenderPassBeginInfo renderPassBeginInfo = {};
                 renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                renderPassBeginInfo.renderPass = m_Renderpass->GetRenderPass();
+                renderPassBeginInfo.renderPass = m_Renderpass.As<VulkanRenderPass>()->GetRenderPass();
                 renderPassBeginInfo.renderArea.offset.x = 0;
                 renderPassBeginInfo.renderArea.offset.y = 0;
                 renderPassBeginInfo.renderArea.extent = { width, height };
@@ -491,7 +489,7 @@ namespace Turbo
 
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = m_Renderpass->GetRenderPass();
+            framebufferInfo.renderPass = m_Renderpass.As<VulkanRenderPass>()->GetRenderPass();
             framebufferInfo.attachmentCount = 2;
             framebufferInfo.pAttachments = attachments;
             framebufferInfo.width = width;
