@@ -68,17 +68,17 @@ namespace Turbo
 
     Filepath& Filepath::operator/=(const FString64& other)
     {
-        return Filepath::operator/=(other.c_str());
+        return Filepath::operator/=(other.CStr());
     }
 
     Filepath Filepath::operator/(const FString64& other)
     {
-        return Filepath::operator/(other.c_str());
+        return Filepath::operator/(other.CStr());
     }
 
     Filepath& Filepath::operator/=(const Filepath& other)
     {
-        return Filepath::operator/=(other.c_str());
+        return Filepath::operator/=(other.CStr());
     }
 
     Filepath& Filepath::Append(const char* str)

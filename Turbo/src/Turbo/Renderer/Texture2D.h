@@ -3,6 +3,8 @@
 #include "Turbo/Core/Common.h"
 #include "Turbo/Core/Filepath.h"
 
+#include "Image2D.h"
+
 #include <glm/glm.hpp>
 
 namespace Turbo
@@ -21,6 +23,9 @@ namespace Turbo
         u32 GetWidth() const { return m_Width; }
         u32 GetHeight() const { return m_Height; }
 
+        Filepath GetFilepath() const { return m_Config.FilePath; }
+
+        virtual Ref<Image2D> GetImage() const = 0;
         virtual u64 GetHash() const = 0;
         virtual void Invalidate(u32 width, u32 height) = 0;
         virtual ~Texture2D();

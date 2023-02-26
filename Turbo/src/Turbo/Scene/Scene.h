@@ -30,13 +30,13 @@ namespace Turbo
         Scene(const Scene::Config& config);
         ~Scene();
 
-        void OnEditorUpdate(Time_T ts) {}
-        void OnEditorRender(SceneRenderer* renderer) {}
+        void OnEditorUpdate(Time_T ts);
+        void OnEditorRender(Ref<SceneRenderer> renderer);
 
         void OnRuntimeStart();
         void OnRuntimeStop();
         void OnRuntimeUpdate(Time_T ts);
-        void OnRuntimeRender(SceneRenderer* renderer);
+        void OnRuntimeRender(Ref<SceneRenderer> renderer);
 
         Entity CreateEntity(const FString64& tag = "");
         Entity CreateEntityWithUUID(UUID uuid, const FString64& tag = "");
@@ -69,6 +69,7 @@ namespace Turbo
 
         friend class Entity;
         friend class SceneSerializer;
+        friend class SceneSerializer2;
         friend class ProjectSerializer;
     };
 }

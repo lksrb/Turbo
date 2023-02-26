@@ -186,7 +186,7 @@ namespace Turbo
         return m_CurrentFrame;
     }
 
-    void VulkanSwapChain::NewFrame()
+	void VulkanSwapChain::NewFrame()
     {
         u32 currentFrame = m_CurrentFrame;
         VkSemaphore currentSemaphore = m_PresentSemaphores[currentFrame];

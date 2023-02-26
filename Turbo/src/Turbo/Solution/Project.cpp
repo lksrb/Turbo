@@ -15,15 +15,14 @@ namespace Turbo
 
     Project::~Project()
     {
-        delete m_Config.DefaultScene;
     }
 
-    Project* Project::CreateDefault(const Filepath& rootDirectory, const FString64& projectName)
+    Ref<Project> Project::CreateDefault(const Filepath& rootDirectory, const FString64& projectName)
     {
         Scene::Config sceneConfig = {};
         sceneConfig.RelativePath = "Assets\\Scenes\\BlankScene";
         sceneConfig.Name = "BlankScene";
-        Scene* defaultScene = new Scene(sceneConfig);
+        Ref<Scene>& defaultScene = Ref<Scene>::Create(sceneConfig);
 
         defaultScene->CreateEntity("Entity");
         defaultScene->CreateEntity("Entity2");
@@ -31,10 +30,10 @@ namespace Turbo
         Project::Config projectConfig = {};
         projectConfig.Name = projectName;
         projectConfig.RootDirectory = rootDirectory;
-        projectConfig.DefaultScene = defaultScene;
-        projectConfig.Scenes.push_back(projectConfig.DefaultScene);
+        projectConfig.StartupScene = defaultScene;
+        projectConfig.Scenes.push_back(projectConfig.StartupScene);
 
-        Project* project = new Project(projectConfig);
+        Ref<Project> project = Ref<Project>::Create(projectConfig);
 
         // Serialize new project
         ProjectSerializer projectSerializer(project);
@@ -43,9 +42,9 @@ namespace Turbo
         return project;
     }
 
-    Project* Project::Deserialize(const Filepath& projectFilepath)
+    Ref<Project> Project::Deserialize(const Filepath& projectFilepath)
     {
-        Project* project = new Project;
+        Ref<Project> project = Ref<Project>::Create();
         ProjectSerializer serializer(project);
         {
             Benchmark::ScopeTimer timer("Project Deserialization");

@@ -39,7 +39,7 @@ namespace Turbo
         Turbo::Engine* Engine;
         Turbo::Window* Window;
         Turbo::Time Time;
-    private:
+
         Application::Config m_Config;
 
         friend class Window;

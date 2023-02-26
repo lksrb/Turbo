@@ -28,9 +28,11 @@ namespace Turbo
         VkCommandBuffer GetCurrentRenderCommandBuffer() const;
         VkFramebuffer GetCurrentFramebuffer() const;
         Ref<RenderPass> GetRenderPass() const;
-        u32 GetCurrentFrame() const;
+        u32 GetCurrentFrame() const override;
 
         Ref<Image2D> GetDepthBuffer() const { return m_DepthBuffer; }
+
+
     private:
         void Initialize();
         void Shutdown();

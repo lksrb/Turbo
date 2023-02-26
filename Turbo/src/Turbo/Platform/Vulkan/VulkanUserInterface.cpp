@@ -264,81 +264,6 @@ namespace Turbo
         ImGui::DestroyContext();
     }
 
-    void VulkanUserInterface::BeginUI()
-    {
-        ImGui_ImplWin32_NewFrame();
-        ImGui_ImplVulkan_NewFrame();
-        ImGui::NewFrame();
-    }
-
-    void VulkanUserInterface::EndUI()
-    {
-         ImGui::Render();
-
-         // This can be recorded pararelly 
-         {
-             const Window* viewportWindow = Engine::Get().GetViewportWindow();
-
-             Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
-
-             u32 width = viewportWindow->GetWidth();
-             u32 height = viewportWindow->GetHeight();
-             u32 currentFrame = swapChain->GetCurrentFrame();
-             VkCommandBufferInheritanceInfo inheritanceInfo = {};
-             inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-             inheritanceInfo.renderPass = swapChain->GetRenderPass().As<VulkanRenderPass>()->GetRenderPass();
-             inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
-
-             VkCommandBufferBeginInfo cmdBufInfo = {};
-             cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-             cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-             cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
-
-             TBO_VK_ASSERT(vkBeginCommandBuffer(m_SecondaryBuffers[currentFrame], &cmdBufInfo));
-             {
-                 VkViewport viewport = {};
-                 viewport.x = 0.0f;
-                 viewport.y = 0.0f;
-                 viewport.width = (float)width;
-                 viewport.height = -(float)height;
-                 viewport.minDepth = 0.0f;
-                 viewport.maxDepth = 1.0f;
-                 vkCmdSetViewport(m_SecondaryBuffers[currentFrame], 0, 1, &viewport);
-
-                 VkRect2D scissor = {};
-                 scissor.extent.width = width;
-                 scissor.extent.height = height;
-                 scissor.offset.x = 0;
-                 scissor.offset.y = 0;
-                 vkCmdSetScissor(m_SecondaryBuffers[currentFrame], 0, 1, &scissor);
-
-                 // Record dear imgui primitives into command buffer
-                 ImDrawData* main_draw_data = ImGui::GetDrawData();
-                 ImGui_ImplVulkan_RenderDrawData(main_draw_data, m_SecondaryBuffers[currentFrame]);
-             }
-             TBO_VK_ASSERT(vkEndCommandBuffer(m_SecondaryBuffers[currentFrame]));
-
-             // Submit secondary buffer
-             swapChain->SubmitSecondary(m_SecondaryBuffers[currentFrame]);
-         }
-
-         ImGuiIO& io = ImGui::GetIO();
-
-         // Update and Render additional Platform Windows
-         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-         {
-             ImGui::UpdatePlatformWindows();
-             ImGui::RenderPlatformWindowsDefault();
-         }
-    }
-
-    void VulkanUserInterface::OnEvent(Event& e)
-    {
-        ImGuiIO& io = ImGui::GetIO();
-        e.Handled |= e.IsInCategory(EventCategory_Mouse) & io.WantCaptureMouse;
-        e.Handled |= e.IsInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
-    }
-
     void VulkanUserInterface::CreateImGuiContext()
     {
         VkDevice device = RendererContext::GetDevice();
@@ -347,8 +272,8 @@ namespace Turbo
 
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-        //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;			// Enable Multi-Viewport / Platform Windows
 
         io.Fonts->AddFontDefault();
@@ -429,5 +354,80 @@ namespace Turbo
 
         // Create secondary command buffers for each frame in flight
         RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers, TBO_MAX_FRAMESINFLIGHT);
+    }
+
+    void VulkanUserInterface::BeginUI()
+    {
+        ImGui_ImplWin32_NewFrame();
+        ImGui_ImplVulkan_NewFrame();
+        ImGui::NewFrame();
+    }
+
+    void VulkanUserInterface::EndUI()
+    {
+         ImGui::Render();
+
+         // This can be recorded pararelly 
+         {
+             const Window* viewportWindow = Engine::Get().GetViewportWindow();
+
+             Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+
+             u32 width = viewportWindow->GetWidth();
+             u32 height = viewportWindow->GetHeight();
+             u32 currentFrame = swapChain->GetCurrentFrame();
+             VkCommandBufferInheritanceInfo inheritanceInfo = {};
+             inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+             inheritanceInfo.renderPass = swapChain->GetRenderPass().As<VulkanRenderPass>()->GetRenderPass();
+             inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
+
+             VkCommandBufferBeginInfo cmdBufInfo = {};
+             cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+             cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+             cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
+
+             TBO_VK_ASSERT(vkBeginCommandBuffer(m_SecondaryBuffers[currentFrame], &cmdBufInfo));
+             {
+                 VkViewport viewport = {};
+                 viewport.x = 0.0f;
+                 viewport.y = 0.0f;
+                 viewport.width = (float)width;
+                 viewport.height = -(float)height;
+                 viewport.minDepth = 0.0f;
+                 viewport.maxDepth = 1.0f;
+                 vkCmdSetViewport(m_SecondaryBuffers[currentFrame], 0, 1, &viewport);
+
+                 VkRect2D scissor = {};
+                 scissor.extent.width = width;
+                 scissor.extent.height = height;
+                 scissor.offset.x = 0;
+                 scissor.offset.y = 0;
+                 vkCmdSetScissor(m_SecondaryBuffers[currentFrame], 0, 1, &scissor);
+
+                 // Record dear imgui primitives into command buffer
+                 ImDrawData* main_draw_data = ImGui::GetDrawData();
+                 ImGui_ImplVulkan_RenderDrawData(main_draw_data, m_SecondaryBuffers[currentFrame]);
+             }
+             TBO_VK_ASSERT(vkEndCommandBuffer(m_SecondaryBuffers[currentFrame]));
+
+             // Submit secondary buffer
+             swapChain->SubmitSecondary(m_SecondaryBuffers[currentFrame]);
+         }
+
+         ImGuiIO& io = ImGui::GetIO();
+
+         // Update and Render additional Platform Windows
+         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+         {
+             ImGui::UpdatePlatformWindows();
+             ImGui::RenderPlatformWindowsDefault();
+         }
+    }
+
+    void VulkanUserInterface::OnEvent(Event& e)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        e.Handled |= e.IsInCategory(EventCategory_Mouse) & io.WantCaptureMouse;
+        e.Handled |= e.IsInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
     }
 }

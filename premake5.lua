@@ -27,6 +27,7 @@ group ".Dependencies"
 	include "dependencies/ImGui"
 	include "dependencies/lua"
 	include "dependencies/box2d"
+	include "dependencies/yaml-cpp"
 group "Core"
 	include "Turbo"
 

@@ -78,7 +78,7 @@ namespace Turbo
 
         filepath.Append(extension);
 
-        ::CreateFileA(filepath.c_str(),
+        ::CreateFileA(filepath.CStr(),
             GENERIC_READ | GENERIC_WRITE,
             NULL,
             NULL,
@@ -88,7 +88,7 @@ namespace Turbo
 
         if (::GetLastError() == ERROR_FILE_EXISTS)
         {
-            ::CreateFileA(filepath.c_str(),
+            ::CreateFileA(filepath.CStr(),
             GENERIC_READ | GENERIC_WRITE,
             NULL,
             NULL,
@@ -102,18 +102,18 @@ namespace Turbo
 
     Platform::Result Platform::CreateDirectory(const Filepath& path)
     {
-        ::CreateDirectoryA(path.c_str(), NULL);
+        ::CreateDirectoryA(path.CStr(), NULL);
         return CheckPLATFORMError;
     }
 
     bool Platform::IsDirectoryEmpty(const Filepath& path)
     {
-        return ::PathIsDirectoryEmptyA(path.c_str());
+        return ::PathIsDirectoryEmptyA(path.CStr());
     }
 
     bool Platform::PathExists(const Filepath& path)
     {
-        return ::PathFileExistsA(path.c_str());
+        return ::PathFileExistsA(path.CStr());
     }
 
 
@@ -180,7 +180,7 @@ namespace Turbo
     void Platform::SetCurrentPath(const Filepath& path)
     {
         TBO_ENGINE_ASSERT(!path.Empty());
-        ::SetCurrentDirectoryA(path.c_str());
+        ::SetCurrentDirectoryA(path.CStr());
     }
 
     Filepath Platform::SaveFileDialog(const char* filter, const char* suffix)

@@ -13,7 +13,7 @@
 namespace Turbo
 {
     VulkanTexture2D::VulkanTexture2D(const Texture2D::Config& config)
-        : Texture2D(config), m_Sampler(VK_NULL_HANDLE)
+        : Texture2D(config)
     {
         TBO_ENGINE_ASSERT(!m_Config.FilePath.Empty());
 
@@ -22,7 +22,7 @@ namespace Turbo
 
         // Vertical flip of the texture
         stbi_set_flip_vertically_on_load(1); 
-        stbi_uc* pixels = stbi_load(m_Config.FilePath.c_str(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
+        stbi_uc* pixels = stbi_load(m_Config.FilePath.CStr(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
 
         TBO_ENGINE_ASSERT(texWidth * texHeight > 0, "Texture could not be loaded!");
 
@@ -35,9 +35,6 @@ namespace Turbo
         imageConfig.ImageFormat = Image2D::Format_RGBA8_SRGB;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(texWidth, texHeight);
-
-        // Create texture sampler
-        CreateTextureSampler();
 
         // Update width and height
         m_Width = texWidth;
@@ -53,7 +50,7 @@ namespace Turbo
     }
 
     VulkanTexture2D::VulkanTexture2D(u32 color)
-        : Texture2D(color), m_Sampler(VK_NULL_HANDLE)
+        : Texture2D(color)
     {
         // Create storage for the loaded texture
         Image2D::Config imageConfig = {};
@@ -64,9 +61,6 @@ namespace Turbo
         imageConfig.ImageFormat = Image2D::Format_RGBA8_SRGB;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(1, 1);
-
-        // Create texture sampler
-        CreateTextureSampler();
 
         // Update width and height
         m_Width = 1;
@@ -86,7 +80,7 @@ namespace Turbo
         m_Height = height;
     }
 
-    void VulkanTexture2D::Transfer(const void* pixels, size_t size)
+	void VulkanTexture2D::Transfer(const void* pixels, size_t size)
     {
         VkDevice device = RendererContext::GetDevice();
 
@@ -128,7 +122,6 @@ namespace Turbo
             );
         }
         RendererContext::FlushCommandBuffer(commandBuffer);
-
         {
             // Copy buffer to image barrier
             VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer(true);
@@ -190,42 +183,4 @@ namespace Turbo
             RendererContext::FlushCommandBuffer(commandBuffer);
         }
     }
-
-    void VulkanTexture2D::CreateTextureSampler()
-    {
-        VkDevice device = RendererContext::GetDevice();
-
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_NEAREST;
-        samplerInfo.minFilter = VK_FILTER_NEAREST;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-        /*samplerInfo.anisotropyEnable = VK_TRUE;
-        samplerInfo.maxAnisotropy = device->GetPhysicalDevice().GetSupportDetails().Properties.limits.maxSamplerAnisotropy;*/
-        samplerInfo.anisotropyEnable = VK_FALSE;
-        samplerInfo.maxAnisotropy = 1.0f;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.mipLodBias = 0.0f;
-        samplerInfo.minLod = 0.0f;
-        samplerInfo.maxLod = 0.0f;
-
-        TBO_VK_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler));
-
-        // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(SAMPLER, [device, sampler = m_Sampler]()
-        {
-            vkDestroySampler(device, sampler, nullptr);
-        });
-    }
-
 }

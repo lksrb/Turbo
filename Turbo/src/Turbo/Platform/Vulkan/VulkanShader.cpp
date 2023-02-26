@@ -161,7 +161,7 @@ namespace Turbo
     void VulkanShader::ReadAndPreprocess()
     {
         std::string sourceCode;
-        std::ifstream in(m_Config.ShaderPath.c_str(), std::ios::in | std::ios::binary); // ifstream closes itself due to RAII
+        std::ifstream in(m_Config.ShaderPath.CStr(), std::ios::in | std::ios::binary); // ifstream closes itself due to RAII
         if (in)
         {
             in.seekg(0, std::ios::end);
@@ -174,12 +174,12 @@ namespace Turbo
             }
             else
             {
-                TBO_ENGINE_ERROR("Could not read from file '{0}'", m_Config.ShaderPath.c_str());
+                TBO_ENGINE_ERROR("Could not read from file '{0}'", m_Config.ShaderPath.CStr());
             }
         }
         else
         {
-            TBO_ENGINE_ERROR("Could not open file '{0}'", m_Config.ShaderPath.c_str());
+            TBO_ENGINE_ERROR("Could not open file '{0}'", m_Config.ShaderPath.CStr());
         }
 
         const char* typeToken = "#type";
@@ -206,7 +206,7 @@ namespace Turbo
         Filepath metaDataFilepath = m_Config.ShaderPath;
         metaDataFilepath.Append(".metadata");
 
-        std::ifstream stream(metaDataFilepath.c_str(), std::ios_base::in);
+        std::ifstream stream(metaDataFilepath.CStr(), std::ios_base::in);
 
         const char* token = "LastTimeWrite=";
         size_t tokenLength = strlen(token);
@@ -223,13 +223,13 @@ namespace Turbo
 
         stream.close();
 
-        size_t lastTimeWrite = std::filesystem::last_write_time(m_Config.ShaderPath.c_str()).time_since_epoch().count();
+        size_t lastTimeWrite = std::filesystem::last_write_time(m_Config.ShaderPath.CStr()).time_since_epoch().count();
         // Changed or newly created
 
         if (cachedLastTimeWrite != lastTimeWrite)
         {
             m_Compile = true;
-            std::ofstream metaDataStream(metaDataFilepath.c_str(), std::ios_base::trunc);
+            std::ofstream metaDataStream(metaDataFilepath.CStr(), std::ios_base::trunc);
             metaDataStream << "[MetaData]\n";
             metaDataStream << "LastTimeWrite=" << lastTimeWrite << "\n";
             metaDataStream.close();
@@ -240,10 +240,10 @@ namespace Turbo
     {
         Filepath cachedPath = "assets\\Shaders\\cached";
 
-        if (!std::filesystem::exists(cachedPath.c_str()))
+        if (!std::filesystem::exists(cachedPath.CStr()))
         {
             // Cache folder does not exists, create one and compile shaders
-            std::filesystem::create_directory(cachedPath.c_str());
+            std::filesystem::create_directory(cachedPath.CStr());
             m_Compile = true;
         }
 
@@ -275,10 +275,10 @@ namespace Turbo
         {
             for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
             {
-                TBO_ENGINE_WARN("[{0}] Shader {1} is up-to-date!", Utils::ShaderTypeToString(shaderStage), m_Config.ShaderPath.c_str());
+                TBO_ENGINE_WARN("[{0}] Shader {1} is up-to-date!", Utils::ShaderTypeToString(shaderStage), m_Config.ShaderPath.CStr());
 
                 Filepath shaderFilepath = cachedPath / m_Config.ShaderPath.Filename().Append(Utils::GLShaderStageCachedVulkanFileExtension(shaderStage));
-                std::ifstream stream(shaderFilepath.c_str(), std::ios::in | std::ios::binary);
+                std::ifstream stream(shaderFilepath.CStr(), std::ios::in | std::ios::binary);
 
                 if (stream)
                 {
@@ -316,7 +316,7 @@ namespace Turbo
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
-        shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(m_ShaderSources[shaderStage], Utils::GLShaderStageToShaderC(shaderStage), m_Config.ShaderPath.c_str(), options);
+        shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(m_ShaderSources[shaderStage], Utils::GLShaderStageToShaderC(shaderStage), m_Config.ShaderPath.CStr(), options);
 
         if (result.GetCompilationStatus() != shaderc_compilation_status_success)
         {
@@ -328,7 +328,7 @@ namespace Turbo
 
         Filepath shaderFilepath = cachedPath / m_Config.ShaderPath.Filename().Append(Utils::GLShaderStageCachedVulkanFileExtension(shaderStage));
         // This should overwrite the contents of previous cached shader
-        std::ofstream out(shaderFilepath.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+        std::ofstream out(shaderFilepath.CStr(), std::ios::out | std::ios::binary | std::ios::trunc);
         if (out.is_open())
         {
             auto& data = m_CompiledShaders[shaderStage];
@@ -354,7 +354,7 @@ namespace Turbo
         spirv_cross::Compiler compiler(m_CompiledShaders[shaderStage]);
         spirv_cross::ShaderResources& resources = compiler.get_shader_resources();
 
-        TBO_ENGINE_INFO("GLSLShader::Reflect - {0} {1}", Utils::ShaderTypeToString(shaderStage), m_Config.ShaderPath.c_str());
+        TBO_ENGINE_INFO("GLSLShader::Reflect - {0} {1}", Utils::ShaderTypeToString(shaderStage), m_Config.ShaderPath.CStr());
         TBO_ENGINE_TRACE("    {0} uniform buffer(s)", resources.uniform_buffers.size());
         TBO_ENGINE_TRACE("    {0} resource(s)", resources.sampled_images.size());
 

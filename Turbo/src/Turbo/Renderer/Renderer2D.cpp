@@ -23,8 +23,6 @@ namespace Turbo
 {
     Renderer2D::Renderer2D()
     {
-        memset(this, 0, sizeof(*this));
-        Initialize();
     }
 
     Renderer2D::~Renderer2D()
@@ -45,7 +43,7 @@ namespace Turbo
         m_RenderPass = swapChain->GetRenderPass();
 
         // Render images
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
+        /*for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
             Image2D::Config config = {};
             config.ImageFormat = Image2D::Format_BGRA8_SRGB;
@@ -78,11 +76,11 @@ namespace Turbo
 
             m_Framebuffers[i] = FrameBuffer::Create(framebufferConfig);
             m_Framebuffers[i]->Invalidate(m_ViewportWidth, m_ViewportHeight);
-        }
+        }*/
 
         for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
-            m_RenderBuffers[i] = CommandBuffer::Create(CommandBufferLevel::Secondary);
+            m_RenderCommandBuffers[i] = CommandBuffer::Create(CommandBufferLevel::Secondary);
         }
 
         // Default clear color
@@ -366,7 +364,7 @@ namespace Turbo
             u32 windowWidth = viewportWindow->GetWidth();
             u32 windowHeight = viewportWindow->GetHeight();
 
-            VkCommandBuffer currentBuffer = m_RenderBuffers[currentFrame].As<VulkanCommandBuffer>()->GetCommandBuffer();
+            VkCommandBuffer currentBuffer = m_RenderCommandBuffers[currentFrame].As<VulkanCommandBuffer>()->GetCommandBuffer();
 
             VkCommandBufferInheritanceInfo inheritanceInfo = {};
             inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;

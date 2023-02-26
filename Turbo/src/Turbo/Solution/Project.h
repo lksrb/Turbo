@@ -13,21 +13,21 @@ namespace Turbo
         struct Config
         {
             FString64 Name;
-            std::vector<Scene*> Scenes;
-            Scene* DefaultScene;
+            std::vector<Ref<Scene>> Scenes;
+            Ref<Scene> StartupScene;
             Filepath RootDirectory; // Will point to the root directory of the project
         };
 
         Project(const Project::Config& config = {});
         ~Project();
 
-        static Project* CreateDefault(const Filepath& rootDirectory, const FString64& projectName);
-        static Project* Deserialize(const Filepath& projectFilepath);
+        static Ref<Project> CreateDefault(const Filepath& rootDirectory, const FString64& projectName);
+        static Ref<Project> Deserialize(const Filepath& projectFilepath);
 
         const Filepath& GetRootDirectory() const { return m_Config.RootDirectory; }
 
         const FString64& GetName() const { return m_Config.Name; }
-        Scene* GetDefaultScene() const { return m_Config.DefaultScene; }
+        Ref<Scene> GetStartupScene() const { return m_Config.StartupScene; }
 
     private:
         Project::Config m_Config;

@@ -5,13 +5,12 @@
 #include "Turbo/Solution/Project.h"
 #include "Turbo/Benchmark/ScopeTimer.h"
 
-#include <imgui.h>
+#include "Turbo/UI/UI.h"
 
 namespace Turbo::Ed
 {
-    Editor::Editor(const Application::Config& specification)
-        : Application(specification), m_CurrentProject(nullptr), m_CurrentScene(nullptr), m_SceneRenderer(nullptr),
-        m_EditorMode(Mode::Run), m_ViewportWidth(0), m_ViewportHeight(0)
+    Editor::Editor(const Application::Config& config)
+        : Application(config)
     {
     }
 
@@ -26,15 +25,16 @@ namespace Turbo::Ed
         m_CommandAccessPanel.SetOnInputSendCallback(TBO_BIND_FN(Editor::OnInputSend));
         m_NewProjectPopup.SetCallback(TBO_BIND_FN(Editor::OnCreateProject));
 
-        m_SceneRenderer = new SceneRenderer;
+        SceneRenderer::Config sceneRendererConfig = {};
+        sceneRendererConfig.ViewportWidth = m_Config.Width;
+        sceneRendererConfig.ViewportHeight= m_Config.Height;
+        sceneRendererConfig.RenderIntoTexture = true; // Render it into a texture that will be displayed via imgui
+        m_SceneRenderer = Ref<SceneRenderer>::Create(sceneRendererConfig);
     }
 
     void Editor::OnShutdown()
     {
-        delete m_CurrentProject;
-        m_CurrentProject = nullptr;
-
-        delete m_SceneRenderer;
+        //m_CurrentProject.Reset();
     }
 
     void Editor::OnUpdate()
@@ -81,14 +81,13 @@ namespace Turbo::Ed
     bool Editor::OnCreateProject(const ProjectInfo& info)
     {
         // Unload project
-        delete m_CurrentProject;
-        m_CurrentProject = nullptr;
+        m_CurrentProject.Reset();
 
-        // Create new project
+        // Create new default project
         m_CurrentProject = Project::CreateDefault(info.RootDirectory, info.Name);
 
         // Set render scene
-        m_CurrentScene = m_CurrentProject->GetDefaultScene();
+        m_CurrentScene = m_CurrentProject->GetStartupScene();
 
         // Resize scene
         m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
@@ -100,7 +99,7 @@ namespace Turbo::Ed
 
     void Editor::OnInputSend(const FString256& input)
     {
-        TBO_INFO(input.c_str());
+        TBO_INFO(input.CStr());
     }
 
     bool Editor::OnWindowClosed(WindowCloseEvent& e)
@@ -110,13 +109,7 @@ namespace Turbo::Ed
 
     bool Editor::OnWindowResized(WindowResizeEvent& e)
     {
-        m_ViewportWidth = e.GetWidth();
-        m_ViewportHeight = e.GetHeight();
-
-        m_SceneRenderer->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-
-        if (m_CurrentScene)
-            m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        //OnViewportResize(e.GetWidth(), e.GetHeight());
 
         return true;
     }
@@ -164,49 +157,115 @@ namespace Turbo::Ed
 
     void Editor::OnDrawUI()
     {
-        // Right-click on viewport to access the magic menu
-        ImGui::SetNextWindowSize({ 200.0f, 400.0f });
-        if (ImGui::BeginPopupContextVoid("##ViewportContextMenu"))
+        // Dockspace
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+        // because it would be confusing to have two docking targets within each others.
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
+
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+        // and handle the pass-thru hole, so we ask Begin() to not render a background.
+        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+            window_flags |= ImGuiWindowFlags_NoBackground;
+
+        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+        // all active windows docked into it will lose their parent and become undocked.
+        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("DockSpace Demo", nullptr, window_flags);
+        ImGui::PopStyleVar();
+
+        ImGui::PopStyleVar(2);
+
+        // Submit the DockSpace
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiStyle& style = ImGui::GetStyle();
+
+        float minWinSizeX = style.WindowMinSize.x;
+        style.WindowMinSize.x = 370.0f;
+        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
-            ImGui::MenuItem("Project", nullptr, false, false);
-            ImGui::Separator();
-            if (ImGui::MenuItem("New Project..."))
+            ImGuiID dockspace_id = ImGui::GetID("VulkanAppDockspace");
+
+            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+        }
+        style.WindowMinSize.x = minWinSizeX;
+        // --Dockspace
+
+        // Menu
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
             {
-                NewProject();
-            }
-            if (ImGui::MenuItem("Open Project..."))
-            {
-                OpenProject();
+                if (ImGui::MenuItem("New Project..."))
+                {
+                    NewProject();
+                }
+                if (ImGui::MenuItem("Open Project..."))
+                {
+                    OpenProject();
+                }
+                ImGui::EndMenu();
             }
 
-            // Temporary
-            if(m_CurrentScene) 
+            ImGui::EndMenuBar();
+        }
+
+        {
+            ImGui::Begin("Viewport");
+
+            auto& window_size = ImGui::GetWindowSize();
+
+            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+
+            if (m_ViewportWidth != window_size.x || m_ViewportHeight != window_size.y)
             {
-                if (ImGui::MenuItem("New Entity"))
+                OnViewportResize(static_cast<u32>(window_size.x), static_cast<u32>(window_size.y));
+            }
+
+            UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x,viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
+
+            // Right-click on viewport to access the magic menu
+            ImGui::SetNextWindowSize({ 200.0f, 400.0f });
+            if (ImGui::BeginPopupContextWindow("##ViewportContextMenu"))
+            {
+                ImGui::MenuItem("Scene", nullptr, false, false);
+                ImGui::Separator();
+                if (ImGui::MenuItem("New Entity", nullptr, false, m_CurrentScene))
                 {
                     TBO_ENGINE_WARN("Entity Added!");
                     Entity e = m_CurrentScene->CreateEntity();
 
-                   /* auto& transform = e.Transform();
+                    auto& transform = e.Transform();
 
-                    static float x = 0.0f;
+                    static f32 x = 0.0f;
                     transform.Translation.y = x;
                     ++x;
                     auto& src = e.AddComponent<SpriteRendererComponent>();
-
-                    src.Texture = t;*/
                 }
 
-                if (ImGui::MenuItem("New Camera Entity"))
+                if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_CurrentScene))
                 {
                     TBO_ENGINE_WARN("Camera Added!");
                     auto& camera = m_CurrentScene->CreateEntity().AddComponent<CameraComponent>();
                     camera.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
                 }
+                ImGui::EndPopup();
             }
 
-
-            ImGui::EndPopup();
+            ImGui::End();
         }
 
         ImGui::Begin("Statistics & Renderer2D");
@@ -214,7 +273,7 @@ namespace Turbo::Ed
         ImGui::Text("StartTime %.5f ms", Time.TimeSinceStart.ms());
         ImGui::Separator();
 
-        Renderer2D::Statistics stats = m_SceneRenderer->GetRenderer2D().GetStatistics();
+        Renderer2D::Statistics stats = m_SceneRenderer->GetRenderer2D()->GetStatistics();
         ImGui::Text("Quad Indices %d", stats.QuadIndexCount);
         ImGui::Text("Quad Count %d", stats.QuadCount);
         ImGui::Text("Drawcalls %d", stats.DrawCalls);
@@ -225,7 +284,7 @@ namespace Turbo::Ed
         // Edit/Play bar
         {
             ImGui::Begin("Editor Console");
-            if (ImGui::Button(s_ModeText.c_str()))
+            if (ImGui::Button(s_ModeText.CStr()))
             {
                 m_EditorMode = m_EditorMode == Mode::Edit ? Mode::Run : Mode::Edit;
                 s_ModeText = m_EditorMode == Mode::Edit ? "Run" : "Edit";
@@ -236,6 +295,9 @@ namespace Turbo::Ed
         m_CommandAccessPanel.OnUIRender();
 
         m_NewProjectPopup.OnUIRender();
+
+        // End dockspace
+        ImGui::End();
     }
 
     void Editor::NewProject()
@@ -261,8 +323,7 @@ namespace Turbo::Ed
             }
 
             // Unload project
-            delete m_CurrentProject;
-            m_CurrentProject = nullptr;
+            m_CurrentProject.Reset();
         }
 
         if (projectFilepath.Extension() == ".tproject")
@@ -270,7 +331,7 @@ namespace Turbo::Ed
             m_CurrentProject = Project::Deserialize(projectFilepath);
 
             // Set render scene
-            m_CurrentScene = m_CurrentProject->GetDefaultScene();
+            m_CurrentScene = m_CurrentProject->GetStartupScene();
 
             UpdateTitle();
 
@@ -292,11 +353,23 @@ namespace Turbo::Ed
         previousWindowTitle.Append(" | ");
         previousWindowTitle.Append(m_CurrentProject->GetName());
 
-        FString64 defaultSceneName = m_CurrentProject->GetDefaultScene() ? m_CurrentProject->GetDefaultScene()->GetName() : "Empty";
+        FString64 defaultSceneName = m_CurrentProject->GetStartupScene() ? m_CurrentProject->GetStartupScene()->GetName() : "Empty";
         previousWindowTitle.Append(" - ");
         previousWindowTitle.Append(defaultSceneName);
 
         // Set new title
         Window->SetTitle(previousWindowTitle);
     }
+
+    void Editor::OnViewportResize(u32 width, u32 height)
+    {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+
+        m_SceneRenderer->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+
+        if (m_CurrentScene)
+            m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+    }
+
 }

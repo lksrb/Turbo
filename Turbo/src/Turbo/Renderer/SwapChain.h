@@ -11,6 +11,7 @@ namespace Turbo
         static Ref<SwapChain> Create();
         virtual ~SwapChain();
 
+        virtual u32 GetCurrentFrame() const = 0;
         virtual void NewFrame() = 0;
         virtual void SwapFrame() = 0;
         virtual void Resize(u32 width, u32 height) = 0;

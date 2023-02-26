@@ -25,8 +25,7 @@ project "Turbo"
     }
 
     defines {
-        "_CRT_SECURE_NO_WARNINGS",
-        "YAML_CPP_STATIC_DEFINE"
+        "_CRT_SECURE_NO_WARNINGS"
     }
 
     includedirs {
@@ -39,7 +38,8 @@ project "Turbo"
         "%{IncludeDir.IconFontCppHeaders}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.stb}",
-        "%{IncludeDir.box2d}"
+        "%{IncludeDir.box2d}",
+        "%{IncludeDir.yaml_cpp}"
         --"%{IncludeDir.ImGuizmo}",
         --"%{IncludeDir.mono}"
     }
@@ -49,7 +49,8 @@ project "Turbo"
         "Lua",
         "Shlwapi.lib",
         "box2d",
-        "%{Library.Vulkan}"
+        "%{Library.Vulkan}",
+        "yaml-cpp"
         --"%{Library.mono}",
     }
 

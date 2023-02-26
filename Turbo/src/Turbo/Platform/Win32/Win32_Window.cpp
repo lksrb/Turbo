@@ -65,7 +65,7 @@ namespace Turbo {
         WNDCLASS wndClass = {};
         wndClass.lpszClassName = s_ClassName;
         wndClass.hInstance = m_Instance;
-        wndClass.hIcon = reinterpret_cast<HICON>(::LoadImageA(nullptr, currentDirectory.c_str(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
+        wndClass.hIcon = reinterpret_cast<HICON>(::LoadImageA(nullptr, currentDirectory.CStr(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
         wndClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
         wndClass.lpfnWndProc = Win32_Window::Win32Procedure;
 
@@ -87,7 +87,7 @@ namespace Turbo {
         size_t sizeInBytes = m_Config.Title.Cap();
 
         wchar_t ws[64];
-        mbstowcs_s(NULL, &ws[0], sizeInBytes, m_Config.Title.c_str(), sizeInBytes);
+        mbstowcs_s(NULL, &ws[0], sizeInBytes, m_Config.Title.CStr(), sizeInBytes);
         m_Handle = CreateWindowEx(
             0,
             s_ClassName,
@@ -261,7 +261,7 @@ namespace Turbo {
         size_t sizeInBytes = title.Cap();
 
         wchar_t ws[64];
-        mbstowcs_s(NULL, &ws[0], sizeInBytes , title.c_str(), sizeInBytes);
+        mbstowcs_s(NULL, &ws[0], sizeInBytes , title.CStr(), sizeInBytes);
 
         ::SetWindowText(m_Handle, ws);
     }

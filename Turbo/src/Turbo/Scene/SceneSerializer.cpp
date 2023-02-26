@@ -1,187 +1,398 @@
 #include "tbopch.h"
 #include "SceneSerializer.h"
 
-#define TBO_NODE_BEGIN(node, arg) stream << node" \"" << arg << "\"\n"
-#define TBO_NODE_END(name) stream << "\n"
-#define TBO_NODE_VEC3(name, vect3)  stream << name << " { " << vect3.x << ", " << vect3.y << ", " << vect3.z << " }\n"
+#include "Scene.h"
+#include "Entity.h"
+
+#include <yaml-cpp/yaml.h>
+
+namespace YAML
+{
+    template<>
+    struct convert<glm::vec2>
+    {
+        static Node encode(const glm::vec2& rhs)
+        {
+            Node node;
+            node.push_back(rhs.x);
+            node.push_back(rhs.y);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+
+        static bool decode(const Node& node, glm::vec2& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 2)
+                return false;
+
+            rhs.x = node[0].as<Turbo::f32>();
+            rhs.y = node[1].as<Turbo::f32>();
+            return true;
+        }
+    };
+
+    template<>
+    struct convert<glm::vec3>
+    {
+        static Node encode(const glm::vec3& rhs)
+        {
+            Node node;
+            node.push_back(rhs.x);
+            node.push_back(rhs.y);
+            node.push_back(rhs.z);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+
+        static bool decode(const Node& node, glm::vec3& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 3)
+                return false;
+
+            rhs.x = node[0].as<Turbo::f32>();
+            rhs.y = node[1].as<Turbo::f32>();
+            rhs.z = node[2].as<Turbo::f32>();
+            return true;
+        }
+    };
+
+    template<>
+    struct convert<glm::vec4>
+    {
+        static Node encode(const glm::vec4& rhs)
+        {
+            Node node;
+            node.push_back(rhs.x);
+            node.push_back(rhs.y);
+            node.push_back(rhs.z);
+            node.push_back(rhs.w);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+
+        static bool decode(const Node& node, glm::vec4& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 4)
+                return false;
+
+            rhs.x = node[0].as<Turbo::f32>();
+            rhs.y = node[1].as<Turbo::f32>();
+            rhs.z = node[2].as<Turbo::f32>();
+            rhs.w = node[3].as<Turbo::f32>();
+            return true;
+        }
+    };
+}
 
 namespace Turbo
 {
-    SceneSerializer::SceneSerializer(Scene* scene)
-        : m_Scene(scene), m_StackLevel(StackLevel::None), m_ExecutionOk(false)
+    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
     {
-        m_LuaEngine.SetUserdata(this);
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+        return out;
+    }
 
-        m_LuaEngine.AddCommand("Scene", [](void* userData, const char** pArgs, size_t nArgs)
+    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
+        return out;
+    }
+
+    static FString256 RigidBody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
+    {
+        switch (bodyType)
         {
-            TBO_ENGINE_ASSERT(nArgs == 1);
-            SceneSerializer* serializer = reinterpret_cast<SceneSerializer*>(userData);
-            TBO_ENGINE_ASSERT(serializer->m_StackLevel == StackLevel::None);
-            serializer->m_StackLevel = StackLevel::SceneLevel;
+            case Rigidbody2DComponent::BodyType::Static:    return "Static";
+            case Rigidbody2DComponent::BodyType::Dynamic:   return "Dynamic";
+            case Rigidbody2DComponent::BodyType::Kinematic: return "Kinematic";
+        }
 
-            TBO_ENGINE_ASSERT(serializer->m_Scene->GetName() == pArgs[0]); // Filename and scene name should match
-        });
+        TBO_ENGINE_ASSERT(false, "Unknown body type");
+        return {};
+    }
 
-        m_LuaEngine.AddCommand("Entity", [](void* userData, const char** pArgs, size_t nArgs)
+    static Rigidbody2DComponent::BodyType RigidBody2DBodyTypeFromString(const std::string& bodyTypeString)
+    {
+        if (bodyTypeString == "Static")    return Rigidbody2DComponent::BodyType::Static;
+        if (bodyTypeString == "Dynamic")   return Rigidbody2DComponent::BodyType::Dynamic;
+        if (bodyTypeString == "Kinematic") return Rigidbody2DComponent::BodyType::Kinematic;
+
+        TBO_ENGINE_ASSERT(false, "Unknown body type");
+        return Rigidbody2DComponent::BodyType::Static;
+    }
+
+    static void SerializeEntity(YAML::Emitter& out, Entity entity)
+    {
+        TBO_ENGINE_ASSERT(entity.HasComponent<IDComponent>(), "Entity does not have an UUID! (Something went horribly wrong)");
+
+        out << YAML::BeginMap; // Entity
+        out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
+
+        if (entity.HasComponent<TagComponent>())
         {
-            TBO_ENGINE_ASSERT(nArgs == 1);
-            SceneSerializer* serializer = reinterpret_cast<SceneSerializer*>(userData);
-            TBO_ENGINE_ASSERT(serializer->m_StackLevel >= StackLevel::SceneLevel);
-            serializer->m_StackLevel = StackLevel::EntityLevel;
+            auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-            //---
-            u64 uuid = std::stoull(pArgs[0]);
+            out << YAML::Key << "TagComponent";
+            out << YAML::BeginMap;
 
-            // Sets current entity
-            serializer->m_StackEntity = serializer->m_Scene->CreateEntityWithUUID(uuid);
-        });
+            out << YAML::Key << "Tag" << YAML::Value << tag.CStr();
 
-        m_LuaEngine.AddCommand("Component", [](void* userData, const char** pArgs, size_t nArgs)
+            out << YAML::EndMap;
+        }
+        if (entity.HasComponent<TransformComponent>())
         {
-            std::string s = pArgs[0]; // IDK why honestly
+            auto& transform = entity.GetComponent<TransformComponent>();
 
-            TBO_ENGINE_ASSERT(nArgs == 1);
-            SceneSerializer* serializer = reinterpret_cast<SceneSerializer*>(userData);
-            TBO_ENGINE_ASSERT(serializer->m_StackLevel >= StackLevel::EntityLevel);
-            serializer->m_StackLevel = StackLevel::ComponentLevel;
+            out << YAML::Key << "TransformComponent";
+            out << YAML::BeginMap;
 
-            TBO_ENGINE_ASSERT(serializer->ComponentExists(s.c_str()), "Unknown component!");
+            out << YAML::Key << "Translation" << YAML::Value << transform.Translation;
+            out << YAML::Key << "Rotation" << YAML::Value << transform.Rotation;
+            out << YAML::Key << "Scale" << YAML::Value << transform.Scale;
 
-            serializer->m_StackComponent = pArgs[0];
-        });
-
-        // -- Parameters --
-
-        // Tag
-        m_LuaEngine.AddCommand("Tag", [](void* userData, const char** pArgs, size_t nArgs)
+            out << YAML::EndMap;
+        }
+        if (entity.HasComponent<CameraComponent>())
         {
-            TBO_ENGINE_ASSERT(nArgs == 1);
-            SceneSerializer* serializer = reinterpret_cast<SceneSerializer*>(userData);
-            TBO_ENGINE_ASSERT(serializer->m_StackLevel >= StackLevel::ComponentLevel);
-            serializer->m_StackLevel = StackLevel::ParameterLevel;
-            TBO_ENGINE_ASSERT(serializer->m_StackComponent == "Tag");
+            out << YAML::Key << "CameraComponent";
+            out << YAML::BeginMap;
 
-            Entity e = serializer->m_StackEntity;
-            e.GetComponent<TagComponent>().Tag = pArgs[0];
-        });
+            auto& cameraComponent = entity.GetComponent<CameraComponent>();
+            auto& camera = cameraComponent.Camera;
 
-        // Transform
-        m_LuaEngine.AddCommand("Translation", [](void* userData, const char** pArgs, size_t nArgs)
+            out << YAML::Key << "Camera" << YAML::Value;
+            out << YAML::BeginMap;
+            out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
+            out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
+            out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.GetPerspectiveNearClip();
+            out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.GetPerspectiveFarClip();
+            out << YAML::Key << "OrthographicSize" << YAML::Value << camera.GetOrthographicSize();
+            out << YAML::Key << "OrthographicNear" << YAML::Value << camera.GetOrthographicNearClip();
+            out << YAML::Key << "OrthographicFar" << YAML::Value << camera.GetOrthographicFarClip();
+            out << YAML::EndMap;
+
+            out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
+            out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComponent.FixedAspectRatio;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<SpriteRendererComponent>())
         {
-            TBO_ENGINE_ASSERT(nArgs == 3);
-            SceneSerializer* serializer = reinterpret_cast<SceneSerializer*>(userData);
-            TBO_ENGINE_ASSERT(serializer->m_StackLevel >= StackLevel::ComponentLevel);
-            serializer->m_StackLevel = StackLevel::ParameterLevel;
-            TBO_ENGINE_ASSERT(serializer->m_StackComponent == "Transform");
+            out << YAML::Key << "SpriteRendererComponent";
+            out << YAML::BeginMap;
 
-            Entity e = serializer->m_StackEntity;
-            auto& transform = e.GetComponent<TransformComponent>();
-            transform.Translation.x = std::stof(pArgs[0]);
-            transform.Translation.y = std::stof(pArgs[1]);
-            transform.Translation.z = std::stof(pArgs[2]);
-        });
+            auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
+            out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
-        m_LuaEngine.AddCommand("Rotation", [](void* userData, const char** pArgs, size_t nArgs)
+            if (spriteRendererComponent.Texture)
+                out << YAML::Key << "TexturePath" << YAML::Value << spriteRendererComponent.Texture->GetFilepath().CStr();
+            else
+                out << YAML::Key << "TexturePath" << YAML::Value << "None";
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<Rigidbody2DComponent>())
         {
-            TBO_ENGINE_ASSERT(nArgs == 3);
-            SceneSerializer* serializer = reinterpret_cast<SceneSerializer*>(userData);
-            TBO_ENGINE_ASSERT(serializer->m_StackLevel >= StackLevel::ComponentLevel);
-            serializer->m_StackLevel = StackLevel::ParameterLevel;
-            TBO_ENGINE_ASSERT(serializer->m_StackComponent == "Transform");
+            out << YAML::Key << "Rigidbody2DComponent";
+            out << YAML::BeginMap;
 
-            Entity e = serializer->m_StackEntity;
-            auto& transform = e.GetComponent<TransformComponent>();
-            transform.Rotation.x = std::stof(pArgs[0]);
-            transform.Rotation.y = std::stof(pArgs[1]);
-            transform.Rotation.z = std::stof(pArgs[2]);
-        });
+            auto& rb2dComponent = entity.GetComponent<Rigidbody2DComponent>();
+            out << YAML::Key << "BodyType" << YAML::Value << RigidBody2DBodyTypeToString(rb2dComponent.Type).CStr();
+            out << YAML::Key << "FixedRotation" << YAML::Value << rb2dComponent.FixedRotation;
 
-        m_LuaEngine.AddCommand("Scale", [](void* userData, const char** pArgs, size_t nArgs)
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<BoxCollider2DComponent>())
         {
-            TBO_ENGINE_ASSERT(nArgs == 3);
-            SceneSerializer* serializer = reinterpret_cast<SceneSerializer*>(userData);
-            TBO_ENGINE_ASSERT(serializer->m_StackLevel >= StackLevel::ComponentLevel);
-            serializer->m_StackLevel = StackLevel::ParameterLevel;
-            TBO_ENGINE_ASSERT(serializer->m_StackComponent == "Transform");
+            out << YAML::Key << "BoxCollider2DComponent";
+            out << YAML::BeginMap;
 
-            Entity e = serializer->m_StackEntity;
-            auto& transform = e.GetComponent<TransformComponent>();
-            transform.Scale.x = std::stof(pArgs[0]);
-            transform.Scale.y = std::stof(pArgs[1]);
-            transform.Scale.z = std::stof(pArgs[2]);
-        });
+            auto& bc2dComponent = entity.GetComponent<BoxCollider2DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << bc2dComponent.Offset;
+            out << YAML::Key << "Size" << YAML::Value << bc2dComponent.Size;
+            out << YAML::Key << "Density" << YAML::Value << bc2dComponent.Density;
+            out << YAML::Key << "Friction" << YAML::Value << bc2dComponent.Friction;
+            out << YAML::Key << "Restitution" << YAML::Value << bc2dComponent.Restitution;
+            out << YAML::Key << "RestitutionThreshold" << YAML::Value << bc2dComponent.RestitutionThreshold;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<CircleCollider2DComponent>())
+        {
+            out << YAML::Key << "CircleCollider2DComponent";
+            out << YAML::BeginMap;
+
+            auto& cc2dComponent = entity.GetComponent<CircleCollider2DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << cc2dComponent.Offset;
+            out << YAML::Key << "Radius" << YAML::Value << cc2dComponent.Radius;
+            out << YAML::Key << "Density" << YAML::Value << cc2dComponent.Density;
+            out << YAML::Key << "Friction" << YAML::Value << cc2dComponent.Friction;
+            out << YAML::Key << "Restitution" << YAML::Value << cc2dComponent.Restitution;
+            out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc2dComponent.RestitutionThreshold;
+
+            out << YAML::EndMap;
+        }
+    }
+
+    SceneSerializer::SceneSerializer(Ref<Scene> scene)
+        : m_Scene(scene)
+    {
     }
 
     SceneSerializer::~SceneSerializer()
     {
     }
 
-    bool SceneSerializer::Serialize(const Filepath& filepath)
+    bool SceneSerializer::Deserialize(const Filepath& filepath)
     {
-        std::ofstream stream(filepath.c_str(), std::ios::trunc);
-        if (!stream.is_open())
+        YAML::Node data;
+        try
         {
-            stream.close();
-
-            TBO_ERROR("Could not serialize project! ({0})", filepath.c_str());
+            data = YAML::LoadFile(filepath.CStr());
+        }
+        catch (YAML::ParserException e)
+        {
             return false;
         }
 
-        TBO_NODE_BEGIN("Scene", m_Scene->m_Config.RelativePath.Filename().c_str());
-        stream << "\n";
+        if (!data["Scene"])
+            return false;
 
-        bool success = true;
+        std::string sceneName = data["Scene"].as<std::string>();
+        TBO_ENGINE_TRACE("Deserializing scene '{0}'", sceneName);
 
-        m_Scene->m_Registry.each([&](entt::entity e)
+        auto entities = data["Entities"];
+        if (entities)
         {
-            Entity entity = { e, m_Scene };
-        if (!entity)
-        {
-            success = false;
-            return;
+            for (auto entity : entities)
+            {
+                uint64_t uuid = entity["Entity"].as<uint64_t>();
+
+                std::string name;
+                auto tagComponent = entity["TagComponent"];
+                if (tagComponent)
+                    name = tagComponent["Tag"].as<std::string>();
+
+                TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
+
+                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid, name);
+
+                auto transformComponent = entity["TransformComponent"];
+                if (transformComponent)
+                {
+                    // Entities always have transforms
+                    auto& tc = deserializedEntity.GetComponent<TransformComponent>();
+                    tc.Translation = transformComponent["Translation"].as<glm::vec3>();
+                    tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
+                    tc.Scale = transformComponent["Scale"].as<glm::vec3>();
+                }
+
+                auto cameraComponent = entity["CameraComponent"];
+                if (cameraComponent)
+                {
+                    auto& cc = deserializedEntity.AddComponent<CameraComponent>();
+
+                    auto& cameraProps = cameraComponent["Camera"];
+                    cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
+
+                    cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
+                    cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
+                    cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
+
+                    cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
+                    cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
+                    cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
+
+                    cc.Primary = cameraComponent["Primary"].as<bool>();
+                    cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+                }
+
+                auto spriteRendererComponent = entity["SpriteRendererComponent"];
+                if (spriteRendererComponent)
+                {
+                    auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
+                    src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
+                    auto& path = spriteRendererComponent["TexturePath"].as<std::string>();
+                    if (path != "None")
+                        src.Texture = Texture2D::Create({ path });
+                }
+
+                auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
+                if (rigidbody2DComponent)
+                {
+                    auto& rb2d = deserializedEntity.AddComponent<Rigidbody2DComponent>();
+                    rb2d.Type = RigidBody2DBodyTypeFromString(rigidbody2DComponent["BodyType"].as<std::string>());
+                    rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
+                }
+
+                auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
+                if (boxCollider2DComponent)
+                {
+                    auto& bc2d = deserializedEntity.AddComponent<BoxCollider2DComponent>();
+                    bc2d.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
+                    bc2d.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
+                    bc2d.Density = boxCollider2DComponent["Density"].as<float>();
+                    bc2d.Friction = boxCollider2DComponent["Friction"].as<float>();
+                    bc2d.Restitution = boxCollider2DComponent["Restitution"].as<float>();
+                    bc2d.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
+                }
+
+                auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+                if (circleCollider2DComponent)
+                {
+                    auto& cc2d = deserializedEntity.AddComponent<CircleCollider2DComponent>();
+                    cc2d.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
+                    cc2d.Radius = circleCollider2DComponent["Radius"].as<float>();
+                    cc2d.Density = circleCollider2DComponent["Density"].as<float>();
+                    cc2d.Friction = circleCollider2DComponent["Friction"].as<float>();
+                    cc2d.Restitution = circleCollider2DComponent["Restitution"].as<float>();
+                    cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
+                }
+            }
         }
 
-        SerializeEntity(stream, entity);
-        });
-
-        stream.close();
-
-        return success;
+        return true;
     }
 
-    bool SceneSerializer::Deserialize(const Filepath& filepath)
+    bool SceneSerializer::Serialize(const Filepath& filepath)
     {
-        return m_LuaEngine.Execute(filepath) /*&& m_ExecutionOk*/;
-    }
-
-    void SceneSerializer::SerializeEntity(std::ofstream& stream, Entity entity)
-    {
-        TBO_NODE_BEGIN("Entity", entity.GetUUID());
-
-        // Tag
-        TBO_NODE_BEGIN("\tComponent", "Tag");
-        TBO_NODE_BEGIN("\t\tTag", entity.GetName().c_str());
-
-        // Transform
-        auto& transform = entity.Transform();
-        TBO_NODE_BEGIN("\tComponent", "Transform");
-        TBO_NODE_VEC3("\t\tTranslation", transform.Translation);
-        TBO_NODE_VEC3("\t\tRotation", transform.Rotation);
-        TBO_NODE_VEC3("\t\tScale", transform.Scale);
-
-        TBO_NODE_END("Entity");
-    }
-
-    bool SceneSerializer::ComponentExists(const std::string& component)
-    {
-        // TODO: Maybe automize this process?
-        static std::vector<std::string> s_ComponentRegistry =
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Scene" << YAML::Value << "BlankScene";
+        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+        m_Scene->m_Registry.each([&](auto entityID)
         {
-            "Tag",
-            "Transform",
-            "BoxCollider2D"
-        };
+            Entity entity = { entityID, m_Scene.Get() };
+            if (!entity)
+                return;
 
-        return std::find(s_ComponentRegistry.begin(), s_ComponentRegistry.end(), component) != s_ComponentRegistry.end();
+            SerializeEntity(out, entity);
+        });
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+
+        std::ofstream fout(filepath.CStr());
+
+        if (fout)
+        {
+            fout << out.c_str();
+            return true;
+        }
+
+        return false;
     }
+
 }

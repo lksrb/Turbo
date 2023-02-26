@@ -91,7 +91,7 @@ namespace Turbo
 
         return 0;
         }, 1);
-        lua_setglobal(L, keyword.c_str());
+        lua_setglobal(L, keyword.CStr());
     }
 
     void LuaEngine::Initialize()
@@ -106,7 +106,7 @@ namespace Turbo
     bool LuaEngine::Execute(const Filepath& filePath)
     {
         // Execute the script
-        if (luaL_dofile(L, filePath.c_str()) != LUA_OK)
+        if (luaL_dofile(L, filePath.CStr()) != LUA_OK)
         {
             const char* errormsg = lua_tostring(L, -1);
             

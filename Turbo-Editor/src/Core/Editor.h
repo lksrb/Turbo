@@ -18,7 +18,7 @@ namespace Turbo::Ed
             Run = 1
         };
 
-        Editor(const Application::Config& specification);
+        Editor(const Application::Config& config);
         ~Editor();
     protected: // Inherited
         void OnInitialize() override;
@@ -29,6 +29,7 @@ namespace Turbo::Ed
 
         void OnDraw() override;
     private: // Events
+        void OnViewportResize(u32 width, u32 height);
         void OnInputSend(const FString256& input);
         bool OnCreateProject(const ProjectInfo& info);
         bool OnWindowClosed(WindowCloseEvent& e);
@@ -40,13 +41,12 @@ namespace Turbo::Ed
 
         void UpdateTitle();
     private:
-        u32 m_ViewportWidth;
-        u32 m_ViewportHeight;
+        u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 
-        SceneRenderer* m_SceneRenderer;
-        Mode m_EditorMode;
-        Scene* m_CurrentScene;
-        Project* m_CurrentProject;
+        Ref<SceneRenderer> m_SceneRenderer;
+        Mode m_EditorMode = Mode::Edit;
+        Ref<Scene> m_CurrentScene;
+        Ref<Project> m_CurrentProject;
         NewProjectModal m_NewProjectPopup;
         Filepath m_CurrentPath;
         AccessPanel m_CommandAccessPanel;

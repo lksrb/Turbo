@@ -54,7 +54,7 @@ namespace Turbo {
 
         FString& Append(const FString& other)
         {
-            return FString::Append(other.c_str());
+            return FString::Append(other.CStr());
         }
 
         bool Empty() const
@@ -96,7 +96,7 @@ namespace Turbo {
             return &m_Buffer[0];
         }
 
-        const char* c_str() const noexcept
+        const char* CStr() const noexcept
         {
             return m_Buffer;
         }
@@ -126,7 +126,7 @@ namespace std
     {
         auto operator()(const Turbo::FString32& xyz) const -> size_t
         {
-            return hash<Turbo::FString32>{}(xyz.c_str());
+            return hash<Turbo::FString32>{}(xyz.CStr());
         }
     };
 }  //

@@ -29,7 +29,7 @@ namespace Turbo
 
     void VulkanMaterial::Set(const FString32& resourceName, const void* data, size_t size)
     {
-        auto& resource = m_UniformBufferMap.find(resourceName.c_str());
+        auto& resource = m_UniformBufferMap.find(resourceName.CStr());
         TBO_ENGINE_ASSERT(resource != m_UniformBufferMap.end(), "Resource does not exists!");
 
         auto buffer = (*resource).second;
@@ -42,7 +42,7 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         // Find specific resource write descriptor
-        auto& resource = m_DescriptorWrites.find(resourceName.c_str());
+        auto& resource = m_DescriptorWrites.find(resourceName.CStr());
         TBO_ENGINE_ASSERT(resource != m_DescriptorWrites.end()); // No such descriptor exists
 
         // Convert texture2D 
@@ -50,8 +50,8 @@ namespace Turbo
 
         // Set texture index with specific write descriptor 
         m_TextureDescriptorInfos[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        m_TextureDescriptorInfos[index].imageView = vulkanTexture->GetImage2D().As<VulkanImage2D>()->GetImageView();
-        m_TextureDescriptorInfos[index].sampler = vulkanTexture->GetSampler();
+        m_TextureDescriptorInfos[index].imageView = vulkanTexture->GetImage().As<VulkanImage2D>()->GetImageView();
+        m_TextureDescriptorInfos[index].sampler = vulkanTexture->GetImage().As<VulkanImage2D>()->GetSampler();
 
         // FIXME: Move this
         // Update descriptor set
@@ -110,10 +110,10 @@ namespace Turbo
                 bufferConfig.Size = uniformBuffer.Size;
                 bufferConfig.UsageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
                 bufferConfig.MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-                m_UniformBufferMap[uniformBuffer.Name.c_str()] = new VulkanBuffer(bufferConfig);
+                m_UniformBufferMap[uniformBuffer.Name.CStr()] = new VulkanBuffer(bufferConfig);
 
                 VkDescriptorBufferInfo bufferInfo{};
-                bufferInfo.buffer = m_UniformBufferMap[uniformBuffer.Name.c_str()]->GetBuffer();
+                bufferInfo.buffer = m_UniformBufferMap[uniformBuffer.Name.CStr()]->GetBuffer();
                 bufferInfo.offset = 0;
                 bufferInfo.range = uniformBuffer.Size;
 
@@ -153,7 +153,7 @@ namespace Turbo
 
                 vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 
-                m_DescriptorWrites[resources.TextureSamplerArray.Name.c_str()] = descriptorWrite;
+                m_DescriptorWrites[resources.TextureSamplerArray.Name.CStr()] = descriptorWrite;
             }
         }
     }

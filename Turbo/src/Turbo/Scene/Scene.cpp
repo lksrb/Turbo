@@ -43,6 +43,59 @@ namespace Turbo
         delete m_PhysicsWorld;
     }
 
+    void Scene::OnEditorUpdate(Time_T ts)
+    {
+
+    }
+
+    void Scene::OnEditorRender(Ref<SceneRenderer> renderer)
+    {
+        // Render entites
+
+        // 2D Rendering
+        {
+            Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
+
+            // Find entity with camera component
+            Entity cameraEntity;
+            auto& view = GetAllEntitiesWith<CameraComponent>();
+            for (auto entity : view)
+            {
+                auto& camera = view.get<CameraComponent>(entity);
+
+                if (camera.Primary)
+                {
+                    cameraEntity = { entity, this };
+                }
+            }
+
+            // Camera does exists
+            if (cameraEntity)
+            {
+                auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+                camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
+
+                renderer2d->Begin(camera);
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
+
+                    for (auto& entity : view)
+                    {
+                        auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                        if (src.SubTexture)
+                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (u32)entity);
+                        else
+                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.Texture, src.Tiling, (u32)entity);
+
+                    }
+                }
+
+                renderer2d->End();
+            }
+        }
+    }
+
     void Scene::OnRuntimeStart()
     {
         CreatePhysicsWorld2D();
@@ -78,13 +131,13 @@ namespace Turbo
         }
     }
 
-    void Scene::OnRuntimeRender(SceneRenderer* renderer)
+    void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
     {
         // Render entites
 
         // 2D Rendering
         {
-            Renderer2D& renderer2d = renderer->GetRenderer2D();
+            Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
             
             // Find entity with camera component
             Entity cameraEntity;
@@ -105,7 +158,7 @@ namespace Turbo
                 auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
                 camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
 
-                renderer2d.Begin(camera);
+                renderer2d->Begin(camera);
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
@@ -114,14 +167,14 @@ namespace Turbo
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
                         if(src.SubTexture)
-                            renderer2d.DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (u32)entity);
+                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (u32)entity);
                         else 
-                            renderer2d.DrawSprite(transform.GetMatrix(), src.Color, src.Texture, src.Tiling, (u32)entity);
+                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.Texture, src.Tiling, (u32)entity);
 
                     }
                 }
 
-                renderer2d.End();
+                renderer2d->End();
             }
         }
     }

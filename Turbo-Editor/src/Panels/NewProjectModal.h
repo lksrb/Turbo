@@ -13,7 +13,6 @@ namespace Turbo::Ed
         FString64 Name;
     };
 
-
     using NewProjectCallback = std::function<bool(const ProjectInfo&)>;
 
     // Modal window

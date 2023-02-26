@@ -36,7 +36,7 @@ namespace Turbo
     }
 
     VulkanImage2D::VulkanImage2D(const Image2D::Config& config) 
-        : Image2D(config), m_Image(VK_NULL_HANDLE), m_ImageView(VK_NULL_HANDLE), m_Memory(VK_NULL_HANDLE)
+        : Image2D(config), m_Image(VK_NULL_HANDLE), m_ImageView(VK_NULL_HANDLE), m_Memory(VK_NULL_HANDLE), m_Sampler(VK_NULL_HANDLE)
     {
     }
 
@@ -97,13 +97,43 @@ namespace Turbo
         createInfo.subresourceRange = image_range;
         TBO_VK_ASSERT(vkCreateImageView(device, &createInfo, nullptr, &m_ImageView));
 
+        // Sampler
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_NEAREST;
+        samplerInfo.minFilter = VK_FILTER_NEAREST;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+        /*samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = device->GetPhysicalDevice().GetSupportDetails().Properties.limits.maxSamplerAnisotropy;*/
+        samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.maxAnisotropy = 1.0f;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+
+        TBO_VK_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler));
+
         // Add it to deletion queue 
         auto& resourceFreeQueue = RendererContext::GetResourceQueue();
+
+        resourceFreeQueue.Submit(SAMPLER, [device, sampler = m_Sampler]()
+        {
+            vkDestroySampler(device, sampler, nullptr);
+        });
 
         resourceFreeQueue.Submit(IMAGE, [device, m_Image = m_Image, m_Memory = m_Memory]()
         {
             vkDestroyImage(device, m_Image, nullptr);
-        vkFreeMemory(device, m_Memory, nullptr);
+            vkFreeMemory(device, m_Memory, nullptr);
         });
 
         resourceFreeQueue.Submit(IMAGEVIEW, [device, m_ImageView = m_ImageView]()
@@ -111,5 +141,4 @@ namespace Turbo
             vkDestroyImageView(device, m_ImageView, nullptr);
         });
     }
-
 }

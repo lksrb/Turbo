@@ -10,8 +10,8 @@
 
 namespace Turbo
 {
-	ProjectSerializer::ProjectSerializer(Project* project)
-		: m_Project(project), m_StackLevel(StackLevel::None), m_ExecutionOk(false)
+	ProjectSerializer::ProjectSerializer(Ref<Project> project)
+		: m_Project(project)
 	{
 		// Push userdata so this class can be accessed from lua
 		m_LuaEngine.SetUserdata(this);
@@ -77,9 +77,9 @@ namespace Turbo
 			Filepath defaultRelPath;
 			for (auto& path : m_ProjectBuild.SceneRelativePaths)
 			{
-				Filepath sceneRelPath = path.c_str();
+				Filepath sceneRelPath = path.CStr();
 
-				if (sceneRelPath.Filename() == m_ProjectBuild.DefaultSceneName.c_str())
+				if (sceneRelPath.Filename() == m_ProjectBuild.DefaultSceneName.CStr())
 				{
 					// Scene specified in 'DefaultScene' was found in 'Scenes' list
 					defaultRelPath = sceneRelPath;
@@ -98,9 +98,9 @@ namespace Turbo
 				}
 
 				// Select first one
-				defaultRelPath = m_ProjectBuild.SceneRelativePaths[0].c_str();
+				defaultRelPath = m_ProjectBuild.SceneRelativePaths[0].CStr();
 
-				TBO_ENGINE_WARN("No default scene, selecting first scene from the list. ({0})", defaultRelPath.c_str());
+				TBO_ENGINE_WARN("No default scene, selecting first scene from the list. ({0})", defaultRelPath.CStr());
 			}
 
 			Filepath defaultAbsPath = m_Project->m_Config.RootDirectory;
@@ -113,22 +113,21 @@ namespace Turbo
 			sceneConfig.Name = defaultRelPath.Filename();
 			sceneConfig.RelativePath = defaultRelPath;
 
-			Scene* defaultScene = new Scene(sceneConfig);
+            Ref<Scene> defaultScene = Ref<Scene>::Create(sceneConfig);
 
 			SceneSerializer serializer(defaultScene);
 			bool success = serializer.Deserialize(defaultAbsPath);
 
 			if (success)
 			{
-				m_Project->m_Config.DefaultScene = defaultScene;
+				m_Project->m_Config.StartupScene = defaultScene;
 				return true;
 			}
 
-			delete defaultScene;
-
+            defaultScene.Reset();
 		}
 
-		TBO_ENGINE_ERROR("Could not deserialize project!({0})", filepath.c_str());
+		TBO_ENGINE_ERROR("Could not deserialize project!({0})", filepath.CStr());
 
 		return false;
 	}
@@ -156,16 +155,16 @@ namespace Turbo
 		root /= root.Filename();
 		root.Append(".tproject");
 
-		std::ofstream stream(root.c_str(), std::ios::trunc);
+		std::ofstream stream(root.CStr(), std::ios::trunc);
 		if (!stream.is_open())
 		{
 			stream.close();
 
-			TBO_ENGINE_ERROR("Could not serialize project! ({0})", filepath.c_str());
+			TBO_ENGINE_ERROR("Could not serialize project! ({0})", filepath.CStr());
 			return false;
 		}
 
-		stream << "Project \"" << root.Filename().c_str() << "\"\n";
+		stream << "Project \"" << root.Filename().CStr() << "\"\n";
 		stream << "\n\tDefaultScene \"" << "BlankScene" << "\"\n";
 		stream << "\n\tScenes {\n";
 		stream << "\t\t\"Assets/Scenes/BlankScene\"\n";
@@ -173,7 +172,7 @@ namespace Turbo
 		stream.close();
 
 		// Create Default Scene
-		SceneSerializer serializer(m_Project->m_Config.DefaultScene);
+		SceneSerializer serializer(m_Project->m_Config.StartupScene);
 		TBO_ENGINE_ASSERT(serializer.Serialize(rootAssetsSceneAbs / "BlankScene.tscene"), "Failed to serialize scene!");
 
 		return true;

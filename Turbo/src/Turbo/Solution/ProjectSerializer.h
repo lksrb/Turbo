@@ -13,17 +13,15 @@ namespace Turbo
     class ProjectSerializer 
     {
     public:
-        ProjectSerializer(Project* project);
+        ProjectSerializer(Ref<Project> project);
         ~ProjectSerializer();
 
         bool Deserialize(const Filepath& filepath);
 
         bool Serialize(const Filepath& filepath);
     private:
-        bool m_ExecutionOk;
-        LuaEngine m_LuaEngine;
-        StackLevel m_StackLevel;
-
+        bool m_ExecutionOk = false;
+        StackLevel m_StackLevel = StackLevel::None;
         struct ProjectBuild
         {
             // Deserialization
@@ -34,7 +32,9 @@ namespace Turbo
             Filepath RootFilePath; // Until I ran into stack overflow
         };
 
-        Project* m_Project;
+        LuaEngine m_LuaEngine;
+        Ref<Project> m_Project;
+
         ProjectBuild m_ProjectBuild;
     };
 

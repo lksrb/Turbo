@@ -44,6 +44,9 @@ namespace Turbo
         Renderer2D(const Renderer2D&) = delete;
         ~Renderer2D();
 
+        void Initialize();
+        static Ref<Renderer2D> Create() { return Ref<Renderer2D>::Create(); }
+
         void Begin(const Camera& camera);
         void End();
 
@@ -55,8 +58,10 @@ namespace Turbo
         Statistics GetStatistics() const { return m_Statistics; }
 
         void SetClearColor(const glm::vec4& color) { TBO_ENGINE_ASSERT(false, "Not implemented yet"); m_ClearColor = color; }
+
+        void SetRenderTarget(const std::vector<Ref<FrameBuffer>>& target) { m_Framebuffers = target; }
     private:
-        void Initialize();
+
         void Shutdown();
 
         void StartBatch();
@@ -89,8 +94,8 @@ namespace Turbo
         Statistics m_Statistics;
 
         // Quads
-        QuadVertex* m_QuadVertexBufferBase;
-        QuadVertex* m_QuadVertexBufferPointer;
+        QuadVertex* m_QuadVertexBufferBase = nullptr;
+        QuadVertex* m_QuadVertexBufferPointer = nullptr;
 
         Ref<VertexBuffer> m_QuadVertexBuffer;
         Ref<IndexBuffer> m_QuadIndexBuffer;
@@ -98,28 +103,24 @@ namespace Turbo
 
         Ref<Shader> m_QuadShader;
         Ref<GraphicsPipeline> m_QuadPipeline;
-        
+
         Ref<Texture2D> m_WhiteTexture;
 
         Ref<RenderPass> m_RenderPass;
 
-        //Ptr<Image2D> m_DepthImage;
+        Ref<Image2D> m_DepthImage;
 
-        Ref<Image2D> m_RenderImages[TBO_MAX_FRAMESINFLIGHT];
-        Ref<FrameBuffer> m_Framebuffers[TBO_MAX_FRAMESINFLIGHT];
+        //Ref<Image2D> m_RenderImages[TBO_MAX_FRAMESINFLIGHT];
+        std::vector<Ref<FrameBuffer>> m_Framebuffers;
 
-        Ref<CommandBuffer> m_RenderBuffers[TBO_MAX_FRAMESINFLIGHT];
+        Ref<CommandBuffer> m_RenderCommandBuffers[TBO_MAX_FRAMESINFLIGHT];
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;
-        u32 m_TextureSlotsIndex;
-
-        glm::vec4 m_ClearColor;
-
-        u32 m_ViewportWidth;
-        u32 m_ViewportHeight;
-
-        bool m_BeginDraw;
+        u32 m_TextureSlotsIndex = 1;
+        glm::vec4 m_ClearColor = glm::vec4{ 0.0f };
+        u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
+        bool m_BeginDraw = false;
 
         friend class Engine;
     };

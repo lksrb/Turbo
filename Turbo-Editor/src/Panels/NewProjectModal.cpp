@@ -87,7 +87,7 @@ namespace Turbo::Ed
 
                 if (filepath.Size())
                 {
-                    strcpy_s(s_ProjectDirectoryPath, filepath.c_str());
+                    strcpy_s(s_ProjectDirectoryPath, filepath.CStr());
                 }
             }
 
