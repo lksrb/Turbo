@@ -17,7 +17,7 @@ namespace Turbo
         SceneRenderer(const SceneRenderer::Config& config);
         ~SceneRenderer();
 
-        void SetViewportSize(u32 width, u32 height);
+        void OnViewportSize(u32 width, u32 height);
 
         u32 GetViewportWidth() const { return m_Config.ViewportWidth; }
         u32 GetViewportHeight() const { return m_Config.ViewportHeight; }
@@ -29,6 +29,7 @@ namespace Turbo
         void Init();
     private:
         std::vector<Ref<FrameBuffer>> m_FinalFramebuffers;
+        Ref<RenderPass> m_Renderpass;
 
         Ref<Renderer2D> m_Renderer2D;
 

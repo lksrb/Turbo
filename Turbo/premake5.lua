@@ -2,8 +2,8 @@
 -- Turbo Engine
 
 project "Turbo"
-    kind "StaticLib"
-    cppdialect "C++17"
+    	kind "StaticLib"
+    	cppdialect "C++17"
 	staticruntime "off"
 	floatingpoint "Fast"
 
@@ -25,7 +25,8 @@ project "Turbo"
     }
 
     defines {
-        "_CRT_SECURE_NO_WARNINGS"
+        "_CRT_SECURE_NO_WARNINGS",
+	"YAML_CPP_STATIC_DEFINE"
     }
 
     includedirs {

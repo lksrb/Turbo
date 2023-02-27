@@ -7,7 +7,7 @@ namespace Turbo
     class UserInterface 
     {
     public:
-        static UserInterface* Create();
+        static Ref<UserInterface>Create();
         virtual ~UserInterface();
 
         virtual void BeginUI() = 0;

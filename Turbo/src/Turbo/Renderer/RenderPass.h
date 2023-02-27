@@ -13,7 +13,7 @@ namespace Turbo
             Ref<Image2D> DepthAttachment;
         };
 
-        static Ref<RenderPass> Create(const RenderPass::Config& config);
+        static Ref<RenderPass> Create(const RenderPass::Config& config = {});
         virtual ~RenderPass();
 
         const RenderPass::Config& GetConfig() const { return m_Config; }

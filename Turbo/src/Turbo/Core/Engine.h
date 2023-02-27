@@ -54,7 +54,7 @@ namespace Turbo
 
         std::thread m_RenderThread;
 
-        UserInterface* m_UI;
+        Ref<UserInterface> m_UI;
         Ref<Renderer> m_Renderer;
 
         // User

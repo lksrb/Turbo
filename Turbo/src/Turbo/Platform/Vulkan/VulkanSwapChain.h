@@ -31,8 +31,6 @@ namespace Turbo
         u32 GetCurrentFrame() const override;
 
         Ref<Image2D> GetDepthBuffer() const { return m_DepthBuffer; }
-
-
     private:
         void Initialize();
         void Shutdown();

@@ -13,9 +13,9 @@ namespace Turbo
     {
     }
 
-    UserInterface* UserInterface::Create()
+    Ref<UserInterface> UserInterface::Create()
     {
-        return new VulkanUserInterface();
+        return Ref<VulkanUserInterface>::Create();
     }
 }
 

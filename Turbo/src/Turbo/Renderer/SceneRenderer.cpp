@@ -18,10 +18,12 @@ namespace Turbo
     {
     }
 
-    void SceneRenderer::SetViewportSize(u32 width, u32 height)
+    void SceneRenderer::OnViewportSize(u32 width, u32 height)
     {
         m_Config.ViewportWidth = width;
         m_Config.ViewportHeight = height;
+
+        m_Renderer2D->OnViewportResize(m_Config.ViewportWidth, m_Config.ViewportHeight);
     }
 
     Ref<Image2D> SceneRenderer::GetFinalImage() const
@@ -40,6 +42,12 @@ namespace Turbo
 
         if (m_Config.RenderIntoTexture)
         {
+            // Separate RenderPass
+            {
+                m_Renderpass = RenderPass::Create();
+                m_Renderpass->Invalidate();
+            }
+
             m_FinalFramebuffers.resize(TBO_MAX_FRAMESINFLIGHT);
 
             // Create framebuffers that will be used for rendering
@@ -74,14 +82,15 @@ namespace Turbo
                     framebufferConfig.Attachments[0/*REWRITE THIS*/] = colorAttachment;
                     framebufferConfig.AttachmentsCount = 1;
                     framebufferConfig.DepthBuffer = swapChain->GetDepthBuffer();
-                    framebufferConfig.Renderpass = swapChain->GetRenderPass();
+                    framebufferConfig.Renderpass = m_Renderpass;
 
                     m_FinalFramebuffers[i] = FrameBuffer::Create(framebufferConfig);
                     m_FinalFramebuffers[i]->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
                 }
             }
 
-            m_Renderer2D->SetRenderTarget(m_FinalFramebuffers);
+            m_Renderer2D->SetRenderTarget(m_FinalFramebuffers, m_Renderpass);
+            m_Renderer2D->OnViewportResize(m_Config.ViewportWidth, m_Config.ViewportHeight);
         }
         else
         {

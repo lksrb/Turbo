@@ -59,7 +59,8 @@ namespace Turbo
 
         void SetClearColor(const glm::vec4& color) { TBO_ENGINE_ASSERT(false, "Not implemented yet"); m_ClearColor = color; }
 
-        void SetRenderTarget(const std::vector<Ref<FrameBuffer>>& target) { m_Framebuffers = target; }
+        void OnViewportResize(u32 width, u32 height);
+        void SetRenderTarget(const std::vector<Ref<FrameBuffer>>& framebuffers, const Ref<RenderPass>& renderPass) { m_Framebuffers = framebuffers; m_RenderPass = renderPass; }
     private:
 
         void Shutdown();

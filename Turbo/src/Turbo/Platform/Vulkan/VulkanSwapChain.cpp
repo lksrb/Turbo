@@ -209,7 +209,7 @@ namespace Turbo
         u32 width = viewportWindow->GetWidth();
         u32 height = viewportWindow->GetHeight();
 
-        // Record render command buffer and execute all secondary command buffers from renderers
+        // Execute all command buffers submitted by renderers
         {
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -235,17 +235,18 @@ namespace Turbo
 
                 vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
-                // Execute all submitted secondary command buffers
-                {
-                    TBO_ENGINE_ASSERT(m_SecondaryCommandBuffers.size(), "Cannot submit 0 command buffers!");
-
-                    vkCmdExecuteCommands(currentBuffer, static_cast<uint32_t>(m_SecondaryCommandBuffers.size()), m_SecondaryCommandBuffers.data());
-                    m_SecondaryCommandBuffers.clear();
-
-                }
+              
                 vkCmdEndRenderPass(currentBuffer);
             }
 
+            // Execute all submitted secondary command buffers
+            {
+                TBO_ENGINE_ASSERT(m_SecondaryCommandBuffers.size(), "Cannot submit 0 command buffers!");
+
+                vkCmdExecuteCommands(currentBuffer, static_cast<uint32_t>(m_SecondaryCommandBuffers.size()), m_SecondaryCommandBuffers.data());
+                m_SecondaryCommandBuffers.clear();
+
+            }
             TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
         }
 

@@ -77,7 +77,7 @@ namespace Turbo
         delete m_Application;
 
         Renderer::Shutdown();
-        delete m_UI;
+        m_UI.Reset();
 
         RendererContext::Shutdown();
 

@@ -40,7 +40,7 @@ namespace Turbo
 
         // TODO: Separate swapchain from rendering
         Ref<VulkanSwapChain> swapChain = Engine::Get().GetViewportWindow()->GetSwapchain().As<VulkanSwapChain>();
-        m_RenderPass = swapChain->GetRenderPass();
+        //m_RenderPass = swapChain->GetRenderPass();
 
         // Render images
         /*for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
@@ -89,10 +89,6 @@ namespace Turbo
 
     void Renderer2D::Initialize()
     {
-        Window* window = Engine::Get().GetViewportWindow();
-        m_ViewportWidth = window->GetWidth();
-        m_ViewportHeight = window->GetHeight();
-
         // Framebuffers, commandbuffers, ...
         InitializeRender();
 
@@ -329,6 +325,12 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
+    void Renderer2D::OnViewportResize(u32 width, u32 height)
+    {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+    }
+
     void Renderer2D::Flush()
     {
         Renderer::Submit([this]()
@@ -357,19 +359,18 @@ namespace Turbo
             // TODO: Abstract this
 
             // Record buffer
-            Window* viewportWindow = Engine::Get().GetViewportWindow();
-            Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+            Ref<VulkanSwapChain> swapChain = Engine::Get().GetViewportWindow()->GetSwapchain().As<VulkanSwapChain>();
 
             u32 currentFrame = swapChain->GetCurrentFrame();
-            u32 windowWidth = viewportWindow->GetWidth();
-            u32 windowHeight = viewportWindow->GetHeight();
+            u32 windowWidth = m_ViewportWidth;
+            u32 windowHeight = m_ViewportHeight;
 
             VkCommandBuffer currentBuffer = m_RenderCommandBuffers[currentFrame].As<VulkanCommandBuffer>()->GetCommandBuffer();
 
             VkCommandBufferInheritanceInfo inheritanceInfo = {};
             inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-            inheritanceInfo.renderPass = swapChain->GetRenderPass().As<VulkanRenderPass>()->GetRenderPass();
-            inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
+            inheritanceInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetRenderPass();
+            inheritanceInfo.framebuffer = m_Framebuffers[currentFrame].As<VulkanFrameBuffer>()->GetFrameBuffer();
 
             VkCommandBufferBeginInfo cmdBufInfo = {};
             cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -419,9 +420,9 @@ namespace Turbo
 
             // Submit secondary buffer
             swapChain->SubmitSecondary(currentBuffer);
-
+            
             // Increment draw calls
-            ++m_Statistics.DrawCalls;
+            m_Statistics.DrawCalls++;
         });
 
     }

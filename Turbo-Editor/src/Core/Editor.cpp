@@ -92,6 +92,8 @@ namespace Turbo::Ed
         // Resize scene
         m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
+        // Start scene
+
         UpdateTitle();
 
         return true;
@@ -235,7 +237,7 @@ namespace Turbo::Ed
                 OnViewportResize(static_cast<u32>(window_size.x), static_cast<u32>(window_size.y));
             }
 
-            UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x,viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
+            //UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x,viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
 
             // Right-click on viewport to access the magic menu
             ImGui::SetNextWindowSize({ 200.0f, 400.0f });
@@ -365,8 +367,6 @@ namespace Turbo::Ed
     {
         m_ViewportWidth = width;
         m_ViewportHeight = height;
-
-        m_SceneRenderer->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         if (m_CurrentScene)
             m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
