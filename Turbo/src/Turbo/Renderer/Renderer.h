@@ -13,7 +13,6 @@ namespace Turbo
 
         static RenderCommandQueue& GetRenderCommandQueue();
         static RenderCommandQueue& GetSecondaryCommandQueue();
-        static Renderer2D& GetRenderer2D();
 
         template<typename F>
         static void Submit(F&& func)

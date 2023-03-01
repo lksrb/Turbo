@@ -24,6 +24,7 @@ namespace Turbo {
             bool VSync;
             bool StartMaximized;
             bool Resizable;
+            bool SwapChainTarget;
         };
 
         virtual ~Window();

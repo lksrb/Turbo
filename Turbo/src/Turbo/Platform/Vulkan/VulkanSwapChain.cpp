@@ -8,16 +8,11 @@
 #include "Turbo/Renderer/GPUDevice.h"
 
 #include "Turbo/Platform/Vulkan/VulkanImage2D.h"
+#include "Turbo/Platform/Vulkan/VulkanUtils.h"
 
 namespace Turbo
 {
     VulkanSwapChain::VulkanSwapChain()
-        : m_Swapchain(VK_NULL_HANDLE), m_Renderpass(VK_NULL_HANDLE),
-        m_RenderFinishedSemaphores{ VK_NULL_HANDLE }, m_PresentSemaphores{ VK_NULL_HANDLE },
-        m_InFlightFences{ VK_NULL_HANDLE },
-        m_Imageviews{ VK_NULL_HANDLE }, m_Images{ VK_NULL_HANDLE },
-        m_Framebuffers{ VK_NULL_HANDLE }, m_RenderCommandBuffers{ VK_NULL_HANDLE },
-        m_CurrentFrame(0), m_ImageIndex(0)
     {
         Initialize();
     }
@@ -29,8 +24,9 @@ namespace Turbo
 
     void VulkanSwapChain::Initialize()
     {
-        m_SwapchainFormat = VK_FORMAT_B8G8R8A8_SRGB;
-
+        std::array<VkFormat, 6> requestSurfaceImageFormat = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
+        VkSurfaceFormatKHR surfaceFormat = Vulkan::FindSurfaceFormat(requestSurfaceImageFormat.data(), requestSurfaceImageFormat.size(), VK_COLORSPACE_SRGB_NONLINEAR_KHR); // TODO: Copy imgui function that chooses surface format
+        m_SwapchainFormat = surfaceFormat.format;
         // TODO: Remove depth buffer 
         Image2D::Config imageConfig = {};
         imageConfig.ImageFormat = Image2D::Format_D32_SFloat_S8_Uint;
@@ -40,8 +36,6 @@ namespace Turbo
         imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
         m_DepthBuffer = Image2D::Create(imageConfig);
         m_DepthBuffer->Invalidate(1600, 900);
-
-        m_Renderpass = RenderPass::Create({ m_DepthBuffer }); 
 
         CreateRenderpass();
         CreateSyncObjects();
@@ -166,27 +160,7 @@ namespace Turbo
         m_SecondaryCommandBuffers.push_back(bufferToSubmit);
     }
 
-    VkCommandBuffer VulkanSwapChain::GetCurrentRenderCommandBuffer() const
-    {
-        return m_RenderCommandBuffers[m_CurrentFrame];
-    }
-
-    VkFramebuffer VulkanSwapChain::GetCurrentFramebuffer() const
-    {
-        return m_Framebuffers[m_ImageIndex];
-    }
-
-    Ref<RenderPass> VulkanSwapChain::GetRenderPass() const
-    {
-        return m_Renderpass;
-    }
-
-    u32 VulkanSwapChain::GetCurrentFrame() const
-    {
-        return m_CurrentFrame;
-    }
-
-	void VulkanSwapChain::NewFrame()
+    void VulkanSwapChain::NewFrame()
     {
         u32 currentFrame = m_CurrentFrame;
         VkSemaphore currentSemaphore = m_PresentSemaphores[currentFrame];
@@ -198,7 +172,11 @@ namespace Turbo
         SubmitCommandBuffers();
         PresentFrame();
     }
-
+    /**
+     * TODO:
+     * 1) Swapchain should only submit command buffers, not build them
+     * 2) Target framebuffer will be the same except
+     */
     void VulkanSwapChain::SubmitCommandBuffers()
     {
         VkDevice device = RendererContext::GetDevice();
@@ -208,6 +186,9 @@ namespace Turbo
         const Window* viewportWindow = Engine::Get().GetViewportWindow();
         u32 width = viewportWindow->GetWidth();
         u32 height = viewportWindow->GetHeight();
+
+        // TODO: Move this into UserInterface since when in Editor, we use ImGui 
+        // to render everything
 
         // Execute all command buffers submitted by renderers
         {
@@ -225,7 +206,7 @@ namespace Turbo
 
                 VkRenderPassBeginInfo renderPassBeginInfo = {};
                 renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                renderPassBeginInfo.renderPass = m_Renderpass.As<VulkanRenderPass>()->GetRenderPass();
+                renderPassBeginInfo.renderPass = m_Renderpass;
                 renderPassBeginInfo.renderArea.offset.x = 0;
                 renderPassBeginInfo.renderArea.offset.y = 0;
                 renderPassBeginInfo.renderArea.extent = { width, height };
@@ -235,17 +216,16 @@ namespace Turbo
 
                 vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
-              
+                // Execute all submitted secondary command buffers
+                {
+                    TBO_ENGINE_ASSERT(m_SecondaryCommandBuffers.size(), "Cannot submit 0 command buffers!");
+
+                    vkCmdExecuteCommands(currentBuffer, static_cast<uint32_t>(m_SecondaryCommandBuffers.size()), m_SecondaryCommandBuffers.data());
+                    m_SecondaryCommandBuffers.clear();
+
+                }
+
                 vkCmdEndRenderPass(currentBuffer);
-            }
-
-            // Execute all submitted secondary command buffers
-            {
-                TBO_ENGINE_ASSERT(m_SecondaryCommandBuffers.size(), "Cannot submit 0 command buffers!");
-
-                vkCmdExecuteCommands(currentBuffer, static_cast<uint32_t>(m_SecondaryCommandBuffers.size()), m_SecondaryCommandBuffers.data());
-                m_SecondaryCommandBuffers.clear();
-
             }
             TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
         }
@@ -304,134 +284,157 @@ namespace Turbo
 
     void VulkanSwapChain::CreateRenderpass()
     {
-        /* // Attachment description
-         VkAttachmentDescription colorAttachment{};
-         colorAttachment.format = m_SwapchainFormat;
-         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-         colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-         // Subpasses and attachment references
-         VkAttachmentReference colorAttachmentRef{};
-         colorAttachmentRef.attachment = 0;
-         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-         VkSubpassDescription subpassDescription{};
-         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-         subpassDescription.colorAttachmentCount = 1;
-         subpassDescription.pColorAttachments = &colorAttachmentRef;
-         subpassDescription.inputAttachmentCount = 0;
-         subpassDescription.pInputAttachments = nullptr;
-         subpassDescription.preserveAttachmentCount = 0;
-         subpassDescription.pPreserveAttachments = nullptr;
-         subpassDescription.pResolveAttachments = nullptr;
-
-         // Render pass
-         VkRenderPassCreateInfo renderPassInfo{};
-         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-         renderPassInfo.attachmentCount = 1;
-         renderPassInfo.pAttachments = &colorAttachment;
-         renderPassInfo.subpassCount = 1;
-         renderPassInfo.pSubpasses = &subpassDescription;
-
-         VkSubpassDependency dependency{};
-         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-         dependency.dstSubpass = 0;
-         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-         dependency.srcAccessMask = 0;
-         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-         renderPassInfo.dependencyCount = 1;
-         renderPassInfo.pDependencies = &dependency;
-         renderPassInfo.pSubpasses;
-
-         TBO_VK_ASSERT(vkCreateRenderPass(RendererContext::GetDevice(), &renderPassInfo, nullptr, &m_Renderpass));*/
-
         VkDevice device = RendererContext::GetDevice();
 
-        m_Renderpass->Invalidate();
+        // Attachment description
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = m_SwapchainFormat;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        // Subpasses and attachment references
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        /*  std::vector<VkAttachmentDescription> attachments;
+        VkSubpassDescription subpassDescription = {};
+        subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpassDescription.colorAttachmentCount = 1;
+        subpassDescription.pColorAttachments = &colorAttachmentRef;
+        subpassDescription.inputAttachmentCount = 0;
+        subpassDescription.pInputAttachments = nullptr;
+        subpassDescription.preserveAttachmentCount = 0;
+        subpassDescription.pPreserveAttachments = nullptr;
+        subpassDescription.pResolveAttachments = nullptr;
 
-          // Color attachment
-          {
-              auto& colorAttachment = attachments.emplace_back();
-              colorAttachment.format = m_SwapchainFormat;
-              colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-              colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-              colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-              colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-              colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-              colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-              colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-          }
+        // Render pass 
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpassDescription;
 
-          // Depth buffer
-          {
-              auto& depthAttachment = attachments.emplace_back();
-              depthAttachment.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
-              depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-              depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-              depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-              depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-              depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-              depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-              depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-          }
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
+        renderPassInfo.pSubpasses;
 
-          // Subpasses and attachment references
-          VkAttachmentReference colorAttachmentRef{};
-          colorAttachmentRef.attachment = 0;
-          colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        TBO_VK_ASSERT(vkCreateRenderPass(device,
+            &renderPassInfo, nullptr, &m_Renderpass));
 
-          // Depth buffer attachment reference
-          VkAttachmentReference depthAttachmentRef{};
-          depthAttachmentRef.attachment = 1;
-          depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        // Add it to deletion queue 
+        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
+        resourceFreeQueue.Submit(RENDERPASS, [device, m_Renderpass = m_Renderpass]()
+        {
+            vkDestroyRenderPass(device, m_Renderpass, nullptr);
+        });
+/*
+        return;
+        std::vector<VkAttachmentDescription> attachments;
 
-          VkSubpassDescription subpassDescription{};
-          subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-          subpassDescription.colorAttachmentCount = 1;
-          subpassDescription.pColorAttachments = &colorAttachmentRef;
-          subpassDescription.inputAttachmentCount = 0;
-          subpassDescription.pInputAttachments = VK_NULL_HANDLE;
-          subpassDescription.preserveAttachmentCount = 0;
-          subpassDescription.pPreserveAttachments = VK_NULL_HANDLE;
-          subpassDescription.pResolveAttachments = VK_NULL_HANDLE;
-          subpassDescription.pDepthStencilAttachment = &depthAttachmentRef;
+        // Color attachment
+        {
+            auto& colorAttachment = attachments.emplace_back();
+            colorAttachment.format = m_SwapchainFormat;
+            colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        }
 
-          // Dependencies
-          VkSubpassDependency dependency{};
-          dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-          dependency.dstSubpass = 0;
-          dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-          dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-          dependency.srcAccessMask = 0;
-          dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-          dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+/ *
+        if (m_Config.DepthAttachment)
+        {
+            // Depth buffer
+            auto& depthAttachment = attachments.emplace_back();
+            depthAttachment.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
+            depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        }* /
 
-          // Render pass
-          VkRenderPassCreateInfo renderPassInfo{};
-          renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        // Subpasses and attachment references
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-          // Attachments
-          renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-          renderPassInfo.pAttachments = attachments.data();
+        // Depth buffer attachment reference
+        VkAttachmentReference depthAttachmentRef{};
+        depthAttachmentRef.attachment = 1;
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-          // Subpasses
-          renderPassInfo.subpassCount = 1;
-          renderPassInfo.pSubpasses = &subpassDescription;
+        VkSubpassDescription subpassDescription{};
+        subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpassDescription.colorAttachmentCount = 1;
+        subpassDescription.pColorAttachments = &colorAttachmentRef;
+        subpassDescription.inputAttachmentCount = 0;
+        subpassDescription.pInputAttachments = VK_NULL_HANDLE;
+        subpassDescription.preserveAttachmentCount = 0;
+        subpassDescription.pPreserveAttachments = VK_NULL_HANDLE;
+        subpassDescription.pResolveAttachments = VK_NULL_HANDLE;
+        subpassDescription.pDepthStencilAttachment = VK_NULL_HANDLE; //m_Config.DepthAttachment ? &depthAttachmentRef : VK_NULL_HANDLE;
 
-          // Dependencies
-          renderPassInfo.dependencyCount = 1;
-          renderPassInfo.pDependencies = &dependency;
+        // Dependencies
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.dependencyFlags = 0/ *VK_DEPENDENCY_BY_REGION_BIT* /;
 
-          TBO_VK_ASSERT(vkCreateRenderPass(device, &renderPassInfo, VK_NULL_HANDLE, &m_Renderpass));*/
+/ *
+        if (m_Config.DepthAttachment)
+        {
+            dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            dependency.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        }* /
+
+        // Render pass 
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+
+        // Attachments
+        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassInfo.pAttachments = attachments.data();
+
+        // Subpasses
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpassDescription;
+
+        // Dependencies
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
+
+        TBO_VK_ASSERT(vkCreateRenderPass(device, &renderPassInfo, VK_NULL_HANDLE, &m_Renderpass));
+
+        // Add it to deletion queue 
+        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
+        resourceFreeQueue.Submit(RENDERPASS, [device, m_Renderpass = m_Renderpass]()
+        {
+            vkDestroyRenderPass(device, m_Renderpass, nullptr);
+        });*/
     }
 
     void VulkanSwapChain::CreateSyncObjects()
@@ -481,17 +484,17 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
 
-        for (size_t i = 0; i < RendererContext::FramesInFlight(); i++)
+        for (size_t i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
             VkImageView attachments[] = {
                 m_Imageviews[i], // Color attachment 
-                m_DepthBuffer.As<VulkanImage2D>()->GetImageView()    // Depth buffer
+                //m_DepthBuffer.As<VulkanImage2D>()->GetImageView()    // Depth buffer
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = m_Renderpass.As<VulkanRenderPass>()->GetRenderPass();
-            framebufferInfo.attachmentCount = 2;
+            framebufferInfo.renderPass = m_Renderpass;
+            framebufferInfo.attachmentCount = 1;
             framebufferInfo.pAttachments = attachments;
             framebufferInfo.width = width;
             framebufferInfo.height = height;

@@ -48,10 +48,13 @@ namespace Turbo
         specification.StartMaximized = m_Application->m_Config.StartMaximized;
         specification.Resizable = m_Application->m_Config.Resizable;
 
+        // If UI is disabled, change render target to swapchain framebuffers i.e. render into the window instead of the UI
+        specification.SwapChainTarget = !m_Application->m_Config.EnableUI; 
+
         m_ViewportWindow = Window::Create(specification);
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Engine::OnEvent));
 
-        // Set window context
+        // Creates Win32 surface and initializes swapchain
         RendererContext::SetWindowContext(m_ViewportWindow);
 
         Renderer::Initialize();

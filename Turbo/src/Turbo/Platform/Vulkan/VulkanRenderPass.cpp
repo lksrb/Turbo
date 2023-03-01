@@ -23,7 +23,7 @@ namespace Turbo
         // Color attachment
         {
             auto& colorAttachment = attachments.emplace_back();
-            colorAttachment.format = VK_FORMAT_B8G8R8A8_SRGB;
+            colorAttachment.format = VK_FORMAT_R8G8B8A8_UNORM; // VK_FORMAT_B8G8R8A8_SRGB;
             colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
             colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -83,7 +83,6 @@ namespace Turbo
             dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             dependency.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
         }
 
         // Render pass 
@@ -99,8 +98,8 @@ namespace Turbo
         renderPassInfo.pSubpasses = &subpassDescription;
 
         // Dependencies
-        renderPassInfo.dependencyCount = 1;
-        renderPassInfo.pDependencies = &dependency;
+        //renderPassInfo.dependencyCount = 1;
+        //renderPassInfo.pDependencies = &dependency;
 
         TBO_VK_ASSERT(vkCreateRenderPass(device, &renderPassInfo, VK_NULL_HANDLE, &m_RenderPass));
 

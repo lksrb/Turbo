@@ -96,9 +96,9 @@ namespace Turbo
         {
             // Index buffer
             {
-                uint32_t* quadIndices = new uint32_t[MaxIndices];
-                uint32_t offset = 0;
-                for (uint32_t i = 0; i < MaxIndices; i += 6)
+                u32* quadIndices = new u32[MaxIndices];
+                u32 offset = 0;
+                for (u32 i = 0; i < MaxIndices; i += 6)
                 {
                     quadIndices[i + 0] = offset + 0;
                     quadIndices[i + 1] = offset + 1;
@@ -147,8 +147,6 @@ namespace Turbo
 
         // Set white texture at the top of the stack
         m_TextureSlots[0] = m_WhiteTexture;
-
-        //m_QuadMaterial->Set("u_Textures", m_WhiteTexture, 0);
     }
 
     void Renderer2D::Shutdown()
@@ -333,6 +331,8 @@ namespace Turbo
 
     void Renderer2D::Flush()
     {
+
+        return;
         Renderer::Submit([this]()
         {
             if (m_Statistics.QuadIndexCount)
@@ -367,18 +367,33 @@ namespace Turbo
 
             VkCommandBuffer currentBuffer = m_RenderCommandBuffers[currentFrame].As<VulkanCommandBuffer>()->GetCommandBuffer();
 
-            VkCommandBufferInheritanceInfo inheritanceInfo = {};
-            inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-            inheritanceInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetRenderPass();
-            inheritanceInfo.framebuffer = m_Framebuffers[currentFrame].As<VulkanFrameBuffer>()->GetFrameBuffer();
+            /* VkCommandBufferInheritanceInfo inheritanceInfo = {};
+             inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+             inheritanceInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetRenderPass();
+             inheritanceInfo.framebuffer = m_Framebuffers[currentFrame].As<VulkanFrameBuffer>()->GetFrameBuffer();*/
 
             VkCommandBufferBeginInfo cmdBufInfo = {};
             cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-            cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
+            cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            cmdBufInfo.pInheritanceInfo = nullptr;
 
             TBO_VK_ASSERT(vkBeginCommandBuffer(currentBuffer, &cmdBufInfo));
             {
+                VkClearValue clearValues[2]{};
+                clearValues[0].color = { {0.0f, 0.0f,0.0f, 1.0f} };
+                clearValues[1].depthStencil = { 1.0f, 0 };
+
+                VkRenderPassBeginInfo renderPassBeginInfo = {};
+                renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+                renderPassBeginInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetRenderPass();
+                renderPassBeginInfo.renderArea.offset.x = 0;
+                renderPassBeginInfo.renderArea.offset.y = 0;
+                renderPassBeginInfo.renderArea.extent = { m_ViewportWidth, m_ViewportHeight };
+                renderPassBeginInfo.clearValueCount = 2; // Color
+                renderPassBeginInfo.pClearValues = clearValues;
+                renderPassBeginInfo.framebuffer = m_Framebuffers[swapChain->GetCurrentImageIndex()].As<VulkanFrameBuffer>()->GetFrameBuffer();
+
+                vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
                 // Draw
                 if (m_Statistics.QuadIndexCount)
                 {
@@ -414,13 +429,15 @@ namespace Turbo
 
                     vkCmdDrawIndexed(currentBuffer, m_Statistics.QuadIndexCount, 1, 0, 0, 0);
                 }
+
+                vkCmdEndRenderPass(currentBuffer);
             }
 
             TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
 
             // Submit secondary buffer
             swapChain->SubmitSecondary(currentBuffer);
-            
+
             // Increment draw calls
             m_Statistics.DrawCalls++;
         });

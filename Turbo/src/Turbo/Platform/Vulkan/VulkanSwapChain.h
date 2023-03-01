@@ -25,12 +25,13 @@ namespace Turbo
 
         void SubmitSecondary(VkCommandBuffer bufferToSubmit);
         
-        VkCommandBuffer GetCurrentRenderCommandBuffer() const;
-        VkFramebuffer GetCurrentFramebuffer() const;
-        Ref<RenderPass> GetRenderPass() const;
-        u32 GetCurrentFrame() const override;
-
+        VkCommandBuffer GetCurrentRenderCommandBuffer() const { return m_RenderCommandBuffers[m_CurrentFrame]; }
+        VkFramebuffer GetCurrentFramebuffer() const { return m_Framebuffers[m_ImageIndex]; }
+        VkRenderPass GetRenderPass() const { return m_Renderpass; }
         Ref<Image2D> GetDepthBuffer() const { return m_DepthBuffer; }
+
+        u32 GetCurrentFrame() const override { return m_CurrentFrame; }
+        u32 GetCurrentImageIndex() const override { return m_ImageIndex; }
     private:
         void Initialize();
         void Shutdown();
@@ -46,8 +47,8 @@ namespace Turbo
 
         void Cleanup();
     private:
-        VkSwapchainKHR m_Swapchain;
-        Ref<RenderPass> m_Renderpass;
+        VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
+        VkRenderPass m_Renderpass = VK_NULL_HANDLE;
 
         VkSemaphore m_RenderFinishedSemaphores[TBO_MAX_FRAMESINFLIGHT];
         VkSemaphore m_PresentSemaphores[TBO_MAX_FRAMESINFLIGHT];
@@ -60,10 +61,10 @@ namespace Turbo
         // Temporary
         Ref<Image2D> m_DepthBuffer;
 
-        VkFormat m_SwapchainFormat;
+        VkFormat m_SwapchainFormat = VK_FORMAT_UNDEFINED;
 
-        u32 m_CurrentFrame;
-        u32 m_ImageIndex;
+        u32 m_CurrentFrame = 0;
+        u32 m_ImageIndex = 0;
 
         std::vector<VkCommandBuffer> m_SecondaryCommandBuffers;
     };

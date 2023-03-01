@@ -316,7 +316,7 @@ namespace Turbo
         pool_info.maxSets = 100 * IM_ARRAYSIZE(pool_sizes);
         pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
-        TBO_VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool));
+        TBO_VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool)); 
 #ifdef TBO_PLATFORM_WIN32
         Win32_Window* window = dynamic_cast<Win32_Window*>(viewportWindow);
         TBO_ENGINE_ASSERT(ImGui_ImplWin32_Init(window->GetHandle()));
@@ -339,10 +339,10 @@ namespace Turbo
         init_info.Allocator = nullptr;
         init_info.CheckVkResultFn = CheckVkResult;
 
-        auto swapchain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
-        auto renderPass = swapchain->GetRenderPass().As<VulkanRenderPass>();
+        Ref<VulkanSwapChain> swapchain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+        VkRenderPass renderPass = swapchain->GetRenderPass();
 
-        ImGui_ImplVulkan_Init(&init_info, renderPass->GetRenderPass());
+        ImGui_ImplVulkan_Init(&init_info, renderPass);
 
         // Submits and wait till the command buffer is finished
         RendererContext::ImmediateSubmit([](VkCommandBuffer commandBuffer)
@@ -378,7 +378,7 @@ namespace Turbo
              u32 currentFrame = swapChain->GetCurrentFrame();
              VkCommandBufferInheritanceInfo inheritanceInfo = {};
              inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-             inheritanceInfo.renderPass = swapChain->GetRenderPass().As<VulkanRenderPass>()->GetRenderPass();
+             inheritanceInfo.renderPass = swapChain->GetRenderPass();
              inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
 
              VkCommandBufferBeginInfo cmdBufInfo = {};
