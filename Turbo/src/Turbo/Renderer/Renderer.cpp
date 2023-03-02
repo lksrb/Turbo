@@ -6,6 +6,16 @@
 #include "Renderer2D.h"
 #include "SwapChain.h"
 
+#include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
+#include "Turbo/Platform/Vulkan/VulkanBuffer.h"
+#include "Turbo/Platform/Vulkan/VulkanRenderPass.h"
+#include "Turbo/Platform/Vulkan/VulkanCommandBuffer.h"
+#include "Turbo/Platform/Vulkan/VulkanImage2D.h"
+#include "Turbo/Platform/Vulkan/VulkanIndexBuffer.h"
+#include "Turbo/Platform/Vulkan/VulkanVertexBuffer.h"
+#include "Turbo/Platform/Vulkan/VulkanGraphicsPipeline.h"
+#include "Turbo/Platform/Vulkan/VulkanShader.h"
+
 namespace Turbo
 {
     struct Internal
@@ -32,10 +42,10 @@ namespace Turbo
 
     u32 Renderer::GetCurrentFrame()
     {
-        const Ref<SwapChain>& swapChain = Engine::Get().GetViewportWindow()->GetSwapchain();
-        const u32 currentFrame = swapChain->GetCurrentFrame();
+        const Ref<SwapChain>& swap_chain = Engine::Get().GetViewportWindow()->GetSwapchain();
+        const u32 current_frame = swap_chain->GetCurrentFrame();
 
-        return currentFrame;
+        return current_frame;
     }
 
     void Renderer::Begin()
@@ -47,4 +57,90 @@ namespace Turbo
     {
         s_Internal->RenderQueue.Execute();
     }
+
+    // Command buffer functions
+    // Command buffer functions
+    // Command buffer functions
+
+    void Renderer::SetViewport(Ref<CommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 he, f32 min_depth, f32 max_depth)
+    {
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+
+        VkViewport viewport = {};
+        viewport.x = static_cast<f32>(x);
+        viewport.y = static_cast<f32>(y);
+        viewport.width = static_cast<f32>(width);
+        viewport.height = static_cast<f32>(he);
+        viewport.minDepth = min_depth;
+        viewport.maxDepth = max_depth;
+        vkCmdSetViewport(vk_commandbuffer, 0, 1, &viewport);
+    }
+
+    void Renderer::SetScissor(Ref<CommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 height)
+    {
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+
+        VkRect2D scissor = {};
+        scissor.offset = { x,y };
+        scissor.extent = { width, height };
+        vkCmdSetScissor(vk_commandbuffer, 0, 1, &scissor);
+    }
+
+    void Renderer::BeginRenderPass(Ref<CommandBuffer> commandbuffer, Ref<FrameBuffer> framebuffer, const glm::vec4& clear_color)
+    {
+        const FrameBuffer::Config& framebuffer_config = framebuffer->GetConfig();
+
+        Renderer::SetViewport(commandbuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
+        Renderer::SetScissor(commandbuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
+
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+        VkFramebuffer vk_framebuffer = framebuffer.As<VulkanFrameBuffer>()->GetFrameBuffer();
+        VkRenderPass vk_renderpass = framebuffer_config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
+
+        VkClearValue clearValues[2]{};
+        clearValues[0].color = { { clear_color.x, clear_color.y, clear_color.z, clear_color.w } };
+        clearValues[1].depthStencil = { 1.0f, 0 };
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.renderPass = vk_renderpass;
+        renderPassBeginInfo.renderArea.offset.x = 0;
+        renderPassBeginInfo.renderArea.offset.y = 0;
+        renderPassBeginInfo.renderArea.extent = { framebuffer_config.Width, framebuffer_config.Height };
+        renderPassBeginInfo.clearValueCount = 2;
+        renderPassBeginInfo.pClearValues = clearValues;
+        renderPassBeginInfo.framebuffer = vk_framebuffer;
+
+        vkCmdBeginRenderPass(vk_commandbuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    void Renderer::EndRenderPass(Ref<CommandBuffer> commandbuffer)
+    {
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+
+        vkCmdEndRenderPass(vk_commandbuffer);
+    }
+
+    void Renderer::DrawIndexed(Ref<CommandBuffer> commandbuffer, Ref<VertexBuffer> vertexbuffer, Ref<IndexBuffer> indexbuffer, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 index_count)
+    {
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+
+        VkBuffer vk_vertexBuffer = vertexbuffer.As<VulkanVertexBuffer>()->GetBuffer();
+        VkBuffer vk_indexBuffer = indexbuffer.As<VulkanIndexBuffer>()->GetBuffer();
+        VkPipeline vk_pipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipeline();
+        VkPipelineLayout vk_pipeline_layout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayout();
+        VkDescriptorSet vk_descriptor_set = shader.As<VulkanShader>()->GetDescriptorSet();
+
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(vk_commandbuffer, 0, 1, &vk_vertexBuffer, offsets);
+        vkCmdBindIndexBuffer(vk_commandbuffer, vk_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindPipeline(vk_commandbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline);
+
+        if (vk_descriptor_set) // TODO: Make this more convenient
+            vkCmdBindDescriptorSets(vk_commandbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_layout, 0, 1, &vk_descriptor_set, 0, nullptr);
+
+        vkCmdDrawIndexed(vk_commandbuffer, index_count, 1, 0, 0, 0);
+    }
+
 }

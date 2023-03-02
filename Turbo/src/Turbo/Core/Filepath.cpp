@@ -4,30 +4,30 @@
 namespace Turbo 
 {
     Filepath::Filepath()
-        : FString256()
+        : String()
     {
     }
 
     Filepath::Filepath(const char* str)
-        : FString256(str)
+        : String(str)
     {
     }
 
     Filepath::Filepath(const std::string& str)
-        : FString256(str.c_str())
+        : String(str.c_str())
     {
     }
 
     Filepath& Filepath::operator=(char* other)
     {
-        FString256::operator=(other);
+        String::operator=(other);
 
         return *this;
     }
 
     Filepath& Filepath::operator=(const char* other)
     {
-        FString256::operator=(other);
+        String::operator=(other);
 
         return *this;
     }
@@ -66,12 +66,12 @@ namespace Turbo
         return *this;
     }
 
-    Filepath& Filepath::operator/=(const FString64& other)
+    Filepath& Filepath::operator/=(const String64& other)
     {
         return Filepath::operator/=(other.CStr());
     }
 
-    Filepath Filepath::operator/(const FString64& other)
+    Filepath Filepath::operator/(const String64& other)
     {
         return Filepath::operator/(other.CStr());
     }
@@ -92,13 +92,13 @@ namespace Turbo
         return *this;
     }
 
-    FString64 Filepath::Filename() const
+    String64 Filepath::Filename() const
     {
         if (Empty())
-            return FString64{};
+            return String64{};
 
         size_t j = 0;
-        FString64 fileName;
+        String64 fileName;
         char reversed[64]{ 0 };
 
         for (size_t i = m_Size - 1; i > 0; --i)
@@ -156,14 +156,14 @@ namespace Turbo
         return filePath;
     }
 
-    FString32 Filepath::Extension()
+    String32 Filepath::Extension()
     {
         if (Empty())
-            return FString32{};
+            return String32{};
 
         size_t j = 0;
         char reversed[32]{ 0 };
-        FString32 ext;
+        String32 ext;
         for (size_t i = m_Size - 1; i > 0; --i)
         {
             reversed[j] = m_Buffer[i];
@@ -174,7 +174,7 @@ namespace Turbo
             else if (reversed[j] == '\\')
             {
                 // File does not an extension
-                return FString32{};
+                return String32{};
             }
             ++j;
         }

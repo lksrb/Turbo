@@ -187,12 +187,12 @@ namespace Turbo
         }
     }
 
-    Entity Scene::CreateEntity(const FString64& tag)
+    Entity Scene::CreateEntity(const String& tag)
     {
         return CreateEntityWithUUID(UUID(), tag);
     }
 
-    Entity Scene::CreateEntityWithUUID(UUID uuid, const FString64& tag)
+    Entity Scene::CreateEntityWithUUID(UUID uuid, const String& tag)
     {
         Entity entity = { m_Registry.create(), this };
         entity.AddComponent<IDComponent>(uuid);
@@ -202,6 +202,11 @@ namespace Turbo
         tagComponent.Tag = tag.Empty() ? "Entity" : tag;
 
         return entity;
+    }
+
+    void Scene::DestroyEntity(Entity entity)
+    {
+        m_Registry.destroy(entity);
     }
 
     void Scene::SetViewportSize(u32 width, u32 height)

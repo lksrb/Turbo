@@ -19,9 +19,9 @@ namespace Turbo
         static Ref<Material> Create(const Material::Config& config);
         virtual ~Material();
 
-        virtual void Set(const FString32& resourceName, const glm::mat4& matrix) = 0;
-        virtual void Set(const FString32& resourceName, const void* data, size_t size) = 0;
-        virtual void Set(const FString32& resourceName, const Ref<Texture2D>& texture, u32 index) = 0;
+        virtual void Set(const String32& resourceName, const glm::mat4& matrix) = 0;
+        virtual void Set(const String32& resourceName, const void* data, size_t size) = 0;
+        virtual void Set(const String32& resourceName, const Ref<Texture2D>& texture, u32 index) = 0;
 
         virtual void Update() = 0;
     protected:

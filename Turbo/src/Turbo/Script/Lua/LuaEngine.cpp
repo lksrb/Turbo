@@ -35,7 +35,7 @@ namespace Turbo
         lua_close(m_LuaState);
     }
 
-    void LuaEngine::AddCommand(const FString32& keyword, CommandCallback callback)
+    void LuaEngine::AddCommand(const String32& keyword, CommandCallback callback)
     {
         // Register new function and push upvalues to it
         lua_pushlightuserdata(L, callback); // <-- Up value

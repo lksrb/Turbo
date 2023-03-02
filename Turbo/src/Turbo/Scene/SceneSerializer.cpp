@@ -107,7 +107,7 @@ namespace Turbo
         return out;
     }
 
-    static FString256 RigidBody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
+    static String RigidBody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
     {
         switch (bodyType)
         {

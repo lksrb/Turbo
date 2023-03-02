@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Turbo/Core/Common.h"
-#include "Turbo/Core/FString.h"
+#include "Turbo/Core/String.h"
 
 #include "CommandTextFilter.h"
 
@@ -9,7 +9,7 @@
 
 namespace Turbo::Ed {
 
-    using OnInputSendCallback = std::function<void(const FString256&)>;
+    using OnInputSendCallback = std::function<void(const String&)>;
 
     enum AccessPanelMode : u32 {
         AccessPanelMode_Command = 0,
@@ -36,7 +36,7 @@ namespace Turbo::Ed {
         bool m_Open;
         CommandTextFilter m_TextFilter;// TODO: Text Filteting
         OnInputSendCallback m_Callback;
-        FString256 m_Input;
+        String m_Input;
         char m_TextBuffer[64];
     };
 

@@ -17,7 +17,7 @@ namespace Turbo
     {
     }
 
-    Ref<Project> Project::CreateDefault(const Filepath& rootDirectory, const FString64& projectName)
+    Ref<Project> Project::CreateDefault(const Filepath& rootDirectory, const String64& projectName)
     {
         Scene::Config sceneConfig = {};
         sceneConfig.RelativePath = "Assets\\Scenes\\BlankScene";

@@ -9,6 +9,8 @@
 
 namespace Turbo::Ed
 {
+    extern Filepath g_AssetPath = {};
+
     Editor::Editor(const Application::Config& config)
         : Application(config)
     {
@@ -22,14 +24,12 @@ namespace Turbo::Ed
     {
         m_CurrentPath = Platform::GetCurrentPath();
 
+        g_AssetPath = m_CurrentPath;
+
         m_CommandAccessPanel.SetOnInputSendCallback(TBO_BIND_FN(Editor::OnInputSend));
         m_NewProjectPopup.SetCallback(TBO_BIND_FN(Editor::OnCreateProject));
 
-        SceneRenderer::Config sceneRendererConfig = {};
-        sceneRendererConfig.ViewportWidth = m_Config.Width;
-        sceneRendererConfig.ViewportHeight= m_Config.Height;
-        sceneRendererConfig.RenderIntoTexture = true; // Render it into a texture that will be displayed via imgui
-        m_SceneRenderer = Ref<SceneRenderer>::Create(sceneRendererConfig);
+        m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_Config.Width, m_Config.Height, true });
     }
 
     void Editor::OnShutdown()
@@ -93,13 +93,14 @@ namespace Turbo::Ed
         m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         // Start scene
+        m_SceneHierarchyPanel.SetContext(m_CurrentScene);
 
         UpdateTitle();
 
         return true;
     }
 
-    void Editor::OnInputSend(const FString256& input)
+    void Editor::OnInputSend(const String& input)
     {
         TBO_INFO(input.CStr());
     }
@@ -155,7 +156,7 @@ namespace Turbo::Ed
         dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
     }
 
-    static FString32 s_ModeText = "Run";
+    static String32 s_ModeText = "Run";
 
     void Editor::OnDrawUI()
     {
@@ -250,7 +251,7 @@ namespace Turbo::Ed
                 ImGui::Separator();
                 if (ImGui::MenuItem("New Entity", nullptr, false, m_CurrentScene))
                 {
-                    TBO_ENGINE_WARN("Entity Added!");
+                    TBO_WARN("Entity Added!");
                     Entity e = m_CurrentScene->CreateEntity();
 
                     auto& transform = e.Transform();
@@ -263,7 +264,7 @@ namespace Turbo::Ed
 
                 if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_CurrentScene))
                 {
-                    TBO_ENGINE_WARN("Camera Added!");
+                    TBO_WARN("Camera Added!");
                     auto& camera = m_CurrentScene->CreateEntity().AddComponent<CameraComponent>();
                     camera.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
                 }
@@ -278,7 +279,7 @@ namespace Turbo::Ed
         ImGui::Text("StartTime %.5f ms", Time.TimeSinceStart.ms());
         ImGui::Separator();
 
-        Renderer2D::Statistics stats = m_SceneRenderer->GetRenderer2D()->GetStatistics();
+        Renderer2D::RenderInfo stats = m_SceneRenderer->GetRenderer2D()->GetRenderInfo();
         ImGui::Text("Quad Indices %d", stats.QuadIndexCount);
         ImGui::Text("Quad Count %d", stats.QuadCount);
         ImGui::Text("Drawcalls %d", stats.DrawCalls);
@@ -298,8 +299,8 @@ namespace Turbo::Ed
         }
 
         m_CommandAccessPanel.OnUIRender();
-
         m_NewProjectPopup.OnUIRender();
+        m_SceneHierarchyPanel.OnUIRender();
 
         // End dockspace
         ImGui::End();
@@ -337,6 +338,7 @@ namespace Turbo::Ed
 
             // Set render scene
             m_CurrentScene = m_CurrentProject->GetStartupScene();
+            m_SceneHierarchyPanel.SetContext(m_CurrentScene);
 
             UpdateTitle();
 
@@ -353,12 +355,12 @@ namespace Turbo::Ed
 
         Window->SetTitle("TurboEditor");
 
-        FString64 previousWindowTitle = Window->GetTitle();
+        String64 previousWindowTitle = Window->GetTitle();
 
         previousWindowTitle.Append(" | ");
         previousWindowTitle.Append(m_CurrentProject->GetName());
 
-        FString64 defaultSceneName = m_CurrentProject->GetStartupScene() ? m_CurrentProject->GetStartupScene()->GetName() : "Empty";
+        String64 defaultSceneName = m_CurrentProject->GetStartupScene() ? m_CurrentProject->GetStartupScene()->GetName() : "Empty";
         previousWindowTitle.Append(" - ");
         previousWindowTitle.Append(defaultSceneName);
 
@@ -373,6 +375,8 @@ namespace Turbo::Ed
 
         if (m_CurrentScene)
             m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+
+        m_SceneRenderer->OnViewportSize(width, height);
     }
 
 }

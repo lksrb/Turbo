@@ -12,7 +12,7 @@ namespace Turbo
     public:
         struct Config
         {
-            FString64 Name;
+            String64 Name;
             std::vector<Ref<Scene>> Scenes;
             Ref<Scene> StartupScene;
             Filepath RootDirectory; // Will point to the root directory of the project
@@ -21,12 +21,12 @@ namespace Turbo
         Project(const Project::Config& config = {});
         ~Project();
 
-        static Ref<Project> CreateDefault(const Filepath& rootDirectory, const FString64& projectName);
+        static Ref<Project> CreateDefault(const Filepath& rootDirectory, const String64& projectName);
         static Ref<Project> Deserialize(const Filepath& projectFilepath);
 
         const Filepath& GetRootDirectory() const { return m_Config.RootDirectory; }
 
-        const FString64& GetName() const { return m_Config.Name; }
+        const String64& GetName() const { return m_Config.Name; }
         Ref<Scene> GetStartupScene() const { return m_Config.StartupScene; }
 
     private:

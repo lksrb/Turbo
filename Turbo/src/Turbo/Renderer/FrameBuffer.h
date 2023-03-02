@@ -37,8 +37,6 @@ namespace Turbo
 
         struct Attachment
         {
-            Ref<Image2D> Image;
-
             ColorWriteMask ColorMask;
             bool EnableBlend;
             BlendFactor SrcBlendFactor;
@@ -52,6 +50,8 @@ namespace Turbo
             Attachment ColorAttachment;
             Attachment DeptAttachment;
             Ref<Image2D> DepthBuffer;
+            u32 Width;
+            u32 Height;
         };
 
         virtual ~FrameBuffer();
@@ -59,6 +59,8 @@ namespace Turbo
         static Ref<FrameBuffer> Create(const FrameBuffer::Config& config);
         
         const FrameBuffer::Config& GetConfig() const { return m_Config; }
+
+        virtual Ref<Image2D> GetColorAttachment() const = 0;
 
         virtual void Invalidate(u32 width, u32 height) = 0;
     protected:

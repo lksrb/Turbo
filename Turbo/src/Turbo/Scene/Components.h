@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Turbo/Core/PrimitiveTypes.h"
-#include "Turbo/Core/FString.h"
+#include "Turbo/Core/String.h"
 #include "Turbo/Core/UUID.h"
 
 #include "Turbo/Renderer/Texture2D.h"
@@ -19,10 +19,10 @@ namespace Turbo
 
     struct TagComponent
     {
-        FString64 Tag;
+        String Tag;
 
         TagComponent() = default;
-        TagComponent(const FString64& tagName) : Tag(tagName) {}
+        TagComponent(const String& tagName) : Tag(tagName) {}
     };
 
     struct RelationshipComponent
@@ -64,7 +64,7 @@ namespace Turbo
     struct SpriteRendererComponent
     {
         glm::vec4 Color{ 1.0f };
-        f32 Tiling{ 1.0f };
+        f32 Tiling = 1.0f;
         Ref<Texture2D> Texture; // TODO: Combine texture and subtexture
         Ref<SubTexture2D> SubTexture;
     };

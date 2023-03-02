@@ -16,8 +16,6 @@ namespace Turbo
 
     Ref<FrameBuffer> FrameBuffer::Create(const FrameBuffer::Config& config)
     {
-        TBO_ENGINE_ASSERT(config.ColorAttachment.Image);
-
         return Ref<VulkanFrameBuffer>::Create(config);
     }
 

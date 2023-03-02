@@ -23,7 +23,7 @@ namespace Turbo
         struct Config
         {
             // For scene serialization
-            FString64 Name;         
+            String64 Name;         
             Filepath RelativePath; 
         };
 
@@ -38,17 +38,28 @@ namespace Turbo
         void OnRuntimeUpdate(Time_T ts);
         void OnRuntimeRender(Ref<SceneRenderer> renderer);
 
-        Entity CreateEntity(const FString64& tag = "");
-        Entity CreateEntityWithUUID(UUID uuid, const FString64& tag = "");
+        Entity CreateEntity(const String& tag = "");
+        Entity CreateEntityWithUUID(UUID uuid, const String& tag = "");
+        void DestroyEntity(Entity entity);
 
         void SetViewportSize(u32 width, u32 height);
 
-        const FString64& GetName() const { return m_Config.Name; }
+        const String64& GetName() const { return m_Config.Name; }
 
         template<typename... Components>
         inline auto GetAllEntitiesWith()
         {
             return m_Registry.view<Components...>();
+        }
+
+        template<typename Func>
+        void EachEntity(Func&& func)
+        {
+            m_Registry.each([&](auto id)
+            {
+                Entity entity = { id, this };
+                func(entity);
+            });
         }
 
         bool Renderable() { return m_Renderable; }
@@ -71,7 +82,6 @@ namespace Turbo
 
         friend class Entity;
         friend class SceneSerializer;
-        friend class SceneSerializer2;
         friend class ProjectSerializer;
     };
 }

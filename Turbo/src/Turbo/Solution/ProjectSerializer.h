@@ -25,10 +25,10 @@ namespace Turbo
         struct ProjectBuild
         {
             // Deserialization
-            FString64 DefaultSceneName;
-            std::vector<FString64> SceneRelativePaths;
+            String64 DefaultSceneName;
+            std::vector<String64> SceneRelativePaths;
 
-            FString64 ProjectName; // TODO: Stack allocator
+            String64 ProjectName; // TODO: Stack allocator
             Filepath RootFilePath; // Until I ran into stack overflow
         };
 

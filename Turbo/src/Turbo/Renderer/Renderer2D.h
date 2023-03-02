@@ -24,14 +24,13 @@ namespace Turbo
     class Renderer2D
     {
     public:
-        struct Statistics
+        struct RenderInfo
         {
-            u32 QuadIndexCount;
             u32 QuadCount;
-
+            u32 QuadIndexCount;
             u32 DrawCalls;
 
-            Statistics() { Reset(); }
+            RenderInfo() { Reset(); }
 
             void Reset()
             {
@@ -55,21 +54,15 @@ namespace Turbo
         void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/);
         void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entityID /*= -1*/);
 
-        Statistics GetStatistics() const { return m_Statistics; }
+        RenderInfo GetRenderInfo() const { return m_RenderInfo; }
 
-        void SetClearColor(const glm::vec4& color) { TBO_ENGINE_ASSERT(false, "Not implemented yet"); m_ClearColor = color; }
-
-        void OnViewportResize(u32 width, u32 height);
-        void SetRenderTarget(const std::vector<Ref<FrameBuffer>>& framebuffers, const Ref<RenderPass>& renderPass) { m_Framebuffers = framebuffers; m_RenderPass = renderPass; }
+        void SetRenderTarget(Ref<FrameBuffer> framebuffer) { m_TargetFramebuffer = framebuffer; }
     private:
-
         void Shutdown();
 
         void StartBatch();
         void Flush();
     private:
-        void InitializeRender();
-
         static constexpr u32 MaxQuad = 2000;
         static constexpr u32 MaxVertices = MaxQuad * 4;
         static constexpr u32 MaxIndices = MaxQuad * 6;
@@ -92,7 +85,7 @@ namespace Turbo
             u32 EntityID;
         };
 
-        Statistics m_Statistics;
+        RenderInfo m_RenderInfo;
 
         // Quads
         QuadVertex* m_QuadVertexBufferBase = nullptr;
@@ -107,12 +100,7 @@ namespace Turbo
 
         Ref<Texture2D> m_WhiteTexture;
 
-        Ref<RenderPass> m_RenderPass;
-
-        Ref<Image2D> m_DepthImage;
-
-        //Ref<Image2D> m_RenderImages[TBO_MAX_FRAMESINFLIGHT];
-        std::vector<Ref<FrameBuffer>> m_Framebuffers;
+        Ref<FrameBuffer> m_TargetFramebuffer;
 
         Ref<CommandBuffer> m_CommandBuffer;
 
@@ -124,6 +112,5 @@ namespace Turbo
         bool m_BeginDraw = false;
 
         friend class SceneRenderer;
-        friend class Engine;
     };
 }

@@ -26,6 +26,8 @@ namespace Turbo
 
         TBO_ENGINE_ASSERT(texWidth * texHeight > 0, "Texture could not be loaded!");
 
+        m_IsLoaded = true;
+
         // Create storage for the loaded texture
         Image2D::Config imageConfig = {};
         imageConfig.Aspect = Image2D::AspectFlags_Color;
@@ -61,6 +63,8 @@ namespace Turbo
         imageConfig.ImageFormat = Image2D::Format_RGBA8_SRGB;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(1, 1);
+
+        m_IsLoaded = true;
 
         // Update width and height
         m_Width = 1;

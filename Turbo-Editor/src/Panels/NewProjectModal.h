@@ -10,7 +10,7 @@ namespace Turbo::Ed
     struct ProjectInfo
     {
         Filepath RootDirectory;
-        FString64 Name;
+        String64 Name;
     };
 
     using NewProjectCallback = std::function<bool(const ProjectInfo&)>;

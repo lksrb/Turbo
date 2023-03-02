@@ -17,7 +17,7 @@ namespace Turbo
     public:
         struct Config
         {
-            FString64 Title;
+            String64 Title;
             u32 Width;
             u32 Height;
             bool VSync;

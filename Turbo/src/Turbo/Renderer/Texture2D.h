@@ -22,6 +22,7 @@ namespace Turbo
 
         u32 GetWidth() const { return m_Width; }
         u32 GetHeight() const { return m_Height; }
+        bool IsLoaded() const { return m_IsLoaded; }
 
         Filepath GetFilepath() const { return m_Config.FilePath; }
 
@@ -35,8 +36,10 @@ namespace Turbo
 
         u32 m_Width;
         u32 m_Height;
-
+        
         u32 m_Color;
+
+        bool m_IsLoaded = false;
         Texture2D::Config m_Config;
     };
 

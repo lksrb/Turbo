@@ -27,12 +27,12 @@ namespace Turbo
         u32 Binding;
         u32 Stage;
         u32 Size;
-        FString32 Name;
+        String32 Name;
     };
 
     struct TextureSamplerArray
     {
-        FString32 Name;
+        String32 Name;
         u32 Binding;
         u32 Size = 0;
     };

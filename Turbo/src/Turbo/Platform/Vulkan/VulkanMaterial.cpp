@@ -22,12 +22,12 @@ namespace Turbo
         }
     }
 
-    void VulkanMaterial::Set(const FString32& resourceName, const glm::mat4& matrix)
+    void VulkanMaterial::Set(const String32& resourceName, const glm::mat4& matrix)
     {
         Set(resourceName, &matrix, sizeof(glm::mat4));
     }
 
-    void VulkanMaterial::Set(const FString32& resourceName, const void* data, size_t size)
+    void VulkanMaterial::Set(const String32& resourceName, const void* data, size_t size)
     {
         auto& resource = m_UniformBufferMap.find(resourceName.CStr());
         TBO_ENGINE_ASSERT(resource != m_UniformBufferMap.end(), "Resource does not exists!");
@@ -37,7 +37,7 @@ namespace Turbo
         buffer->SetData(data);
     }
 
-    void VulkanMaterial::Set(const FString32& resourceName, const Ref<Texture2D>& texture, u32 index)
+    void VulkanMaterial::Set(const String32& resourceName, const Ref<Texture2D>& texture, u32 index)
     {
         VkDevice device = RendererContext::GetDevice();
 

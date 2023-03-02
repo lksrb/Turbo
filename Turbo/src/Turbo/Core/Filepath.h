@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Turbo/Core/FString.h"
+#include "Turbo/Core/String.h"
 
 namespace Turbo 
 {
-    struct Filepath : public FString256
+    struct Filepath : public String
     {
     public:
         Filepath();
@@ -24,22 +24,22 @@ namespace Turbo
         bool operator!=(const Filepath& other) const;
 
         Filepath operator/(const char* other);
-        Filepath operator/(const FString64& other);
+        Filepath operator/(const String64& other);
         Filepath& operator/=(const char* other);
         Filepath& operator/=(const Filepath& other);
 
-        Filepath& operator/=(const FString64& other);
+        Filepath& operator/=(const String64& other);
 
         Filepath& Append(const char* str);
 
         // Gets filename WITHOUT EXTENSION from the path
-        FString64 Filename() const;
+        String64 Filename() const;
 
         // Gets root directory
         Filepath Directory() const;
 
         // Gets file extension
-        FString32 Extension();
+        String32 Extension();
     public:
         static void ConvertToBackslash(char* text);
     };

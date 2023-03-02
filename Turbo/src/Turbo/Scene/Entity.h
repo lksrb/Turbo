@@ -74,7 +74,7 @@ namespace Turbo
             return m_Scene->m_Registry.all_of<Component...>(m_Handle);
         }
 
-        FString64 GetName() { return GetComponent<TagComponent>().Tag; }
+        const auto& GetName() { return GetComponent<TagComponent>().Tag; }
         UUID GetUUID() { return GetComponent<IDComponent>().Uuid; }
         TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
 

@@ -254,7 +254,7 @@ namespace Turbo {
         ::ShowWindow(m_Handle, SW_SHOW);
     }
 
-    void Win32_Window::SetTitle(const FString64& title)
+    void Win32_Window::SetTitle(const String64& title)
     {
         m_Config.Title = title;
 

@@ -27,7 +27,7 @@ namespace Turbo
         ~LuaEngine();
 
         void SetUserdata(void* userdata);
-        void AddCommand(const FString32& keyword, CommandCallback callback);
+        void AddCommand(const String32& keyword, CommandCallback callback);
         bool Execute(const Filepath& filePath);
     private:
         void Initialize();

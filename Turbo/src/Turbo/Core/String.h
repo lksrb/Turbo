@@ -8,24 +8,24 @@
 namespace Turbo {
     // Fast string
     template<size_t Capacity>
-    struct FString
+    struct StringB
     {
     public:
-        FString() : m_Buffer{ 0 }, m_Size{ 0 } {}
+        StringB() = default;
 
-        FString(const std::string& str)
-            : FString(str.c_str())
+        StringB(const std::string& str)
+            : StringB(str.c_str())
         {
         }
 
-        FString(const char* other) 
-            : FString()
+        StringB(const char* other) 
+            : StringB()
         {
             if (other)
                 Copy(other);
         }
 
-        FString& operator=(const char* other)
+        StringB& operator=(const char* other)
         {
             if (other)
                 Copy(other);
@@ -33,7 +33,7 @@ namespace Turbo {
             return *this;
         }
 
-        FString& operator=(char* other)
+        StringB& operator=(char* other)
         {
             if (other)
                 Copy((const char*)other);
@@ -41,7 +41,7 @@ namespace Turbo {
             return *this;
         }
 
-        FString& Append(const char* other)
+        StringB& Append(const char* other)
         {
             TBO_ENGINE_ASSERT(strlen(m_Buffer) + strlen(other) < Cap());
             if (other)
@@ -52,9 +52,9 @@ namespace Turbo {
             return *this;
         }
 
-        FString& Append(const FString& other)
+        StringB& Append(const StringB& other)
         {
-            return FString::Append(other.CStr());
+            return StringB::Append(other.CStr());
         }
 
         bool Empty() const
@@ -75,7 +75,7 @@ namespace Turbo {
 
         bool operator!=(const char* other) const
         {
-            return !(FString::operator==(other));
+            return !(StringB::operator==(other));
         }
 
         inline size_t Size() const { return m_Size; }
@@ -108,25 +108,25 @@ namespace Turbo {
             strcpy_s(m_Buffer, Capacity, src);
         }
     protected:
-        size_t m_Size;
-        char m_Buffer[Capacity];
+        size_t m_Size = 0;
+        char m_Buffer[Capacity] = { 0 };
+        
     };
 
-    using FString32 = FString<32>;
-    using FString64 = FString<64>;
-    using FString128 = FString<128>;
-    using FString256 = FString<256>;
-
+    using String32 = StringB<32>;
+    using String64 = StringB<64>;
+    using String128 = StringB<128>;
+    using String = StringB<256>;
 }
 
 namespace std
 {
     template <>
-    struct hash<Turbo::FString32>
+    struct hash<Turbo::String32>
     {
-        auto operator()(const Turbo::FString32& xyz) const -> size_t
+        auto operator()(const Turbo::String32& xyz) const -> size_t
         {
-            return hash<Turbo::FString32>{}(xyz.CStr());
+            return hash<Turbo::String32>{}(xyz.CStr());
         }
     };
 }  //

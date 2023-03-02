@@ -34,7 +34,7 @@ namespace Turbo
 
 			for (size_t i = 0; i < nArgs; ++i)
 			{
-				FString64 sceneRelPath = pArgs[i];
+				String64 sceneRelPath = pArgs[i];
 
 				// Converts forward slash to backslash  
 				Filepath::ConvertToBackslash(sceneRelPath.data());

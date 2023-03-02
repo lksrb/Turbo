@@ -4,6 +4,7 @@
 
 #include "../Panels/AccessPanel.h"
 #include "../Panels/NewProjectModal.h"
+#include "../Panels/SceneHierarchyPanel.h"
 
 #include <glm/glm.hpp>
 
@@ -30,7 +31,7 @@ namespace Turbo::Ed
         void OnDraw() override;
     private: // Events
         void OnViewportResize(u32 width, u32 height);
-        void OnInputSend(const FString256& input);
+        void OnInputSend(const String& input);
         bool OnCreateProject(const ProjectInfo& info);
         bool OnWindowClosed(WindowCloseEvent& e);
         bool OnWindowResized(WindowResizeEvent& e);
@@ -47,8 +48,10 @@ namespace Turbo::Ed
         Mode m_EditorMode = Mode::Edit;
         Ref<Scene> m_CurrentScene;
         Ref<Project> m_CurrentProject;
-        NewProjectModal m_NewProjectPopup;
         Filepath m_CurrentPath;
+
+        SceneHierarchyPanel m_SceneHierarchyPanel;
+        NewProjectModal m_NewProjectPopup;
         AccessPanel m_CommandAccessPanel;
     };
 }

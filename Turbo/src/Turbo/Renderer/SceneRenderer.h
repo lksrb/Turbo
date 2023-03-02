@@ -28,12 +28,10 @@ namespace Turbo
     private:
         void Init();
     private:
-        std::vector<Ref<FrameBuffer>> m_FinalFramebuffers;
-
+        Ref<FrameBuffer> m_TargetFramebuffer;
         Ref<CommandBuffer> m_RenderCommandBuffer;
 
         Ref<RenderPass> m_Renderpass;
-
         Ref<Renderer2D> m_Renderer2D;
 
         SceneRenderer::Config m_Config;
