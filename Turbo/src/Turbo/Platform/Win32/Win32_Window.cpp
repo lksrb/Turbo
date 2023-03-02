@@ -37,8 +37,8 @@ namespace Turbo {
 
     const wchar_t* s_ClassName = L"MY WINDOW HOLY MOLY";
 
-    Win32_Window::Win32_Window(const Window::Config& specification)
-        : Window(specification)
+    Win32_Window::Win32_Window(const Window::Config& config)
+        : Window(config)
     {
         InitializeWindow();
     }

@@ -71,9 +71,9 @@ namespace Turbo
         return (f32)(timerValue - I->Timer.Offset) / (I->Timer.Frequency);
     }
 
-    Platform::Result Platform::CreateFile(const Filepath& rootPath, const char* filename, const char* extension)
+    Platform::Result Platform::CreateFile(const Filepath& root_path, const char* filename, const char* extension)
     {
-        Filepath filepath = rootPath;
+        Filepath filepath = root_path;
         filepath /= filename;
 
         filepath.Append(extension);
