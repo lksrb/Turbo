@@ -9,7 +9,7 @@ namespace Turbo
     class Win32_Window : public Window
     {
     public:
-        Win32_Window(const Window::Config& specification);
+        Win32_Window(const Window::Config& config);
         ~Win32_Window();
 
         void ProcessEvents() override;
@@ -28,8 +28,8 @@ namespace Turbo
 
         static LRESULT CALLBACK Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     private:
-        HWND m_Handle;
-        HINSTANCE m_Instance;
+        HWND m_Handle = nullptr;
+        HINSTANCE m_Instance = nullptr;
     };
 
 }

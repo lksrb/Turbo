@@ -38,7 +38,7 @@ namespace Turbo {
     const wchar_t* s_ClassName = L"MY WINDOW HOLY MOLY";
 
     Win32_Window::Win32_Window(const Window::Config& specification)
-        : Window(specification), m_Handle(nullptr), m_Instance(nullptr)
+        : Window(specification)
     {
         InitializeWindow();
     }
@@ -59,17 +59,17 @@ namespace Turbo {
 
     void Win32_Window::InitializeWindow()
     {
-        Filepath currentDirectory = Platform::GetCurrentPath() / "Resources" / "Icons" / "EditorIcon.ico";
+        Filepath current_dir = Platform::GetCurrentPath() / "Resources" / "Icons" / "EditorIcon.ico";
 
         m_Instance = ::GetModuleHandle(NULL);
-        WNDCLASS wndClass = {};
-        wndClass.lpszClassName = s_ClassName;
-        wndClass.hInstance = m_Instance;
-        wndClass.hIcon = reinterpret_cast<HICON>(::LoadImageA(nullptr, currentDirectory.CStr(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
-        wndClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-        wndClass.lpfnWndProc = Win32_Window::Win32Procedure;
+        WNDCLASS wnd_class = {};
+        wnd_class.lpszClassName = s_ClassName;
+        wnd_class.hInstance = m_Instance;
+        wnd_class.hIcon = reinterpret_cast<HICON>(::LoadImageA(nullptr, current_dir.CStr(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
+        wnd_class.hCursor = ::LoadCursor(NULL, IDC_ARROW);
+        wnd_class.lpfnWndProc = Win32_Window::Win32Procedure;
 
-        RegisterClass(&wndClass);
+        RegisterClass(&wnd_class);
 
         DWORD style = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_BORDER;
 
@@ -84,10 +84,10 @@ namespace Turbo {
 
         ::AdjustWindowRect(&rect, style, false);
 
-        size_t sizeInBytes = m_Config.Title.Cap();
+        size_t size_in_bytes = m_Config.Title.Cap();
 
         wchar_t ws[64];
-        mbstowcs_s(NULL, &ws[0], sizeInBytes, m_Config.Title.CStr(), sizeInBytes);
+        mbstowcs_s(NULL, &ws[0], size_in_bytes, m_Config.Title.CStr(), size_in_bytes);
         m_Handle = CreateWindowEx(
             0,
             s_ClassName,
@@ -115,15 +115,15 @@ namespace Turbo {
             case WM_RBUTTONDOWN:
             {
                 MouseCode button = Mouse::Button0;
-                i32 mouseX = static_cast<i32>(GET_X_LPARAM(lParam));
-                i32 mouseY = static_cast<i32>(GET_Y_LPARAM(lParam));
+                i32 mouse_x = static_cast<i32>(GET_X_LPARAM(lParam));
+                i32 mouse_y = static_cast<i32>(GET_Y_LPARAM(lParam));
 
                 if (uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK) { button = Mouse::Button0; }
                 if (uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONDBLCLK) { button = Mouse::Button1; }
                 //if (uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONDBLCLK) { button = Mouse::Button2; }
                 //if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
 
-                MouseButtonPressedEvent e(button, mouseX, mouseY);
+                MouseButtonPressedEvent e(button, mouse_x, mouse_y);
                 m_Callback(e);
                 break;
             }
@@ -131,13 +131,13 @@ namespace Turbo {
             case WM_RBUTTONUP:
             {
                 MouseCode button = Mouse::Button0;
-                i32 mouseX = static_cast<i32>(GET_X_LPARAM(lParam));
-                i32 mouseY = static_cast<i32>(GET_Y_LPARAM(lParam));
+                i32 mouse_x = static_cast<i32>(GET_X_LPARAM(lParam));
+                i32 mouse_y = static_cast<i32>(GET_Y_LPARAM(lParam));
 
                 if (uMsg == WM_LBUTTONUP) { button = Mouse::Button0; }
                 if (uMsg == WM_RBUTTONUP) { button = Mouse::Button1; }
 
-                MouseButtonReleasedEvent e(button, mouseX, mouseY);
+                MouseButtonReleasedEvent e(button, mouse_x, mouse_y);
                 m_Callback(e);
                 break;
             }
@@ -205,22 +205,22 @@ namespace Turbo {
             {
                 if (wParam < 256) // [?] UTF-8
                 {
-                    bool isKeyDown = WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
+                    bool is_key_down = WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
                     int key = (int)wParam;
 
-                    static int lastKey = -1;
+                    static int last_key = -1;
 
-                    bool repeat = lastKey == key;
-                    lastKey = key;
+                    bool repeat = last_key == key;
+                    last_key = key;
 
-                    if (isKeyDown)
+                    if (is_key_down)
                     {
                         KeyPressedEvent e(static_cast<KeyCode>(key), repeat);
                         m_Callback(e);
                     }
                     else
                     {
-                        lastKey = -1;
+                        last_key = -1;
                         KeyReleasedEvent e(static_cast<KeyCode>(key));
                         m_Callback(e);
                     }
@@ -258,10 +258,10 @@ namespace Turbo {
     {
         m_Config.Title = title;
 
-        size_t sizeInBytes = title.Cap();
+        size_t size_in_bytes = title.Cap();
 
         wchar_t ws[64];
-        mbstowcs_s(NULL, &ws[0], sizeInBytes , title.CStr(), sizeInBytes);
+        mbstowcs_s(NULL, &ws[0], size_in_bytes , title.CStr(), size_in_bytes);
 
         ::SetWindowText(m_Handle, ws);
     }
