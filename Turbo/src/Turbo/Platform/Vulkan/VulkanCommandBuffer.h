@@ -12,11 +12,14 @@ namespace Turbo
         VulkanCommandBuffer(CommandBufferLevel type);
         ~VulkanCommandBuffer();
 
-        VkCommandBuffer GetCommandBuffer() const { return m_CommandBuffer; }
+        VkCommandBuffer GetCommandBuffer() const;
 
         void Begin() override;
         void End() override;
+
+        void Submit() override;
     private:
-        VkCommandBuffer m_CommandBuffer;
+        std::vector<VkFence> m_WaitFences;
+        std::vector<VkCommandBuffer> m_CommandBuffers;
     };
 }

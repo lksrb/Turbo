@@ -166,25 +166,22 @@ namespace Turbo
 
         auto& targetFbConfig = m_Config.TargetFramebuffer->GetConfig();
 
-        VkPipelineColorBlendAttachmentState colorBlendAttachments[TBO_FRAMEBUFFER_MAX_ATTACHMENTS] = {};
-        
-        for (u32 i = 0; i < targetFbConfig.AttachmentsCount; ++i)
-        {
-            auto& framebufferAttachment = targetFbConfig.Attachments[i];
-            
-            colorBlendAttachments[i].colorWriteMask = (VkColorComponentFlags)framebufferAttachment.ColorMask;
-            colorBlendAttachments[i].blendEnable = framebufferAttachment.EnableBlend;
-            colorBlendAttachments[i].srcColorBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor;
-            colorBlendAttachments[i].dstColorBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
-            colorBlendAttachments[i].colorBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
-            colorBlendAttachments[i].srcAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor; // Idk what is this
-            colorBlendAttachments[i].dstAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
-            colorBlendAttachments[i].alphaBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
-        }
+        VkPipelineColorBlendAttachmentState colorBlendAttachments[2] = {};
+        u32 attachment_count = 1;
+
+        auto& framebufferAttachment = targetFbConfig.ColorAttachment;
+        colorBlendAttachments[0].colorWriteMask = (VkColorComponentFlags)framebufferAttachment.ColorMask;
+        colorBlendAttachments[0].blendEnable = framebufferAttachment.EnableBlend;
+        colorBlendAttachments[0].srcColorBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor;
+        colorBlendAttachments[0].dstColorBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
+        colorBlendAttachments[0].colorBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
+        colorBlendAttachments[0].srcAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor; // Idk what is this
+        colorBlendAttachments[0].dstAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
+        colorBlendAttachments[0].alphaBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
         
         VkPipelineColorBlendStateCreateInfo colorBlendState{};
         colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlendState.attachmentCount = targetFbConfig.AttachmentsCount;
+        colorBlendState.attachmentCount = attachment_count;
         colorBlendState.pAttachments = colorBlendAttachments;
         colorBlendState.logicOpEnable = VK_FALSE;
         colorBlendState.logicOp = VK_LOGIC_OP_COPY; // Optional

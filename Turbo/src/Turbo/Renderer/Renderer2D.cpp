@@ -78,10 +78,7 @@ namespace Turbo
             m_Framebuffers[i]->Invalidate(m_ViewportWidth, m_ViewportHeight);
         }*/
 
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
-        {
-            m_RenderCommandBuffers[i] = CommandBuffer::Create(CommandBufferLevel::Secondary);
-        }
+        m_CommandBuffer = CommandBuffer::Create(CommandBufferLevel::Primary);
 
         // Default clear color
         m_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -331,8 +328,6 @@ namespace Turbo
 
     void Renderer2D::Flush()
     {
-
-        return;
         Renderer::Submit([this]()
         {
             if (m_Statistics.QuadIndexCount)
@@ -356,29 +351,29 @@ namespace Turbo
                 m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
             }
 
-            // TODO: Abstract this
-
             // Record buffer
-            Ref<VulkanSwapChain> swapChain = Engine::Get().GetViewportWindow()->GetSwapchain().As<VulkanSwapChain>();
-
-            u32 currentFrame = swapChain->GetCurrentFrame();
+            u32 currentFrame = Renderer::GetCurrentFrame();
             u32 windowWidth = m_ViewportWidth;
             u32 windowHeight = m_ViewportHeight;
 
-            VkCommandBuffer currentBuffer = m_RenderCommandBuffers[currentFrame].As<VulkanCommandBuffer>()->GetCommandBuffer();
 
-            /* VkCommandBufferInheritanceInfo inheritanceInfo = {};
+          /*  VkCommandBuffer currentBuffer = m_RenderCommandBuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+
+            / * VkCommandBufferInheritanceInfo inheritanceInfo = {};
              inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
              inheritanceInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetRenderPass();
-             inheritanceInfo.framebuffer = m_Framebuffers[currentFrame].As<VulkanFrameBuffer>()->GetFrameBuffer();*/
+             inheritanceInfo.framebuffer = m_Framebuffers[currentFrame].As<VulkanFrameBuffer>()->GetFrameBuffer();* /
 
             VkCommandBufferBeginInfo cmdBufInfo = {};
             cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            cmdBufInfo.pInheritanceInfo = nullptr;
+            cmdBufInfo.pInheritanceInfo = nullptr;*/
 
-            TBO_VK_ASSERT(vkBeginCommandBuffer(currentBuffer, &cmdBufInfo));
+            //TBO_VK_ASSERT(vkBeginCommandBuffer(currentBuffer, &cmdBufInfo));
+            m_CommandBuffer->Begin();
+            VkCommandBuffer currentBuffer = m_CommandBuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
             {
+                // TODO: Abstract this
                 VkClearValue clearValues[2]{};
                 clearValues[0].color = { {0.0f, 0.0f,0.0f, 1.0f} };
                 clearValues[1].depthStencil = { 1.0f, 0 };
@@ -391,7 +386,7 @@ namespace Turbo
                 renderPassBeginInfo.renderArea.extent = { m_ViewportWidth, m_ViewportHeight };
                 renderPassBeginInfo.clearValueCount = 2; // Color
                 renderPassBeginInfo.pClearValues = clearValues;
-                renderPassBeginInfo.framebuffer = m_Framebuffers[swapChain->GetCurrentImageIndex()].As<VulkanFrameBuffer>()->GetFrameBuffer();
+                renderPassBeginInfo.framebuffer = m_Framebuffers[currentFrame].As<VulkanFrameBuffer>()->GetFrameBuffer();
 
                 vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
                 // Draw
@@ -431,16 +426,19 @@ namespace Turbo
                 }
 
                 vkCmdEndRenderPass(currentBuffer);
-            }
 
-            TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
+                m_CommandBuffer->End();
+                m_CommandBuffer->Submit();
+            }
+            //TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
 
             // Submit secondary buffer
-            swapChain->SubmitSecondary(currentBuffer);
+            //swapChain->SubmitSecondary(currentBuffer);
 
             // Increment draw calls
             m_Statistics.DrawCalls++;
         });
 
     }
+
 }

@@ -182,25 +182,26 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         // Get frame info from renderer
-        u32 currentFrame = m_CurrentFrame;
+        //u32 currentFrame = m_CurrentFrame;
+/*
         const Window* viewportWindow = Engine::Get().GetViewportWindow();
         u32 width = viewportWindow->GetWidth();
-        u32 height = viewportWindow->GetHeight();
+        u32 height = viewportWindow->GetHeight();*/
 
         // TODO: Move this into UserInterface since when in Editor, we use ImGui 
         // to render everything
 
         // Execute all command buffers submitted by renderers
         {
-            VkCommandBufferBeginInfo beginInfo = {};
+           /* VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.pNext = nullptr;
             beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
             beginInfo.pInheritanceInfo = nullptr;
             VkCommandBuffer currentBuffer = GetCurrentRenderCommandBuffer();
-            TBO_VK_ASSERT(vkBeginCommandBuffer(currentBuffer, &beginInfo));
+            TBO_VK_ASSERT(vkBeginCommandBuffer(currentBuffer, &beginInfo));*/
             {
-                VkClearValue clearValues[2]{};
+              /*  VkClearValue clearValues[2]{};
                 clearValues[0].color = { {0.0f, 0.0f,0.0f, 1.0f} };
                 clearValues[1].depthStencil = { 1.0f, 0 };
 
@@ -214,20 +215,20 @@ namespace Turbo
                 renderPassBeginInfo.pClearValues = clearValues;
                 renderPassBeginInfo.framebuffer = m_Framebuffers[m_ImageIndex];
 
-                vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+                vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);*/
 
                 // Execute all submitted secondary command buffers
-                {
+               /* {
                     TBO_ENGINE_ASSERT(m_SecondaryCommandBuffers.size(), "Cannot submit 0 command buffers!");
 
                     vkCmdExecuteCommands(currentBuffer, static_cast<uint32_t>(m_SecondaryCommandBuffers.size()), m_SecondaryCommandBuffers.data());
                     m_SecondaryCommandBuffers.clear();
 
-                }
+                }*/
 
-                vkCmdEndRenderPass(currentBuffer);
+              /*  vkCmdEndRenderPass(currentBuffer);*/
             }
-            TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
+            //TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
         }
 
 
@@ -236,15 +237,15 @@ namespace Turbo
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_RenderCommandBuffers[currentFrame];
+        submitInfo.pCommandBuffers = &m_RenderCommandBuffers[m_CurrentFrame];
         submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &m_PresentSemaphores[currentFrame];
+        submitInfo.pWaitSemaphores = &m_PresentSemaphores[m_CurrentFrame];
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[currentFrame];
+        submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];
         submitInfo.pWaitDstStageMask = &waitStage;
 
-        TBO_VK_ASSERT(vkResetFences(device, 1, &m_InFlightFences[currentFrame]));
-        TBO_VK_ASSERT(vkQueueSubmit(RendererContext::GetGraphicsQueue(), 1, &submitInfo, m_InFlightFences[currentFrame]));
+        TBO_VK_ASSERT(vkResetFences(device, 1, &m_InFlightFences[m_CurrentFrame]));
+        TBO_VK_ASSERT(vkQueueSubmit(RendererContext::GetGraphicsQueue(), 1, &submitInfo, m_InFlightFences[m_CurrentFrame]));
     }
 
     void VulkanSwapChain::PresentFrame()
@@ -276,7 +277,7 @@ namespace Turbo
         }
 
         // Wait for the previous frame to finish - blocks cpu until signaled
-        TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_InFlightFences[currentFrame], VK_TRUE, UINT64_MAX)); // TODO: Fix resizing
+        TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_InFlightFences[currentFrame], VK_TRUE, UINT64_MAX)); 
 
         // Cycle frames in flights
         m_CurrentFrame = (m_CurrentFrame + 1) % RendererContext::FramesInFlight();

@@ -34,7 +34,7 @@ namespace Turbo
     }
 
     Scene::Scene(const Scene::Config& config)
-        : m_Config(config), m_Running(false), m_PhysicsWorld(nullptr), m_ViewportWidth(0), m_ViewportHeight(0)
+        : m_Config(config)
     {
     }
 
@@ -50,6 +50,10 @@ namespace Turbo
 
     void Scene::OnEditorRender(Ref<SceneRenderer> renderer)
     {
+        m_Renderable = false;
+
+        renderer->BeginRender();
+
         // Render entites
 
         // 2D Rendering
@@ -79,6 +83,8 @@ namespace Turbo
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
+                    m_Renderable = view.size_hint();
+
                     for (auto& entity : view)
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
@@ -94,6 +100,8 @@ namespace Turbo
                 renderer2d->End();
             }
         }
+
+        renderer->EndRender();
     }
 
     void Scene::OnRuntimeStart()

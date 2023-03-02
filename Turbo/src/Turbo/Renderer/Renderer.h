@@ -11,8 +11,8 @@ namespace Turbo
         static void Initialize();
         static void Shutdown();
 
-        static RenderCommandQueue& GetRenderCommandQueue();
-        static RenderCommandQueue& GetSecondaryCommandQueue();
+        static void Begin();
+        static void Render();
 
         template<typename F>
         static void Submit(F&& func)
@@ -30,27 +30,8 @@ namespace Turbo
             new(memory) F(std::forward<F>(func));
         }
 
-        template<typename F>
-        static void SubmitSecondary(F&& func)
-        {
-            auto size = sizeof(func);
-
-            auto command = [](void* ptr)
-            {
-                auto pFunc = (F*)ptr;
-                (*pFunc)();
-                pFunc->~F();
-            };
-
-            void* memory = GetSecondaryCommandQueue().Allocate(command, sizeof(func));
-            new(memory) F(std::forward<F>(func));
-        }
-
-        static void BuildSecondary();
+        static RenderCommandQueue& GetRenderCommandQueue();
+        static u32 GetCurrentFrame();
     private:
-        static void Begin();
-        static void Render();
-    private:
-        friend class Engine;
     };
 }

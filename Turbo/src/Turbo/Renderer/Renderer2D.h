@@ -114,7 +114,7 @@ namespace Turbo
         //Ref<Image2D> m_RenderImages[TBO_MAX_FRAMESINFLIGHT];
         std::vector<Ref<FrameBuffer>> m_Framebuffers;
 
-        Ref<CommandBuffer> m_RenderCommandBuffers[TBO_MAX_FRAMESINFLIGHT];
+        Ref<CommandBuffer> m_CommandBuffer;
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;
@@ -123,6 +123,7 @@ namespace Turbo
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
         bool m_BeginDraw = false;
 
+        friend class SceneRenderer;
         friend class Engine;
     };
 }

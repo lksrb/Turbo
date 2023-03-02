@@ -15,6 +15,6 @@ namespace Turbo
         VkFramebuffer GetFrameBuffer() const { return m_Framebuffer; }
         void Invalidate(u32 width, u32 height) override;
     private:
-        VkFramebuffer m_Framebuffer;
+        VkFramebuffer m_Framebuffer = VK_NULL_HANDLE;
     };
 }

@@ -9,7 +9,7 @@
 namespace Turbo
 {
     VulkanFrameBuffer::VulkanFrameBuffer(const FrameBuffer::Config& config)
-        : FrameBuffer(config), m_Framebuffer(VK_NULL_HANDLE)
+        : FrameBuffer(config)
     {
     }
 
@@ -19,40 +19,34 @@ namespace Turbo
 
     void VulkanFrameBuffer::Invalidate(u32 width, u32 height)
     {
-        TBO_ENGINE_ASSERT(m_Config.AttachmentsCount < 10);
-        
         VkDevice device = RendererContext::GetDevice();
+        u32 attachment_count = 1;
 
-        VkFramebufferCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        createInfo.pNext = nullptr;
-        createInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
-        createInfo.width = width;
-        createInfo.height = height;
-        createInfo.layers = 1;
-        createInfo.attachmentCount = m_Config.AttachmentsCount;
-
-        VkImageView attachments[10] = {};
-
-        for (u32 i = 0; i < m_Config.AttachmentsCount; ++i)
-        {
-            attachments[i] = m_Config.Attachments[i].Image.As<VulkanImage2D>()->GetImageView();
-        }
-
+        VkImageView attachments[2] = {};
+        attachments[0] = m_Config.ColorAttachment.Image.As<VulkanImage2D>()->GetImageView();
 
         if (m_Config.DepthBuffer)
         {
-            attachments[m_Config.AttachmentsCount] = m_Config.DepthBuffer.As<VulkanImage2D>()->GetImageView();
-            createInfo.attachmentCount = m_Config.AttachmentsCount + 1;
+            attachments[1] = m_Config.DepthBuffer.As<VulkanImage2D>()->GetImageView();
+            attachment_count++;
         }
 
-        createInfo.pAttachments = attachments;
+        VkFramebufferCreateInfo create_info = {};
+        create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        create_info.pNext = nullptr;
+        create_info.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
+        create_info.width = width;
+        create_info.height = height;
+        create_info.layers = 1;
+        create_info.attachmentCount = attachment_count;
+        create_info.pAttachments = attachments;
 
-        TBO_VK_ASSERT(vkCreateFramebuffer(device, &createInfo, nullptr, &m_Framebuffer));
+        TBO_VK_ASSERT(vkCreateFramebuffer(device, &create_info, nullptr, &m_Framebuffer));
+
         // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
+        auto& resource_free_queue = RendererContext::GetResourceQueue();
 
-        resourceFreeQueue.Submit(FRAMEBUFFER, [device, m_Framebuffer = m_Framebuffer]()
+        resource_free_queue.Submit(FRAMEBUFFER, [device, m_Framebuffer = m_Framebuffer]()
         {
             vkDestroyFramebuffer(device, m_Framebuffer, nullptr);
         });

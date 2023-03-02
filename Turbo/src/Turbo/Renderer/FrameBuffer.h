@@ -5,8 +5,6 @@
 #include "Turbo/Renderer/Image2D.h"
 #include "Turbo/Renderer/RenderPass.h"
 
-#define TBO_FRAMEBUFFER_MAX_ATTACHMENTS 4
-
 namespace Turbo
 {
     class Image2D;
@@ -51,8 +49,8 @@ namespace Turbo
         struct Config
         {
             Ref<RenderPass> Renderpass;
-            Attachment Attachments[TBO_FRAMEBUFFER_MAX_ATTACHMENTS];
-            u32 AttachmentsCount;
+            Attachment ColorAttachment;
+            Attachment DeptAttachment;
             Ref<Image2D> DepthBuffer;
         };
 

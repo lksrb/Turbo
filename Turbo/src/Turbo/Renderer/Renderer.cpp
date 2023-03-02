@@ -1,14 +1,16 @@
 #include "tbopch.h"
+#include "Renderer.h"
 
-#include "Turbo/Renderer/Renderer.h"
-#include "Turbo/Renderer/Renderer2D.h"
+#include "Turbo/Core/Engine.h"
+
+#include "Renderer2D.h"
+#include "SwapChain.h"
 
 namespace Turbo
 {
     struct Internal
     {
         RenderCommandQueue RenderQueue;
-        RenderCommandQueue SecondaryCommandQueue;
     };
 
     static Internal* s_Internal;
@@ -28,9 +30,12 @@ namespace Turbo
         return s_Internal->RenderQueue;
     }
 
-    RenderCommandQueue& Renderer::GetSecondaryCommandQueue()
+    u32 Renderer::GetCurrentFrame()
     {
-        return s_Internal->SecondaryCommandQueue;
+        const Ref<SwapChain>& swapChain = Engine::Get().GetViewportWindow()->GetSwapchain();
+        const u32 currentFrame = swapChain->GetCurrentFrame();
+
+        return currentFrame;
     }
 
     void Renderer::Begin()
@@ -42,10 +47,4 @@ namespace Turbo
     {
         s_Internal->RenderQueue.Execute();
     }
-
-    void Renderer::BuildSecondary()
-    {
-        s_Internal->RenderQueue.Execute();
-    }
-
 }

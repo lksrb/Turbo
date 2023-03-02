@@ -51,6 +51,8 @@ namespace Turbo
             return m_Registry.view<Components...>();
         }
 
+        bool Renderable() { return m_Renderable; }
+
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:
@@ -58,12 +60,12 @@ namespace Turbo
     private:
         entt::registry m_Registry;
 
-        bool m_Running;
+        bool m_Running = false;
+        bool m_Renderable = false;
 
-        u32 m_ViewportWidth;
-        u32 m_ViewportHeight;
+        u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 
-        b2World* m_PhysicsWorld;
+        b2World* m_PhysicsWorld = nullptr;
 
         Scene::Config m_Config;
 

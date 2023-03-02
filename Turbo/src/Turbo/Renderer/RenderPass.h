@@ -8,9 +8,17 @@ namespace Turbo
     class RenderPass
     {
     public:
+        enum ImageLayout : u32
+        {
+            ImageLayout_ReadOnly_Optimal = 1000314000,
+            ImageLayout_PresentSrcKhr = 1000001002,
+            ImageLayout_Shader_ReadOnly_Optimal = 5
+        };
+
         struct Config
         {
             Ref<Image2D> DepthAttachment;
+            ImageLayout DestinationLayout;
         };
 
         static Ref<RenderPass> Create(const RenderPass::Config& config = {});

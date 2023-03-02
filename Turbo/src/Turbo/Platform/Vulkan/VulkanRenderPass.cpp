@@ -6,7 +6,7 @@
 namespace Turbo
 {
     VulkanRenderPass::VulkanRenderPass(const RenderPass::Config& config)
-        : RenderPass(config), m_RenderPass(VK_NULL_HANDLE)
+        : RenderPass(config)
     {
     }
 
@@ -30,7 +30,7 @@ namespace Turbo
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            colorAttachment.finalLayout = static_cast<VkImageLayout>(m_Config.DestinationLayout);
         }
 
         if (m_Config.DepthAttachment)

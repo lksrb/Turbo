@@ -10,6 +10,7 @@ namespace Turbo
         Secondary
     };
 
+    // Set of command buffers
     class CommandBuffer
     {
     public:
@@ -18,6 +19,7 @@ namespace Turbo
 
         virtual void Begin() = 0;
         virtual void End() = 0;
+        virtual void Submit() = 0;
     protected:
         CommandBuffer(CommandBufferLevel type);
 
