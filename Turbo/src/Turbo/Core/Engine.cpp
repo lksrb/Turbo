@@ -16,7 +16,7 @@
 namespace Turbo
 {
     Engine::Engine(ApplicationCreateCallback callback)
-        : m_ApplicationCreateCallback(callback), m_Initialized(false), m_Running(false), m_ViewportWindow(nullptr), m_Application(nullptr), m_UI(nullptr)
+        : m_ApplicationCreateCallback(callback)
     {
         Log::Initialize();
     }
@@ -40,18 +40,18 @@ namespace Turbo
         RendererContext::Initialize();
 
         // Create window 
-        Window::Config specification;
-        specification.Title = m_Application->m_Config.Title;
-        specification.Width = m_Application->m_Config.Width;
-        specification.Height = m_Application->m_Config.Height;
-        specification.VSync = m_Application->m_Config.VSync;
-        specification.StartMaximized = m_Application->m_Config.StartMaximized;
-        specification.Resizable = m_Application->m_Config.Resizable;
+        Window::Config config;
+        config.Title = m_Application->m_Config.Title;
+        config.Width = m_Application->m_Config.Width;
+        config.Height = m_Application->m_Config.Height;
+        config.VSync = m_Application->m_Config.VSync;
+        config.StartMaximized = m_Application->m_Config.StartMaximized;
+        config.Resizable = m_Application->m_Config.Resizable;
 
         // If UI is disabled, change render target to swapchain framebuffers i.e. render into the window instead of the UI
-        specification.SwapChainTarget = !m_Application->m_Config.EnableUI; 
+        config.SwapChainTarget = !m_Application->m_Config.EnableUI; 
 
-        m_ViewportWindow = Window::Create(specification);
+        m_ViewportWindow = Window::Create(config);
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Engine::OnEvent));
 
         // Creates Win32 surface and initializes swapchain
@@ -103,14 +103,14 @@ namespace Turbo
         // First resize
         m_ViewportWindow->Show();
 
-        f32 lastFrame = 0.0f;
+        f32 last_frame = 0.0f;
 
         while (m_Running)
         {
-            f32 currentFrame = Platform::GetTime();
-            m_Application->Time.DeltaTime = currentFrame - lastFrame;
+            f32 current_frame = Platform::GetTime();
+            m_Application->Time.DeltaTime = current_frame - last_frame;
             m_Application->Time.TimeSinceStart += m_Application->Time.DeltaTime;
-            lastFrame = currentFrame;
+            last_frame = current_frame;
 
             m_ViewportWindow->ProcessEvents();
 

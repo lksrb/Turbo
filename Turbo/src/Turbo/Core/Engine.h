@@ -49,8 +49,8 @@ namespace Turbo
         bool WindowResized(WindowResizeEvent& e);
         bool WindowClosed(WindowCloseEvent& e);
     private:
-        bool m_Initialized;
-        bool m_Running;
+        bool m_Initialized = false;
+        bool m_Running = false;
 
         std::thread m_RenderThread;
 
@@ -58,10 +58,10 @@ namespace Turbo
         Ref<Renderer> m_Renderer;
 
         // User
-        Application* m_Application;
+        Application* m_Application = nullptr;
         ApplicationCreateCallback m_ApplicationCreateCallback;
 
-        Window* m_ViewportWindow;
+        Window* m_ViewportWindow = nullptr;
 
     private:
         static inline Turbo::Engine* s_Instance;
