@@ -23,8 +23,6 @@ namespace Turbo
 
         void Resize(u32 width, u32 height) override;
 
-        void SubmitSecondary(VkCommandBuffer bufferToSubmit);
-        
         VkCommandBuffer GetCurrentRenderCommandBuffer() const { return m_RenderCommandBuffers[m_CurrentFrame]; }
         VkFramebuffer GetCurrentFramebuffer() const { return m_Framebuffers[m_ImageIndex]; }
         VkRenderPass GetRenderPass() const { return m_Renderpass; }
@@ -50,13 +48,13 @@ namespace Turbo
         VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
         VkRenderPass m_Renderpass = VK_NULL_HANDLE;
 
-        VkSemaphore m_RenderFinishedSemaphores[TBO_MAX_FRAMESINFLIGHT];
-        VkSemaphore m_PresentSemaphores[TBO_MAX_FRAMESINFLIGHT];
-        VkFence m_InFlightFences[TBO_MAX_FRAMESINFLIGHT];
-        VkImageView m_Imageviews[TBO_MAX_FRAMESINFLIGHT];
-        VkImage m_Images[TBO_MAX_FRAMESINFLIGHT];
-        VkFramebuffer m_Framebuffers[TBO_MAX_FRAMESINFLIGHT];
-        VkCommandBuffer m_RenderCommandBuffers[TBO_MAX_FRAMESINFLIGHT];
+        std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+        std::vector<VkSemaphore> m_PresentSemaphores;
+        std::vector<VkFence> m_InFlightFences;
+        std::vector<VkImageView> m_Imageviews;
+        std::vector<VkImage> m_Images;
+        std::vector<VkFramebuffer> m_Framebuffers;
+        std::vector<VkCommandBuffer> m_RenderCommandBuffers;
 
         // Temporary
         Ref<Image2D> m_DepthBuffer;
@@ -65,8 +63,6 @@ namespace Turbo
 
         u32 m_CurrentFrame = 0;
         u32 m_ImageIndex = 0;
-
-        std::vector<VkCommandBuffer> m_SecondaryCommandBuffers;
     };
 
 }

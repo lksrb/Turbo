@@ -24,6 +24,16 @@ namespace Turbo
 
     void VulkanSwapChain::Initialize()
     {
+        u32 frames_in_flight = RendererContext::FramesInFlight();
+
+        m_RenderFinishedSemaphores.resize(frames_in_flight);
+        m_PresentSemaphores.resize(frames_in_flight);
+        m_InFlightFences.resize(frames_in_flight);
+        m_Imageviews.resize(frames_in_flight);
+        m_Images.resize(frames_in_flight);
+        m_Framebuffers.resize(frames_in_flight);
+        m_RenderCommandBuffers.resize(frames_in_flight);
+
         std::array<VkFormat, 6> requestSurfaceImageFormat = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
         VkSurfaceFormatKHR surfaceFormat = Vulkan::FindSurfaceFormat(requestSurfaceImageFormat.data(), requestSurfaceImageFormat.size(), VK_COLORSPACE_SRGB_NONLINEAR_KHR); // TODO: Copy imgui function that chooses surface format
         m_SwapchainFormat = surfaceFormat.format;
@@ -47,7 +57,7 @@ namespace Turbo
         allocInfo.commandBufferCount = static_cast<uint32_t>(RendererContext::FramesInFlight());
 
         TBO_VK_ASSERT(vkAllocateCommandBuffers(RendererContext::GetDevice(),
-            &allocInfo, m_RenderCommandBuffers));
+            &allocInfo, m_RenderCommandBuffers.data()));
 
         /* // Depth buffer
         {
@@ -63,12 +73,7 @@ namespace Turbo
 
         Cleanup();
 
-        //m_DepthBuffer.Reset();
-        //delete m_Renderpass;
-        //vkDestroySurfaceKHR(RendererContext::GetInstance(), I->Surface, nullptr);
-        //vkDestroyRenderPass(device, m_Renderpass, nullptr);
-
-        for (size_t i = 0; i < RendererContext::FramesInFlight(); i++)
+        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
             vkDestroySemaphore(device, m_PresentSemaphores[i], nullptr);
             vkDestroySemaphore(device, m_RenderFinishedSemaphores[i], nullptr);
@@ -82,13 +87,10 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         for (auto framebuffer : m_Framebuffers)
-        {
             vkDestroyFramebuffer(device, framebuffer, nullptr);
-        }
+
         for (auto imageView : m_Imageviews)
-        {
             vkDestroyImageView(device, imageView, nullptr);
-        }
 
         vkDestroySwapchainKHR(device, m_Swapchain, nullptr);
 
@@ -99,53 +101,54 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
 
-        VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
+        VkSwapchainKHR new_swapchain = VK_NULL_HANDLE;
 
-        auto& physicalDeviceSupp = RendererContext::GetSwapchainSupportDetails();
-        auto& indices = RendererContext::GetQueueFamilyIndices();
+        const SwapchainSupportDetails& physical_device_details = RendererContext::GetSwapchainSupportDetails();
+        const QueueFamilyIndices& indices = RendererContext::GetQueueFamilyIndices();
 
+        // Wait for GPU
         vkDeviceWaitIdle(device);
 
-        VkSwapchainCreateInfoKHR createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface = RendererContext::GetSurface();
-        createInfo.minImageCount = physicalDeviceSupp.nMinImageCount;
-        createInfo.imageFormat = m_SwapchainFormat;
-        createInfo.imageColorSpace = physicalDeviceSupp.surfaceFormat.colorSpace;
-        createInfo.imageExtent = { width, height };
-        createInfo.imageArrayLayers = 1;
-        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        createInfo.preTransform = physicalDeviceSupp.capabilities.currentTransform;
-        createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; // V-Sync
-        createInfo.clipped = VK_TRUE;
-        createInfo.oldSwapchain = m_Swapchain; // Using old swapchain
+        VkSwapchainCreateInfoKHR create_info{};
+        create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        create_info.surface = RendererContext::GetSurface();
+        create_info.minImageCount = physical_device_details.nMinImageCount;
+        create_info.imageFormat = m_SwapchainFormat;
+        create_info.imageColorSpace = physical_device_details.surfaceFormat.colorSpace;
+        create_info.imageExtent = { width, height };
+        create_info.imageArrayLayers = 1;
+        create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        create_info.preTransform = physical_device_details.capabilities.currentTransform;
+        create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        create_info.presentMode = VK_PRESENT_MODE_FIFO_KHR; // V-Sync
+        create_info.clipped = VK_TRUE;
+        create_info.oldSwapchain = m_Swapchain; // Using old swapchain
 
         if (indices.GraphicsFamily != indices.PresentFamily)
         {
             u32 queueFamilyIndices[] = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
-            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            createInfo.queueFamilyIndexCount = 2;
-            createInfo.pQueueFamilyIndices = queueFamilyIndices;
+            create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            create_info.queueFamilyIndexCount = 2;
+            create_info.pQueueFamilyIndices = queueFamilyIndices;
         }
         else
         {
-            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         }
 
-        TBO_VK_ASSERT(vkCreateSwapchainKHR(device, &createInfo, nullptr, &newSwapchain));
+        TBO_VK_ASSERT(vkCreateSwapchainKHR(device, &create_info, nullptr, &new_swapchain));
 
-        uint32_t imageCount;
-        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, nullptr));
-        TBO_ENGINE_ASSERT(imageCount <= 3);
-        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, m_Images));
+        uint32_t image_count;
+        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, new_swapchain, &image_count, nullptr));
+        TBO_ENGINE_ASSERT(image_count <= 3);
+        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, new_swapchain, &image_count, m_Images.data()));
 
         // Destroy old stuff if exists
         if (m_Swapchain)
             Cleanup();
 
         // Assign new swapchain
-        m_Swapchain = newSwapchain;
+        m_Swapchain = new_swapchain;
 
         m_DepthBuffer->Invalidate(width, height);
 
@@ -155,16 +158,10 @@ namespace Turbo
         TBO_ENGINE_WARN("Swapchain resized! {0}, {1}", width, height);
     }
 
-    void VulkanSwapChain::SubmitSecondary(VkCommandBuffer bufferToSubmit)
-    {
-        m_SecondaryCommandBuffers.push_back(bufferToSubmit);
-    }
-
     void VulkanSwapChain::NewFrame()
     {
-        u32 currentFrame = m_CurrentFrame;
-        VkSemaphore currentSemaphore = m_PresentSemaphores[currentFrame];
-        TBO_VK_ASSERT(vkAcquireNextImageKHR(RendererContext::GetDevice(), m_Swapchain, UINT64_MAX, currentSemaphore, VK_NULL_HANDLE, &m_ImageIndex));
+        VkSemaphore current_semaphore = m_PresentSemaphores[m_CurrentFrame];
+        TBO_VK_ASSERT(vkAcquireNextImageKHR(RendererContext::GetDevice(), m_Swapchain, UINT64_MAX, current_semaphore, VK_NULL_HANDLE, &m_ImageIndex));
     }
 
     void VulkanSwapChain::SwapFrame()
@@ -172,98 +169,42 @@ namespace Turbo
         SubmitCommandBuffers();
         PresentFrame();
     }
-    /**
-     * TODO:
-     * 1) Swapchain should only submit command buffers, not build them
-     * 2) Target framebuffer will be the same except
-     */
+
     void VulkanSwapChain::SubmitCommandBuffers()
     {
         VkDevice device = RendererContext::GetDevice();
 
-        // Get frame info from renderer
-        //u32 currentFrame = m_CurrentFrame;
-/*
-        const Window* viewportWindow = Engine::Get().GetViewportWindow();
-        u32 width = viewportWindow->GetWidth();
-        u32 height = viewportWindow->GetHeight();*/
+        VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-        // TODO: Move this into UserInterface since when in Editor, we use ImGui 
-        // to render everything
-
-        // Execute all command buffers submitted by renderers
-        {
-           /* VkCommandBufferBeginInfo beginInfo = {};
-            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.pNext = nullptr;
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            beginInfo.pInheritanceInfo = nullptr;
-            VkCommandBuffer currentBuffer = GetCurrentRenderCommandBuffer();
-            TBO_VK_ASSERT(vkBeginCommandBuffer(currentBuffer, &beginInfo));*/
-            {
-              /*  VkClearValue clearValues[2]{};
-                clearValues[0].color = { {0.0f, 0.0f,0.0f, 1.0f} };
-                clearValues[1].depthStencil = { 1.0f, 0 };
-
-                VkRenderPassBeginInfo renderPassBeginInfo = {};
-                renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                renderPassBeginInfo.renderPass = m_Renderpass;
-                renderPassBeginInfo.renderArea.offset.x = 0;
-                renderPassBeginInfo.renderArea.offset.y = 0;
-                renderPassBeginInfo.renderArea.extent = { width, height };
-                renderPassBeginInfo.clearValueCount = 2; // Color
-                renderPassBeginInfo.pClearValues = clearValues;
-                renderPassBeginInfo.framebuffer = m_Framebuffers[m_ImageIndex];
-
-                vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);*/
-
-                // Execute all submitted secondary command buffers
-               /* {
-                    TBO_ENGINE_ASSERT(m_SecondaryCommandBuffers.size(), "Cannot submit 0 command buffers!");
-
-                    vkCmdExecuteCommands(currentBuffer, static_cast<uint32_t>(m_SecondaryCommandBuffers.size()), m_SecondaryCommandBuffers.data());
-                    m_SecondaryCommandBuffers.clear();
-
-                }*/
-
-              /*  vkCmdEndRenderPass(currentBuffer);*/
-            }
-            //TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
-        }
-
-
-        VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_RenderCommandBuffers[m_CurrentFrame];
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &m_PresentSemaphores[m_CurrentFrame];
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];
-        submitInfo.pWaitDstStageMask = &waitStage;
+        VkSubmitInfo submit_info{};
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers = &m_RenderCommandBuffers[m_CurrentFrame];
+        submit_info.waitSemaphoreCount = 1;
+        submit_info.pWaitSemaphores = &m_PresentSemaphores[m_CurrentFrame];
+        submit_info.signalSemaphoreCount = 1;
+        submit_info.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];
+        submit_info.pWaitDstStageMask = &wait_stage;
 
         TBO_VK_ASSERT(vkResetFences(device, 1, &m_InFlightFences[m_CurrentFrame]));
-        TBO_VK_ASSERT(vkQueueSubmit(RendererContext::GetGraphicsQueue(), 1, &submitInfo, m_InFlightFences[m_CurrentFrame]));
+        TBO_VK_ASSERT(vkQueueSubmit(RendererContext::GetGraphicsQueue(), 1, &submit_info, m_InFlightFences[m_CurrentFrame]));
     }
 
     void VulkanSwapChain::PresentFrame()
     {
         VkDevice device = RendererContext::GetDevice();
 
-        VkQueue presentQueue = RendererContext::GetPresentQueue();
-        u32 currentFrame = m_CurrentFrame;
+        VkQueue present_queue = RendererContext::GetPresentQueue();
 
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = &m_RenderFinishedSemaphores[currentFrame];  // Wait for the frame to render
-        presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = &m_Swapchain;
-        presentInfo.pImageIndices = &m_ImageIndex;
+        VkPresentInfoKHR present_info{};
+        present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        present_info.waitSemaphoreCount = 1;
+        present_info.pWaitSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];  // Wait for the frame to render
+        present_info.swapchainCount = 1;
+        present_info.pSwapchains = &m_Swapchain;
+        present_info.pImageIndices = &m_ImageIndex;
 
-        VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
+        VkResult result = vkQueuePresentKHR(present_queue, &present_info);
         if (result != VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
         {
             if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -277,7 +218,7 @@ namespace Turbo
         }
 
         // Wait for the previous frame to finish - blocks cpu until signaled
-        TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_InFlightFences[currentFrame], VK_TRUE, UINT64_MAX)); 
+        TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX));
 
         // Cycle frames in flights
         m_CurrentFrame = (m_CurrentFrame + 1) % RendererContext::FramesInFlight();
@@ -288,37 +229,37 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         // Attachment description
-        VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = m_SwapchainFormat;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        VkAttachmentDescription color_attachment{};
+        color_attachment.format = m_SwapchainFormat;
+        color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         // Subpasses and attachment references
-        VkAttachmentReference colorAttachmentRef{};
-        colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        VkAttachmentReference color_attachment_ref{};
+        color_attachment_ref.attachment = 0;
+        color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        VkSubpassDescription subpassDescription = {};
-        subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpassDescription.colorAttachmentCount = 1;
-        subpassDescription.pColorAttachments = &colorAttachmentRef;
-        subpassDescription.inputAttachmentCount = 0;
-        subpassDescription.pInputAttachments = nullptr;
-        subpassDescription.preserveAttachmentCount = 0;
-        subpassDescription.pPreserveAttachments = nullptr;
-        subpassDescription.pResolveAttachments = nullptr;
+        VkSubpassDescription subpass_desc = {};
+        subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass_desc.colorAttachmentCount = 1;
+        subpass_desc.pColorAttachments = &color_attachment_ref;
+        subpass_desc.inputAttachmentCount = 0;
+        subpass_desc.pInputAttachments = nullptr;
+        subpass_desc.preserveAttachmentCount = 0;
+        subpass_desc.pPreserveAttachments = nullptr;
+        subpass_desc.pResolveAttachments = nullptr;
 
         // Render pass 
-        VkRenderPassCreateInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &colorAttachment;
-        renderPassInfo.subpassCount = 1;
-        renderPassInfo.pSubpasses = &subpassDescription;
+        VkRenderPassCreateInfo renderpass_info{};
+        renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderpass_info.attachmentCount = 1;
+        renderpass_info.pAttachments = &color_attachment;
+        renderpass_info.subpassCount = 1;
+        renderpass_info.pSubpasses = &subpass_desc;
 
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -328,114 +269,19 @@ namespace Turbo
         dependency.srcAccessMask = 0;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-        renderPassInfo.dependencyCount = 1;
-        renderPassInfo.pDependencies = &dependency;
-        renderPassInfo.pSubpasses;
+        renderpass_info.dependencyCount = 1;
+        renderpass_info.pDependencies = &dependency;
+        renderpass_info.pSubpasses;
 
         TBO_VK_ASSERT(vkCreateRenderPass(device,
-            &renderPassInfo, nullptr, &m_Renderpass));
+            &renderpass_info, nullptr, &m_Renderpass));
 
         // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-        resourceFreeQueue.Submit(RENDERPASS, [device, m_Renderpass = m_Renderpass]()
+        auto& resource_free_queue = RendererContext::GetResourceQueue();
+        resource_free_queue.Submit(RENDERPASS, [device, render_pass = m_Renderpass]()
         {
-            vkDestroyRenderPass(device, m_Renderpass, nullptr);
+            vkDestroyRenderPass(device, render_pass, nullptr);
         });
-/*
-        return;
-        std::vector<VkAttachmentDescription> attachments;
-
-        // Color attachment
-        {
-            auto& colorAttachment = attachments.emplace_back();
-            colorAttachment.format = m_SwapchainFormat;
-            colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        }
-
-/ *
-        if (m_Config.DepthAttachment)
-        {
-            // Depth buffer
-            auto& depthAttachment = attachments.emplace_back();
-            depthAttachment.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
-            depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        }* /
-
-        // Subpasses and attachment references
-        VkAttachmentReference colorAttachmentRef{};
-        colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        // Depth buffer attachment reference
-        VkAttachmentReference depthAttachmentRef{};
-        depthAttachmentRef.attachment = 1;
-        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-        VkSubpassDescription subpassDescription{};
-        subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpassDescription.colorAttachmentCount = 1;
-        subpassDescription.pColorAttachments = &colorAttachmentRef;
-        subpassDescription.inputAttachmentCount = 0;
-        subpassDescription.pInputAttachments = VK_NULL_HANDLE;
-        subpassDescription.preserveAttachmentCount = 0;
-        subpassDescription.pPreserveAttachments = VK_NULL_HANDLE;
-        subpassDescription.pResolveAttachments = VK_NULL_HANDLE;
-        subpassDescription.pDepthStencilAttachment = VK_NULL_HANDLE; //m_Config.DepthAttachment ? &depthAttachmentRef : VK_NULL_HANDLE;
-
-        // Dependencies
-        VkSubpassDependency dependency{};
-        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.srcAccessMask = 0;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        dependency.dependencyFlags = 0/ *VK_DEPENDENCY_BY_REGION_BIT* /;
-
-/ *
-        if (m_Config.DepthAttachment)
-        {
-            dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            dependency.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        }* /
-
-        // Render pass 
-        VkRenderPassCreateInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-
-        // Attachments
-        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-        renderPassInfo.pAttachments = attachments.data();
-
-        // Subpasses
-        renderPassInfo.subpassCount = 1;
-        renderPassInfo.pSubpasses = &subpassDescription;
-
-        // Dependencies
-        renderPassInfo.dependencyCount = 1;
-        renderPassInfo.pDependencies = &dependency;
-
-        TBO_VK_ASSERT(vkCreateRenderPass(device, &renderPassInfo, VK_NULL_HANDLE, &m_Renderpass));
-
-        // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-        resourceFreeQueue.Submit(RENDERPASS, [device, m_Renderpass = m_Renderpass]()
-        {
-            vkDestroyRenderPass(device, m_Renderpass, nullptr);
-        });*/
     }
 
     void VulkanSwapChain::CreateSyncObjects()
@@ -443,20 +289,20 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         // Present and RenderFinished 
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        semaphoreInfo.flags = 0;
+        VkSemaphoreCreateInfo semaphore_info = {};
+        semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphore_info.flags = 0;
 
         // Fences
-        VkFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        VkFenceCreateInfo fence_info = {};
+        fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
-            TBO_VK_ASSERT(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_PresentSemaphores[i]));
-            TBO_VK_ASSERT(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]));
-            TBO_VK_ASSERT(vkCreateFence(device, &fenceInfo, nullptr, &m_InFlightFences[i]));
+            TBO_VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, nullptr, &m_PresentSemaphores[i]));
+            TBO_VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, nullptr, &m_RenderFinishedSemaphores[i]));
+            TBO_VK_ASSERT(vkCreateFence(device, &fence_info, nullptr, &m_InFlightFences[i]));
         }
     }
 
@@ -466,18 +312,18 @@ namespace Turbo
 
         for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
-            VkImageViewCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            createInfo.image = m_Images[i];
-            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            createInfo.format = m_SwapchainFormat;
-            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            VkImageViewCreateInfo imageview_info{};
+            imageview_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imageview_info.image = m_Images[i];
+            imageview_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imageview_info.format = m_SwapchainFormat;
+            imageview_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageview_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageview_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageview_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
             VkImageSubresourceRange image_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-            createInfo.subresourceRange = image_range;
-            TBO_VK_ASSERT(vkCreateImageView(device, &createInfo, nullptr, &m_Imageviews[i]));
+            imageview_info.subresourceRange = image_range;
+            TBO_VK_ASSERT(vkCreateImageView(device, &imageview_info, nullptr, &m_Imageviews[i]));
         }
     }
 
@@ -485,23 +331,23 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
 
-        for (size_t i = 0; i < RendererContext::FramesInFlight(); ++i)
+        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
             VkImageView attachments[] = {
                 m_Imageviews[i], // Color attachment 
                 //m_DepthBuffer.As<VulkanImage2D>()->GetImageView()    // Depth buffer
             };
 
-            VkFramebufferCreateInfo framebufferInfo{};
-            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = m_Renderpass;
-            framebufferInfo.attachmentCount = 1;
-            framebufferInfo.pAttachments = attachments;
-            framebufferInfo.width = width;
-            framebufferInfo.height = height;
-            framebufferInfo.layers = 1;
+            VkFramebufferCreateInfo framebuffer_info{};
+            framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebuffer_info.renderPass = m_Renderpass;
+            framebuffer_info.attachmentCount = 1;
+            framebuffer_info.pAttachments = attachments;
+            framebuffer_info.width = width;
+            framebuffer_info.height = height;
+            framebuffer_info.layers = 1;
 
-            TBO_VK_ASSERT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_Framebuffers[i]));
+            TBO_VK_ASSERT(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &m_Framebuffers[i]));
         }
     }
 
