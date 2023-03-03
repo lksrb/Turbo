@@ -16,7 +16,7 @@ namespace Turbo::Ed
         enum class Mode : u32
         {
             Edit = 0,
-            Run = 1
+            Play = 1
         };
 
         Editor(const Application::Config& config);
@@ -36,17 +36,25 @@ namespace Turbo::Ed
         bool OnWindowClosed(WindowCloseEvent& e);
         bool OnWindowResized(WindowResizeEvent& e);
         bool OnKeyPressed(KeyPressedEvent& e);
+    private:
+        void OnScenePlay();
+        void OnSceneStop();
     private: // Project
-        bool OpenProject();
+        bool OpenProject(const Filepath& filepath = {});
         void NewProject();
 
-        void UpdateTitle();
+        void SaveProject();
+        void SaveScene();
+        void SaveSceneAs();
+
+        void UpdateWindowTitle();
     private:
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 
+        Ref<Texture2D> m_PlayIcon, m_StopIcon;
         Ref<SceneRenderer> m_SceneRenderer;
         Mode m_EditorMode = Mode::Edit;
-        Ref<Scene> m_CurrentScene;
+        Ref<Scene> m_EditorScene, m_RuntimeScene;
         Ref<Project> m_CurrentProject;
         Filepath m_CurrentPath;
 

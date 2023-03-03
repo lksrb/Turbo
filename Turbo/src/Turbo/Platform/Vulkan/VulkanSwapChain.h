@@ -26,7 +26,6 @@ namespace Turbo
         VkCommandBuffer GetCurrentRenderCommandBuffer() const { return m_RenderCommandBuffers[m_CurrentFrame]; }
         VkFramebuffer GetCurrentFramebuffer() const { return m_Framebuffers[m_ImageIndex]; }
         VkRenderPass GetRenderPass() const { return m_Renderpass; }
-        Ref<Image2D> GetDepthBuffer() const { return m_DepthBuffer; }
 
         u32 GetCurrentFrame() const override { return m_CurrentFrame; }
         u32 GetCurrentImageIndex() const override { return m_ImageIndex; }
@@ -55,9 +54,6 @@ namespace Turbo
         std::vector<VkImage> m_Images;
         std::vector<VkFramebuffer> m_Framebuffers;
         std::vector<VkCommandBuffer> m_RenderCommandBuffers;
-
-        // Temporary
-        Ref<Image2D> m_DepthBuffer;
 
         VkFormat m_SwapchainFormat = VK_FORMAT_UNDEFINED;
 

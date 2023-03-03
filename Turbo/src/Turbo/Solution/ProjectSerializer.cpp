@@ -37,7 +37,7 @@ namespace Turbo
 				String64 sceneRelPath = pArgs[i];
 
 				// Converts forward slash to backslash  
-				Filepath::ConvertToBackslash(sceneRelPath.data());
+				Filepath::ConvertToBackslash(sceneRelPath.Data());
 
 				sceneRelPath.Append(".tscene");
 

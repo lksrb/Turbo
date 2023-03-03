@@ -5,20 +5,22 @@
 #include <string>
 #include <vcruntime_string.h>
 
-namespace Turbo {
-    // Fast string
+namespace Turbo 
+{
+    // Stack String
     template<size_t Capacity>
     struct StringB
     {
     public:
         StringB() = default;
+        virtual ~StringB() = default;
 
         StringB(const std::string& str)
             : StringB(str.c_str())
         {
         }
 
-        StringB(const char* other) 
+        StringB(const char* other)
             : StringB()
         {
             if (other)
@@ -61,44 +63,27 @@ namespace Turbo {
         {
             return m_Size == 0;
         }
-        /*
-                char& operator[](size_t index) final
-                {
-                    TBO_ENGINE_ASSERT(index <= m_Size);
-                    return m_Buffer[index];
-                }*/
+        void Reset() { memset(m_Buffer, 0, sizeof(m_Size)); }
 
-        bool operator==(const char* other) const
-        {
-            return strcmp(m_Buffer, other) == 0;
-        }
 
-        bool operator!=(const char* other) const
-        {
-            return !(StringB::operator==(other));
-        }
-
+        char& operator[](size_t index) { TBO_ENGINE_ASSERT(index < m_Size, "Index out of bounds!"); return m_Buffer[index]; }
+        bool operator==(const char* other) const { return strcmp(m_Buffer, other) == 0; }
+        bool operator!=(const char* other) const { return !(StringB::operator==(other)); }
+        const char* operator()() const { return m_Buffer; }
+        
         inline size_t Size() const { return m_Size; }
-        inline constexpr size_t Cap() const { return Capacity; }
+        inline constexpr size_t Cap() const noexcept { return Capacity; }
+        char* Data() { return &m_Buffer[0]; }
+        const char* CStr() const { return m_Buffer; }
 
-        void Reset()
+        template<typename... Args>
+        static StringB Format(const StringB& format, Args&&... args)
         {
-            memset(m_Buffer, 0, sizeof(m_Size));
-        }
+            StringB string;
 
-        const char* operator()() const
-        {
-            return m_Buffer;
-        }
+            //std::cout << (std::string(args) + ...) << "\n"; // TODO: Custom format function
 
-        char* data()
-        {
-            return &m_Buffer[0];
-        }
-
-        const char* CStr() const noexcept
-        {
-            return m_Buffer;
+            return string;
         }
     protected:
         void Copy(const char* src)
@@ -130,3 +115,29 @@ namespace std
         }
     };
 }  //
+
+/*
+template<typename OStream>
+OStream& operator<<(OStream& os, const Turbo::String& string)
+{
+    return os << string.CStr();
+}
+
+template<typename OStream>
+OStream& operator<<(OStream& os, const Turbo::String32& string)
+{
+    return os << string.CStr();
+}
+
+template<typename OStream>
+OStream& operator<<(OStream& os, const Turbo::String64& string)
+{
+    return os << string.CStr();
+}
+
+template<typename OStream>
+OStream& operator<<(OStream& os, const Turbo::String128& string)
+{
+    return os << string.CStr();
+}
+*/

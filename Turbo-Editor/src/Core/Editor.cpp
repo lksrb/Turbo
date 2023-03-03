@@ -22,7 +22,7 @@ namespace Turbo::Ed
 
     void Editor::OnInitialize()
     {
-        m_CurrentPath = Platform::GetCurrentPath();
+        m_CurrentPath = Platform::GetCurrentPath() / "Assets";
 
         g_AssetPath = m_CurrentPath;
 
@@ -30,6 +30,11 @@ namespace Turbo::Ed
         m_NewProjectPopup.SetCallback(TBO_BIND_FN(Editor::OnCreateProject));
 
         m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_Config.Width, m_Config.Height, true });
+
+        m_PlayIcon = Texture2D::Create({ "Resources/Icons/PlayButton.png" });
+        m_StopIcon = Texture2D::Create({ "Resources/Icons/StopButton.png" });
+
+        OpenProject(g_AssetPath / "SandboxProject\\SandboxProject.tproject");
     }
 
     void Editor::OnShutdown()
@@ -39,19 +44,19 @@ namespace Turbo::Ed
 
     void Editor::OnUpdate()
     {
-        if (m_CurrentScene == nullptr)
+        if (!m_EditorScene)
             return;
 
         switch (m_EditorMode)
         {
             case Mode::Edit:
             {
-                m_CurrentScene->OnEditorUpdate(Time.DeltaTime);
+                m_EditorScene->OnEditorUpdate(Time.DeltaTime);
                 break;
             }
-            case Mode::Run:
+            case Mode::Play:
             {
-                m_CurrentScene->OnRuntimeUpdate(Time.DeltaTime);
+                m_RuntimeScene->OnRuntimeUpdate(Time.DeltaTime);
                 break;
             }
         }
@@ -59,19 +64,19 @@ namespace Turbo::Ed
 
     void Editor::OnDraw()
     {
-        if (m_CurrentScene == nullptr)
+        if (!m_EditorScene)
             return;
 
         switch (m_EditorMode)
         {
             case Mode::Edit:
             {
-                m_CurrentScene->OnEditorRender(m_SceneRenderer);
+                m_EditorScene->OnEditorRender(m_SceneRenderer, /* TODO: EditorCamera */{});
                 break;
             }
-            case Mode::Run:
+            case Mode::Play:
             {
-                m_CurrentScene->OnRuntimeRender(m_SceneRenderer);
+                m_RuntimeScene->OnRuntimeRender(m_SceneRenderer);
                 break;
             }
         }
@@ -87,15 +92,15 @@ namespace Turbo::Ed
         m_CurrentProject = Project::CreateDefault(info.RootDirectory, info.Name);
 
         // Set render scene
-        m_CurrentScene = m_CurrentProject->GetStartupScene();
+        m_EditorScene = m_CurrentProject->GetStartupScene();
 
         // Resize scene
-        m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         // Start scene
-        m_SceneHierarchyPanel.SetContext(m_CurrentScene);
+        m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
-        UpdateTitle();
+        UpdateWindowTitle();
 
         return true;
     }
@@ -156,8 +161,6 @@ namespace Turbo::Ed
         dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
     }
 
-    static String32 s_ModeText = "Run";
-
     void Editor::OnDrawUI()
     {
         // Dockspace
@@ -196,7 +199,7 @@ namespace Turbo::Ed
         ImGuiIO& io = ImGui::GetIO();
         ImGuiStyle& style = ImGui::GetStyle();
 
-        float minWinSizeX = style.WindowMinSize.x;
+        f32 minWinSizeX = style.WindowMinSize.x;
         style.WindowMinSize.x = 370.0f;
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
@@ -220,10 +223,49 @@ namespace Turbo::Ed
                 {
                     OpenProject();
                 }
+                if (ImGui::MenuItem("Save Scene"))
+                {
+                    SaveScene();
+                }
+                if (ImGui::MenuItem("Save Scene As..."))
+                {
+                    SaveSceneAs();
+                }
                 ImGui::EndMenu();
             }
 
             ImGui::EndMenuBar();
+        }
+
+        // Toolbar
+        {
+            ImGuiWindowClass window_class;
+            window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+            ImGui::SetNextWindowClass(&window_class);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            auto& colors = ImGui::GetStyle().Colors;
+            const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+            const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+            ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+            f32 size = ImGui::GetWindowHeight() - 4.0f;
+            Ref<Texture2D> icon = m_EditorMode == Mode::Edit ? m_PlayIcon : m_StopIcon;
+            ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+            if (UI::ImageButton(icon, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+            {
+                if (m_EditorMode == Mode::Edit)
+                    OnScenePlay();
+                else if (m_EditorMode == Mode::Play)
+                    OnSceneStop();
+            }
+            ImGui::PopStyleVar(2);
+            ImGui::PopStyleColor(3);
+            ImGui::End();
         }
 
         {
@@ -231,16 +273,16 @@ namespace Turbo::Ed
 
             auto& window_size = ImGui::GetWindowSize();
 
-            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+            ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
 
             if (m_ViewportWidth != window_size.x || m_ViewportHeight != window_size.y)
             {
                 OnViewportResize(static_cast<u32>(window_size.x), static_cast<u32>(window_size.y));
             }
 
-            if (m_CurrentScene && m_CurrentScene->Renderable())
+            if (m_EditorScene)
             {
-                UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x,viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
+                UI::Image(m_SceneRenderer->GetFinalImage(), { viewport_panel_size.x,viewport_panel_size.y }, { 0, -1 }, { 1, 0 });
             }
 
             // Right-click on viewport to access the magic menu
@@ -249,10 +291,10 @@ namespace Turbo::Ed
             {
                 ImGui::MenuItem("Scene", nullptr, false, false);
                 ImGui::Separator();
-                if (ImGui::MenuItem("New Entity", nullptr, false, m_CurrentScene))
+                if (ImGui::MenuItem("New Entity", nullptr, false, m_EditorScene))
                 {
                     TBO_WARN("Entity Added!");
-                    Entity e = m_CurrentScene->CreateEntity();
+                    Entity e = m_EditorScene->CreateEntity();
 
                     auto& transform = e.Transform();
 
@@ -260,12 +302,17 @@ namespace Turbo::Ed
                     transform.Translation.y = x;
                     ++x;
                     auto& src = e.AddComponent<SpriteRendererComponent>();
+
+                    Ref<Texture2D> texture2d = Texture2D::Create({ "Assets/Textures/smile.png" });
+
+                    if (texture2d->IsLoaded())
+                        src.Texture = texture2d;
                 }
 
-                if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_CurrentScene))
+                if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_EditorScene))
                 {
                     TBO_WARN("Camera Added!");
-                    auto& camera = m_CurrentScene->CreateEntity().AddComponent<CameraComponent>();
+                    auto& camera = m_EditorScene->CreateEntity().AddComponent<CameraComponent>();
                     camera.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
                 }
                 ImGui::EndPopup();
@@ -290,11 +337,6 @@ namespace Turbo::Ed
         // Edit/Play bar
         {
             ImGui::Begin("Editor Console");
-            if (ImGui::Button(s_ModeText.CStr()))
-            {
-                m_EditorMode = m_EditorMode == Mode::Edit ? Mode::Run : Mode::Edit;
-                s_ModeText = m_EditorMode == Mode::Edit ? "Run" : "Edit";
-            }
             ImGui::End();
         }
 
@@ -311,20 +353,26 @@ namespace Turbo::Ed
         m_NewProjectPopup.Open();
     }
 
-    bool Editor::OpenProject()
+    bool Editor::OpenProject(const Filepath& filepath)
     {
+        Filepath project_filepath = filepath;
+
         // Opens platform specific 
-        Filepath& projectFilepath = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
+        if (filepath.Empty())
+        {
+            project_filepath = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
+        }
 
         if (m_CurrentProject)
         {
-            Filepath configFile = m_CurrentProject->GetRootDirectory();
-            configFile /= m_CurrentProject->GetName();
-            configFile.Append(".tproject");
+            Filepath config_file = m_CurrentProject->GetRootDirectory();
+            config_file /= m_CurrentProject->GetName();
+            config_file.Append(".tproject");
 
-            if (configFile == projectFilepath)
+            if (config_file == project_filepath)
             {
                 TBO_WARN("Project is already loaded!");
+
                 return false;
             }
 
@@ -332,40 +380,32 @@ namespace Turbo::Ed
             m_CurrentProject.Reset();
         }
 
-        if (projectFilepath.Extension() == ".tproject")
+        if (project_filepath.Extension() == ".tproject")
         {
-            m_CurrentProject = Project::Deserialize(projectFilepath);
+            m_CurrentProject = Project::Deserialize(project_filepath);
 
             // Set render scene
-            m_CurrentScene = m_CurrentProject->GetStartupScene();
-            m_SceneHierarchyPanel.SetContext(m_CurrentScene);
+            m_EditorScene = m_CurrentProject->GetStartupScene();
+            m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
-            UpdateTitle();
+            UpdateWindowTitle();
 
             return true;
         }
 
+        TBO_ERROR("Could not open project! (\"{0}\")", project_filepath.CStr());
 
         return false;
     }
 
-    void Editor::UpdateTitle()
+    void Editor::UpdateWindowTitle()
     {
-        TBO_ASSERT(m_CurrentProject);
+        if (!m_CurrentProject || !m_EditorScene)
+            return;
 
-        Window->SetTitle("TurboEditor");
-
-        String64 previousWindowTitle = Window->GetTitle();
-
-        previousWindowTitle.Append(" | ");
-        previousWindowTitle.Append(m_CurrentProject->GetName());
-
-        String64 defaultSceneName = m_CurrentProject->GetStartupScene() ? m_CurrentProject->GetStartupScene()->GetName() : "Empty";
-        previousWindowTitle.Append(" - ");
-        previousWindowTitle.Append(defaultSceneName);
-
-        // Set new title
-        Window->SetTitle(previousWindowTitle);
+        String64 scene_name = m_EditorScene->GetName();
+        std::string title = fmt::format("TurboEditor | {0} - {1} | Vulkan", m_CurrentProject->GetName().CStr(), scene_name.CStr());
+        Window->SetTitle(title.c_str());
     }
 
     void Editor::OnViewportResize(u32 width, u32 height)
@@ -373,10 +413,66 @@ namespace Turbo::Ed
         m_ViewportWidth = width;
         m_ViewportHeight = height;
 
-        if (m_CurrentScene)
-            m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        if (m_EditorScene)
+            m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         m_SceneRenderer->OnViewportSize(width, height);
+    }
+
+    void Editor::SaveProject()
+    {
+        // TODO: Saving already opened project
+    }
+
+
+    void Editor::SaveScene()
+    {
+        SaveSceneAs();
+    }
+
+    void Editor::SaveSceneAs()
+    {
+        if (!m_CurrentProject)
+        {
+            TBO_ERROR("No project loaded!");
+            return;
+        }
+
+        if (!m_EditorScene)
+        {
+            TBO_ERROR("No scene loaded!");
+            return;
+        }
+
+        const Filepath& filepath = Platform::SaveFileDialog("Turbo Scene(*.tscene)\0 * .tscene\0");
+
+        if (Project::SerializeScene(m_EditorScene, filepath))
+        {
+            TBO_INFO("Successfully serialized {0}!", m_EditorScene->GetName().CStr());
+            // Success
+        }
+
+        // error
+    }
+
+    void Editor::OnScenePlay()
+    {
+        m_EditorMode = Mode::Play;
+
+        m_RuntimeScene = Scene::Copy(m_EditorScene);
+        m_RuntimeScene->OnRuntimeStart();
+
+        m_SceneHierarchyPanel.SetContext(m_RuntimeScene);
+    }
+
+    void Editor::OnSceneStop()
+    {
+        m_EditorMode = Mode::Edit;
+
+        m_RuntimeScene->OnRuntimeStop();
+        m_RuntimeScene = m_EditorScene;
+
+        m_SceneHierarchyPanel.SetContext(m_EditorScene);
     }
 
 }

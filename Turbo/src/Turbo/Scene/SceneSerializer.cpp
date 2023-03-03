@@ -245,6 +245,8 @@ namespace Turbo
 
             out << YAML::EndMap;
         }
+
+        out << YAML::EndMap; // Entity
     }
 
     SceneSerializer::SceneSerializer(Ref<Scene> scene)
@@ -279,7 +281,7 @@ namespace Turbo
         {
             for (auto entity : entities)
             {
-                uint64_t uuid = entity["Entity"].as<uint64_t>();
+                u64 uuid = entity["Entity"].as<u64>();
 
                 std::string name;
                 auto tagComponent = entity["TagComponent"];
@@ -327,7 +329,14 @@ namespace Turbo
                     src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
                     auto& path = spriteRendererComponent["TexturePath"].as<std::string>();
                     if (path != "None")
-                        src.Texture = Texture2D::Create({ path });
+                    {
+                        Ref<Texture2D> texture2d = Texture2D::Create({ path });
+                        if (texture2d->IsLoaded())
+                            src.Texture = texture2d;
+                        else
+                            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", path);
+
+                    }
                 }
 
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

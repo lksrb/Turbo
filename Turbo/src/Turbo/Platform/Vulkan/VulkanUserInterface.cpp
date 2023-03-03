@@ -267,8 +267,8 @@ namespace Turbo
     void VulkanUserInterface::CreateImGuiContext()
     {
         VkDevice device = RendererContext::GetDevice();
-        u32 framesInFlight = RendererContext::FramesInFlight();
-        Window* viewportWindow = Engine::Get().GetViewportWindow();
+        u32 frames_in_flight = RendererContext::FramesInFlight();
+        Window* viewport_window = Engine::Get().GetViewportWindow();
 
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -318,7 +318,7 @@ namespace Turbo
         pool_info.pPoolSizes = pool_sizes;
         TBO_VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool));
 #ifdef TBO_PLATFORM_WIN32
-        Win32_Window* window = dynamic_cast<Win32_Window*>(viewportWindow);
+        Win32_Window* window = dynamic_cast<Win32_Window*>(viewport_window);
         TBO_ENGINE_ASSERT(ImGui_ImplWin32_Init(window->GetHandle()));
 #endif
         // Custom CreateVkSurface function
@@ -334,12 +334,12 @@ namespace Turbo
         init_info.PipelineCache = nullptr;
         init_info.DescriptorPool = m_DescriptorPool;
         init_info.Subpass = 0;
-        init_info.MinImageCount = framesInFlight; // Swapchain image count
-        init_info.ImageCount = framesInFlight; // Swapchain image count
+        init_info.MinImageCount = frames_in_flight; // Swapchain image count
+        init_info.ImageCount = frames_in_flight; // Swapchain image count
         init_info.Allocator = nullptr;
         init_info.CheckVkResultFn = CheckVkResult;
 
-        Ref<VulkanSwapChain> swapchain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+        Ref<VulkanSwapChain> swapchain = viewport_window->GetSwapchain().As<VulkanSwapChain>();
         VkRenderPass renderPass = swapchain->GetRenderPass();
 
         ImGui_ImplVulkan_Init(&init_info, renderPass);
@@ -369,49 +369,49 @@ namespace Turbo
 
         // Swapchain primary command buffer
         {
-            const Window* viewportWindow = Engine::Get().GetViewportWindow();
-            Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
-            u32 width = viewportWindow->GetWidth();
-            u32 height = viewportWindow->GetHeight();
-            u32 currentFrame = swapChain->GetCurrentFrame();
+            const Window* viewport_window = Engine::Get().GetViewportWindow();
+            Ref<VulkanSwapChain> swap_chain = viewport_window->GetSwapchain().As<VulkanSwapChain>();
+            u32 width = viewport_window->GetWidth();
+            u32 height = viewport_window->GetHeight();
+            u32 current_frame = swap_chain->GetCurrentFrame();
 
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.pNext = nullptr;
             beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
             beginInfo.pInheritanceInfo = nullptr;
-            VkCommandBuffer currentBuffer = swapChain->GetCurrentRenderCommandBuffer();
-            TBO_VK_ASSERT(vkBeginCommandBuffer(currentBuffer, &beginInfo));
+            VkCommandBuffer currentbuffer = swap_chain->GetCurrentRenderCommandBuffer();
+            TBO_VK_ASSERT(vkBeginCommandBuffer(currentbuffer, &beginInfo));
 
-            VkClearValue clearValues[2]{};
-            clearValues[0].color = { {0.0f, 0.0f,0.0f, 1.0f} };
-            clearValues[1].depthStencil = { 1.0f, 0 };
+            VkClearValue clear_values[2]{};
+            clear_values[0].color = { {0.0f, 0.0f,0.0f, 1.0f} };
+            clear_values[1].depthStencil = { 1.0f, 0 };
 
             VkRenderPassBeginInfo renderPassBeginInfo = {};
             renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderPassBeginInfo.renderPass = swapChain->GetRenderPass();
+            renderPassBeginInfo.renderPass = swap_chain->GetRenderPass();
             renderPassBeginInfo.renderArea.offset.x = 0;
             renderPassBeginInfo.renderArea.offset.y = 0;
             renderPassBeginInfo.renderArea.extent = { width, height };
             renderPassBeginInfo.clearValueCount = 2; // Color
-            renderPassBeginInfo.pClearValues = clearValues;
-            renderPassBeginInfo.framebuffer = swapChain->GetCurrentFramebuffer();
+            renderPassBeginInfo.pClearValues = clear_values;
+            renderPassBeginInfo.framebuffer = swap_chain->GetCurrentFramebuffer();
 
-            vkCmdBeginRenderPass(currentBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+            vkCmdBeginRenderPass(currentbuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
             // ImGui secondary command buffer can be recorded pararelly 
             {
                 VkCommandBufferInheritanceInfo inheritanceInfo = {};
                 inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-                inheritanceInfo.renderPass = swapChain->GetRenderPass();
-                inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
+                inheritanceInfo.renderPass = swap_chain->GetRenderPass();
+                inheritanceInfo.framebuffer = swap_chain->GetCurrentFramebuffer();
 
                 VkCommandBufferBeginInfo cmdBufInfo = {};
                 cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
                 cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
                 cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
 
-                TBO_VK_ASSERT(vkBeginCommandBuffer(m_SecondaryBuffers[currentFrame], &cmdBufInfo));
+                TBO_VK_ASSERT(vkBeginCommandBuffer(m_SecondaryBuffers[current_frame], &cmdBufInfo));
                 {
                     VkViewport viewport = {};
                     viewport.x = 0.0f;
@@ -420,29 +420,29 @@ namespace Turbo
                     viewport.height = -(float)height;
                     viewport.minDepth = 0.0f;
                     viewport.maxDepth = 1.0f;
-                    vkCmdSetViewport(m_SecondaryBuffers[currentFrame], 0, 1, &viewport);
+                    vkCmdSetViewport(m_SecondaryBuffers[current_frame], 0, 1, &viewport);
 
                     VkRect2D scissor = {};
                     scissor.extent.width = width;
                     scissor.extent.height = height;
                     scissor.offset.x = 0;
                     scissor.offset.y = 0;
-                    vkCmdSetScissor(m_SecondaryBuffers[currentFrame], 0, 1, &scissor);
+                    vkCmdSetScissor(m_SecondaryBuffers[current_frame], 0, 1, &scissor);
 
                     // Record dear imgui primitives into command buffer
                     ImDrawData* main_draw_data = ImGui::GetDrawData();
-                    ImGui_ImplVulkan_RenderDrawData(main_draw_data, m_SecondaryBuffers[currentFrame]);
+                    ImGui_ImplVulkan_RenderDrawData(main_draw_data, m_SecondaryBuffers[current_frame]);
                 }
-                TBO_VK_ASSERT(vkEndCommandBuffer(m_SecondaryBuffers[currentFrame]));
+                TBO_VK_ASSERT(vkEndCommandBuffer(m_SecondaryBuffers[current_frame]));
 
                 // Execute imgui secondary command buffer
-                vkCmdExecuteCommands(currentBuffer, 1, &m_SecondaryBuffers[currentFrame]);
+                vkCmdExecuteCommands(currentbuffer, 1, &m_SecondaryBuffers[current_frame]);
             }
 
-            vkCmdEndRenderPass(currentBuffer);
+            vkCmdEndRenderPass(currentbuffer);
 
             // End swapchain's primary secondary buffer
-            TBO_VK_ASSERT(vkEndCommandBuffer(currentBuffer));
+            TBO_VK_ASSERT(vkEndCommandBuffer(currentbuffer));
         }
 
         ImGuiIO& io = ImGui::GetIO();

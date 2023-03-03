@@ -276,15 +276,15 @@ namespace Turbo
 
             m_CommandBuffer->Begin();
 
+            Renderer::BeginRenderPass(m_CommandBuffer, m_TargetFramebuffer, m_ClearColor);
             if (dataSize)
             {
                 m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
 
                 // Record buffer
-                Renderer::BeginRenderPass(m_CommandBuffer, m_TargetFramebuffer, m_ClearColor);
                 Renderer::DrawIndexed(m_CommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_QuadPipeline, m_QuadShader, m_RenderInfo.QuadIndexCount);
-                Renderer::EndRenderPass(m_CommandBuffer);
             }
+            Renderer::EndRenderPass(m_CommandBuffer);
 
             m_CommandBuffer->End();
             m_CommandBuffer->Submit();

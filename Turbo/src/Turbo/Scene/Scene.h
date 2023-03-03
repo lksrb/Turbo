@@ -31,12 +31,14 @@ namespace Turbo
         ~Scene();
 
         void OnEditorUpdate(Time_T ts);
-        void OnEditorRender(Ref<SceneRenderer> renderer);
+        void OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editor_camera);
 
         void OnRuntimeStart();
         void OnRuntimeStop();
         void OnRuntimeUpdate(Time_T ts);
         void OnRuntimeRender(Ref<SceneRenderer> renderer);
+
+        static Ref<Scene> Copy(Ref<Scene> other);
 
         Entity CreateEntity(const String& tag = "");
         Entity CreateEntityWithUUID(UUID uuid, const String& tag = "");
@@ -62,8 +64,6 @@ namespace Turbo
             });
         }
 
-        bool Renderable() { return m_Renderable; }
-
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:
@@ -72,7 +72,6 @@ namespace Turbo
         entt::registry m_Registry;
 
         bool m_Running = false;
-        bool m_Renderable = false;
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 

@@ -1,7 +1,7 @@
---
--- Sandbox project
---
+Project "SandboxProject"
 
-Project "SandboxProject" 
+	DefaultScene "BlankScene"
 
-	DefaultScene "TestScene"
+	Scenes {
+		"Assets/Scenes/BlankScene"
+	}

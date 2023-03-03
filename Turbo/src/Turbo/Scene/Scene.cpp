@@ -31,11 +31,35 @@ namespace Turbo
             TBO_ENGINE_ASSERT(false, "Unknown body type");
             return b2_staticBody;
         }
+
+        template<typename... Components>
+        static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap, const Ref<Scene>& scene)
+        {
+            ([&]()
+            {
+                auto view = src.view<Components>();
+
+                for (auto srcEntity : view)
+                {
+                    entt::entity dstEntity = enttMap.at(src.get<IDComponent>(srcEntity).Uuid);
+                    auto& srcComponent = src.get<Components>(srcEntity);
+                    dst.emplace_or_replace<Components>(dstEntity, srcComponent);
+                }
+            }(), ...);
+        }
+
+        template<typename... Components>
+        static void CopyComponents(ComponentGroup<Components...>, entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap, const Ref<Scene>& scene)
+        {
+            CopyComponent<Components...>(dst, src, enttMap, scene);
+        }
+
     }
 
     Scene::Scene(const Scene::Config& config)
         : m_Config(config)
     {
+        String format = String::Format("{} neco {}", "a", "b");
     }
 
     Scene::~Scene()
@@ -45,13 +69,10 @@ namespace Turbo
 
     void Scene::OnEditorUpdate(Time_T ts)
     {
-
     }
 
-    void Scene::OnEditorRender(Ref<SceneRenderer> renderer)
+    void Scene::OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editor_camera)
     {
-        m_Renderable = false;
-
         renderer->BeginRender();
 
         // Render entites
@@ -82,8 +103,6 @@ namespace Turbo
                 renderer2d->Begin(camera);
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
-
-                    m_Renderable = view.size_hint();
 
                     for (auto& entity : view)
                     {
@@ -141,12 +160,12 @@ namespace Turbo
 
     void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
     {
-        // Render entites
+        renderer->BeginRender();
 
         // 2D Rendering
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
-            
+
             // Find entity with camera component
             Entity cameraEntity;
             auto& view = GetAllEntitiesWith<CameraComponent>();
@@ -174,9 +193,9 @@ namespace Turbo
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                        if(src.SubTexture)
+                        if (src.SubTexture)
                             renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (u32)entity);
-                        else 
+                        else
                             renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.Texture, src.Tiling, (u32)entity);
 
                     }
@@ -185,6 +204,36 @@ namespace Turbo
                 renderer2d->End();
             }
         }
+
+        renderer->EndRender();
+    }
+
+    Ref<Scene> Scene::Copy(Ref<Scene> other)
+    {
+        Ref<Scene> new_scene = Ref<Scene>::Create(other->m_Config);
+
+        new_scene->m_ViewportWidth = other->m_ViewportWidth;
+        new_scene->m_ViewportHeight = other->m_ViewportHeight;
+
+        std::unordered_map<UUID, entt::entity> entity_map;
+
+        auto& view = other->m_Registry.view<IDComponent>();
+
+        for (auto& it = view.rbegin(); it != view.rend(); ++it)
+        {
+            UUID uuid = other->m_Registry.get<IDComponent>(*it).Uuid;
+
+            //TBO_CORE_ASSERT(entityMap.find(uuid) != entityMap.end());
+
+            const auto& name = other->m_Registry.get<TagComponent>(*it).Tag;
+
+            entity_map[uuid] = (entt::entity)new_scene->CreateEntityWithUUID(uuid, name);
+        }
+
+        // Copy components (except IDComponent and TagComponent)
+        Utils::CopyComponents(AllComponents{}, new_scene->m_Registry, other->m_Registry, entity_map, new_scene);
+
+        return new_scene;
     }
 
     Entity Scene::CreateEntity(const String& tag)

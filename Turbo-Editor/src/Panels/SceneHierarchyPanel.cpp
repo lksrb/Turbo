@@ -149,7 +149,7 @@ namespace Turbo::Ed
                 m_SelectedEntity = {};
 
             // Right-click on blank space
-            if (ImGui::BeginPopupContextWindow(0, 1))
+            if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
             {
                 if (ImGui::MenuItem("Create Empty Entity"))
                     m_Context->CreateEntity("Empty Entity");
@@ -288,7 +288,6 @@ namespace Turbo::Ed
 
         Utils::DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
         {
-
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
             ImGui::Text("Texture");
@@ -495,7 +494,7 @@ namespace Turbo::Ed
         }
 
         bool entityDeleted = false;
-        if (ImGui::BeginPopupContextItem())
+        if (ImGui::BeginPopupContextItem(0, 1))
         {
             if (ImGui::MenuItem("Delete Entity"))
                 entityDeleted = true;

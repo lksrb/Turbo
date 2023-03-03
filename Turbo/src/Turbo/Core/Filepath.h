@@ -39,8 +39,16 @@ namespace Turbo
         Filepath Directory() const;
 
         // Gets file extension
-        String32 Extension();
+        String32 Extension() const;
     public:
         static void ConvertToBackslash(char* text);
     };
 }
+
+/*
+template<typename OStream>
+OStream& operator<<(OStream& os, const Turbo::Filepath& filepath)
+{
+    return os << '\"' << filepath.CStr() << '\"';
+}
+*/

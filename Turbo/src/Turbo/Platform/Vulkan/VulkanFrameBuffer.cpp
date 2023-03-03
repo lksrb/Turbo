@@ -38,7 +38,7 @@ namespace Turbo
         {
             // Images
             Image2D::Config image_config = {};
-            image_config.ImageFormat = Image2D::Format_RGBA8_Unorm;
+            image_config.ImageFormat = Image2D::Format_BGRA8_Unorm;
             image_config.Aspect = Image2D::AspectFlags_Color;
             image_config.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
             image_config.Usage = Image2D::ImageUsageFlags_ColorAttachment | Image2D::ImageUsageFlags_Sampled;

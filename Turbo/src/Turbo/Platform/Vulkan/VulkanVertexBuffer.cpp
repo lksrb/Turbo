@@ -2,11 +2,12 @@
 #include "VulkanVertexBuffer.h"
 
 #include "VulkanUtils.h"
+#include "VulkanCommandBuffer.h"
 
 namespace Turbo
 {
     VulkanVertexBuffer::VulkanVertexBuffer(const VertexBuffer::Config& config)
-        : VertexBuffer(config), m_Buffer(VK_NULL_HANDLE), m_Memory(VK_NULL_HANDLE), m_StagingBufferPtr(nullptr)
+        : VertexBuffer(config)
     {
         VkDevice device = RendererContext::GetDevice();
 
@@ -79,6 +80,8 @@ namespace Turbo
             vkDestroyBuffer(device, m_Buffer, nullptr);
             vkFreeMemory(device, m_Memory, nullptr);
         });
+
+        m_TranferCommandBuffer = CommandBuffer::Create(CommandBufferLevel::Primary);
     }
 
     VulkanVertexBuffer::~VulkanVertexBuffer()
@@ -96,16 +99,18 @@ namespace Turbo
 
     void VulkanVertexBuffer::TransferData(u32 size)
     {
-        RendererContext::ImmediateSubmit([this, size](VkCommandBuffer buffer) 
-        {
-            VkDevice device = RendererContext::GetDevice();
+        m_TranferCommandBuffer->Begin();
 
-            VkBufferCopy copyRegion{};
-            copyRegion.srcOffset = 0; // Optional
-            copyRegion.dstOffset = 0; // Optional
-            copyRegion.size = static_cast<uint64_t>(size);
-            vkCmdCopyBuffer(buffer, m_StagingBuffer, m_Buffer, 1, &copyRegion);
-        });
+        VkDevice device = RendererContext::GetDevice();
+
+        VkBufferCopy copyRegion{};
+        copyRegion.srcOffset = 0; // Optional
+        copyRegion.dstOffset = 0; // Optional
+        copyRegion.size = static_cast<VkDeviceSize>(size);
+        vkCmdCopyBuffer(m_TranferCommandBuffer.As<VulkanCommandBuffer>()->GetCommandBuffer(), m_StagingBuffer, m_Buffer, 1, &copyRegion);
+
+        m_TranferCommandBuffer->End();
+        m_TranferCommandBuffer->Submit();
     }
 
 }

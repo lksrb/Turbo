@@ -50,7 +50,9 @@ namespace Turbo
         strcat_s(fp.m_Buffer, m_Buffer);
         strcat_s(fp.m_Buffer, "\\");
         strcat_s(fp.m_Buffer, other);
-        fp.m_Size = strlen(m_Buffer);
+
+
+        fp.m_Size = strlen(fp.m_Buffer);
 
         return fp;
     }
@@ -156,14 +158,15 @@ namespace Turbo
         return filePath;
     }
 
-    String32 Filepath::Extension()
+    String32 Filepath::Extension() const
     {
         if (Empty())
             return String32{};
 
         size_t j = 0;
-        char reversed[32]{ 0 };
+        char reversed[32] = { 0 };
         String32 ext;
+
         for (size_t i = m_Size - 1; i > 0; --i)
         {
             reversed[j] = m_Buffer[i];

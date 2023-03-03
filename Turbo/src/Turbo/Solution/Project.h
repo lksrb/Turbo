@@ -21,8 +21,9 @@ namespace Turbo
         Project(const Project::Config& config = {});
         ~Project();
 
-        static Ref<Project> CreateDefault(const Filepath& rootDirectory, const String64& projectName);
-        static Ref<Project> Deserialize(const Filepath& projectFilepath);
+        static Ref<Project> CreateDefault(const Filepath& root_dir, const String64& project_name);
+        static Ref<Project> Deserialize(const Filepath& project_filepath);
+        static bool SerializeScene(Ref<Scene> scene, const Filepath& scene_filepath);
 
         const Filepath& GetRootDirectory() const { return m_Config.RootDirectory; }
 

@@ -105,4 +105,14 @@ namespace Turbo
         f32 RestitutionThreshold = 0.5f;
         bool IsSensor = false;
     };
+
+    template<typename... Components>
+    struct ComponentGroup
+    {
+        constexpr static size_t Size = sizeof...(Components);
+    };
+
+    using AllComponents =
+        ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent,
+        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

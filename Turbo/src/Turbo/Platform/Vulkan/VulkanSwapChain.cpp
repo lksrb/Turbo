@@ -34,37 +34,21 @@ namespace Turbo
         m_Framebuffers.resize(frames_in_flight);
         m_RenderCommandBuffers.resize(frames_in_flight);
 
-        std::array<VkFormat, 6> requestSurfaceImageFormat = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
-        VkSurfaceFormatKHR surfaceFormat = Vulkan::FindSurfaceFormat(requestSurfaceImageFormat.data(), requestSurfaceImageFormat.size(), VK_COLORSPACE_SRGB_NONLINEAR_KHR); // TODO: Copy imgui function that chooses surface format
-        m_SwapchainFormat = surfaceFormat.format;
-        // TODO: Remove depth buffer 
-        Image2D::Config imageConfig = {};
-        imageConfig.ImageFormat = Image2D::Format_D32_SFloat_S8_Uint;
-        imageConfig.Aspect = Image2D::AspectFlags_Depth;
-        imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
-        imageConfig.Usage = Image2D::ImageUsageFlags_DepthStencilSttachment;
-        imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
-        m_DepthBuffer = Image2D::Create(imageConfig);
-        m_DepthBuffer->Invalidate(1600, 900);
+        m_SwapchainFormat = Vulkan::SelectSurfaceFormat().format; // VK_FORMAT_B8G8R8A8_UNORM
 
         CreateRenderpass();
         CreateSyncObjects();
 
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = RendererContext::GetCommandPool();
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = static_cast<uint32_t>(RendererContext::FramesInFlight());
+        VkCommandBufferAllocateInfo alloc_info = {};
+        alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        alloc_info.commandPool = RendererContext::GetCommandPool();
+        alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        alloc_info.commandBufferCount = static_cast<uint32_t>(RendererContext::FramesInFlight());
 
         TBO_VK_ASSERT(vkAllocateCommandBuffers(RendererContext::GetDevice(),
-            &allocInfo, m_RenderCommandBuffers.data()));
+            &alloc_info, m_RenderCommandBuffers.data()));
 
-        /* // Depth buffer
-        {
-            m_DepthBuffer->Invalidate(width, height);
-        }*/
-
-        // Swapchain, renderpass, ... are created on the first resize
+        // Swapchain, renderpass, etc. are created/invalided on the first resize
     }
 
     void VulkanSwapChain::Shutdown()
@@ -150,8 +134,6 @@ namespace Turbo
         // Assign new swapchain
         m_Swapchain = new_swapchain;
 
-        m_DepthBuffer->Invalidate(width, height);
-
         CreateImageviews();
         CreateFramebuffers(width, height);
 
@@ -229,7 +211,7 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         // Attachment description
-        VkAttachmentDescription color_attachment{};
+        VkAttachmentDescription color_attachment = {};
         color_attachment.format = m_SwapchainFormat;
         color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
         color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -239,7 +221,7 @@ namespace Turbo
         color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         // Subpasses and attachment references
-        VkAttachmentReference color_attachment_ref{};
+        VkAttachmentReference color_attachment_ref = {};
         color_attachment_ref.attachment = 0;
         color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -254,14 +236,14 @@ namespace Turbo
         subpass_desc.pResolveAttachments = nullptr;
 
         // Render pass 
-        VkRenderPassCreateInfo renderpass_info{};
+        VkRenderPassCreateInfo renderpass_info = {};
         renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderpass_info.attachmentCount = 1;
         renderpass_info.pAttachments = &color_attachment;
         renderpass_info.subpassCount = 1;
         renderpass_info.pSubpasses = &subpass_desc;
 
-        VkSubpassDependency dependency{};
+        VkSubpassDependency dependency = {};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -273,8 +255,7 @@ namespace Turbo
         renderpass_info.pDependencies = &dependency;
         renderpass_info.pSubpasses;
 
-        TBO_VK_ASSERT(vkCreateRenderPass(device,
-            &renderpass_info, nullptr, &m_Renderpass));
+        TBO_VK_ASSERT(vkCreateRenderPass(device, &renderpass_info, nullptr, &m_Renderpass));
 
         // Add it to deletion queue 
         auto& resource_free_queue = RendererContext::GetResourceQueue();
@@ -333,16 +314,11 @@ namespace Turbo
 
         for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
         {
-            VkImageView attachments[] = {
-                m_Imageviews[i], // Color attachment 
-                //m_DepthBuffer.As<VulkanImage2D>()->GetImageView()    // Depth buffer
-            };
-
             VkFramebufferCreateInfo framebuffer_info{};
             framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebuffer_info.renderPass = m_Renderpass;
             framebuffer_info.attachmentCount = 1;
-            framebuffer_info.pAttachments = attachments;
+            framebuffer_info.pAttachments = &m_Imageviews[i]; // Color attachment
             framebuffer_info.width = width;
             framebuffer_info.height = height;
             framebuffer_info.layers = 1;

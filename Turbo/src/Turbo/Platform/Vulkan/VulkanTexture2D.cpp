@@ -24,7 +24,13 @@ namespace Turbo
         stbi_set_flip_vertically_on_load(1); 
         stbi_uc* pixels = stbi_load(m_Config.FilePath.CStr(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
 
-        TBO_ENGINE_ASSERT(texWidth * texHeight > 0, "Texture could not be loaded!");
+        // Texture could not be loaded
+        if (texWidth * texHeight <= 0)
+        {
+            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", config.FilePath.CStr());
+            stbi_set_flip_vertically_on_load(0);
+            return;
+        }
 
         m_IsLoaded = true;
 

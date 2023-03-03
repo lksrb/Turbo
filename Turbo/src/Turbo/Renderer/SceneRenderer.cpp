@@ -80,7 +80,6 @@ namespace Turbo
     {
         if (m_Config.RenderIntoTexture) // Render into ImGui viewport window
         {
-
             // Currently only renderer2D is submitting work so this is empty
             // TODO: More renderers  
 /*

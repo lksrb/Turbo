@@ -35,10 +35,20 @@ namespace Turbo::Vulkan
     }
 
     // From imgui_impl_vulkan.h
-    static VkSurfaceFormatKHR FindSurfaceFormat(const VkFormat* request_formats, size_t request_formats_count, VkColorSpaceKHR request_color_space)
+    static VkSurfaceFormatKHR SelectSurfaceFormat()
     {
-        TBO_ENGINE_ASSERT(request_formats != nullptr);
-        TBO_ENGINE_ASSERT(request_formats_count > 0);
+        static VkColorSpaceKHR request_color_space = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+
+        static std::array<VkFormat, 4> request_formats
+        { 
+            VK_FORMAT_B8G8R8A8_UNORM, 
+            VK_FORMAT_B8G8R8A8_SRGB, 
+            VK_FORMAT_R8G8B8A8_SRGB, 
+            VK_FORMAT_R8G8B8A8_UNORM, 
+        };
+
+
+        //TBO_ENGINE_ASSERT(request_formats.size() > 0);
 
         VkPhysicalDevice physical_device = RendererContext::GetPhysicalDevice();
         VkSurfaceKHR surface = RendererContext::GetSurface();
@@ -72,7 +82,7 @@ namespace Turbo::Vulkan
         else
         {
             // Request several formats, the first found will be used
-            for (size_t request_i = 0; request_i < request_formats_count; request_i++)
+            for (size_t request_i = 0; request_i < request_formats.size(); request_i++)
                 for (uint32_t avail_i = 0; avail_i < avail_count; avail_i++)
                     if (avail_format[avail_i].format == request_formats[request_i] && avail_format[avail_i].colorSpace == request_color_space)
                         return avail_format[avail_i];
