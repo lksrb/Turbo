@@ -59,7 +59,7 @@ namespace Turbo
     Scene::Scene(const Scene::Config& config)
         : m_Config(config)
     {
-        String format = String::Format("{} neco {}", "a", "b");
+        //String format = String::Format("{} neco {}", "a", "b");
     }
 
     Scene::~Scene()

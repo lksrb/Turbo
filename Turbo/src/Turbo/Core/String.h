@@ -7,10 +7,49 @@
 
 namespace Turbo 
 {
-    // Stack String
-    template<size_t Capacity>
+    // Fixed String TODO: Add WideString variant
+    template<typename CharType, size_t Capacity>
     struct StringB
     {
+    public:
+        struct Iterator
+        {
+            Iterator(CharType* pointer) : m_Pointer(pointer) {}
+
+            Iterator& operator++()
+            {
+                ++m_Pointer;
+                return *this;
+            }
+
+            Iterator& operator++(int)
+            {
+                Iterator temp = *this;
+                ++(*this);
+                return temp;
+            }
+            Iterator& operator--()
+            {
+                --m_Pointer;
+                return *this;
+            }
+
+            Iterator& operator--(int)
+            {
+                Iterator temp = *this;
+                --(*this);
+                return temp;
+            }
+
+            CharType& operator*() const { return *m_Pointer; }
+
+            bool operator==(const Iterator& other) const { return m_Pointer == other.m_Pointer; }
+            bool operator!=(const Iterator& other) const { return !operator==(other); }
+        private:
+            CharType* m_Pointer;
+
+            friend struct StringB;
+        };
     public:
         StringB() = default;
         virtual ~StringB() = default;
@@ -20,32 +59,30 @@ namespace Turbo
         {
         }
 
-        StringB(const char* other)
+        StringB(const CharType* other)
             : StringB()
         {
             if (other)
                 Copy(other);
         }
 
-        StringB& operator=(const char* other)
-        {
-            if (other)
-                Copy(other);
+        StringB(const Iterator& it) : StringB(it.m_Pointer) {}
 
-            return *this;
+        // Utilities
+        Iterator Begin()
+        {
+            return Iterator(&m_Buffer[0]);
         }
 
-        StringB& operator=(char* other)
+        Iterator End()
         {
-            if (other)
-                Copy((const char*)other);
-
-            return *this;
+            return Iterator(&m_Buffer[0] + (m_Size)); // Null termination character
         }
 
-        StringB& Append(const char* other)
+        StringB& Append(const CharType* other)
         {
             TBO_ENGINE_ASSERT(strlen(m_Buffer) + strlen(other) < Cap());
+
             if (other)
             {
                 strcat_s(m_Buffer, other);
@@ -59,49 +96,91 @@ namespace Turbo
             return StringB::Append(other.CStr());
         }
 
-        bool Empty() const
+        Iterator Erase(Iterator& where)
         {
-            return m_Size == 0;
+            size_t index = where.m_Pointer - &m_Buffer[0];
+
+            StringB after(++where);
+            ClearRange(index, m_Size);
+            Append(after);
+            return Iterator(&m_Buffer[index]);
         }
-        void Reset() { memset(m_Buffer, 0, sizeof(m_Size)); }
 
+        // Operators
+        StringB& operator=(const CharType* other)
+        {
+            if (other)
+                Copy(other);
 
-        char& operator[](size_t index) { TBO_ENGINE_ASSERT(index < m_Size, "Index out of bounds!"); return m_Buffer[index]; }
-        bool operator==(const char* other) const { return strcmp(m_Buffer, other) == 0; }
-        bool operator!=(const char* other) const { return !(StringB::operator==(other)); }
-        const char* operator()() const { return m_Buffer; }
-        
+            return *this;
+        }
+
+        StringB& operator=(CharType* other)
+        {
+            if (other)
+                Copy((const CharType*)other);
+
+            return *this;
+        }
+
+        StringB operator+(const StringB& other) { return StringB::Append(other.CStr()); }
+        CharType& operator[](size_t index) { TBO_ENGINE_ASSERT(index < m_Size/*, "Index out of bounds!"*/); return m_Buffer[index]; }
+        bool operator==(const CharType* other) const { return strcmp(m_Buffer, other) == 0; }
+        bool operator!=(const CharType* other) const { return !(StringB::operator==(other)); }
+        const CharType* operator()() const { return m_Buffer; }
+
+        bool Empty() const { return m_Size == 0; }
+        void Clear() { ClearRange(0, m_Size); }
         inline size_t Size() const { return m_Size; }
         inline constexpr size_t Cap() const noexcept { return Capacity; }
-        char* Data() { return &m_Buffer[0]; }
-        const char* CStr() const { return m_Buffer; }
+        CharType* Data() { return &m_Buffer[0]; }
+        const CharType* CStr() const { return m_Buffer; }
 
         template<typename... Args>
         static StringB Format(const StringB& format, Args&&... args)
         {
-            StringB string;
-
-            //std::cout << (std::string(args) + ...) << "\n"; // TODO: Custom format function
-
-            return string;
+            //StringB string = (StringB(args) + ...);
+            //
+            //std::cout << string.CStr() << "\n";
+            TBO_ENGINE_ASSERT(false);
+            return {};
         }
     protected:
-        void Copy(const char* src)
+        void Copy(const CharType* src)
         {
             m_Size = strlen(src);
             TBO_ENGINE_ASSERT(m_Size < Capacity);
             strcpy_s(m_Buffer, Capacity, src);
         }
+
+        void CopyRange(const CharType* src, size_t end_index)
+        {
+            TBO_ENGINE_ASSERT(m_Size >= 0);
+            TBO_ENGINE_ASSERT(m_Size < Capacity);
+
+            StringB copy = src;
+            copy.m_Buffer[end_index] = '\0';
+
+            strcpy_s(&m_Buffer[0], Capacity, copy.m_Buffer);
+
+            m_Size = strlen(m_Buffer);
+        }
+
+        void ClearRange(size_t start, size_t end)
+        {
+            m_Size -= (end - start);
+            TBO_ENGINE_ASSERT(m_Size >= 0);
+            memset(m_Buffer + start, 0, end);
+        }
     protected:
         size_t m_Size = 0;
-        char m_Buffer[Capacity] = { 0 };
-        
+        CharType m_Buffer[Capacity] = { 0 };
     };
 
-    using String32 = StringB<32>;
-    using String64 = StringB<64>;
-    using String128 = StringB<128>;
-    using String = StringB<256>;
+    using String32  = StringB<char, 32>;
+    using String64  = StringB<char, 64>;
+    using String128 = StringB<char, 128>;
+    using String    = StringB<char, 256>;
 }
 
 namespace std
