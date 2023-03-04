@@ -37,7 +37,7 @@ namespace Turbo::Ed {
     void AccessPanel::Open(bool show)
     {
         m_Open = show;
-        m_Input.Reset();
+        m_Input.Clear();
 
         if (show == false)
         {
