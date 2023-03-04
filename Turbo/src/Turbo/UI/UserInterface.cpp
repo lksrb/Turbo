@@ -13,7 +13,12 @@ namespace Turbo
     {
     }
 
-    Ref<UserInterface> UserInterface::Create()
+	void UserInterface::SetBlockEvents(bool block_events)
+	{
+        m_BlockEvents = block_events;
+	}
+
+	Ref<UserInterface> UserInterface::Create()
     {
         return Ref<VulkanUserInterface>::Create();
     }

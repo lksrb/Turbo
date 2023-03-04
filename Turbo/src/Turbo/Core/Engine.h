@@ -38,6 +38,7 @@ namespace Turbo
         void Close();
 
         Window* GetViewportWindow() const { return m_ViewportWindow; }
+        Ref<UserInterface> GetUI() const { return m_UI; }
     private:
         Engine(ApplicationCreateCallback callback);
 

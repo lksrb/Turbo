@@ -21,3 +21,6 @@
 [submodule "dependencies/yaml-cpp"]
 	path = dependencies/yaml-cpp
 	url = https://github.com/lksrb/yaml-cpp.git
+[submodule "dependencies/ImGuizmo"]
+	path = dependencies/ImGuizmo
+	url = https://github.com/lksrb/ImGuizmo.git

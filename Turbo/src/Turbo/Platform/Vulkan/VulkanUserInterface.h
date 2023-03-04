@@ -2,7 +2,8 @@
 
 #include "Turbo/UI/UserInterface.h"
 
-#include "Turbo/Renderer/RendererContext.h"
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan/vulkan.h>
 
 namespace Turbo
 {
@@ -19,10 +20,9 @@ namespace Turbo
         void ImGuiStyleSpectrum();
         void CreateImGuiContext();
     private:
-        bool m_BlockEvents;
         // ImGui vulkan objects
-        VkDescriptorPool m_DescriptorPool;
-        VkRenderPass m_RenderPass;
-        VkCommandBuffer m_SecondaryBuffers[TBO_MAX_FRAMESINFLIGHT];
+        VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
+        VkRenderPass m_RenderPass = VK_NULL_HANDLE;
+        std::vector<VkCommandBuffer> m_SecondaryBuffers;
     };
 }

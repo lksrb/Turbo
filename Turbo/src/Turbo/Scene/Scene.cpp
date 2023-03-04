@@ -80,27 +80,8 @@ namespace Turbo
         // 2D Rendering
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
-
-            // Find entity with camera component
-            Entity cameraEntity;
-            auto& view = GetAllEntitiesWith<CameraComponent>();
-            for (auto entity : view)
             {
-                auto& camera = view.get<CameraComponent>(entity);
-
-                if (camera.Primary)
-                {
-                    cameraEntity = { entity, this };
-                }
-            }
-
-            // Camera does exists
-            if (cameraEntity)
-            {
-                auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-                camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
-
-                renderer2d->Begin(camera);
+                renderer2d->Begin(editor_camera);
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 

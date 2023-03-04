@@ -3,9 +3,10 @@
 #include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Event/event.h"
 
-namespace Turbo {
-
-    class KeyEvent : public Event {
+namespace Turbo 
+{
+    class KeyEvent : public Event 
+    {
     public:
         KeyCode GetKeyCode() const { return m_KeyCode; }
 
@@ -19,10 +20,11 @@ namespace Turbo {
         KeyCode m_KeyCode;
     };
 
-    class KeyPressedEvent : public KeyEvent {
+    class KeyPressedEvent : public KeyEvent 
+    {
     public:
-        KeyPressedEvent(KeyCode code, u16 repeatCount)
-            : KeyEvent(code), m_RepeatCount(repeatCount)
+        KeyPressedEvent(KeyCode code, u16 repeat_count)
+            : KeyEvent(code), m_RepeatCount(repeat_count)
         {
         }
 
@@ -33,10 +35,11 @@ namespace Turbo {
         u16 m_RepeatCount;
     };
 
-    class KeyReleasedEvent : public KeyEvent {
+    class KeyReleasedEvent : public KeyEvent 
+    {
     public:
-        KeyReleasedEvent(KeyCode code)
-            : KeyEvent(code)
+        KeyReleasedEvent(KeyCode keycode)
+            : KeyEvent(keycode)
         {
         }
 
@@ -44,10 +47,11 @@ namespace Turbo {
 
     };
 
-    class KeyTypedEvent : public KeyEvent {
+    class KeyTypedEvent : public KeyEvent 
+    {
     public:
-        KeyTypedEvent(KeyCode code)
-            : KeyEvent(code)
+        KeyTypedEvent(KeyCode keycode)
+            : KeyEvent(keycode)
         {
         }
 

@@ -1,13 +1,20 @@
 #pragma once
 
-#include "Turbo/Core/KeyCodes.h"
-#include "Turbo/Core/MouseCodes.h"
+#include "KeyCodes.h"
+#include "MouseCodes.h"
 
-namespace Turbo {
-
-    namespace Input
+namespace Turbo 
+{
+    class Input
     {
-        bool IsKeyPressed(KeyCode keyCode);
-        bool IsKeyReleased(KeyCode keyCode);
+    public:
+        static bool IsKeyPressed(KeyCode keycode);
+        static bool IsKeyReleased(KeyCode keycode);
+
+        static bool IsMouseButtonPressed(KeyCode keycode);
+        static bool IsMouseButtonReleased(KeyCode keycode);
+
+        static i32 GetMouseX();
+        static i32 GetMouseY();
     };
 }

@@ -197,6 +197,30 @@ namespace Turbo {
                 m_Callback(e);
                 break;
             }
+            // Mouse events
+            case WM_MOUSEWHEEL:
+            {
+                f32 delta_x = 0.0f, delta_y = 0.0f;
+                f32 common_delta = std::signbit(static_cast<f32>(GET_WHEEL_DELTA_WPARAM(wParam))) ? -1.0f : 1.0f;
+
+                // Vertical
+                if (!(wParam & MK_SHIFT)) 
+                {
+                    delta_x = 0;
+
+                    delta_y = common_delta;
+                }
+                else // Horizontal
+                {
+                    delta_x = common_delta;
+                    delta_y = 0;
+                }
+
+                MouseScrolledEvent e(delta_x, delta_y);
+                m_Callback(e);
+
+                break;
+            }
             // Key events
             case WM_KEYDOWN:
             case WM_SYSKEYDOWN:

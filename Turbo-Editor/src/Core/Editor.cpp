@@ -1,11 +1,12 @@
 #include "Editor.h"
 
-#include "Turbo/Core/Platform.h"
-
-#include "Turbo/Solution/Project.h"
 #include "Turbo/Benchmark/ScopeTimer.h"
-
 #include "Turbo/UI/UI.h"
+
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <ImGuizmo.h>
 
 namespace Turbo::Ed
 {
@@ -34,12 +35,13 @@ namespace Turbo::Ed
         m_PlayIcon = Texture2D::Create({ "Resources/Icons/PlayButton.png" });
         m_StopIcon = Texture2D::Create({ "Resources/Icons/StopButton.png" });
 
+        m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_Config.Width) / static_cast<f32>(m_Config.Height), 0.1f, 10000.0f);
+
         OpenProject(g_AssetPath / "SandboxProject\\SandboxProject.tproject");
     }
 
     void Editor::OnShutdown()
     {
-        //m_CurrentProject.Reset();
     }
 
     void Editor::OnUpdate()
@@ -51,6 +53,8 @@ namespace Turbo::Ed
         {
             case Mode::Edit:
             {
+                m_EditorCamera.OnUpdate(Time.DeltaTime);
+
                 m_EditorScene->OnEditorUpdate(Time.DeltaTime);
                 break;
             }
@@ -71,7 +75,7 @@ namespace Turbo::Ed
         {
             case Mode::Edit:
             {
-                m_EditorScene->OnEditorRender(m_SceneRenderer, /* TODO: EditorCamera */{});
+                m_EditorScene->OnEditorRender(m_SceneRenderer, m_EditorCamera);
                 break;
             }
             case Mode::Play:
@@ -110,16 +114,14 @@ namespace Turbo::Ed
         TBO_INFO(input.CStr());
     }
 
-    bool Editor::OnWindowClosed(WindowCloseEvent& e)
+    void Editor::OnEvent(Event& e)
     {
-        return true;
-    }
+        if (m_EditorMode == Mode::Edit)
+            m_EditorCamera.OnEvent(e);
 
-    bool Editor::OnWindowResized(WindowResizeEvent& e)
-    {
-        //OnViewportResize(e.GetWidth(), e.GetHeight());
-
-        return true;
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
     }
 
     bool Editor::OnKeyPressed(KeyPressedEvent& e)
@@ -133,9 +135,35 @@ namespace Turbo::Ed
 
         switch (e.GetKeyCode())
         {
+            // Gizmos
+            case Key::Q:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = -1;
+                break;
+            }
+            case Key::W:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                break;
+            }
+            case Key::E:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                break;
+            }
+            case Key::R:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                break;
+            }
+
+            // Open Access Window 
             case Key::X:
             {
-                // Open Access Window 
                 if (alt)
                 {
                     m_CommandAccessPanel.Open(!m_CommandAccessPanel.IsOpened());
@@ -153,12 +181,14 @@ namespace Turbo::Ed
         return true;
     }
 
-    void Editor::OnEvent(Event& e)
+    bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
     {
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Editor::OnWindowClosed));
-        dispatcher.Dispatch<WindowResizeEvent>(TBO_BIND_FN(Editor::OnWindowResized));
-        dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
+        if (e.GetMouseButton() == Mouse::ButtonLeft)
+        {
+            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+                m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+        }
+        return false;
     }
 
     void Editor::OnDrawUI()
@@ -268,10 +298,21 @@ namespace Turbo::Ed
             ImGui::End();
         }
 
+        // Viewport
         {
             ImGui::Begin("Viewport");
 
-            auto& window_size = ImGui::GetWindowSize();
+            m_ViewportHovered = ImGui::IsWindowHovered();
+            m_ViewportFocused = ImGui::IsWindowFocused();
+            Engine::Get().GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+
+            ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
+            ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+            ImVec2 viewportOffset = ImGui::GetWindowPos();
+            m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+            m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
+            ImVec2 window_size = ImGui::GetWindowSize();
 
             ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
 
@@ -282,40 +323,87 @@ namespace Turbo::Ed
 
             if (m_EditorScene)
             {
-                UI::Image(m_SceneRenderer->GetFinalImage(), { viewport_panel_size.x,viewport_panel_size.y }, { 0, -1 }, { 1, 0 });
+                UI::Image(m_SceneRenderer->GetFinalImage(), { viewport_panel_size.x,viewport_panel_size.y }, { 0, 1 }, { 1, 0 });
             }
 
             // Right-click on viewport to access the magic menu
-            ImGui::SetNextWindowSize({ 200.0f, 400.0f });
-            if (ImGui::BeginPopupContextWindow("##ViewportContextMenu"))
+            if (!m_EditorCamera.IsControlling())
             {
-                ImGui::MenuItem("Scene", nullptr, false, false);
-                ImGui::Separator();
-                if (ImGui::MenuItem("New Entity", nullptr, false, m_EditorScene))
+                ImGui::SetNextWindowSize({ 200.0f, 400.0f });
+                if (ImGui::BeginPopupContextWindow("##ViewportContextMenu"))
                 {
-                    TBO_WARN("Entity Added!");
-                    Entity e = m_EditorScene->CreateEntity();
+                    ImGui::MenuItem("Scene", nullptr, false, false);
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("New Entity", nullptr, false, m_EditorScene))
+                    {
+                        TBO_WARN("Entity Added!");
+                        Entity e = m_EditorScene->CreateEntity();
 
-                    auto& transform = e.Transform();
+                        auto& transform = e.Transform();
 
-                    static f32 x = 0.0f;
-                    transform.Translation.y = x;
-                    ++x;
-                    auto& src = e.AddComponent<SpriteRendererComponent>();
+                        static f32 x = 0.0f;
+                        transform.Translation.y = x;
+                        ++x;
+                        auto& src = e.AddComponent<SpriteRendererComponent>();
 
-                    Ref<Texture2D> texture2d = Texture2D::Create({ "Assets/Textures/smile.png" });
+                        Ref<Texture2D> texture2d = Texture2D::Create({ "Assets/Textures/smile.png" });
 
-                    if (texture2d->IsLoaded())
-                        src.Texture = texture2d;
+                        if (texture2d->IsLoaded())
+                            src.Texture = texture2d;
+                    }
+
+                    if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_EditorScene))
+                    {
+                        TBO_WARN("Camera Added!");
+                        auto& camera = m_EditorScene->CreateEntity().AddComponent<CameraComponent>();
+                        camera.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+                    }
+                    ImGui::EndPopup();
                 }
+            }
 
-                if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_EditorScene))
+
+            // Gizmos
+            Entity selected_entity = m_SceneHierarchyPanel.GetSelectedEntity();
+
+            if (selected_entity && m_GizmoType != -1)
+            {
+                // Editor camera
+                glm::mat4 camera_projection = m_EditorCamera.GetProjection();
+                glm::mat4 camera_view = m_EditorCamera.GetViewMatrix();
+
+                ImGuizmo::SetOrthographic(false);
+                ImGuizmo::SetDrawlist();
+
+                ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
+
+                // Entity transform
+                auto& transform_cmp = selected_entity.Transform();
+                glm::mat4 transform = transform_cmp.GetMatrix();
+
+                // Snapping
+                bool snap = Input::IsKeyPressed(Key::LeftControl);
+                f32 snap_value = 0.5f;
+
+                if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+                    snap_value = 45.0f;
+
+                f32 snap_values[] = { snap_value, snap_value, snap_value };
+
+                ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                nullptr, snap ? snap_values : nullptr);
+
+                if (ImGuizmo::IsUsing())
                 {
-                    TBO_WARN("Camera Added!");
-                    auto& camera = m_EditorScene->CreateEntity().AddComponent<CameraComponent>();
-                    camera.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+                    glm::vec3 translation, rotation, scale;
+                    Math::DecomposeTransform(transform, translation, rotation, scale);
+
+                    glm::vec3 deltaRotation = rotation - transform_cmp.Rotation;
+                    transform_cmp.Translation = translation;
+                    transform_cmp.Rotation += deltaRotation;
+                    transform_cmp.Scale = scale;
                 }
-                ImGui::EndPopup();
             }
 
             ImGui::End();
@@ -332,9 +420,7 @@ namespace Turbo::Ed
         ImGui::Text("Drawcalls %d", stats.DrawCalls);
         ImGui::End();
 
-        ImGui::ShowDemoWindow();
-
-        // Edit/Play bar
+        // EditorConsole
         {
             ImGui::Begin("Editor Console");
             ImGui::End();
@@ -416,6 +502,7 @@ namespace Turbo::Ed
         if (m_EditorScene)
             m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
+        m_EditorCamera.SetViewportSize(width, height);
         m_SceneRenderer->OnViewportSize(width, height);
     }
 
@@ -474,5 +561,4 @@ namespace Turbo::Ed
 
         m_SceneHierarchyPanel.SetContext(m_EditorScene);
     }
-
 }

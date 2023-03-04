@@ -2,8 +2,8 @@
 -- Turbo Engine
 
 project "Turbo"
-    	kind "StaticLib"
-    	cppdialect "C++17"
+    kind "StaticLib"
+    cppdialect "C++17"
 	staticruntime "off"
 	floatingpoint "Fast"
 
@@ -17,8 +17,8 @@ project "Turbo"
         "src/**.h",
         "src/**.cpp",
 
-        --"dependencies/ImGuizmo/ImGuizmo.h",
-        --"dependencies/ImGuizmo/ImGuizmo.cpp"
+        "dependencies/ImGuizmo/**.h",
+        "dependencies/ImGuizmo/**.cpp",
 
         "dependencies/IconFontCppHeaders/**.h",
         "dependencies/IconFontCppHeaders/**.cpp"
@@ -26,7 +26,7 @@ project "Turbo"
 
     defines {
         "_CRT_SECURE_NO_WARNINGS",
-	"YAML_CPP_STATIC_DEFINE"
+	    "YAML_CPP_STATIC_DEFINE"
     }
 
     includedirs {
@@ -40,8 +40,8 @@ project "Turbo"
         "%{IncludeDir.entt}",
         "%{IncludeDir.stb}",
         "%{IncludeDir.box2d}",
-        "%{IncludeDir.yaml_cpp}"
-        --"%{IncludeDir.ImGuizmo}",
+        "%{IncludeDir.yaml_cpp}",
+        "%{IncludeDir.ImGuizmo}"
         --"%{IncludeDir.mono}"
     }
 

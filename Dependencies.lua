@@ -2,6 +2,7 @@
 --Turbo Dependencies
 
 IncludeDir= {}
+IncludeDir["Turbo"] = "%{wks.location}/Turbo/src"
 IncludeDir["GLFW"] = "%{wks.location}/dependencies/GLFW/include"
 IncludeDir["spdlog"] = "%{wks.location}/dependencies/spdlog/include"
 IncludeDir["ImGui"] = "%{wks.location}/dependencies/imgui"

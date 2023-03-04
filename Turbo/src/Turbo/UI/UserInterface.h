@@ -14,7 +14,11 @@ namespace Turbo
         virtual void EndUI() = 0;
 
         virtual void OnEvent(Event& e) = 0;
+
+        void SetBlockEvents(bool block_events);
     protected:
         UserInterface();
+
+        bool m_BlockEvents;
     };
 }

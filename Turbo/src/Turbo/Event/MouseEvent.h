@@ -26,16 +26,16 @@ namespace Turbo
     class MouseScrolledEvent : public Event
     {
     private:
-        float m_XOffset, m_YOffset;
+        f32 m_XOffset, m_YOffset;
 
     public:
-        MouseScrolledEvent(const float xOffset, const float yOffset)
+        MouseScrolledEvent(const f32 xOffset, const f32 yOffset)
             : m_XOffset(xOffset), m_YOffset(yOffset)
         {
         }
 
-        float GetOffsetX() const { return m_XOffset; }
-        float GetOffsetY() const { return m_YOffset; }
+        f32 GetOffsetX() const { return m_XOffset; }
+        f32 GetOffsetY() const { return m_YOffset; }
 
         EVENT_CLASS_TYPE(MouseScrolled)
             EVENT_CLASS_CATEGORY(EventCategory_Mouse | EventCategory_Input)

@@ -17,12 +17,13 @@ project "Turbo-Editor"
 	}
 	includedirs 
 	{
-		"%{wks.location}/Turbo/src",
-		"%{wks.location}/dependencies/spdlog/include",
+		"%{IncludeDir.Turbo}",
+		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
-		"%{wks.location}/dependencies/imgui",
-		"%{wks.location}/dependencies/IconFontCppHeaders",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.IconFontCppHeaders}",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 	links 
 	{

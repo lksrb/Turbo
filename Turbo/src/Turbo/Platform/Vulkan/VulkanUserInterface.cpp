@@ -4,7 +4,6 @@
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Core/Platform.h"
 
-#include "Turbo/Renderer/RendererContext.h"
 #include "Turbo/Renderer/GPUDevice.h"
 
 #include "IconsFontAwesome6.h"
@@ -21,6 +20,7 @@
 #include <imgui_internal.h>
 #include <backends/imgui_impl_win32.h>
 #include <backends/imgui_impl_vulkan.h>
+#include <ImGuizmo.h>
 #pragma warning(pop)
 
 // Copy this line into your .cpp file to forward declare the function.
@@ -353,7 +353,8 @@ namespace Turbo
         ImGui_ImplVulkan_DestroyFontUploadObjects();
 
         // Create secondary command buffers for each frame in flight
-        RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers, TBO_MAX_FRAMESINFLIGHT);
+        m_SecondaryBuffers.resize(frames_in_flight);
+        RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers.data(), frames_in_flight);
     }
 
     void VulkanUserInterface::BeginUI()
@@ -361,6 +362,7 @@ namespace Turbo
         ImGui_ImplWin32_NewFrame();
         ImGui_ImplVulkan_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
     }
 
     void VulkanUserInterface::EndUI()
@@ -457,8 +459,11 @@ namespace Turbo
 
     void VulkanUserInterface::OnEvent(Event& e)
     {
-        ImGuiIO& io = ImGui::GetIO();
-        e.Handled |= e.IsInCategory(EventCategory_Mouse) & io.WantCaptureMouse;
-        e.Handled |= e.IsInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
+        if (m_BlockEvents)
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            e.Handled |= e.IsInCategory(EventCategory_Mouse) & io.WantCaptureMouse;
+            e.Handled |= e.IsInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
+        }
     }
 }

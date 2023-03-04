@@ -55,9 +55,6 @@ namespace Turbo
 
             m_Projection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, m_OrthographicNear, m_OrthographicFar);
         }
-
-        // Flip y 
-        m_Projection[1][1] *= -1;
     }
 
 }
