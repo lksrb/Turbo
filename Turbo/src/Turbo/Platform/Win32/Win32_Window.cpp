@@ -114,12 +114,12 @@ namespace Turbo {
             case WM_LBUTTONDOWN:
             case WM_RBUTTONDOWN:
             {
-                MouseCode button = Mouse::Button0;
+                MouseCode button = -1;
                 i32 mouse_x = static_cast<i32>(GET_X_LPARAM(lParam));
                 i32 mouse_y = static_cast<i32>(GET_Y_LPARAM(lParam));
 
-                if (uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK) { button = Mouse::Button0; }
-                if (uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONDBLCLK) { button = Mouse::Button1; }
+                if (wParam & MK_LBUTTON) { button = Mouse::ButtonLeft; }
+                if (wParam & MK_RBUTTON) { button = Mouse::ButtonRight; }
                 //if (uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONDBLCLK) { button = Mouse::Button2; }
                 //if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
 
@@ -130,17 +130,41 @@ namespace Turbo {
             case WM_LBUTTONUP:
             case WM_RBUTTONUP:
             {
-                MouseCode button = Mouse::Button0;
+                MouseCode button = -1;
                 i32 mouse_x = static_cast<i32>(GET_X_LPARAM(lParam));
                 i32 mouse_y = static_cast<i32>(GET_Y_LPARAM(lParam));
 
-                if (uMsg == WM_LBUTTONUP) { button = Mouse::Button0; }
-                if (uMsg == WM_RBUTTONUP) { button = Mouse::Button1; }
+                if (wParam & MK_LBUTTON) { button = Mouse::ButtonLeft; }
+                if (wParam & MK_RBUTTON) { button = Mouse::ButtonRight; }
 
                 MouseButtonReleasedEvent e(button, mouse_x, mouse_y);
                 m_Callback(e);
                 break;
             }
+            case WM_MOUSEWHEEL:
+            {
+                f32 delta_x = 0.0f, delta_y = 0.0f;
+                f32 common_delta = std::signbit(static_cast<f32>(GET_WHEEL_DELTA_WPARAM(wParam))) ? -1.0f : 1.0f;
+
+                // Vertical
+                if (!(wParam & MK_SHIFT))
+                {
+                    delta_x = 0;
+
+                    delta_y = common_delta;
+                }
+                else // Horizontal
+                {
+                    delta_x = common_delta;
+                    delta_y = 0;
+                }
+
+                MouseScrolledEvent e(delta_x, delta_y);
+                m_Callback(e);
+
+                break;
+            }
+
             // Window events
             case WM_CLOSE:
             {
@@ -195,30 +219,6 @@ namespace Turbo {
 
                 WindowLostFocusEvent e;
                 m_Callback(e);
-                break;
-            }
-            // Mouse events
-            case WM_MOUSEWHEEL:
-            {
-                f32 delta_x = 0.0f, delta_y = 0.0f;
-                f32 common_delta = std::signbit(static_cast<f32>(GET_WHEEL_DELTA_WPARAM(wParam))) ? -1.0f : 1.0f;
-
-                // Vertical
-                if (!(wParam & MK_SHIFT)) 
-                {
-                    delta_x = 0;
-
-                    delta_y = common_delta;
-                }
-                else // Horizontal
-                {
-                    delta_x = common_delta;
-                    delta_y = 0;
-                }
-
-                MouseScrolledEvent e(delta_x, delta_y);
-                m_Callback(e);
-
                 break;
             }
             // Key events

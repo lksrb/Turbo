@@ -2,29 +2,23 @@
 
 #include "Turbo/Core/PrimitiveTypes.h"
 
+#ifdef TBO_PLATFORM_WIN32
+    #include <winuser.h>
+#endif
+
 namespace Turbo
 {
     using MouseCode = u32;
 
     namespace Mouse
     {
+#ifdef TBO_PLATFORM_WIN32
         enum : MouseCode
         {
-            Button0 = 0,
-            Button1,
-            Button2,
-            Button3,
-            Button4,
-            Button5,
-            Button6,
-            Button7,
-
-            ButtonLast = Button7,
-            ButtonLeft = Button0,
-            ButtonRight = Button1,
-            ButtonMiddle = Button2
-
-
+            ButtonLeft = MK_LBUTTON,
+            ButtonRight = MK_RBUTTON,
+            ButtonMiddle = MK_MBUTTON
         };
     }
+#endif
 }

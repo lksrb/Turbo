@@ -29,23 +29,6 @@ namespace Turbo
         glm::quat orientation = GetOrientation();
         m_ViewMatrix = glm::translate(glm::mat4(1.0f), m_Position) * glm::toMat4(orientation);
         m_ViewMatrix = glm::inverse(m_ViewMatrix);
-
-        /*
-                const f32 yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
-
-                // Extra step to handle the problem when the camera direction is the same as the up vector
-                const f32 cosAngle = glm::dot(GetForwardDirection(), GetUpDirection());
-                if (cosAngle * yawSign > 0.99f)
-                    m_PitchDelta = 0.f;
-
-                const glm::vec3 lookAt = m_Position + GetForwardDirection();
-                //m_Direction = glm::normalize(lookAt - m_Position);
-                m_Distance = glm::distance(m_Position, m_FocalPoint);
-                m_ViewMatrix = glm::lookAt(m_Position, lookAt, glm::vec3{ 0.f, yawSign, 0.f });
-
-                m_YawDelta *= 0.6f;
-                m_PitchDelta *= 0.6f;*/
-                //m_PositionDelta *= 0.8f;
     }
 
     std::pair<f32, f32> EditorCamera::PanSpeed() const
