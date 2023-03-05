@@ -57,7 +57,7 @@ namespace Turbo::Ed
             }
         }
 
-        static void DrawVec3Control(const String64& label, glm::vec3* values, float resetValue = 0.0f, float columnWidth = 100.0f)
+        static void DrawVec3Control(const String& label, glm::vec3* values, float resetValue = 0.0f, float columnWidth = 100.0f)
         {
             ImGuiIO& io = ImGui::GetIO();
             auto boldFont = io.Fonts->Fonts[0];
@@ -134,7 +134,7 @@ namespace Turbo::Ed
     {
     }
 
-    void SceneHierarchyPanel::OnUIRender()
+    void SceneHierarchyPanel::OnDrawUI()
     {
         ImGui::Begin("Scene Hierarchy");
 
@@ -180,6 +180,10 @@ namespace Turbo::Ed
         }
 
         ImGui::End();
+    }
+
+    void SceneHierarchyPanel::OnEvent(Event& e)
+    {
     }
 
     void SceneHierarchyPanel::DrawComponents(Entity entity)
@@ -520,7 +524,7 @@ namespace Turbo::Ed
     }
 
     template<typename T>
-    void SceneHierarchyPanel::DisplayAddComponentEntry(const String64& entryName)
+    void SceneHierarchyPanel::DisplayAddComponentEntry(const String& entryName)
     {
         if (m_SelectedEntity.HasComponent<T>() == false)
         {

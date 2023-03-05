@@ -1,11 +1,13 @@
 #include "Editor.h"
 
-#include "Turbo/Benchmark/ScopeTimer.h"
-#include "Turbo/UI/UI.h"
+#include "../Panels/SceneHierarchyPanel.h"
+#include "../Panels/QuickAccessPanel.h"
+
+#include <Turbo/Benchmark/ScopeTimer.h>
+#include <Turbo/UI/UI.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 #include <ImGuizmo.h>
 
 namespace Turbo::Ed
@@ -24,12 +26,16 @@ namespace Turbo::Ed
     void Editor::OnInitialize()
     {
         m_CurrentPath = Platform::GetCurrentPath() / "Assets";
-
         g_AssetPath = m_CurrentPath;
 
-        m_CommandAccessPanel.SetOnInputSendCallback(TBO_BIND_FN(Editor::OnInputSend));
         m_NewProjectPopup.SetCallback(TBO_BIND_FN(Editor::OnCreateProject));
 
+        // Panels
+        m_PanelManager = Ref<PanelManager>::Create();
+        m_PanelManager->AddPanel<SceneHierarchyPanel>();
+        m_PanelManager->AddPanel<QuickAccessPanel>();
+
+        // Render 
         m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_Config.Width, m_Config.Height, true });
 
         m_PlayIcon = Texture2D::Create({ "Resources/Icons/PlayButton.png" });
@@ -37,6 +43,7 @@ namespace Turbo::Ed
 
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_Config.Width) / static_cast<f32>(m_Config.Height), 0.1f, 10000.0f);
 
+        // Opening sandbox project
         OpenProject(g_AssetPath / "SandboxProject\\SandboxProject.tproject");
     }
 
@@ -101,21 +108,18 @@ namespace Turbo::Ed
         // Resize scene
         m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
-        // Start scene
-        m_SceneHierarchyPanel.SetContext(m_EditorScene);
+        // Set context scene
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
 
         UpdateWindowTitle();
 
         return true;
     }
 
-    void Editor::OnInputSend(const String& input)
-    {
-        TBO_INFO(input.CStr());
-    }
-
     void Editor::OnEvent(Event& e)
     {
+        m_PanelManager->OnEvent(e);
+
         if (m_EditorMode == Mode::Edit)
             m_EditorCamera.OnEvent(e);
 
@@ -160,22 +164,6 @@ namespace Turbo::Ed
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
             }
-
-            // Open Access Window 
-            case Key::X:
-            {
-                if (alt)
-                {
-                    m_CommandAccessPanel.Open(!m_CommandAccessPanel.IsOpened());
-                }
-                break;
-            }
-            case Key::Escape:
-            {
-                if (m_CommandAccessPanel.IsOpened())
-                    m_CommandAccessPanel.Open(false);
-                break;
-            }
         }
 
         return true;
@@ -186,7 +174,7 @@ namespace Turbo::Ed
         if (e.GetMouseButton() == Mouse::ButtonLeft)
         {
             if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
-                m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+                m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_HoveredEntity);
         }
         return false;
     }
@@ -239,33 +227,6 @@ namespace Turbo::Ed
         }
         style.WindowMinSize.x = minWinSizeX;
         // --Dockspace
-
-        // Menu
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("New Project..."))
-                {
-                    NewProject();
-                }
-                if (ImGui::MenuItem("Open Project..."))
-                {
-                    OpenProject();
-                }
-                if (ImGui::MenuItem("Save Scene"))
-                {
-                    SaveScene();
-                }
-                if (ImGui::MenuItem("Save Scene As..."))
-                {
-                    SaveSceneAs();
-                }
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
-        }
 
         // Toolbar
         {
@@ -362,9 +323,8 @@ namespace Turbo::Ed
                 }
             }
 
-
             // Gizmos
-            Entity selected_entity = m_SceneHierarchyPanel.GetSelectedEntity();
+            Entity selected_entity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
 
             if (selected_entity && m_GizmoType != -1)
             {
@@ -409,6 +369,36 @@ namespace Turbo::Ed
             ImGui::End();
         }
 
+        // Menu
+        {
+            if (ImGui::BeginMenuBar())
+            {
+                if (ImGui::BeginMenu("File"))
+                {
+                    if (ImGui::MenuItem("New Project..."))
+                    {
+                        NewProject();
+                    }
+                    if (ImGui::MenuItem("Open Project..."))
+                    {
+                        OpenProject();
+                    }
+                    if (ImGui::MenuItem("Save Scene"))
+                    {
+                        SaveScene();
+                    }
+                    if (ImGui::MenuItem("Save Scene As..."))
+                    {
+                        SaveSceneAs();
+                    }
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenuBar();
+            }
+        }
+
+
         ImGui::Begin("Statistics & Renderer2D");
         ImGui::Text("Timestep %.5f ms", Time.DeltaTime.ms());
         ImGui::Text("StartTime %.5f ms", Time.TimeSinceStart.ms());
@@ -426,9 +416,10 @@ namespace Turbo::Ed
             ImGui::End();
         }
 
-        m_CommandAccessPanel.OnUIRender();
         m_NewProjectPopup.OnUIRender();
-        m_SceneHierarchyPanel.OnUIRender();
+
+        // Draw all panels
+        m_PanelManager->OnDrawUI();
 
         // End dockspace
         ImGui::End();
@@ -472,7 +463,8 @@ namespace Turbo::Ed
 
             // Set render scene
             m_EditorScene = m_CurrentProject->GetStartupScene();
-            m_SceneHierarchyPanel.SetContext(m_EditorScene);
+            m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
 
             UpdateWindowTitle();
 
@@ -489,7 +481,7 @@ namespace Turbo::Ed
         if (!m_CurrentProject || !m_EditorScene)
             return;
 
-        String64 scene_name = m_EditorScene->GetName();
+        String scene_name = m_EditorScene->GetName();
         std::string title = fmt::format("TurboEditor | {0} - {1} | Vulkan", m_CurrentProject->GetName().CStr(), scene_name.CStr());
         Window->SetTitle(title.c_str());
     }
@@ -549,16 +541,41 @@ namespace Turbo::Ed
         m_RuntimeScene = Scene::Copy(m_EditorScene);
         m_RuntimeScene->OnRuntimeStart();
 
-        m_SceneHierarchyPanel.SetContext(m_RuntimeScene);
+        // Select the same entity in runtime scene
+        {
+            UUID selected_entity_uuid = 0;
+            m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
+
+            if (m_SelectedEntity)
+                selected_entity_uuid = m_SelectedEntity.GetUUID();
+
+            m_SelectedEntity = m_RuntimeScene->GetEntityByUUID(selected_entity_uuid);
+            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
+        }
+
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_RuntimeScene);
     }
 
     void Editor::OnSceneStop()
     {
         m_EditorMode = Mode::Edit;
 
+
         m_RuntimeScene->OnRuntimeStop();
         m_RuntimeScene = m_EditorScene;
 
-        m_SceneHierarchyPanel.SetContext(m_EditorScene);
+        // Select the same entity in editor scene
+        {
+            UUID selected_entity_uuid = 0;
+            m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
+
+            if (m_SelectedEntity)
+                selected_entity_uuid = m_SelectedEntity.GetUUID();
+
+            m_SelectedEntity = m_EditorScene->GetEntityByUUID(selected_entity_uuid);
+            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
+        }
+
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
     }
 }

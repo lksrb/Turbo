@@ -1,7 +1,4 @@
-Project "SandboxProject"
-
-	DefaultScene "BlankScene"
-
-	Scenes {
-		"Assets/Scenes/BlankScene"
-	}
+Project: SandboxProject
+StartupScene: BlankScene
+Scenes:
+  - Path: Assets\Scenes\BlankScene.tscene

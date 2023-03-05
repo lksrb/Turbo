@@ -46,7 +46,7 @@ namespace Turbo {
         return m_Swapchain;
     }
 
-    const String64& Window::GetTitle() const
+    const String& Window::GetTitle() const
     {
         return m_Config.Title;
     }

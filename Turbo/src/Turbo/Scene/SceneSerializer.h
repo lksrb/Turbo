@@ -11,6 +11,8 @@ namespace Turbo
     {
     public:
         SceneSerializer(Ref<Scene> scene);
+        SceneSerializer(const SceneSerializer&) = delete;
+
         ~SceneSerializer();
 
         bool Deserialize(const Filepath& filepath);

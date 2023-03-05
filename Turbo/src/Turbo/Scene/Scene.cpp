@@ -328,7 +328,21 @@ namespace Turbo
         }
     }
 
-    // Events ------------------------------------------------------------------------------------
+	Entity Scene::GetEntityByUUID(UUID uuid)
+    {
+        auto& view = GetAllEntitiesWith<IDComponent>();
+        for (auto e : view)
+        {
+            auto& id = m_Registry.get<IDComponent>(e).Uuid;
+
+            if (id == uuid)
+                return Entity{ e, this };
+        }
+
+        return Entity{};
+    }
+
+	// Events ------------------------------------------------------------------------------------
 
     template<typename T>
     void Scene::OnComponentAdded(Entity entity, T& component)

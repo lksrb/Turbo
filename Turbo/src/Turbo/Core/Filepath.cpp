@@ -42,7 +42,7 @@ namespace Turbo
         return Filepath::operator==(other) == false;
     }
 
-    Filepath Filepath::operator/(const char* other)
+    Filepath Filepath::operator/(const char* other) const
     {
         TBO_ENGINE_ASSERT((strlen(m_Buffer) + strlen(other)) < Cap());
 
@@ -51,13 +51,12 @@ namespace Turbo
         strcat_s(fp.m_Buffer, "\\");
         strcat_s(fp.m_Buffer, other);
 
-
         fp.m_Size = strlen(fp.m_Buffer);
 
         return fp;
     }
 
-    Filepath& Filepath::operator/=(const char* other)
+    Filepath& Filepath::operator/=(const char* other) 
     {
         TBO_ENGINE_ASSERT((strlen(m_Buffer) + strlen(other) + 1) < Cap());
 
@@ -68,14 +67,19 @@ namespace Turbo
         return *this;
     }
 
-    Filepath& Filepath::operator/=(const String64& other)
-    {
-        return Filepath::operator/=(other.CStr());
-    }
-
-    Filepath Filepath::operator/(const String64& other)
+    Filepath Filepath::operator/(const String& other) const
     {
         return Filepath::operator/(other.CStr());
+    }
+
+    Filepath Filepath::operator/(const Filepath& other) const
+    {
+        return Filepath::operator/(other.CStr());
+    }
+
+    Filepath& Filepath::operator/=(const String& other)
+    {
+        return Filepath::operator/=(other.CStr());
     }
 
     Filepath& Filepath::operator/=(const Filepath& other)
@@ -94,13 +98,13 @@ namespace Turbo
         return *this;
     }
 
-    String64 Filepath::Filename() const
+    String Filepath::Filename() const
     {
         if (Empty())
-            return String64{};
+            return String{};
 
         size_t j = 0;
-        String64 fileName;
+        String fileName;
         char reversed[64]{ 0 };
 
         for (size_t i = m_Size - 1; i > 0; --i)
@@ -134,7 +138,7 @@ namespace Turbo
         return fileName;
     }
 
-    Filepath Filepath::Directory() const
+    Filepath Filepath::RootDirectory() const
     {
         size_t j = 0;
 
@@ -158,14 +162,14 @@ namespace Turbo
         return filePath;
     }
 
-    String32 Filepath::Extension() const
+    String Filepath::Extension() const
     {
         if (Empty())
-            return String32{};
+            return String{};
 
         size_t j = 0;
         char reversed[32] = { 0 };
-        String32 ext;
+        String ext;
 
         for (size_t i = m_Size - 1; i > 0; --i)
         {
@@ -177,7 +181,7 @@ namespace Turbo
             else if (reversed[j] == '\\')
             {
                 // File does not an extension
-                return String32{};
+                return String{};
             }
             ++j;
         }

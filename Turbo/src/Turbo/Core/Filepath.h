@@ -23,23 +23,24 @@ namespace Turbo
         bool operator==(const Filepath& other) const;
         bool operator!=(const Filepath& other) const;
 
-        Filepath operator/(const char* other);
-        Filepath operator/(const String64& other);
+        Filepath operator/(const char* other) const;
+        Filepath operator/(const String& other) const;
+        Filepath operator/(const Filepath& other) const;
         Filepath& operator/=(const char* other);
         Filepath& operator/=(const Filepath& other);
 
-        Filepath& operator/=(const String64& other);
+        Filepath& operator/=(const String& other);
 
         Filepath& Append(const char* str);
 
         // Gets filename WITHOUT EXTENSION from the path
-        String64 Filename() const;
+        String Filename() const;
 
         // Gets root directory
-        Filepath Directory() const;
+        Filepath RootDirectory() const;
 
         // Gets file extension
-        String32 Extension() const;
+        String Extension() const;
     public:
         static void ConvertToBackslash(char* text);
     };

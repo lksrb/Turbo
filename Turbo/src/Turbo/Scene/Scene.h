@@ -23,7 +23,7 @@ namespace Turbo
         struct Config
         {
             // For scene serialization
-            String64 Name;         
+            String Name;         
             Filepath RelativePath; 
         };
 
@@ -46,7 +46,7 @@ namespace Turbo
 
         void SetViewportSize(u32 width, u32 height);
 
-        const String64& GetName() const { return m_Config.Name; }
+        const String& GetName() const { return m_Config.Name; }
 
         template<typename... Components>
         inline auto GetAllEntitiesWith()
@@ -63,6 +63,8 @@ namespace Turbo
                 func(entity);
             });
         }
+
+        Entity GetEntityByUUID(UUID uuid);
 
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
@@ -81,6 +83,7 @@ namespace Turbo
 
         friend class Entity;
         friend class SceneSerializer;
+        friend class Project;
         friend class ProjectSerializer;
     };
 }

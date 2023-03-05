@@ -35,7 +35,7 @@ project "Turbo"
         "%{IncludeDir.glm}",
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.lua}",
+        --"%{IncludeDir.lua}",
         "%{IncludeDir.IconFontCppHeaders}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.stb}",
@@ -47,7 +47,7 @@ project "Turbo"
 
     links {
         "ImGui",
-        "Lua",
+        --"Lua",
         "Shlwapi.lib",
         "box2d",
         "%{Library.Vulkan}",

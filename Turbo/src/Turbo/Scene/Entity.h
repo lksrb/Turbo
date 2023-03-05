@@ -56,7 +56,7 @@ namespace Turbo
         template<typename... Components>
         decltype(auto) GetComponents()
         {
-            TBO_ENGINE_ASSERT(HasComponent<Components...>(), "Entity does not have this component!"); // TODO: Error checking
+            TBO_ENGINE_ASSERT(HasComponent<Components...>(), "Entity does not have this component!");
             return m_Scene->m_Registry.get<Components...>(m_Handle);
         }
 

@@ -16,9 +16,9 @@ namespace Turbo
         VulkanMaterial(const Material::Config& config);
         ~VulkanMaterial();
 
-        void Set(const String32& resourceName, const glm::mat4& matrix) override;
-        void Set(const String32& resourceName, const void* data, size_t size) override;
-        void Set(const String32& resourceName, const Ref<Texture2D>& texture, u32 index) override;
+        void Set(const String& resourceName, const glm::mat4& matrix) override;
+        void Set(const String& resourceName, const void* data, size_t size) override;
+        void Set(const String& resourceName, const Ref<Texture2D>& texture, u32 index) override;
 
         void Update() override;
     private:

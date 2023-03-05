@@ -18,7 +18,7 @@ namespace Turbo {
     public:
         struct Config
         {
-            String64 Title;
+            String Title;
             u32 Width;
             u32 Height;
             bool VSync;
@@ -36,11 +36,11 @@ namespace Turbo {
         virtual void AcquireNewFrame() = 0;
         virtual void SwapFrame() = 0;
 
-        virtual void SetTitle(const String64& title) = 0;
+        virtual void SetTitle(const String& title) = 0;
         bool IsFocused() const;
 
         Ref<SwapChain> GetSwapchain() const;
-        const String64& GetTitle() const;
+        const String& GetTitle() const;
         u32 GetWidth() const;
         u32 GetHeight() const;
         bool IsMinimized() const;

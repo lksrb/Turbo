@@ -84,9 +84,8 @@ namespace Turbo {
 
         ::AdjustWindowRect(&rect, style, false);
 
-        size_t size_in_bytes = m_Config.Title.Cap();
-
-        wchar_t ws[64];
+        constexpr size_t size_in_bytes = String::Cap();
+        wchar_t ws[size_in_bytes];
         mbstowcs_s(NULL, &ws[0], size_in_bytes, m_Config.Title.CStr(), size_in_bytes);
         m_Handle = CreateWindowEx(
             0,
@@ -271,6 +270,18 @@ namespace Turbo {
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
         }
+#if 0
+        void* stack_ptr = _AddressOfReturnAddress();
+        void* base_ptr = nullptr;
+        MEMORY_BASIC_INFORMATION mbi;
+        if (VirtualQuery(&base_ptr, &mbi, sizeof(mbi)) != 0)
+        {
+            base_ptr = mbi.AllocationBase;
+        }
+        size_t current_stack_usage = (char*)stack_ptr - (char*)base_ptr;
+
+        TBO_ENGINE_INFO((current_stack_usage / 1024));
+#endif
     }
 
     void Win32_Window::Show()
@@ -278,13 +289,13 @@ namespace Turbo {
         ::ShowWindow(m_Handle, SW_SHOW);
     }
 
-    void Win32_Window::SetTitle(const String64& title)
+    void Win32_Window::SetTitle(const String& title)
     {
         m_Config.Title = title;
 
-        size_t size_in_bytes = title.Cap();
+        constexpr size_t size_in_bytes = String::Cap();
 
-        wchar_t ws[64];
+        wchar_t ws[size_in_bytes];
         mbstowcs_s(NULL, &ws[0], size_in_bytes , title.CStr(), size_in_bytes);
 
         ::SetWindowText(m_Handle, ws);

@@ -2,9 +2,9 @@
 
 #include <Turbo.h>
 
-#include "../Panels/AccessPanel.h"
 #include "../Panels/NewProjectModal.h"
-#include "../Panels/SceneHierarchyPanel.h"
+
+#include "../Panels/PanelManager.h"
 
 namespace Turbo::Ed
 {
@@ -29,7 +29,7 @@ namespace Turbo::Ed
         void OnDraw() override;
     private: // Events
         void OnViewportResize(u32 width, u32 height);
-        void OnInputSend(const String& input);
+
         bool OnCreateProject(const ProjectInfo& info);
 
         bool OnKeyPressed(KeyPressedEvent& e);
@@ -50,7 +50,7 @@ namespace Turbo::Ed
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 
         i32 m_GizmoType = -1;
-        glm::vec2 m_ViewportBounds[2];
+        glm::vec2 m_ViewportBounds[2] = {};
 
         EditorCamera m_EditorCamera;
 
@@ -64,8 +64,8 @@ namespace Turbo::Ed
 
         Entity m_SelectedEntity, m_HoveredEntity;
 
-        SceneHierarchyPanel m_SceneHierarchyPanel;
+        Ref<PanelManager> m_PanelManager;
+
         NewProjectModal m_NewProjectPopup;
-        AccessPanel m_CommandAccessPanel;
     };
 }

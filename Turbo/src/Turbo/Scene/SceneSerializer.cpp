@@ -82,6 +82,12 @@ namespace YAML
             return true;
         }
     };
+
+    template<size_t Capacity>
+    inline Emitter& operator<<(Emitter& emitter, const Turbo::StringB<char, Capacity>& v)
+    {
+        return emitter.Write(std::string(v.CStr()));
+    }
 }
 
 namespace Turbo
@@ -380,7 +386,7 @@ namespace Turbo
     {
         YAML::Emitter out;
         out << YAML::BeginMap;
-        out << YAML::Key << "Scene" << YAML::Value << "BlankScene";
+        out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         m_Scene->m_Registry.each([&](auto entityID)
         {

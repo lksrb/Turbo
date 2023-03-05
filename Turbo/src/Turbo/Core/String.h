@@ -123,19 +123,21 @@ namespace Turbo
             return *this;
         }
 
-        StringB operator+(const StringB& other) { return StringB::Append(other.CStr()); }
+        StringB operator+(const StringB& other) { return StringB::Append(other); }
+        //StringB operator+(const CharType* other) const { return StringB::Append(other.CStr()); }
+
         CharType& operator[](size_t index) { TBO_ENGINE_ASSERT(index < m_Size/*, "Index out of bounds!"*/); return m_Buffer[index]; }
         bool operator==(const CharType* other) const { return strcmp(m_Buffer, other) == 0; }
         bool operator!=(const CharType* other) const { return !(StringB::operator==(other)); }
-        const CharType* operator()() const { return m_Buffer; }
+        //const CharType* operator()() const { return m_Buffer; }
 
         bool Empty() const { return m_Size == 0; }
         void Clear() { ClearRange(0, m_Size); }
         inline size_t Size() const { return m_Size; }
-        inline constexpr size_t Cap() const noexcept { return Capacity; }
+        inline static constexpr size_t Cap() noexcept { return Capacity; }
         CharType* Data() { return &m_Buffer[0]; }
         const CharType* CStr() const { return m_Buffer; }
-
+        //const CharType* operator()() { return &m_Buffer[0]; }
         template<typename... Args>
         static StringB Format(const StringB& format, Args&&... args)
         {
@@ -178,19 +180,17 @@ namespace Turbo
     };
 
     using String32  = StringB<char, 32>;
-    using String64  = StringB<char, 64>;
-    using String128 = StringB<char, 128>;
     using String    = StringB<char, 256>;
 }
 
 namespace std
 {
     template <>
-    struct hash<Turbo::String32>
+    struct hash<Turbo::String>
     {
-        auto operator()(const Turbo::String32& xyz) const -> size_t
+        auto operator()(const Turbo::String& xyz) const -> size_t
         {
-            return hash<Turbo::String32>{}(xyz.CStr());
+            return hash<Turbo::String>{}(xyz.CStr());
         }
     };
 }  //
