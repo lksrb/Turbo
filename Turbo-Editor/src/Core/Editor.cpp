@@ -2,6 +2,7 @@
 
 #include "../Panels/SceneHierarchyPanel.h"
 #include "../Panels/QuickAccessPanel.h"
+#include "../Panels/ContentBrowserPanel.h"
 
 #include <Turbo/Benchmark/ScopeTimer.h>
 #include <Turbo/UI/UI.h>
@@ -34,6 +35,7 @@ namespace Turbo::Ed
         m_PanelManager = Ref<PanelManager>::Create();
         m_PanelManager->AddPanel<SceneHierarchyPanel>();
         m_PanelManager->AddPanel<QuickAccessPanel>();
+        m_PanelManager->AddPanel<ContentBrowserPanel>();
 
         // Render 
         m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_Config.Width, m_Config.Height, true });
@@ -438,6 +440,9 @@ namespace Turbo::Ed
         if (filepath.Empty())
         {
             project_filepath = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
+
+            if (project_filepath.Empty())
+                return false;
         }
 
         if (m_CurrentProject)
@@ -509,6 +514,11 @@ namespace Turbo::Ed
         SaveSceneAs();
     }
 
+    void Editor::OpenScene(const Filepath& filepath /*= {}*/)
+    {
+        // TODO: Open scene tah are in the project
+    }
+
     void Editor::SaveSceneAs()
     {
         if (!m_CurrentProject)
@@ -523,14 +533,19 @@ namespace Turbo::Ed
             return;
         }
 
-        const Filepath& filepath = Platform::SaveFileDialog("Turbo Scene(*.tscene)\0 * .tscene\0");
+        Filepath& filepath = Platform::SaveFileDialog("Turbo Scene(*.tscene)\0 * .tscene\0");
 
-        if (Project::SerializeScene(m_EditorScene, filepath))
+        if (Project::SerializeScene(m_EditorScene, filepath.Append(".tscene")))
         {
-            TBO_INFO("Successfully serialized {0}!", m_EditorScene->GetName().CStr());
+            TBO_INFO("Successfully serialized \"{0}\"!", m_EditorScene->GetName().CStr());
             // Success
+
+            UpdateWindowTitle();
+
+            return;
         }
 
+        TBO_ERROR("Could not serialize \"{0}\"!", m_EditorScene->GetName().CStr());
         // error
     }
 
@@ -559,7 +574,6 @@ namespace Turbo::Ed
     void Editor::OnSceneStop()
     {
         m_EditorMode = Mode::Edit;
-
 
         m_RuntimeScene->OnRuntimeStop();
         m_RuntimeScene = m_EditorScene;

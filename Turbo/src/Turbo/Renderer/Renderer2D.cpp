@@ -161,7 +161,7 @@ namespace Turbo
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
         if (m_RenderInfo.QuadIndexCount >= Renderer2D::MaxIndices)
-            TBO_ENGINE_ASSERT(false); // TODO(Urby): Flush and reset
+            TBO_ENGINE_ASSERT(false);
 
         u32 texture_index = 0; // White Texture
         constexpr u32 quad_vertex_count = 4;

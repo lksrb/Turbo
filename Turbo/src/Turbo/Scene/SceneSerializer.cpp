@@ -384,6 +384,8 @@ namespace Turbo
 
     bool SceneSerializer::Serialize(const Filepath& filepath)
     {
+        m_Scene->SetName(filepath.Filename());
+
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();

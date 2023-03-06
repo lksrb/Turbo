@@ -47,6 +47,7 @@ namespace Turbo
         void SetViewportSize(u32 width, u32 height);
 
         const String& GetName() const { return m_Config.Name; }
+        void SetName(const String& name) { m_Config.Name = name; }
 
         template<typename... Components>
         inline auto GetAllEntitiesWith()

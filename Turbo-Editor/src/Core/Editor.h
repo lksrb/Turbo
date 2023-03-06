@@ -40,10 +40,11 @@ namespace Turbo::Ed
     private: // Project
         bool OpenProject(const Filepath& filepath = {});
         void NewProject();
-
         void SaveProject();
+    private: // Scene
         void SaveScene();
         void SaveSceneAs();
+        void OpenScene(const Filepath& filepath = {});
 
         void UpdateWindowTitle();
     private:

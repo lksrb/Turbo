@@ -279,7 +279,7 @@ namespace Turbo
         io.Fonts->AddFontDefault();
 
         // Merge in icons from Font Awesome
-        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 }; // TODO: Make this editor only
+        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
         ImFontConfig icons_config;
         icons_config.MergeMode = true;
         icons_config.PixelSnapH = true;
