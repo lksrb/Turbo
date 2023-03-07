@@ -24,7 +24,7 @@ namespace Turbo
         {
             // For scene serialization
             String Name;         
-            Filepath RelativePath; 
+            Filepath FullPath; 
         };
 
         Scene(const Scene::Config& config);
@@ -48,6 +48,8 @@ namespace Turbo
 
         const String& GetName() const { return m_Config.Name; }
         void SetName(const String& name) { m_Config.Name = name; }
+        
+        const Filepath& GetFullPath() const { return m_Config.FullPath; }
 
         template<typename... Components>
         inline auto GetAllEntitiesWith()

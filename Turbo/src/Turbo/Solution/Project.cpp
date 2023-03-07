@@ -21,7 +21,7 @@ namespace Turbo
     Ref<Project> Project::CreateDefault(const Filepath& root_dir, const String& project_name)
     {
         Scene::Config scene_config = {};
-        scene_config.RelativePath = "Assets\\Scenes\\BlankScene.tscene"; // TOOD: More control over where the scene will be stored
+        scene_config.FullPath = root_dir / "Assets\\Scenes\\BlankScene.tscene"; // TOOD: More control over where the scene will be stored
         scene_config.Name = "BlankScene";
         Ref<Scene> default_scene = Ref<Scene>::Create(scene_config);
         {
@@ -35,7 +35,7 @@ namespace Turbo
         project_config.Name = project_name;
         project_config.RootDirectory = root_dir;
         project_config.StartupScene = project_config.ActiveScene  = default_scene;
-        project_config.ScenesRelPaths.push_back(scene_config.RelativePath);
+        project_config.ScenesRelPaths.push_back(scene_config.FullPath);
 
         Ref<Project> project = Ref<Project>::Create(project_config);
 
@@ -45,7 +45,7 @@ namespace Turbo
         
         // Serialize active scene
         SceneSerializer serializer(default_scene);
-        TBO_ENGINE_ASSERT(serializer.Serialize(root_dir / scene_config.RelativePath));
+        TBO_ENGINE_ASSERT(serializer.Serialize(scene_config.FullPath));
 
         return project;
     }

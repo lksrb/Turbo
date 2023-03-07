@@ -80,12 +80,12 @@ namespace Turbo
                 {
                     Scene::Config config;
                     config.Name = startup_scene_name;
-                    config.RelativePath = p.string();
+                    config.FullPath = m_Project->m_Config.RootDirectory / p.string().c_str();
 
                     // Deserialize startup scene
                     Ref<Scene> startup_scene = Ref<Scene>::Create(config);
                     SceneSerializer serializer(startup_scene);
-                    TBO_ENGINE_ASSERT(serializer.Deserialize(m_Project->m_Config.RootDirectory / config.RelativePath));
+                    TBO_ENGINE_ASSERT(serializer.Deserialize(config.FullPath));
 
                     m_Project->m_Config.ActiveScene = m_Project->m_Config.StartupScene = startup_scene;
                     return true;

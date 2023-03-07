@@ -385,6 +385,10 @@ namespace Turbo::Ed
                     {
                         OpenProject();
                     }
+                    if (ImGui::MenuItem("Save Project"))
+                    {
+                        SaveProject();
+                    }
                     if (ImGui::MenuItem("Save Scene"))
                     {
                         SaveScene();
@@ -471,6 +475,8 @@ namespace Turbo::Ed
             m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
             m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
 
+            m_EditorScenePath = m_EditorScene->GetFullPath();
+
             UpdateWindowTitle();
 
             return true;
@@ -505,18 +511,26 @@ namespace Turbo::Ed
 
     void Editor::SaveProject()
     {
-        // TODO: Saving already opened project
+        SaveScene();
+        // TODO: Save project's configuration
     }
 
 
     void Editor::SaveScene()
     {
-        SaveSceneAs();
+        if (m_EditorScenePath.Empty())
+        {
+            SaveSceneAs();
+            return;
+        }
+
+        TBO_ASSERT(Project::SerializeScene(m_EditorScene, m_EditorScene->GetFullPath()), "Could not serialize \"{0}\"!");
+        TBO_INFO("Successfully serialized \"{0}\"!", m_EditorScene->GetName().CStr());
     }
 
     void Editor::OpenScene(const Filepath& filepath /*= {}*/)
     {
-        // TODO: Open scene tah are in the project
+        // TODO: Open scene that are in the project
     }
 
     void Editor::SaveSceneAs()
@@ -546,7 +560,6 @@ namespace Turbo::Ed
         }
 
         TBO_ERROR("Could not serialize \"{0}\"!", m_EditorScene->GetName().CStr());
-        // error
     }
 
     void Editor::OnScenePlay()

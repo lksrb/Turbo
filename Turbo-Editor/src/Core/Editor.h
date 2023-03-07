@@ -60,6 +60,8 @@ namespace Turbo::Ed
         Ref<SceneRenderer> m_SceneRenderer;
         Mode m_EditorMode = Mode::Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene;
+        Filepath m_EditorScenePath;
+
         Ref<Project> m_CurrentProject;
         Filepath m_CurrentPath;
 
