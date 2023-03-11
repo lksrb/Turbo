@@ -19,6 +19,6 @@ namespace Turbo
     protected:
         UserInterface();
 
-        bool m_BlockEvents;
+        bool m_BlockEvents = true;
     };
 }
