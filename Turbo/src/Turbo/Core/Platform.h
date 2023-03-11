@@ -2,37 +2,21 @@
 
 #include "Turbo/Core/PrimitiveTypes.h"
 
-#include "Turbo/Core/Filepath.h"
-
 namespace Turbo
 {
-    namespace Platform
+    class Platform
     {
-        enum class Result : u32
-        {
-            Success = 0,
-            PathNotFound,
-            AlreadyExists,
-            Error
-        };
+    public:
+        static void Initialize();
+        static void Shutdown();
 
-        void Initialize();
-        void Shutdown();
+        static f32 GetTime();
 
-        Result CreateDirectory(const Filepath& path);
-        bool IsDirectoryEmpty(const Filepath& path);
+        // Dialogs
+        static std::filesystem::path OpenFileDialog(const char* title = "", const char* filter = "");
+        static std::filesystem::path OpenBrowseFolderDialog(const char* title = "", const char* savedPath = "");
+        static std::filesystem::path SaveFileDialog(const char* filter = "", const char* suffix = "");
 
-        bool PathExists(const Filepath& path);
-
-        Result CreateFile(const Filepath& rootPath, const char* filename, const char* extension);
-
-        Filepath GetCurrentPath();
-        void SetCurrentPath(const Filepath& path);
-
-        Filepath OpenFileDialog(const char* title = "", const char* filter = "");
-        Filepath OpenBrowseFolderDialog(const char* title = "", const char* savedPath = "");
-        Filepath SaveFileDialog(const char* filter = "", const char* suffix = "");
-        f32 GetTime();
     };
 
 }

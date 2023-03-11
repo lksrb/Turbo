@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Turbo/Core/Common.h>
-#include <Turbo/Core/String.h>
 
 #include "CommandTextFilter.h"
 #include "Panel.h"
@@ -26,7 +25,7 @@ namespace Turbo::Ed
     private:
         bool m_Open = false;
         CommandTextFilter m_TextFilter;// TODO: Text Filteting
-        String m_Input;
+        std::string m_Input;
         char m_TextBuffer[64] = {};
     };
 }

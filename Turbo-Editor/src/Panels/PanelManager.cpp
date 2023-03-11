@@ -12,7 +12,7 @@ namespace Turbo::Ed
 
     void PanelManager::OnDrawUI()
     {
-        for (auto& [name, panel] : m_Panels)
+        for (auto& [_, panel] : m_Panels)
         {
             panel->OnDrawUI();
         }
@@ -20,7 +20,7 @@ namespace Turbo::Ed
 
     void PanelManager::OnEvent(Event& e)
     {
-        for (auto& [name, panel] : m_Panels)
+        for (auto& [_, panel] : m_Panels)
         {
             panel->OnEvent(e);
         }

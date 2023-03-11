@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Turbo/Core/Common.h"
-#include "Turbo/Core/Filepath.h"
 
 #include "Turbo/Scene/Scene.h"
 
@@ -15,8 +14,8 @@ namespace Turbo
 
         ~SceneSerializer();
 
-        bool Deserialize(const Filepath& filepath);
-        bool Serialize(const Filepath& filepath);
+        bool Deserialize(const std::string& filepath);
+        bool Serialize(const std::string& filepath);
     private:
         Ref<Scene> m_Scene;
     };

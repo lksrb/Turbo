@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Turbo/Core/Common.h"
-#include "Turbo/Core/Filepath.h"
 
 #include "Image2D.h"
 
@@ -14,7 +13,7 @@ namespace Turbo
     public:
         struct Config
         {
-            Filepath FilePath;
+            std::string FilePath;
         };
 
         static Ref<Texture2D> Create(const Texture2D::Config& config);
@@ -24,7 +23,7 @@ namespace Turbo
         u32 GetHeight() const { return m_Height; }
         bool IsLoaded() const { return m_IsLoaded; }
 
-        Filepath GetFilepath() const { return m_Config.FilePath; }
+        std::string GetFilepath() const { return m_Config.FilePath; }
 
         virtual Ref<Image2D> GetImage() const = 0;
         virtual u64 GetHash() const = 0;

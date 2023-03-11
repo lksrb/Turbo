@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Turbo/Core/PrimitiveTypes.h"
-#include "Turbo/Core/String.h"
 
 #include "Turbo/Event/Event.h"
 
@@ -18,7 +17,7 @@ namespace Turbo {
     public:
         struct Config
         {
-            String Title;
+            std::string Title;
             u32 Width;
             u32 Height;
             bool VSync;
@@ -36,11 +35,11 @@ namespace Turbo {
         virtual void AcquireNewFrame() = 0;
         virtual void SwapFrame() = 0;
 
-        virtual void SetTitle(const String& title) = 0;
+        virtual void SetTitle(const std::string& title) = 0;
         bool IsFocused() const;
 
         Ref<SwapChain> GetSwapchain() const;
-        const String& GetTitle() const;
+        std::string_view GetTitle() const;
         u32 GetWidth() const;
         u32 GetHeight() const;
         bool IsMinimized() const;

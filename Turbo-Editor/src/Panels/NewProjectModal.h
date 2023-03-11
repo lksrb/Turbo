@@ -1,19 +1,17 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
-#include "Turbo/Core/Filepath.h"
-
+#include <filesystem>
 #include <functional>
 
 namespace Turbo::Ed
 {
     struct ProjectInfo
     {
-        Filepath RootDirectory;
-        String Name;
+        std::filesystem::path RootDirectory;
+        std::string Name;
     };
 
-    using NewProjectCallback = std::function<bool(const ProjectInfo&)>;
+    using NewProjectCallback = std::function<void(const ProjectInfo&)>;
 
     // Modal window
     class NewProjectModal

@@ -2,7 +2,6 @@
 
 #include "Turbo/Core/Common.h"
 #include "Turbo/Core/Time.h"
-#include "Turbo/Core/Filepath.h"
 
 #include "Turbo/Scene/Components.h"
 
@@ -23,8 +22,8 @@ namespace Turbo
         struct Config
         {
             // For scene serialization
-            String Name;         
-            Filepath FullPath; 
+            std::string Name;
+            std::filesystem::path FullPath;
         };
 
         Scene(const Scene::Config& config);
@@ -40,16 +39,16 @@ namespace Turbo
 
         static Ref<Scene> Copy(Ref<Scene> other);
 
-        Entity CreateEntity(const String& tag = "");
-        Entity CreateEntityWithUUID(UUID uuid, const String& tag = "");
+        Entity CreateEntity(const std::string& tag = "");
+        Entity CreateEntityWithUUID(UUID uuid, const  std::string& tag = "");
         void DestroyEntity(Entity entity);
 
         void SetViewportSize(u32 width, u32 height);
 
-        const String& GetName() const { return m_Config.Name; }
-        void SetName(const String& name) { m_Config.Name = name; }
-        
-        const Filepath& GetFullPath() const { return m_Config.FullPath; }
+        const std::string& GetName() const { return m_Config.Name; }
+        void SetName(const std::string& name) { m_Config.Name = name; }
+
+        const std::filesystem::path& GetFullPath() const { return m_Config.FullPath; }
 
         template<typename... Components>
         inline auto GetAllEntitiesWith()

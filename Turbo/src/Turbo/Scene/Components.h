@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Turbo/Core/PrimitiveTypes.h"
-#include "Turbo/Core/String.h"
 #include "Turbo/Core/UUID.h"
 
 #include "Turbo/Renderer/Texture2D.h"
@@ -19,10 +18,10 @@ namespace Turbo
 
     struct TagComponent
     {
-        String Tag;
+        std::string Tag;
 
         TagComponent() = default;
-        TagComponent(const String& tagName) : Tag(tagName) {}
+        TagComponent(const std::string& tag) : Tag(tag) {}
     };
 
     struct RelationshipComponent

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Turbo/Core/Filepath.h>
+#include <Turbo/Core/Common.h>
 
 namespace Turbo 
 {
@@ -12,9 +12,9 @@ namespace Turbo
         ProjectSerializer(Ref<Project> project);
         ~ProjectSerializer();
 
-        bool Deserialize(const Filepath& filepath);
+        bool Deserialize(const std::string& filepath);
 
-        bool Serialize(const Filepath& filepath);
+        bool Serialize(const std::string& filepath);
     private:
         Ref<Project> m_Project;
     };

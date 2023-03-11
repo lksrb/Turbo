@@ -25,19 +25,6 @@ namespace Turbo
 
             return 0;
         }
-
-        Platform::Result CheckError()
-        {
-            DWORD error = ::GetLastError();
-            switch (error)
-            {
-                case S_OK: return Platform::Result::Success;
-                case ERROR_ALREADY_EXISTS: return Platform::Result::AlreadyExists;
-                case ERROR_PATH_NOT_FOUND: return Platform::Result::PathNotFound;
-            }
-
-            return Platform::Result::Error;
-        }
     }
     struct Win32_Platform
     {
@@ -68,102 +55,63 @@ namespace Turbo
         uint64_t timerValue;
         ::QueryPerformanceCounter((LARGE_INTEGER*)&timerValue);
 
-        return (f32)(timerValue - I->Timer.Offset) / (I->Timer.Frequency);
+        return (static_cast<f32>(timerValue - I->Timer.Offset) / (I->Timer.Frequency));
     }
 
-    Platform::Result Platform::CreateFile(const Filepath& root_path, const char* filename, const char* extension)
+    std::filesystem::path Platform::OpenFileDialog(const char* title, const char* filter)
     {
-        Filepath filepath = root_path;
-        filepath /= filename;
+        // Title conversion
+        size_t title_size = strlen(title) + 1;
+        WCHAR wtitle[MAX_PATH] = {};
+        mbstowcs_s(NULL, &wtitle[0], title_size, title, title_size - 1);
 
-        filepath.Append(extension);
+        // Filter conversion
+        size_t filter_size = strlen(filter) + 1;
+        WCHAR wfilter[MAX_PATH] = {};
+        mbstowcs_s(NULL, &wfilter[0], filter_size, filter, filter_size);
 
-        ::CreateFileA(filepath.CStr(),
-            GENERIC_READ | GENERIC_WRITE,
-            NULL,
-            NULL,
-            CREATE_NEW,
-            FILE_ATTRIBUTE_NORMAL,
-            NULL);
-
-        if (::GetLastError() == ERROR_FILE_EXISTS)
-        {
-            ::CreateFileA(filepath.CStr(),
-            GENERIC_READ | GENERIC_WRITE,
-            NULL,
-            NULL,
-            OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
-            NULL);
-        }
-
-        return CheckPLATFORMError;
-    }
-
-    Platform::Result Platform::CreateDirectory(const Filepath& path)
-    {
-        ::CreateDirectoryA(path.CStr(), NULL);
-        return CheckPLATFORMError;
-    }
-
-    bool Platform::IsDirectoryEmpty(const Filepath& path)
-    {
-        return ::PathIsDirectoryEmptyA(path.CStr());
-    }
-
-    bool Platform::PathExists(const Filepath& path)
-    {
-        return ::PathFileExistsA(path.CStr());
-    }
-
-
-    Filepath Platform::GetCurrentPath()
-    {
-        CHAR szFile[MAX_PATH] = { 0 };
-        ::GetCurrentDirectoryA(sizeof(szFile), szFile);
-
-        return szFile;
-    }
-
-    Filepath Platform::OpenFileDialog(const char* title, const char* filter)
-    {
-        OPENFILENAMEA ofn = {};
-        CHAR szFile[MAX_PATH] = { 0 };
+        OPENFILENAME ofn = {};
+        WCHAR szFile[MAX_PATH] = { 0 };
         ofn.lStructSize = sizeof(OPENFILENAME);
         ofn.hwndOwner = dynamic_cast<Win32_Window*>(Engine::Get().GetViewportWindow())->GetHandle();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = sizeof(szFile);
-        ofn.lpstrFilter = filter;
+        ofn.lpstrFilter = wfilter;
         ofn.nFilterIndex = 1;
-        ofn.lpstrTitle = title;
+        ofn.lpstrTitle = wtitle;
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_DONTADDTORECENT | OFN_NOCHANGEDIR;
-        if (::GetOpenFileNameA(&ofn) == TRUE)
+        if (::GetOpenFileName(&ofn) == TRUE)
         {
             return ofn.lpstrFile;
         }
 
-        TBO_ENGINE_WARN("Could not open the file!");
+        TBO_ENGINE_WARN("[Win32_Platform::OpenFileDialog] Cancelled!");
         return {};
     }
 
-    Filepath Platform::OpenBrowseFolderDialog(const char* title, const char* savedPath)
+    std::filesystem::path Platform::OpenBrowseFolderDialog(const char* title, const char* path)
     {
-        CHAR path[MAX_PATH];
+        // Title conversion
+        size_t title_size = strlen(title) + 1;
+        WCHAR wtitle[MAX_PATH] = {};
+        mbstowcs_s(NULL, &wtitle[0], title_size, title, title_size - 1);
 
-        BROWSEINFOA bi = { 0 };
-        bi.lpszTitle = title;
+        WCHAR selected_path[MAX_PATH];
+
+        BROWSEINFO bi = { 0 };
+        bi.lpszTitle = wtitle;
         bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_STATUSTEXT;
         bi.lpfn = BrowseCallbackProc;
-        bi.lParam = reinterpret_cast<LPARAM>(savedPath);
+        bi.lParam = reinterpret_cast<LPARAM>(path);
 
-        LPITEMIDLIST pidl = ::SHBrowseForFolderA(&bi);
+        LPITEMIDLIST pidl = ::SHBrowseForFolder(&bi);
 
         if (pidl != 0)
         {
-            //get the name of the folder and put it in path
-            ::SHGetPathFromIDListA(pidl, path);
+            // Get the name of the folder and put it in path
+            ::SHGetPathFromIDList(pidl, selected_path);
 
-            //free memory used
+            // Free memory used
             IMalloc* imalloc = 0;
             if (SUCCEEDED(SHGetMalloc(&imalloc)))
             {
@@ -171,39 +119,47 @@ namespace Turbo
                 imalloc->Release();
             }
 
-            return path;
+            return selected_path;
         }
+
+        TBO_ENGINE_WARN("[Win32_Platform::OpenBrowseFolderDialog] Cancelled!");
 
         return {};
     }
 
-    void Platform::SetCurrentPath(const Filepath& path)
+    std::filesystem::path Platform::SaveFileDialog(const char* filter, const char* suffix)
     {
-        TBO_ENGINE_ASSERT(!path.Empty());
-        ::SetCurrentDirectoryA(path.CStr());
-    }
+        // Filter conversion
+        size_t filter_size = strlen(filter) + 1;
+        WCHAR wfilter[MAX_PATH] = {};
+        mbstowcs_s(NULL, &wfilter[0], filter_size, filter, filter_size);
 
-    Filepath Platform::SaveFileDialog(const char* filter, const char* suffix)
-    {
-        std::string filepath{};
+        // Suffix conversion
+        size_t suffix_size = strlen(suffix) + 1;
+        WCHAR wsuffix[MAX_PATH] = {};
+        mbstowcs_s(NULL, &wsuffix[0], suffix_size, suffix, suffix_size - 1);
 
-        OPENFILENAMEA ofn;
-        CHAR szFile[260] = { 0 };
+        std::filesystem::path selected_path;
+
+        // Opening save dialog
+        OPENFILENAME ofn;
+        WCHAR szFile[MAX_PATH] = { 0 };
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
         ofn.lStructSize = sizeof(OPENFILENAME);
         ofn.hwndOwner = dynamic_cast<Win32_Window*>(Engine::Get().GetViewportWindow())->GetHandle();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = sizeof(szFile);
-        ofn.lpstrFilter = filter;
+        ofn.lpstrFilter = wfilter;
         ofn.nFilterIndex = 1;
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-        if (::GetSaveFileNameA(&ofn) == TRUE)
+        if (::GetSaveFileName(&ofn) == TRUE)
         {
-            filepath = ofn.lpstrFile;
-            filepath += suffix;
-            return filepath;
+            selected_path = ofn.lpstrFile;
+            selected_path.concat(suffix);
+            return selected_path;
         }
-        TBO_ENGINE_WARN("Could not save the file!");
-        return filepath;
+
+        TBO_ENGINE_WARN("[Win32_Platform::SaveFileDialog] Cancelled!");
+        return selected_path;
     }
 }

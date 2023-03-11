@@ -14,7 +14,7 @@ namespace Turbo
 
         void ProcessEvents() override;
         void Show() override;
-        void SetTitle(const String& title) override;
+        void SetTitle(const std::string& title) override;
 
         HINSTANCE GetInstance() const { return m_Instance; }
         HWND GetHandle() const { return m_Handle; }

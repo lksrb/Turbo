@@ -6,7 +6,7 @@
 
 namespace Turbo::Ed
 {
-    extern Filepath g_AssetPath;
+    extern std::filesystem::path  g_AssetPath;
 
     ContentBrowserPanel::ContentBrowserPanel() 
         : m_CurrentDirectory(g_AssetPath)
@@ -27,13 +27,13 @@ namespace Turbo::Ed
         {
             if (ImGui::Button("<-"))
             {
-                m_CurrentDirectory = std::filesystem::path(m_CurrentDirectory.CStr()).parent_path().string();
+                m_CurrentDirectory = std::filesystem::path(m_CurrentDirectory.c_str()).parent_path().string();
             }
         }
 
         static f32 padding = 16.0f;
-        static f32 thumbnailSize = 128;
-        f32 cellSize = thumbnailSize + padding;
+        static f32 thumbnail_size = 128;
+        f32 cellSize = thumbnail_size + padding;
 
         f32 panelWidth = ImGui::GetContentRegionAvail().x;
         i32 columnCount = (i32)(panelWidth / cellSize);
@@ -42,21 +42,21 @@ namespace Turbo::Ed
 
         ImGui::Columns(columnCount, 0, false);
 
-        for (auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory.CStr()))
+        for (auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory.c_str()))
         {
             const auto& path = directoryEntry.path();
 
-            const auto& relativePath = std::filesystem::relative(path, g_AssetPath.CStr());
+            const auto& relativePath = std::filesystem::relative(path, g_AssetPath.c_str());
             const std::string& filenameString = relativePath.filename().string();
 
             ImGui::PushID(filenameString.c_str());
             Ref<Texture2D> icon = directoryEntry.is_directory() ? m_DirectoryIcon : m_FileIcon;
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-            UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, { 0,1 }, { 1,0 });
+            UI::ImageButton(icon, { thumbnail_size, thumbnail_size }, { 0,1 }, { 1,0 });
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
-                const wchar_t* itemPath = relativePath.c_str();
+                const wchar_t* itemPath = path.c_str();
                 ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Always);
                 ImGui::EndDragDropSource();
             }
@@ -67,20 +67,6 @@ namespace Turbo::Ed
             {
                 if (directoryEntry.is_directory())
                     m_CurrentDirectory /= path.filename().string().c_str();
-                else
-                {
-                   /* // Open scripts
-                    if (path.extension() == ".lua")
-                    {
-                        // Open Visual Studio Code
-
-                        std::filesystem::path pathToCode = m_CurrentDirectory / path.filename();
-
-                        // Try to reuse window -> Open folder -> Reuse window and open file
-                        std::string cmd = "code -a " + m_CurrentDirectory.string() + "&& code -r " + pathToCode.string();
-                        SYSTEM::ExecuteCommand(cmd.c_str());
-                    }*/
-                }
             }
             ImGui::TextWrapped(filenameString.c_str());
 
@@ -90,7 +76,7 @@ namespace Turbo::Ed
         }
 
         ImGui::Columns(1);
-        ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
+        ImGui::SliderFloat("Thumbnail Size", &thumbnail_size, 16, 512);
         ImGui::SliderFloat("Thumbnail Padding", &padding, 0, 32);
 
         ImGui::End();

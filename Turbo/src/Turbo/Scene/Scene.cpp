@@ -217,19 +217,19 @@ namespace Turbo
         return new_scene;
     }
 
-    Entity Scene::CreateEntity(const String& tag)
+    Entity Scene::CreateEntity(const std::string& tag)
     {
         return CreateEntityWithUUID(UUID(), tag);
     }
 
-    Entity Scene::CreateEntityWithUUID(UUID uuid, const String& tag)
+    Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& tag)
     {
         Entity entity = { m_Registry.create(), this };
         entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
 
         auto& tagComponent = entity.AddComponent<TagComponent>();
-        tagComponent.Tag = tag.Empty() ? "Entity" : tag;
+        tagComponent.Tag = tag.empty() ? "Entity" : tag;
 
         return entity;
     }

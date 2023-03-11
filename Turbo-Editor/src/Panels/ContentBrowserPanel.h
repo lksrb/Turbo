@@ -2,7 +2,6 @@
 
 #include "Panel.h"
 
-#include <Turbo/Core/Filepath.h>
 #include <Turbo//Renderer/Texture2D.h>
 
 namespace Turbo::Ed
@@ -18,6 +17,6 @@ namespace Turbo::Ed
     private:
         Ref<Texture2D> m_DirectoryIcon, m_FileIcon;
 
-        Filepath m_CurrentDirectory;
+        std::filesystem::path m_CurrentDirectory;
     };
 }

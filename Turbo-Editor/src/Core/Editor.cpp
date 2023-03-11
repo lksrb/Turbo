@@ -4,6 +4,7 @@
 #include "../Panels/QuickAccessPanel.h"
 #include "../Panels/ContentBrowserPanel.h"
 
+#include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Benchmark/ScopeTimer.h>
 #include <Turbo/UI/UI.h>
 
@@ -11,9 +12,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ImGuizmo.h>
 
+#include <filesystem>
+
 namespace Turbo::Ed
 {
-    extern Filepath g_AssetPath = {};
+    extern std::filesystem::path g_AssetPath = {};
 
     Editor::Editor(const Application::Config& config)
         : Application(config)
@@ -26,10 +29,29 @@ namespace Turbo::Ed
 
     void Editor::OnInitialize()
     {
-        m_CurrentPath = Platform::GetCurrentPath() / "Assets";
-        g_AssetPath = m_CurrentPath;
+        m_CurrentPath = std::filesystem::current_path();
 
-        m_NewProjectPopup.SetCallback(TBO_BIND_FN(Editor::OnCreateProject));
+        g_AssetPath = m_CurrentPath / "Assets";
+
+        // TODO: Think about panel callbacks
+        m_NewProjectPopup.SetCallback([this](const ProjectInfo& info) 
+        {
+            // Unload active project, create new project, set it as new active project
+            Project::Create(info.RootDirectory, info.Name);
+
+            auto& active = Project::GetActive();
+
+            // Set render scene
+            m_EditorScene = active->GetStartupScene();
+
+            // Resize scene
+            m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+
+            // Set context scene
+            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+
+            UpdateWindowTitle();
+        });
 
         // Panels
         m_PanelManager = Ref<PanelManager>::Create();
@@ -45,7 +67,7 @@ namespace Turbo::Ed
 
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_Config.Width) / static_cast<f32>(m_Config.Height), 0.1f, 10000.0f);
 
-        // Opening sandbox project
+        // Open sandbox project
         OpenProject(g_AssetPath / "SandboxProject\\SandboxProject.tproject");
     }
 
@@ -93,29 +115,6 @@ namespace Turbo::Ed
                 break;
             }
         }
-    }
-
-    // --- Callbacks from imgui windows ---
-    bool Editor::OnCreateProject(const ProjectInfo& info)
-    {
-        // Unload project
-        m_CurrentProject.Reset();
-
-        // Create new default project
-        m_CurrentProject = Project::CreateDefault(info.RootDirectory, info.Name);
-
-        // Set render scene
-        m_EditorScene = m_CurrentProject->GetStartupScene();
-
-        // Resize scene
-        m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-
-        // Set context scene
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
-
-        UpdateWindowTitle();
-
-        return true;
     }
 
     void Editor::OnEvent(Event& e)
@@ -289,6 +288,17 @@ namespace Turbo::Ed
                 UI::Image(m_SceneRenderer->GetFinalImage(), { viewport_panel_size.x,viewport_panel_size.y }, { 0, 1 }, { 1, 0 });
             }
 
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    const wchar_t* path = (const wchar_t*)payload->Data;
+                    OpenScene(path);
+                }
+
+                ImGui::EndDragDropTarget();
+            }
+
             // Right-click on viewport to access the magic menu
             if (!m_EditorCamera.IsControlling())
             {
@@ -436,65 +446,51 @@ namespace Turbo::Ed
         m_NewProjectPopup.Open();
     }
 
-    bool Editor::OpenProject(const Filepath& filepath)
+    void Editor::OpenProject(const std::filesystem::path& filepath)
     {
-        Filepath project_filepath = filepath;
+        std::filesystem::path project_path = filepath;
 
         // Opens platform specific 
-        if (filepath.Empty())
+        if (filepath.empty())
         {
-            project_filepath = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
+            project_path = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
 
-            if (project_filepath.Empty())
-                return false;
+            if (project_path.empty())
+                return;
         }
 
-        if (m_CurrentProject)
+        if (Project::Open(project_path))
         {
-            Filepath config_file = m_CurrentProject->GetRootDirectory();
-            config_file /= m_CurrentProject->GetName();
-            config_file.Append(".tproject");
-
-            if (config_file == project_filepath)
-            {
-                TBO_WARN("Project is already loaded!");
-
-                return false;
-            }
-
-            // Unload project
-            m_CurrentProject.Reset();
-        }
-
-        if (project_filepath.Extension() == ".tproject")
-        {
-            m_CurrentProject = Project::Deserialize(project_filepath);
+            TBO_ENGINE_INFO("Project loaded successfully!");
 
             // Set render scene
-            m_EditorScene = m_CurrentProject->GetStartupScene();
+            m_EditorScene = Project::GetActive()->GetStartupScene();
             m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
             m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+            
+            // Reset selected entity
+            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity();
 
             m_EditorScenePath = m_EditorScene->GetFullPath();
 
             UpdateWindowTitle();
 
-            return true;
+            return;
         }
 
-        TBO_ERROR("Could not open project! (\"{0}\")", project_filepath.CStr());
-
-        return false;
+        TBO_ERROR("Could not open project! (\"{0}\")", project_path);
     }
 
     void Editor::UpdateWindowTitle()
     {
-        if (!m_CurrentProject || !m_EditorScene)
+        auto& active = Project::GetActive();
+
+        if (!active || !m_EditorScene)
             return;
 
-        String scene_name = m_EditorScene->GetName();
-        std::string title = fmt::format("TurboEditor | {0} - {1} | Vulkan", m_CurrentProject->GetName().CStr(), scene_name.CStr());
-        Window->SetTitle(title.c_str());
+        std::string scene_name = m_EditorScene->GetName();
+        std::string title = fmt::format("TurboEditor | {0} - {1} | Vulkan", active->GetName(), scene_name);
+        Window->SetTitle(title.data());
     }
 
     void Editor::OnViewportResize(u32 width, u32 height)
@@ -518,24 +514,52 @@ namespace Turbo::Ed
 
     void Editor::SaveScene()
     {
-        if (m_EditorScenePath.Empty())
+        if (m_EditorScenePath.empty())
         {
             SaveSceneAs();
             return;
         }
 
-        TBO_ASSERT(Project::SerializeScene(m_EditorScene, m_EditorScene->GetFullPath()), "Could not serialize \"{0}\"!");
-        TBO_INFO("Successfully serialized \"{0}\"!", m_EditorScene->GetName().CStr());
+        SceneSerializer serializer(m_EditorScene);
+        if (serializer.Serialize(m_EditorScenePath.string()))
+        {
+            TBO_INFO("Successfully serialized \"{0}\"!", m_EditorScenePath.stem().string());
+            return;
+        }
+
+        TBO_ERROR("Could not serialize \"{0}\"!", m_EditorScenePath);
     }
 
-    void Editor::OpenScene(const Filepath& filepath /*= {}*/)
+    void Editor::OpenScene(const std::filesystem::path& filepath /*= {}*/)
     {
-        // TODO: Open scene that are in the project
+        std::filesystem::path scene_path = filepath;
+
+        if (scene_path.empty())
+        {
+            scene_path = Platform::OpenFileDialog("Open Scene", "Turbo Scene(*.tscene)\0 * .tscene\0");
+            if (scene_path.empty())
+                return; // No scene selected
+
+        }
+
+        m_EditorScene = Ref<Scene>::Create(Scene::Config{ scene_path.stem().string()});
+
+        SceneSerializer serializer(m_EditorScene);
+        TBO_ASSERT(serializer.Deserialize(scene_path.string()), "Could not deserialize scene!");
+
+        m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+
+        m_EditorScenePath = m_EditorScene->GetFullPath();
+
+        UpdateWindowTitle();
     }
 
     void Editor::SaveSceneAs()
     {
-        if (!m_CurrentProject)
+        auto& active = Project::GetActive();
+
+        if (!active)
         {
             TBO_ERROR("No project loaded!");
             return;
@@ -547,19 +571,23 @@ namespace Turbo::Ed
             return;
         }
 
-        Filepath& filepath = Platform::SaveFileDialog("Turbo Scene(*.tscene)\0 * .tscene\0");
+        std::filesystem::path& filepath = Platform::SaveFileDialog("Turbo Scene(*.tscene)\0 * .tscene\0");
 
-        if (Project::SerializeScene(m_EditorScene, filepath.Append(".tscene")))
+        if (!filepath.empty())
         {
-            TBO_INFO("Successfully serialized \"{0}\"!", m_EditorScene->GetName().CStr());
-            // Success
+            if (filepath.extension() != ".tscene")
+                filepath.concat(".tscene");
 
-            UpdateWindowTitle();
-
-            return;
+            SceneSerializer serializer(m_EditorScene);
+            
+            if (serializer.Serialize(filepath.string()))
+            {
+                TBO_INFO("Successfully serialized \"{0}\"!", m_EditorScene->GetName());
+                UpdateWindowTitle();
+            }
         }
 
-        TBO_ERROR("Could not serialize \"{0}\"!", m_EditorScene->GetName().CStr());
+        TBO_ERROR("Could not serialize \"{0}\"!", m_EditorScene->GetName());
     }
 
     void Editor::OnScenePlay()

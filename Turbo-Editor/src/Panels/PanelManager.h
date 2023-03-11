@@ -3,7 +3,6 @@
 #include "Panel.h"
 
 #include <Turbo/Core/Common.h>
-#include <Turbo/Core/String.h>
 
 #include <vector>
 

@@ -30,21 +30,19 @@ namespace Turbo::Ed
     private: // Events
         void OnViewportResize(u32 width, u32 height);
 
-        bool OnCreateProject(const ProjectInfo& info);
-
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
     private:
         void OnScenePlay();
         void OnSceneStop();
     private: // Project
-        bool OpenProject(const Filepath& filepath = {});
+        void OpenProject(const std::filesystem::path& filepath = {});
         void NewProject();
         void SaveProject();
     private: // Scene
         void SaveScene();
         void SaveSceneAs();
-        void OpenScene(const Filepath& filepath = {});
+        void OpenScene(const std::filesystem::path& filepath = {});
 
         void UpdateWindowTitle();
     private:
@@ -60,10 +58,9 @@ namespace Turbo::Ed
         Ref<SceneRenderer> m_SceneRenderer;
         Mode m_EditorMode = Mode::Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene;
-        Filepath m_EditorScenePath;
+        std::filesystem::path m_EditorScenePath;
 
-        Ref<Project> m_CurrentProject;
-        Filepath m_CurrentPath;
+        std::filesystem::path m_CurrentPath;
 
         Entity m_SelectedEntity, m_HoveredEntity;
 

@@ -15,19 +15,20 @@ namespace Turbo
     VulkanTexture2D::VulkanTexture2D(const Texture2D::Config& config)
         : Texture2D(config)
     {
-        TBO_ENGINE_ASSERT(!m_Config.FilePath.Empty());
+        TBO_ENGINE_ASSERT(!m_Config.FilePath.empty());
 
         // Load picture from filepath
         int texWidth = 0, texHeight = 0, texChannel = 0;
 
         // Vertical flip of the texture
-        stbi_set_flip_vertically_on_load(1); 
-        stbi_uc* pixels = stbi_load(m_Config.FilePath.CStr(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
+        stbi_set_flip_vertically_on_load(1);
+
+        stbi_uc* pixels = stbi_load(config.FilePath.c_str(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
 
         // Texture could not be loaded
         if (texWidth * texHeight <= 0)
         {
-            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", config.FilePath.CStr());
+            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", config.FilePath.c_str());
             stbi_set_flip_vertically_on_load(0);
             return;
         }

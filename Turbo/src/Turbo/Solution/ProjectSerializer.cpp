@@ -10,20 +10,6 @@
 
 #include <fstream>
 
-namespace YAML
-{
-    template<typename CharType, size_t Capacity>
-    inline Emitter& operator<<(Emitter& emitter, const Turbo::StringB<CharType, Capacity>& v)
-    {
-        return emitter.Write(std::string(v.CStr()));
-    }
-
-    inline Emitter& operator<<(Emitter& emitter, const Turbo::Filepath& v)
-    {
-        return emitter.Write(std::string(v.CStr()));
-    }
-}
-
 namespace Turbo
 {
 	ProjectSerializer::ProjectSerializer(Ref<Project> project)
@@ -35,13 +21,13 @@ namespace Turbo
 	{
 	}
 
-	bool ProjectSerializer::Deserialize(const Filepath& filepath)
+	bool ProjectSerializer::Deserialize(const std::string& filepath)
 	{
         YAML::Node data;
 
         try
         {
-            data = YAML::LoadFile(filepath.CStr());
+            data = YAML::LoadFile(filepath);
         }
         catch (YAML::Exception e)
         {
@@ -56,8 +42,7 @@ namespace Turbo
         }
 
         // Root directory
-        m_Project->m_Config.RootDirectory = filepath.RootDirectory();
-
+        m_Project->m_Config.RootDirectory = std::filesystem::path(filepath).parent_path();
         std::string project_name = data["Project"].as<std::string>();
         m_Project->m_Config.Name = project_name;
 
@@ -74,7 +59,7 @@ namespace Turbo
             for (auto scene : scenes)
             {
                 std::filesystem::path p = scene["Path"].as<std::string>();
-                m_Project->m_Config.ScenesRelPaths.push_back(p.string());
+                m_Project->m_Config.ScenesFullPaths.push_back(p.string());
                 
                 if (p.stem() == startup_scene_name)
                 {
@@ -85,7 +70,7 @@ namespace Turbo
                     // Deserialize startup scene
                     Ref<Scene> startup_scene = Ref<Scene>::Create(config);
                     SceneSerializer serializer(startup_scene);
-                    TBO_ENGINE_ASSERT(serializer.Deserialize(config.FullPath));
+                    TBO_ENGINE_ASSERT(serializer.Deserialize(config.FullPath.string()));
 
                     m_Project->m_Config.ActiveScene = m_Project->m_Config.StartupScene = startup_scene;
                     return true;
@@ -96,29 +81,28 @@ namespace Turbo
 		return false;
 	}
 
-	bool ProjectSerializer::Serialize(const Filepath& filepath)
+	bool ProjectSerializer::Serialize(const std::string& filepath)
 	{
-		Filepath root = filepath;
-		Filepath rootAssetsSceneAbs = root / "Assets" / "Scenes";
+		std::filesystem::path root = filepath;
         
-		// Create folders
-		Platform::Result result = Platform::CreateDirectory(root);
+		// Create root directory
+        if (!std::filesystem::create_directory(root))
+        {
+            // Project already exists...
+            TBO_ENGINE_ERROR("[ProjectSerializer] Project already exists! ({})", m_Project->GetName());
+            return false;
+        }
 
-		if (result == Platform::Result::AlreadyExists)
-		{
-			// Project already exists...
-            TBO_ENGINE_ERROR("Project already exists! ({})", m_Project->GetName().CStr());
-			return false;
-		}
-        
-		// Create asset folder
-		Platform::CreateDirectory(root / "Assets");
-		Platform::CreateDirectory(rootAssetsSceneAbs);
+		// Create Assets directory
+        std::filesystem::create_directory(root / "Assets");
+
+        // Create Scenes directory
+        std::filesystem::create_directory(root / "Assets" / "Scenes");
 
 		// Create root config file
-		root /= root.Filename();
-		root.Append(".tproject");
+		root /= root.stem().concat(".tproject");
 
+        // Serialize project
         {
             YAML::Emitter out;
             out << YAML::BeginMap;
@@ -127,16 +111,16 @@ namespace Turbo
 
             out << YAML::Key << "Scenes" << YAML::Value << YAML::BeginSeq;
 
-            for (auto& scene_path : m_Project->m_Config.ScenesRelPaths)
+            for (auto& scene_path : m_Project->m_Config.ScenesFullPaths)
             {
                 out << YAML::BeginMap;
-                out << YAML::Key << "Path" << YAML::Value << scene_path;
+                out << YAML::Key << "Path" << YAML::Value << scene_path.string();
                 out << YAML::EndMap;
             }
 
             out << YAML::EndSeq << YAML::EndMap;
 
-            std::ofstream fout(root.CStr());
+            std::ofstream fout(root.c_str());
             
             if (fout)
             {

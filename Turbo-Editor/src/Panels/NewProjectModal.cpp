@@ -1,11 +1,11 @@
-#include "tbopch.h"
 #include "NewProjectModal.h"
 
 #include <Turbo/Core/Platform.h>
-#include <Turbo/Solution/ProjectSerializer.h>
+#include <Turbo/Solution/Project.h>
 
 #include <IconsFontAwesome6.h>
 #include <imgui.h>
+#include <filesystem>
 
 namespace Turbo::Ed 
 {
@@ -64,7 +64,7 @@ namespace Turbo::Ed
             ImGui::NextColumn();
             ImGui::Text("Location");
 
-            bool locationError = Platform::PathExists(s_ProjectFullPath);
+            bool locationError = std::filesystem::exists(s_ProjectFullPath);
 
             if (locationError)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.8f, 0.2f, 0.3f, 1.0f });
@@ -83,11 +83,11 @@ namespace Turbo::Ed
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2.0f);
             if (ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f }))
             {
-                Filepath& filepath = Platform::OpenBrowseFolderDialog("Select Location", s_ProjectDirectoryPath);
+                const std::filesystem::path& filepath = Platform::OpenBrowseFolderDialog("Select Location", s_ProjectDirectoryPath);
 
-                if (filepath.Size())
+                if (!filepath.empty())
                 {
-                    strcpy_s(s_ProjectDirectoryPath, filepath.CStr());
+                    strcpy_s(s_ProjectDirectoryPath, filepath.string().c_str());
                 }
             }
 
@@ -104,7 +104,7 @@ namespace Turbo::Ed
                 && s_ProjectDirectoryPath[0] != '\0'
                 && s_ProjectName[0] != '\0')
             {
-                if (locationError == false)
+                if (!locationError)
                 {
                     ProjectInfo createInfo = {};
                     createInfo.Name = s_ProjectName;

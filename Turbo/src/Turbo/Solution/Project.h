@@ -12,25 +12,29 @@ namespace Turbo
     public:
         struct Config
         {
-            String Name;
-            std::vector<Filepath> ScenesRelPaths;
+            std::string Name;
+            std::vector<std::filesystem::path> ScenesFullPaths;
             Ref<Scene> StartupScene, ActiveScene;
-            Filepath RootDirectory; // Will point to the root directory of the project
+            std::filesystem::path RootDirectory; // Will point to the root directory of the project
         };
 
         Project(const Project::Config& config = {});
         ~Project();
 
-        static Ref<Project> CreateDefault(const Filepath& root_dir, const String& project_name);
-        static Ref<Project> Deserialize(const Filepath& project_filepath);
-        static bool SerializeScene(Ref<Scene> scene, const Filepath& scene_filepath);
-        static bool DeserializeScene(Ref<Scene> scene, const Filepath& scene_filepath);
+        static bool Create(const std::filesystem::path& root_dir, const std::string& project_name);
+        static bool Open(const std::filesystem::path& project_path);
 
-        const Filepath& GetRootDirectory() const { return m_Config.RootDirectory; }
+        const std::filesystem::path& GetRootDirectory() const { return m_Config.RootDirectory; }
 
-        const String& GetName() const { return m_Config.Name; }
+        const std::string& GetName() const { return m_Config.Name; }
         Ref<Scene> GetStartupScene() const { return m_Config.StartupScene; }
+
+        static Ref<Project> GetActive() { return s_ActiveProject; }
     private:
+        static Ref<Project> Deserialize(const std::filesystem::path& project_path);
+
+        static inline Ref<Project> s_ActiveProject;
+
         Project::Config m_Config;
 
         friend class ProjectSerializer;

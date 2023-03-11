@@ -3,7 +3,6 @@
 #include "Win32_Window.h"
 
 #include "Turbo/Core/Engine.h"
-#include "Turbo/Core/Filepath.h"
 #include "Turbo/Core/Platform.h"
 
 #include "Turbo/Event/MouseEvent.h"
@@ -17,7 +16,8 @@
 // Copy this line into your .cpp file to forward declare the function.
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-namespace Turbo {
+namespace Turbo
+{
 
     LRESULT CALLBACK Win32_Window::Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
@@ -59,13 +59,13 @@ namespace Turbo {
 
     void Win32_Window::InitializeWindow()
     {
-        Filepath current_dir = Platform::GetCurrentPath() / "Resources" / "Icons" / "EditorIcon.ico";
+        std::filesystem::path current_dir = std::filesystem::current_path() / "Resources" / "Icons" / "EditorIcon.ico";
 
         m_Instance = ::GetModuleHandle(NULL);
         WNDCLASS wnd_class = {};
         wnd_class.lpszClassName = s_ClassName;
         wnd_class.hInstance = m_Instance;
-        wnd_class.hIcon = reinterpret_cast<HICON>(::LoadImageA(nullptr, current_dir.CStr(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
+        wnd_class.hIcon = reinterpret_cast<HICON>(::LoadImage(nullptr, current_dir.c_str(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
         wnd_class.hCursor = ::LoadCursor(NULL, IDC_ARROW);
         wnd_class.lpfnWndProc = Win32_Window::Win32Procedure;
 
@@ -84,9 +84,10 @@ namespace Turbo {
 
         ::AdjustWindowRect(&rect, style, false);
 
-        constexpr size_t size_in_bytes = String::Cap();
-        wchar_t ws[size_in_bytes];
-        mbstowcs_s(NULL, &ws[0], size_in_bytes, m_Config.Title.CStr(), size_in_bytes);
+        size_t title_size = m_Config.Title.size() + 1;
+        WCHAR ws[MAX_PATH] = {};
+        mbstowcs_s(NULL, &ws[0], title_size, m_Config.Title.c_str(), title_size - 1);
+        
         m_Handle = CreateWindowEx(
             0,
             s_ClassName,
@@ -187,7 +188,7 @@ namespace Turbo {
 
                 m_Minimized = m_Config.Width == 0 || m_Config.Height == 0;
 
-                if (m_Minimized == false) 
+                if (m_Minimized == false)
                 {
                     m_Swapchain->Resize(m_Config.Width, m_Config.Height);
                 }
@@ -289,14 +290,13 @@ namespace Turbo {
         ::ShowWindow(m_Handle, SW_SHOW);
     }
 
-    void Win32_Window::SetTitle(const String& title)
+    void Win32_Window::SetTitle(const std::string& title)
     {
         m_Config.Title = title;
 
-        constexpr size_t size_in_bytes = String::Cap();
-
-        wchar_t ws[size_in_bytes];
-        mbstowcs_s(NULL, &ws[0], size_in_bytes , title.CStr(), size_in_bytes);
+        size_t title_size = m_Config.Title.size() + 1;
+        WCHAR ws[MAX_PATH] = {};
+        mbstowcs_s(NULL, &ws[0], title_size, m_Config.Title.c_str(), title_size - 1);
 
         ::SetWindowText(m_Handle, ws);
     }

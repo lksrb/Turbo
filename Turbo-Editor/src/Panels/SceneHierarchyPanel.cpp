@@ -57,16 +57,16 @@ namespace Turbo::Ed
             }
         }
 
-        static void DrawVec3Control(const String& label, glm::vec3* values, float resetValue = 0.0f, float columnWidth = 100.0f)
+        static void DrawVec3Control(const std::string& label, glm::vec3* values, float resetValue = 0.0f, float columnWidth = 100.0f)
         {
             ImGuiIO& io = ImGui::GetIO();
             auto boldFont = io.Fonts->Fonts[0];
 
-            ImGui::PushID(label.CStr());
+            ImGui::PushID(label.c_str());
 
             ImGui::Columns(2);
             ImGui::SetColumnWidth(0, columnWidth);
-            ImGui::Text(label.CStr());
+            ImGui::Text(label.c_str());
             ImGui::NextColumn();
 
             ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
@@ -124,7 +124,7 @@ namespace Turbo::Ed
         }
     }
 
-    extern Filepath g_AssetPath;
+    extern std::filesystem::path g_AssetPath;
 
     SceneHierarchyPanel::SceneHierarchyPanel()
     {
@@ -194,7 +194,7 @@ namespace Turbo::Ed
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
-            strncpy_s(buffer, sizeof(buffer), tag.CStr(), sizeof(buffer));
+            strncpy_s(buffer, sizeof(buffer), tag.c_str(), sizeof(buffer));
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
                 tag = buffer;
@@ -307,26 +307,26 @@ namespace Turbo::Ed
             ImGui::NextColumn();
             if (ImGui::BeginDragDropTarget())
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FILE_MANAGER_ITEM"))
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                 {
                     const char* path = (const char*)payload->Data;
-                    Filepath texturePath = g_AssetPath / path;
+                    const std::filesystem::path& texturePath = g_AssetPath / path;
 
-                    auto& fileExtension = texturePath.Extension();
+                    auto& fileExtension = texturePath.extension();
 
                     // Currently accepting only .pngs and .jpgs
                     bool success = fileExtension == ".png" || fileExtension == ".jpg";
 
                     if (success)
                     {
-                        Ref<Texture2D> texture = Texture2D::Create({ texturePath });
+                        Ref<Texture2D> texture = Texture2D::Create({ texturePath.string()});
                         if (texture->IsLoaded())
                             component.Texture = texture;
                         else
-                            TBO_WARN("Could not load texture {0}", texturePath.Filename().CStr());
+                            TBO_WARN("Could not load texture {0}", texturePath.stem().string());
                     }
                     else
-                        TBO_WARN("Could not load texture {0} - Invalid format", texturePath.Filename().CStr());
+                        TBO_WARN("Could not load texture {0} - Invalid format", texturePath.stem().string());
                 }
                 ImGui::EndDragDropTarget();
             }
@@ -490,7 +490,7 @@ namespace Turbo::Ed
 
         ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.CStr());
+        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 
         if (ImGui::IsItemClicked())
         {
@@ -509,7 +509,7 @@ namespace Turbo::Ed
         if (opened)
         {
             ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-            bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.CStr());
+            bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
             if (opened)
                 ImGui::TreePop();
             ImGui::TreePop();
@@ -524,11 +524,11 @@ namespace Turbo::Ed
     }
 
     template<typename T>
-    void SceneHierarchyPanel::DisplayAddComponentEntry(const String& entryName)
+    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
     {
         if (m_SelectedEntity.HasComponent<T>() == false)
         {
-            if (ImGui::MenuItem(entryName.CStr()))
+            if (ImGui::MenuItem(entryName.c_str()))
             {
                 m_SelectedEntity.AddComponent<T>();
                 ImGui::CloseCurrentPopup();

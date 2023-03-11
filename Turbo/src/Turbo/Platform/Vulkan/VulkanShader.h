@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Turbo/Core/PrimitiveTypes.h"
-#include "Turbo/Core/Filepath.h"
 
 #include "Turbo/Renderer/Shader.h"
 

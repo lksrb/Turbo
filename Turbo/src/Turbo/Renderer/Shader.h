@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Turbo/Core/Filepath.h"
-
 namespace Turbo
 {
     enum : u32
@@ -27,12 +25,12 @@ namespace Turbo
         u32 Binding;
         u32 Stage;
         u32 Size;
-        String Name;
+        std::string Name;
     };
 
     struct TextureSamplerArray
     {
-        String Name;
+        std::string Name;
         u32 Binding;
         u32 Size = 0;
     };
@@ -55,7 +53,7 @@ namespace Turbo
         struct Config
         {
             ShaderLanguage Language;
-            Filepath ShaderPath;
+            std::string ShaderPath;
         };
 
         struct Resources

@@ -18,7 +18,7 @@ namespace Turbo::Ed
     void QuickAccessPanel::Open(bool show)
     {
         m_Open = show;
-        m_Input.Clear();
+        m_Input.clear();
 
         if (show == false)
         {
@@ -49,7 +49,7 @@ namespace Turbo::Ed
         if (ImGui::InputText("##Command", m_TextBuffer, sizeof(m_TextBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
         {
             m_Input = m_TextBuffer;
-            TBO_INFO(m_Input.CStr());
+            TBO_INFO(m_Input.c_str());
             Open(false);
         }
 

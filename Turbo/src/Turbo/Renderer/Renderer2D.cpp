@@ -59,7 +59,7 @@ namespace Turbo
             // Shader
             Shader::Config shaderConfig = {};
             shaderConfig.Language = ShaderLanguage::GLSL;
-            shaderConfig.ShaderPath = "assets\\Shaders\\Renderer2D_Quad.glsl";
+            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Quad.glsl";
             m_QuadShader = Shader::Create(shaderConfig);
 
             // Graphics pipeline

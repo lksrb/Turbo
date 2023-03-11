@@ -82,12 +82,6 @@ namespace YAML
             return true;
         }
     };
-
-    template<size_t Capacity>
-    inline Emitter& operator<<(Emitter& emitter, const Turbo::StringB<char, Capacity>& v)
-    {
-        return emitter.Write(std::string(v.CStr()));
-    }
 }
 
 namespace Turbo
@@ -113,7 +107,7 @@ namespace Turbo
         return out;
     }
 
-    static String RigidBody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
+    static std::string RigidBody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
     {
         switch (bodyType)
         {
@@ -150,7 +144,7 @@ namespace Turbo
             out << YAML::Key << "TagComponent";
             out << YAML::BeginMap;
 
-            out << YAML::Key << "Tag" << YAML::Value << tag.CStr();
+            out << YAML::Key << "Tag" << YAML::Value << tag;
 
             out << YAML::EndMap;
         }
@@ -201,7 +195,7 @@ namespace Turbo
             out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
             if (spriteRendererComponent.Texture)
-                out << YAML::Key << "TexturePath" << YAML::Value << spriteRendererComponent.Texture->GetFilepath().CStr();
+                out << YAML::Key << "TexturePath" << YAML::Value << spriteRendererComponent.Texture->GetFilepath();
             else
                 out << YAML::Key << "TexturePath" << YAML::Value << "None";
 
@@ -214,7 +208,7 @@ namespace Turbo
             out << YAML::BeginMap;
 
             auto& rb2dComponent = entity.GetComponent<Rigidbody2DComponent>();
-            out << YAML::Key << "BodyType" << YAML::Value << RigidBody2DBodyTypeToString(rb2dComponent.Type).CStr();
+            out << YAML::Key << "BodyType" << YAML::Value << RigidBody2DBodyTypeToString(rb2dComponent.Type);
             out << YAML::Key << "FixedRotation" << YAML::Value << rb2dComponent.FixedRotation;
 
             out << YAML::EndMap;
@@ -264,12 +258,12 @@ namespace Turbo
     {
     }
 
-    bool SceneSerializer::Deserialize(const Filepath& filepath)
+    bool SceneSerializer::Deserialize(const std::string& filepath)
     {
         YAML::Node data;
         try
         {
-            data = YAML::LoadFile(filepath.CStr());
+            data = YAML::LoadFile(filepath);
         }
         catch (YAML::ParserException e)
         {
@@ -382,9 +376,10 @@ namespace Turbo
         return true;
     }
 
-    bool SceneSerializer::Serialize(const Filepath& filepath)
+    bool SceneSerializer::Serialize(const std::string& filepath)
     {
-        m_Scene->SetName(filepath.Filename());
+        std::filesystem::path p = filepath; // TODO: Remove
+        m_Scene->SetName(p.stem().string());
 
         YAML::Emitter out;
         out << YAML::BeginMap;
@@ -401,7 +396,7 @@ namespace Turbo
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::ofstream fout(filepath.CStr());
+        std::ofstream fout(filepath.c_str());
 
         if (fout)
         {

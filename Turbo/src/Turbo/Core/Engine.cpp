@@ -35,8 +35,10 @@ namespace Turbo
         // Call client function
         m_Application = m_ApplicationCreateCallback();
 
-        // Initialize platform
+        // Initialize platform (Timers, dialogs, ...)
         Platform::Initialize();
+
+        // Initialize render context (VulkanContext)
         RendererContext::Initialize();
 
         // Create window 
@@ -48,7 +50,7 @@ namespace Turbo
         config.StartMaximized = m_Application->m_Config.StartMaximized;
         config.Resizable = m_Application->m_Config.Resizable;
 
-        // If UI is disabled, change render target to swapchain framebuffers i.e. render into the window instead of the UI
+        // TODO: If UI is disabled, change render target to swapchain framebuffers i.e. render into the window instead of the UI
         config.SwapChainTarget = !m_Application->m_Config.EnableUI; 
 
         m_ViewportWindow = Window::Create(config);
@@ -57,6 +59,7 @@ namespace Turbo
         // Creates Win32 surface and initializes swapchain
         RendererContext::SetWindowContext(m_ViewportWindow);
 
+        // Initializes rendering
         Renderer::Initialize();
 
         if(m_Application->m_Config.EnableUI)
@@ -67,6 +70,7 @@ namespace Turbo
         m_Application->Window = m_ViewportWindow;
 
         m_Initialized = true;
+
         TBO_ENGINE_INFO("Engine initialized succefully!");
     }
 
