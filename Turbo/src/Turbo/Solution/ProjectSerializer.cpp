@@ -21,13 +21,13 @@ namespace Turbo
 	{
 	}
 
-	bool ProjectSerializer::Deserialize(const std::string& filepath)
+	bool ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
         YAML::Node data;
 
         try
         {
-            data = YAML::LoadFile(filepath);
+            data = YAML::LoadFile(filepath.string());
         }
         catch (YAML::Exception e)
         {
@@ -81,27 +81,8 @@ namespace Turbo
 		return false;
 	}
 
-	bool ProjectSerializer::Serialize(const std::string& filepath)
+	bool ProjectSerializer::Serialize(const std::filesystem::path& filepath)
 	{
-		std::filesystem::path root = filepath;
-        
-		// Create root directory
-        if (!std::filesystem::create_directory(root))
-        {
-            // Project already exists...
-            TBO_ENGINE_ERROR("[ProjectSerializer] Project already exists! ({})", m_Project->GetName());
-            return false;
-        }
-
-		// Create Assets directory
-        std::filesystem::create_directory(root / "Assets");
-
-        // Create Scenes directory
-        std::filesystem::create_directory(root / "Assets" / "Scenes");
-
-		// Create root config file
-		root /= root.stem().concat(".tproject");
-
         // Serialize project
         {
             YAML::Emitter out;
@@ -120,7 +101,7 @@ namespace Turbo
 
             out << YAML::EndSeq << YAML::EndMap;
 
-            std::ofstream fout(root.c_str());
+            std::ofstream fout(filepath);
             
             if (fout)
             {

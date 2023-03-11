@@ -18,11 +18,22 @@ namespace Turbo
     {
     }
 
-    bool Project::Create(const std::filesystem::path& root_dir_path, const std::string& project_name)
+    bool Project::Create(const std::filesystem::path& root_dir_path)
     {
         // Active project should reset
         s_ActiveProject.Reset();
 
+        const std::string& project_name = root_dir_path.stem().string();
+
+        // Create directories
+        std::filesystem::create_directory(root_dir_path);
+        std::filesystem::create_directory(root_dir_path / "Assets");
+        std::filesystem::create_directory(root_dir_path / "Assets" / "Scenes");
+
+        std::filesystem::path project_config_file = root_dir_path / root_dir_path.stem();
+        project_config_file.concat(".tproject");
+
+        // TODO: Templates
         Scene::Config scene_config = {};
         scene_config.FullPath = root_dir_path / "Assets\\Scenes\\BlankScene.tscene"; // TOOD: More control over where the scene will be stored
         scene_config.Name = "BlankScene";
@@ -31,7 +42,7 @@ namespace Turbo
         Project::Config project_config = {};
         project_config.Name = project_name;
         project_config.RootDirectory = root_dir_path;
-        project_config.StartupScene = project_config.ActiveScene  = default_scene;
+        project_config.StartupScene = project_config.ActiveScene = default_scene;
         project_config.ScenesFullPaths.push_back(scene_config.FullPath);
 
         s_ActiveProject = Ref<Project>::Create(project_config);
@@ -39,9 +50,9 @@ namespace Turbo
         // Serialize new project
         ProjectSerializer project_serializer(s_ActiveProject);
 
-        if (!project_serializer.Serialize(root_dir_path.string()))
+        if (!project_serializer.Serialize(project_config_file))
             return false;
-        
+
         // Serialize active scene
         SceneSerializer serializer(default_scene);
         TBO_ENGINE_ASSERT(serializer.Serialize(scene_config.FullPath.string()));
@@ -70,23 +81,15 @@ namespace Turbo
 
         if (project_path.extension() == ".tproject")
         {
-            s_ActiveProject = Project::Deserialize(project_path);
-
+            s_ActiveProject = Ref<Project>::Create();
+            ProjectSerializer serializer(s_ActiveProject);
+            {
+                Benchmark::ScopeTimer timer("Project & Startup Scene - deserialization");
+                TBO_ENGINE_ASSERT(serializer.Deserialize(project_path));
+            }
             return true;
         }
 
         return false;
-    }
-
-    Ref<Project> Project::Deserialize(const std::filesystem::path& project_path)
-    {
-        Ref<Project> project = Ref<Project>::Create();
-        ProjectSerializer serializer(project);
-        {
-            Benchmark::ScopeTimer timer("Project & Startup Scene - deserialization");
-            TBO_ENGINE_ASSERT(serializer.Deserialize(project_path.string()));
-        }
-
-        return project;
     }
 }

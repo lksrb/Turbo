@@ -3,6 +3,7 @@
 #include "../Panels/SceneHierarchyPanel.h"
 #include "../Panels/QuickAccessPanel.h"
 #include "../Panels/ContentBrowserPanel.h"
+#include "../Panels/CreateProjectPopupPanel.h"
 
 #include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Benchmark/ScopeTimer.h>
@@ -33,11 +34,17 @@ namespace Turbo::Ed
 
         g_AssetPath = m_CurrentPath / "Assets";
 
+        // Panels
+        m_PanelManager = Ref<PanelManager>::Create();
+        m_PanelManager->AddPanel<SceneHierarchyPanel>();
+        m_PanelManager->AddPanel<QuickAccessPanel>();
+        m_PanelManager->AddPanel<ContentBrowserPanel>();
+
         // TODO: Think about panel callbacks
-        m_NewProjectPopup.SetCallback([this](const ProjectInfo& info) 
+        m_PanelManager->AddPanel<CreateProjectPopupPanel>()->SetCallback([this](const std::filesystem::path& path)
         {
             // Unload active project, create new project, set it as new active project
-            Project::Create(info.RootDirectory, info.Name);
+            Project::Create(path);
 
             auto& active = Project::GetActive();
 
@@ -52,12 +59,6 @@ namespace Turbo::Ed
 
             UpdateWindowTitle();
         });
-
-        // Panels
-        m_PanelManager = Ref<PanelManager>::Create();
-        m_PanelManager->AddPanel<SceneHierarchyPanel>();
-        m_PanelManager->AddPanel<QuickAccessPanel>();
-        m_PanelManager->AddPanel<ContentBrowserPanel>();
 
         // Render 
         m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_Config.Width, m_Config.Height, true });
@@ -432,8 +433,6 @@ namespace Turbo::Ed
             ImGui::End();
         }
 
-        m_NewProjectPopup.OnUIRender();
-
         // Draw all panels
         m_PanelManager->OnDrawUI();
 
@@ -443,7 +442,7 @@ namespace Turbo::Ed
 
     void Editor::NewProject()
     {
-        m_NewProjectPopup.Open();
+        m_PanelManager->GetPanel<CreateProjectPopupPanel>()->Open();
     }
 
     void Editor::OpenProject(const std::filesystem::path& filepath)

@@ -2,8 +2,6 @@
 
 #include <Turbo.h>
 
-#include "../Panels/NewProjectModal.h"
-
 #include "../Panels/PanelManager.h"
 
 namespace Turbo::Ed
@@ -58,14 +56,12 @@ namespace Turbo::Ed
         Ref<SceneRenderer> m_SceneRenderer;
         Mode m_EditorMode = Mode::Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene;
-        std::filesystem::path m_EditorScenePath;
 
+        std::filesystem::path m_EditorScenePath;
         std::filesystem::path m_CurrentPath;
 
         Entity m_SelectedEntity, m_HoveredEntity;
 
         Ref<PanelManager> m_PanelManager;
-
-        NewProjectModal m_NewProjectPopup;
     };
 }

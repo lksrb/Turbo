@@ -146,7 +146,7 @@ namespace Turbo
         m_Config.ViewportWidth = width;
         m_Config.ViewportHeight = height;
 
-        // Invalidate framebuffers?
+        // TODO: Invalidate framebuffers
     }
 
     Ref<Image2D> SceneRenderer::GetFinalImage() const
@@ -154,4 +154,10 @@ namespace Turbo
         // Returns final image that is produced by the scene renderer
         return m_TargetFramebuffer->GetColorAttachment(); 
     }
+
+    void SceneRenderer::ClearFramebuffer()
+    {
+        // TODO: Clear framebuffer
+    }
+
 }

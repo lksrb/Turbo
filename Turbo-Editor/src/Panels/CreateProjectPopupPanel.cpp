@@ -1,4 +1,4 @@
-#include "NewProjectModal.h"
+#include "CreateProjectPopupPanel.h"
 
 #include <Turbo/Core/Platform.h>
 #include <Turbo/Solution/Project.h>
@@ -7,39 +7,33 @@
 #include <imgui.h>
 #include <filesystem>
 
-namespace Turbo::Ed 
+namespace Turbo::Ed
 {
     static char s_ProjectName[64]{ 0 };
     static char s_ProjectDirectoryPath[256]{ 0 };
     static char s_ProjectFullPath[256]{ 0 };
 
-    NewProjectModal::NewProjectModal()
-        : m_Open(false)
+    CreateProjectPopupPanel::CreateProjectPopupPanel()
     {
         strcpy_s(s_ProjectDirectoryPath, "C:\\dev\\TurboProjects");
         strcpy_s(s_ProjectName, "TurboProject1");
     }
 
-    NewProjectModal::~NewProjectModal()
+    CreateProjectPopupPanel::~CreateProjectPopupPanel()
     {
     }
 
-    void NewProjectModal::SetCallback(const NewProjectCallback& callback)
+    void CreateProjectPopupPanel::SetCallback(const CreateProjectCallback& callback)
     {
         m_Callback = callback;
     }
 
-    void NewProjectModal::Open()
+    void CreateProjectPopupPanel::OnDrawUI()
     {
-        m_Open = true;
-    }
+        if (!m_Open)
+            return;
 
-    void NewProjectModal::OnUIRender()
-    {
-        if (m_Open)
-        {
-            ImGui::OpenPopup("New Project...");
-        }
+        ImGui::OpenPopup("Create Project...");
 
         // Always center this window when appearing
         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -49,7 +43,7 @@ namespace Turbo::Ed
         ImGui::SetNextWindowSizeConstraints({ 640, 360 }, viewport->Size);
         ImGui::SetNextWindowSize({ viewport->Size.x / 2, viewport->Size.y / 2 }, ImGuiCond_FirstUseEver);
 
-        if (ImGui::BeginPopupModal("New Project...", &m_Open))
+        if (ImGui::BeginPopupModal("Create Project...", &m_Open))
         {
             memset(s_ProjectFullPath, 0, sizeof(s_ProjectFullPath));
 
@@ -106,10 +100,7 @@ namespace Turbo::Ed
             {
                 if (!locationError)
                 {
-                    ProjectInfo createInfo = {};
-                    createInfo.Name = s_ProjectName;
-                    createInfo.RootDirectory = s_ProjectFullPath;
-                    m_Callback(createInfo);
+                    m_Callback(s_ProjectFullPath);
 
                     ImGui::CloseCurrentPopup();
                     m_Open = false;
@@ -122,4 +113,9 @@ namespace Turbo::Ed
             ImGui::EndPopup();
         }
     }
+
+    void CreateProjectPopupPanel::OnEvent(Event& e)
+    {
+    }
+
 }

@@ -21,7 +21,7 @@ namespace Turbo
         Project(const Project::Config& config = {});
         ~Project();
 
-        static bool Create(const std::filesystem::path& root_dir, const std::string& project_name);
+        static bool Create(const std::filesystem::path& root_dir);
         static bool Open(const std::filesystem::path& project_path);
 
         const std::filesystem::path& GetRootDirectory() const { return m_Config.RootDirectory; }
@@ -31,8 +31,6 @@ namespace Turbo
 
         static Ref<Project> GetActive() { return s_ActiveProject; }
     private:
-        static Ref<Project> Deserialize(const std::filesystem::path& project_path);
-
         static inline Ref<Project> s_ActiveProject;
 
         Project::Config m_Config;

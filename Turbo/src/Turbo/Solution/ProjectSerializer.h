@@ -12,9 +12,8 @@ namespace Turbo
         ProjectSerializer(Ref<Project> project);
         ~ProjectSerializer();
 
-        bool Deserialize(const std::string& filepath);
-
-        bool Serialize(const std::string& filepath);
+        bool Deserialize(const std::filesystem::path& filepath);
+        bool Serialize(const std::filesystem::path& filepath);
     private:
         Ref<Project> m_Project;
     };
