@@ -390,7 +390,7 @@ namespace Turbo::Ed
                 {
                     if (ImGui::MenuItem("New Project..."))
                     {
-                        NewProject();
+                        CreateProject();
                     }
                     if (ImGui::MenuItem("Open Project..."))
                     {
@@ -440,7 +440,7 @@ namespace Turbo::Ed
         ImGui::End();
     }
 
-    void Editor::NewProject()
+    void Editor::CreateProject()
     {
         m_PanelManager->GetPanel<CreateProjectPopupPanel>()->Open();
     }
