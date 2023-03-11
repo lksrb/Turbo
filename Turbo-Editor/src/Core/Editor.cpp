@@ -118,69 +118,6 @@ namespace Turbo::Ed
         }
     }
 
-    void Editor::OnEvent(Event& e)
-    {
-        m_PanelManager->OnEvent(e);
-
-        if (m_EditorMode == Mode::Edit)
-            m_EditorCamera.OnEvent(e);
-
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
-        dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
-    }
-
-    bool Editor::OnKeyPressed(KeyPressedEvent& e)
-    {
-        //if (e.GetRepeatCount())
-        //    return false;
-
-        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
-        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
-        bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
-
-        switch (e.GetKeyCode())
-        {
-            // Gizmos
-            case Key::Q:
-            {
-                if (!ImGuizmo::IsUsing())
-                    m_GizmoType = -1;
-                break;
-            }
-            case Key::W:
-            {
-                if (!ImGuizmo::IsUsing())
-                    m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-                break;
-            }
-            case Key::E:
-            {
-                if (!ImGuizmo::IsUsing())
-                    m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-                break;
-            }
-            case Key::R:
-            {
-                if (!ImGuizmo::IsUsing())
-                    m_GizmoType = ImGuizmo::OPERATION::SCALE;
-                break;
-            }
-        }
-
-        return true;
-    }
-
-    bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
-    {
-        if (e.GetMouseButton() == Mouse::ButtonLeft)
-        {
-            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
-                m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_HoveredEntity);
-        }
-        return false;
-    }
-
     void Editor::OnDrawUI()
     {
         // Dockspace
@@ -388,15 +325,15 @@ namespace Turbo::Ed
             {
                 if (ImGui::BeginMenu("File"))
                 {
-                    if (ImGui::MenuItem("New Project..."))
+                    if (ImGui::MenuItem("Create Project..."))
                     {
                         CreateProject();
                     }
-                    if (ImGui::MenuItem("Open Project..."))
+                    if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
                     {
                         OpenProject();
                     }
-                    if (ImGui::MenuItem("Save Project"))
+                    if (ImGui::MenuItem("Save Project", "Ctrl+S"))
                     {
                         SaveProject();
                     }
@@ -404,7 +341,7 @@ namespace Turbo::Ed
                     {
                         SaveScene();
                     }
-                    if (ImGui::MenuItem("Save Scene As..."))
+                    if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
                     {
                         SaveSceneAs();
                     }
@@ -439,6 +376,87 @@ namespace Turbo::Ed
         // End dockspace
         ImGui::End();
     }
+
+    void Editor::OnEvent(Event& e)
+    {
+        m_PanelManager->OnEvent(e);
+
+        if (m_EditorMode == Mode::Edit)
+            m_EditorCamera.OnEvent(e);
+
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
+    }
+
+    bool Editor::OnKeyPressed(KeyPressedEvent& e)
+    {
+        //if (e.GetRepeatCount())
+        //    return false;
+
+        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
+        bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
+
+        switch (e.GetKeyCode())
+        {
+            // Gizmos
+            case Key::Q:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = -1;
+                break;
+            }
+            case Key::W:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                break;
+            }
+            case Key::E:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                break;
+            }
+            case Key::R:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                break;
+            }
+
+            // Menu
+            case Key::S:
+            {
+                if (control && shift)
+                    SaveSceneAs();
+                else if (control)
+                    SaveScene();
+
+                break;
+            }
+            case Key::O:
+            {
+                if (control && shift)
+                    SaveSceneAs();
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+    {
+        if (e.GetMouseButton() == Mouse::ButtonLeft)
+        {
+            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+                m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_HoveredEntity);
+        }
+        return false;
+    }
+
 
     void Editor::CreateProject()
     {
