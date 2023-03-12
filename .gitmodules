@@ -8,10 +8,6 @@
 	path = dependencies/imgui
 	url = https://www.github.com/lksrb/imgui.git
 	branch = docking
-[submodule "dependencies/lua"]
-	path = dependencies/lua
-	url = https://www.github.com/lksrb/lua.git
-	branch = v5.4.4-premake
 [submodule "dependencies/IconFontCppHeaders"]
 	path = dependencies/IconFontCppHeaders
 	url = https://github.com/lksrb/IconFontCppHeaders.git
