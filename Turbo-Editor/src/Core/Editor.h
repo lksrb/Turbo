@@ -29,6 +29,7 @@ namespace Turbo::Ed
         void OnViewportResize(u32 width, u32 height);
 
         bool OnKeyPressed(KeyPressedEvent& e);
+        bool OnWindowClosed(WindowCloseEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
     private:
         void OnScenePlay();
@@ -41,8 +42,9 @@ namespace Turbo::Ed
         void SaveScene();
         void SaveSceneAs();
         void OpenScene(const std::filesystem::path& filepath = {});
-
+    private: // Editor
         void UpdateWindowTitle();
+        void Close();
     private:
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 

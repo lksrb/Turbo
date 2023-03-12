@@ -189,7 +189,7 @@ namespace Turbo::Ed
 
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
-            Engine::Get().GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+            Engine->GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
             ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
             ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -330,6 +330,11 @@ namespace Turbo::Ed
                     {
                         SaveSceneAs();
                     }
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Exit", "Alt+F4"))
+                    {
+                        Close();
+                    }
                     ImGui::EndMenu();
                 }
 
@@ -372,6 +377,7 @@ namespace Turbo::Ed
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
+        dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Editor::OnWindowClosed));
     }
 
     bool Editor::OnKeyPressed(KeyPressedEvent& e)
@@ -430,6 +436,12 @@ namespace Turbo::Ed
         }
 
         return true;
+    }
+
+    bool Editor::OnWindowClosed(WindowCloseEvent& e)
+    {
+        Close();
+        return false;
     }
 
     bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
@@ -695,5 +707,12 @@ namespace Turbo::Ed
         }
 
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+    }
+
+    void Editor::Close()
+    {
+        // TODO: Make this an option
+
+        SaveProject(); // Auto safe
     }
 }
