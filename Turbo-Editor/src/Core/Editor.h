@@ -34,9 +34,9 @@ namespace Turbo::Ed
         void OnScenePlay();
         void OnSceneStop();
     private: // Project
-        void CreateProject();
+        void CreateProject(const std::filesystem::path& filepath);
         void SaveProject();
-        void OpenProject(const std::filesystem::path& filepath = {});
+        void OpenProject(std::filesystem::path filepath = {});
     private: // Scene
         void SaveScene();
         void SaveSceneAs();

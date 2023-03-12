@@ -114,7 +114,7 @@ namespace Turbo
             // New instance
             m_Instance = instance;
 
-            // Create counter only if newly assigned instance in not nullptr
+            // Create counter only if newly assigned instance is not nullptr
             if (m_Instance)
                 m_Counter = new u32{ 0 };
         }
@@ -122,6 +122,7 @@ namespace Turbo
         template<typename T2>
         Ref<T2> As() const
         {
+            //static_assert(std::is_base_of<T, T2>::value, "Class must be derived from \"Panel\" base class!");
             return Ref<T2>(*this);
         }
 

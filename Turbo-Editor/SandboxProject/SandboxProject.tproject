@@ -1,0 +1,3 @@
+Project: SandboxProject
+AssetsDirectory: Assets
+StartScene: Scenes\StartScene.tscene

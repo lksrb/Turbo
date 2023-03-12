@@ -56,10 +56,8 @@ namespace Turbo
 
     }
 
-    Scene::Scene(const Scene::Config& config)
-        : m_Config(config)
+    Scene::Scene()
     {
-        //String format = String::Format("{} neco {}", "a", "b");
     }
 
     Scene::~Scene()
@@ -191,7 +189,7 @@ namespace Turbo
 
     Ref<Scene> Scene::Copy(Ref<Scene> other)
     {
-        Ref<Scene> new_scene = Ref<Scene>::Create(other->m_Config);
+        Ref<Scene> new_scene = Ref<Scene>::Create();
 
         new_scene->m_ViewportWidth = other->m_ViewportWidth;
         new_scene->m_ViewportHeight = other->m_ViewportHeight;

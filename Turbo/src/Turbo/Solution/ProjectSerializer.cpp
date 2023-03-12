@@ -12,6 +12,11 @@
 
 namespace Turbo
 {
+    inline YAML::Emitter& operator<<(YAML::Emitter& emitter, const std::filesystem::path& v)
+    {
+        return emitter.Write(v.string());
+    }
+
 	ProjectSerializer::ProjectSerializer(Ref<Project> project)
 		: m_Project(project)
 	{
@@ -23,6 +28,8 @@ namespace Turbo
 
 	bool ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
+        TBO_ENGINE_TRACE("Deserializing project '{0}'", filepath.string());
+
         YAML::Node data;
 
         try
@@ -41,66 +48,29 @@ namespace Turbo
             return false;
         }
 
-        // Root directory
-        m_Project->m_Config.RootDirectory = std::filesystem::path(filepath).parent_path();
-        std::string project_name = data["Project"].as<std::string>();
-        m_Project->m_Config.Name = project_name;
+        // Project name
+        m_Project->m_Config.Name = data["Project"].as<std::string>();
+        m_Project->m_Config.AssetsDirectory = data["AssetsDirectory"].as<std::string>();
+        m_Project->m_Config.StartScenePath = data["StartScene"].as<std::string>();
 
-        TBO_ENGINE_TRACE("Deserializing project '{0}'", project_name);
+        // Not serialized
+        m_Project->m_Config.ProjectDirectory = filepath.parent_path();
 
-        std::string startup_scene_name = data["StartupScene"].as<std::string>();
-        
-        TBO_ENGINE_ASSERT(!startup_scene_name.empty());
-
-        auto scenes = data["Scenes"];
-
-        if (scenes)
-        {
-            for (auto scene : scenes)
-            {
-                std::filesystem::path p = scene["Path"].as<std::string>();
-                m_Project->m_Config.ScenesFullPaths.push_back(p.string());
-                
-                if (p.stem() == startup_scene_name)
-                {
-                    Scene::Config config;
-                    config.Name = startup_scene_name;
-                    config.FullPath = m_Project->m_Config.RootDirectory / p.string().c_str();
-
-                    // Deserialize startup scene
-                    Ref<Scene> startup_scene = Ref<Scene>::Create(config);
-                    SceneSerializer serializer(startup_scene);
-                    TBO_ENGINE_ASSERT(serializer.Deserialize(config.FullPath.string()));
-
-                    m_Project->m_Config.ActiveScene = m_Project->m_Config.StartupScene = startup_scene;
-                    return true;
-                }
-            }
-        }
-
-		return false;
+		return true;
 	}
 
 	bool ProjectSerializer::Serialize(const std::filesystem::path& filepath)
 	{
+        const auto& config = m_Project->GetConfig();
+
         // Serialize project
         {
             YAML::Emitter out;
             out << YAML::BeginMap;
-            out << YAML::Key << "Project" << YAML::Value << m_Project->GetName();
-            out << YAML::Key << "StartupScene" << YAML::Value << m_Project->GetStartupScene()->GetName();
-
-            out << YAML::Key << "Scenes" << YAML::Value << YAML::BeginSeq;
-
-            for (auto& scene_path : m_Project->m_Config.ScenesFullPaths)
-            {
-                out << YAML::BeginMap;
-                out << YAML::Key << "Path" << YAML::Value << scene_path.string();
-                out << YAML::EndMap;
-            }
-
-            out << YAML::EndSeq << YAML::EndMap;
-
+            out << YAML::Key << "Project" << YAML::Value << config.Name;
+            out << YAML::Key << "AssetsDirectory" << YAML::Value << config.AssetsDirectory;
+            out << YAML::Key << "StartScene" << YAML::Value << config.StartScenePath;
+            out << YAML::EndMap;
             std::ofstream fout(filepath);
             
             if (fout)

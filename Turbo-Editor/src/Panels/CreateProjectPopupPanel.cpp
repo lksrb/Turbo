@@ -33,7 +33,7 @@ namespace Turbo::Ed
         if (!m_Open)
             return;
 
-        ImGui::OpenPopup("Create Project...");
+        ImGui::OpenPopup("New Project...");
 
         // Always center this window when appearing
         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -43,7 +43,7 @@ namespace Turbo::Ed
         ImGui::SetNextWindowSizeConstraints({ 640, 360 }, viewport->Size);
         ImGui::SetNextWindowSize({ viewport->Size.x / 2, viewport->Size.y / 2 }, ImGuiCond_FirstUseEver);
 
-        if (ImGui::BeginPopupModal("Create Project...", &m_Open))
+        if (ImGui::BeginPopupModal("New Project...", &m_Open))
         {
             memset(s_ProjectFullPath, 0, sizeof(s_ProjectFullPath));
 

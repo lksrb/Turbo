@@ -14,8 +14,8 @@ namespace Turbo
 
         ~SceneSerializer();
 
-        bool Deserialize(const std::string& filepath);
-        bool Serialize(const std::string& filepath);
+        bool Deserialize(const std::filesystem::path& filepath);
+        bool Serialize(const std::filesystem::path& filepath);
     private:
         Ref<Scene> m_Scene;
     };

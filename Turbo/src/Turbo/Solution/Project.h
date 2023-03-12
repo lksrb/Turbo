@@ -13,27 +13,47 @@ namespace Turbo
         struct Config
         {
             std::string Name;
-            std::vector<std::filesystem::path> ScenesFullPaths;
-            Ref<Scene> StartupScene, ActiveScene;
-            std::filesystem::path RootDirectory; // Will point to the root directory of the project
+            std::filesystem::path AssetsDirectory;
+            std::filesystem::path StartScenePath;
+
+            // Not serialized
+            std::filesystem::path ProjectDirectory;
         };
 
         Project(const Project::Config& config = {});
         ~Project();
 
-        static bool Create(const std::filesystem::path& root_dir);
-        static bool Open(const std::filesystem::path& project_path);
+        const Project::Config& GetConfig() const
+        {
+            TBO_ENGINE_ASSERT(s_ActiveProject);
+            return s_ActiveProject->m_Config;
+        }
 
-        const std::filesystem::path& GetRootDirectory() const { return m_Config.RootDirectory; }
+        static const std::string& GetProjectName() 
+        { 
+            TBO_ENGINE_ASSERT(s_ActiveProject);
+            return s_ActiveProject->m_Config.Name;
+        }
+        static const std::filesystem::path& GetProjectDirectory() 
+        {
+            TBO_ENGINE_ASSERT(s_ActiveProject);
+            return s_ActiveProject->m_Config.ProjectDirectory; 
+        }
 
-        const std::string& GetName() const { return m_Config.Name; }
-        Ref<Scene> GetStartupScene() const { return m_Config.StartupScene; }
+        static std::filesystem::path GetProjectConfigPath()
+        {
+            TBO_ENGINE_ASSERT(s_ActiveProject);
+            std::filesystem::path& config_file = Project::GetProjectDirectory() / s_ActiveProject->GetProjectName();
+            config_file.concat(".tproject");
+            return config_file;
+        }
 
         static Ref<Project> GetActive() { return s_ActiveProject; }
+        static void SetActive(Ref<Project> project) { s_ActiveProject = project; }
     private:
-        static inline Ref<Project> s_ActiveProject;
-
         Project::Config m_Config;
+
+        static inline Ref<Project> s_ActiveProject;
 
         friend class ProjectSerializer;
     };

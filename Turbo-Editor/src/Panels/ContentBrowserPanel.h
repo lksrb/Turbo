@@ -14,6 +14,7 @@ namespace Turbo::Ed
 
         void OnDrawUI() override;
         void OnEvent(Event& e) override;
+        void SetProjectAssetPath();
     private:
         Ref<Texture2D> m_DirectoryIcon, m_FileIcon;
 

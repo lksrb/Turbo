@@ -1,4 +1,0 @@
-Project: SandboxProject
-StartupScene: BlankScene
-Scenes:
-  - Path: Assets\Scenes\BlankScene.tscene

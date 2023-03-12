@@ -258,12 +258,12 @@ namespace Turbo
     {
     }
 
-    bool SceneSerializer::Deserialize(const std::string& filepath)
+    bool SceneSerializer::Deserialize(const std::filesystem::path& filepath)
     {
         YAML::Node data;
         try
         {
-            data = YAML::LoadFile(filepath);
+            data = YAML::LoadFile(filepath.string());
         }
         catch (YAML::ParserException e)
         {
@@ -376,14 +376,11 @@ namespace Turbo
         return true;
     }
 
-    bool SceneSerializer::Serialize(const std::string& filepath)
+    bool SceneSerializer::Serialize(const std::filesystem::path& filepath)
     {
-        std::filesystem::path p = filepath; // TODO: Remove
-        m_Scene->SetName(p.stem().string());
-
         YAML::Emitter out;
         out << YAML::BeginMap;
-        out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
+        out << YAML::Key << "Scene" << YAML::Value << filepath.stem().string();
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         m_Scene->m_Registry.each([&](auto entityID)
         {
@@ -396,7 +393,7 @@ namespace Turbo
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::ofstream fout(filepath.c_str());
+        std::ofstream fout(filepath);
 
         if (fout)
         {

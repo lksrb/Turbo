@@ -19,14 +19,7 @@ namespace Turbo
     class Scene
     {
     public:
-        struct Config
-        {
-            // For scene serialization
-            std::string Name;
-            std::filesystem::path FullPath;
-        };
-
-        Scene(const Scene::Config& config);
+        Scene();
         ~Scene();
 
         void OnEditorUpdate(Time_T ts);
@@ -44,11 +37,6 @@ namespace Turbo
         void DestroyEntity(Entity entity);
 
         void SetViewportSize(u32 width, u32 height);
-
-        const std::string& GetName() const { return m_Config.Name; }
-        void SetName(const std::string& name) { m_Config.Name = name; }
-
-        const std::filesystem::path& GetFullPath() const { return m_Config.FullPath; }
 
         template<typename... Components>
         inline auto GetAllEntitiesWith()
@@ -80,8 +68,6 @@ namespace Turbo
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 
         b2World* m_PhysicsWorld = nullptr;
-
-        Scene::Config m_Config;
 
         friend class Entity;
         friend class SceneSerializer;

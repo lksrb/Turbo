@@ -6,10 +6,9 @@
 
 namespace Turbo::Ed
 {
-    extern std::filesystem::path  g_AssetPath;
+    extern std::filesystem::path g_AssetPath;
 
-    ContentBrowserPanel::ContentBrowserPanel() 
-        : m_CurrentDirectory(g_AssetPath)
+    ContentBrowserPanel::ContentBrowserPanel()
     {
         m_DirectoryIcon = Texture2D::Create({ "Resources/Icons/DirectoryIcon.png" });
         m_FileIcon = Texture2D::Create({ "Resources/Icons/FileIcon.png" });
@@ -56,8 +55,11 @@ namespace Turbo::Ed
             UI::ImageButton(icon, { thumbnail_size, thumbnail_size }, { 0,1 }, { 1,0 });
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
-                const wchar_t* itemPath = path.c_str();
-                ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Always);
+                if (path.extension() == ".tscene")
+                {
+                    const wchar_t* itemPath = path.c_str();
+                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Always);
+                }
                 ImGui::EndDragDropSource();
             }
 
@@ -84,6 +86,11 @@ namespace Turbo::Ed
 
     void ContentBrowserPanel::OnEvent(Event& e)
     {
+    }
+
+    void ContentBrowserPanel::SetProjectAssetPath()
+    {
+        m_CurrentDirectory = g_AssetPath;
     }
 
 }
