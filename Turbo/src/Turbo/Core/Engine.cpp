@@ -7,6 +7,7 @@
 #include "Turbo/Core/Platform.h"
 
 #include "Turbo/Renderer/Renderer.h"
+#include "Turbo/Scripting/Script.h"
 
 #include <filesystem>
 #include <future>
@@ -62,6 +63,9 @@ namespace Turbo
         // Initializes rendering
         Renderer::Initialize();
 
+        // Initialize mono script engine
+        Script::Init();
+
         if(m_Application->m_Config.EnableUI)
             m_UI = UserInterface::Create();
 
@@ -77,6 +81,8 @@ namespace Turbo
     void Engine::Shutdown()
     {
         m_Initialized = false;
+        
+        Script::Shutdown();
 
         RendererContext::WaitIdle();
 
