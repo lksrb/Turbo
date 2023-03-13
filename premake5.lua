@@ -25,7 +25,6 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}";
 
 group ".Dependencies"
 	include "dependencies/ImGui"
-	include "dependencies/lua"
 	include "dependencies/box2d"
 	include "dependencies/yaml-cpp"
 group "Core"
