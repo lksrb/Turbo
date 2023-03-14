@@ -10,5 +10,7 @@ namespace Turbo
         static void Init();
         static void Shutdown();
     private:
+        static void ShutdownMono();
+        static void InitMono();
     };
 }

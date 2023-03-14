@@ -35,24 +35,22 @@ project "Turbo"
         "%{IncludeDir.glm}",
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.ImGui}",
-        --"%{IncludeDir.lua}",
         "%{IncludeDir.IconFontCppHeaders}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.stb}",
         "%{IncludeDir.box2d}",
         "%{IncludeDir.yaml_cpp}",
-        "%{IncludeDir.ImGuizmo}"
-        --"%{IncludeDir.mono}"
+        "%{IncludeDir.ImGuizmo}",
+        "%{IncludeDir.mono}"
     }
 
     links {
         "ImGui",
-        --"Lua",
         "Shlwapi.lib",
         "box2d",
         "%{Library.Vulkan}",
-        "yaml-cpp"
-        --"%{Library.mono}",
+        "yaml-cpp",
+        "%{Library.mono}"
     }
 
     -- Ignore already defined symbols warning(LNK4006), symbols not found(LNK4099)
@@ -72,10 +70,10 @@ project "Turbo"
         }
 
         links {
-            --"%{Library.WinSock}",
-            --"%{Library.WinMM}",
-            --"%{Library.WinVersion}",
-            --"%{Library.WinBcryp}"
+            "%{Library.WinSock}",
+            "%{Library.WinMM}",
+            "%{Library.WinVersion}",
+            "%{Library.WinBcryp}"
         }
 
     filter "configurations:Debug"

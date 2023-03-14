@@ -13,7 +13,6 @@ IncludeDir["stb"] = "%{wks.location}/dependencies/stb"
 IncludeDir["yaml_cpp"] = "%{wks.location}/dependencies/yaml-cpp/include"
 IncludeDir["entt"] = "%{wks.location}/dependencies/entt"
 IncludeDir["box2d"] = "%{wks.location}/dependencies/Box2D/include"
-IncludeDir["lua"] = "%{wks.location}/dependencies/lua"
 IncludeDir["IconFontCppHeaders"] = "%{wks.location}/dependencies/IconFontCppHeaders"
 
 -- Vulkan
@@ -24,7 +23,7 @@ IncludeDir["SPIRV_Cross"] =				"%{wks.location}/dependencies/SPIRV-Cross"
 IncludeDir["VulkanSDK"] =				"%{VULKAN_SDK}/Include"
 
 LibraryDir = {}
-LibraryDir["Mono"] =					"%{wks.location}/Pangolin/dependencies/mono/lib/%{cfg.buildcfg}"
+LibraryDir["monodir"] =					"%{wks.location}/dependencies/mono/lib/%{cfg.buildcfg}"
 
 LibraryDir["VulkanSDK"] =				"%{VULKAN_SDK}/Lib"
 LibraryDir["VulkanSDK_Debug"] =			"%{VULKAN_SDK}/Lib"
@@ -33,7 +32,7 @@ LibraryDir["VulkanSDK_DebugDLL"] =		"%{VULKAN_SDK}/Bin"
 -- Mono
 
 Library = {}
-Library["mono"] = "%{LibraryDir.Mono}/libmono-static-sgen.lib"
+Library["mono"] = "%{LibraryDir.monodir}/libmono-static-sgen.lib"
 
 Library["Vulkan"] =						"%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 Library["VulkanUtils"] =				"%{LibraryDir.VulkanSDK}/VkLayer_utils.lib"
