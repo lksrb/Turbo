@@ -1,6 +1,6 @@
 #pragma once
 
-// Mono Script Engine
+#include "MonoForwards.h"
 
 namespace Turbo
 {
@@ -10,7 +10,11 @@ namespace Turbo
         static void Init();
         static void Shutdown();
     private:
-        static void ShutdownMono();
         static void InitMono();
+        static void ShutdownMono();
+        static void LoadAssemblies();
+        static void ReflectAssembly(MonoAssembly* assembly);
+
+        static MonoAssembly* LoadAssembly(const std::string& path);
     };
 }
