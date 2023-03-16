@@ -5,10 +5,16 @@
 #include <memory>
 #include <new>
 
-namespace Turbo::Memory
+#define TBO_PROFILE_MEMORY
+
+namespace Turbo
 {
-    void Initialize();
-    void Shutdown();
+    class Memory
+    {
+    public:
+        static void Initialize();
+        static void Shutdown();
+    };
 }
 
 namespace Turbo
