@@ -1,6 +1,9 @@
 #include "tbopch.h"
 #include "Script.h"
 
+#include "InternalCalls.h"
+#include "ScriptInstance.h"
+
 #include <fstream>
 
 #include <mono/jit/jit.h>
@@ -39,19 +42,11 @@ namespace Turbo
         }
     }
 
-    struct ScriptEngineData
-    {
-        MonoDomain* RootDomain = nullptr;
-        MonoDomain* AppDomain = nullptr;
-        MonoAssembly* ScriptCoreAssembly = nullptr;
-        MonoImage* ScriptCoreAssemblyImage = nullptr;
-    };
-
-    extern ScriptEngineData* s_Data = nullptr;
+    extern Script::Data* g_Data = nullptr;
 
     void Script::Init()
     {
-        s_Data = new ScriptEngineData;
+        g_Data = new Script::Data;
 
         // Initialize mono C# virtual machine
         InitMono();
@@ -59,13 +54,20 @@ namespace Turbo
         // Load script core and project assembly
         LoadAssemblies();
 
+        // Register functions
+        InternalCalls::Init();
+
+        // Setup script classes
+        SetupScriptClasses();
+
+/*
         // Test class method invocation
         {
-            MonoImage* image = mono_assembly_get_image(s_Data->ScriptCoreAssembly);
-            MonoClass* klass = mono_class_from_name(image, "", "ScriptCoreTest");
+            MonoImage* image = mono_assembly_get_image(g_Data->ScriptCoreAssembly);
+            MonoClass* klass = mono_class_from_name(image, "Turbo", "ScriptCoreTest");
 
             // Allocate an instance of a class
-            MonoObject* class_instance = mono_object_new(s_Data->AppDomain, klass);
+            MonoObject* class_instance = mono_object_new(g_Data->AppDomain, klass);
             TBO_ENGINE_ASSERT(class_instance, "Could not allocate memory for a class instance!");
 
             // Call the parameterless constructor
@@ -78,9 +80,7 @@ namespace Turbo
             // Call C# method on the object instance
             MonoObject* exception = nullptr;
             mono_runtime_invoke(method, class_instance, nullptr, &exception);
-
-
-        }
+        }*/
 
         TBO_ENGINE_INFO("Successfully initialized mono!");
     }
@@ -103,34 +103,50 @@ namespace Turbo
         return assembly;
     }
 
+    Scene* Script::GetCurrentScene()
+    {
+        return g_Data->SceneContext;
+    }
+
     void Script::InitMono()
     {
         // Set path for important C# assemblies
         mono_set_assemblies_path("Mono/lib");
 
         // Create root domain
-        s_Data->RootDomain = mono_jit_init("TBOJITRuntime");
-        TBO_ENGINE_ASSERT(s_Data->RootDomain, "Could not initialize mono runtime!");
+        g_Data->RootDomain = mono_jit_init("TBOJITRuntime");
+        TBO_ENGINE_ASSERT(g_Data->RootDomain, "Could not initialize mono runtime!");
 
         // Set main thread as current thread
         mono_thread_set_main(mono_thread_current());
 
         // Create App Domain
-        s_Data->AppDomain = mono_domain_create_appdomain("TBOAppDomain", nullptr);
-        TBO_ENGINE_ASSERT(s_Data->AppDomain, "Could not create mono app domain!");
+        g_Data->AppDomain = mono_domain_create_appdomain("TBOAppDomain", nullptr);
+        TBO_ENGINE_ASSERT(g_Data->AppDomain, "Could not create mono app domain!");
 
         // Set it as current app domain
-        mono_domain_set(s_Data->AppDomain, true);
-
+        mono_domain_set(g_Data->AppDomain, true);
     }
 
     void Script::LoadAssemblies()
     {
-        s_Data->ScriptCoreAssembly = LoadAssembly("Resources/Scripts/Turbo-ScriptCore.dll");
-        s_Data->ScriptCoreAssemblyImage = mono_assembly_get_image(s_Data->ScriptCoreAssembly);
+        g_Data->ScriptCoreAssembly = LoadAssembly("Resources/Scripts/Turbo-ScriptCore.dll");
+        g_Data->ScriptCoreAssemblyImage = mono_assembly_get_image(g_Data->ScriptCoreAssembly);
 
-        ReflectAssembly(s_Data->ScriptCoreAssembly);
+        ReflectAssembly(g_Data->ScriptCoreAssembly);
         // TODO: Project assembly
+    }
+
+    void Script::SetupScriptClasses()
+    {
+        g_Data->EntityBaseClass = Ref<ScriptClass>::Create("Turbo", "Entity");
+
+        Ref<ScriptClass> klass = Ref<ScriptClass>::Create("Turbo", "ScriptCoreTest", g_Data->EntityBaseClass);
+
+        ScriptInstance instance(klass, 456);
+
+        instance.InvokeOnStart();
+        instance.InvokeOnUpdate(4);
     }
 
     void Script::ReflectAssembly(MonoAssembly* assembly)
@@ -166,17 +182,17 @@ namespace Turbo
     {
         ShutdownMono();
 
-        delete s_Data;
-        s_Data = nullptr;
+        delete g_Data;
+        g_Data = nullptr;
     }
 
     void Script::ShutdownMono()
     {
-        mono_domain_set(s_Data->RootDomain, false);
+        mono_domain_set(g_Data->RootDomain, false);
 
-        mono_domain_unload(s_Data->AppDomain);
+        mono_domain_unload(g_Data->AppDomain);
 
-        mono_jit_cleanup(s_Data->RootDomain);
+        mono_jit_cleanup(g_Data->RootDomain);
     }
 
 }

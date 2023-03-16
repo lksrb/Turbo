@@ -68,6 +68,11 @@ namespace Turbo
         Ref<SubTexture2D> SubTexture;
     };
 
+    struct ScriptComponent
+    {
+        std::string ClassName;
+    };
+
     // Physics
     struct Rigidbody2DComponent
     {
@@ -112,6 +117,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent,
+        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, ScriptComponent,
         Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

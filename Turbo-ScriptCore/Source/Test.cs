@@ -1,9 +1,17 @@
-using System;
-
-public class ScriptCoreTest
+namespace Turbo
 {
-	public void PrintHello()
+	public class ScriptCoreTest : Entity
 	{
-		Console.WriteLine("Hello from C#!");
+		void OnStart()
+		{
+			Log.Info("Hello from C#!");
+			Log.Warn("Hello from C#!");
+		}
+
+		void OnUpdate(float f)
+		{
+			Log.Error($"Hello from C#!{f}");
+			Log.Fatal("Hello from C#!");
+		}
 	}
 }

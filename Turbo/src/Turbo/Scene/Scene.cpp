@@ -65,7 +65,7 @@ namespace Turbo
         delete m_PhysicsWorld;
     }
 
-    void Scene::OnEditorUpdate(Time_T ts)
+    void Scene::OnEditorUpdate(FTime ts)
     {
     }
 
@@ -113,7 +113,7 @@ namespace Turbo
         m_PhysicsWorld = nullptr;
     }
 
-    void Scene::OnRuntimeUpdate(Time_T ts)
+    void Scene::OnRuntimeUpdate(FTime ts)
     {
         constexpr i32 velocityIterations = 6;
         constexpr i32 positionIterations = 2;

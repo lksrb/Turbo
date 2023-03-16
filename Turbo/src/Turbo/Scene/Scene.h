@@ -22,12 +22,12 @@ namespace Turbo
         Scene();
         ~Scene();
 
-        void OnEditorUpdate(Time_T ts);
+        void OnEditorUpdate(FTime ts);
         void OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editor_camera);
 
         void OnRuntimeStart();
         void OnRuntimeStop();
-        void OnRuntimeUpdate(Time_T ts);
+        void OnRuntimeUpdate(FTime ts);
         void OnRuntimeRender(Ref<SceneRenderer> renderer);
 
         static Ref<Scene> Copy(Ref<Scene> other);

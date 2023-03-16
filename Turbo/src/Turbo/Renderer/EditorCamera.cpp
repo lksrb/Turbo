@@ -56,7 +56,7 @@ namespace Turbo
         return speed;
     }
 
-    void EditorCamera::OnUpdate(Time_T ts)
+    void EditorCamera::OnUpdate(FTime ts)
     {
         m_IsControlling = Input::IsKeyPressed(Key::LeftAlt);
 

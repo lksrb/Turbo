@@ -20,6 +20,12 @@ namespace Turbo
             IncRef();
         }
 
+        Ref(std::nullptr_t)
+        {
+            m_Instance = nullptr;
+            m_Counter = nullptr;
+        }
+
         Ref(const Ref<T>& other)
             : m_Instance(other.m_Instance), m_Counter(other.m_Counter)
         {
