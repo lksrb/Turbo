@@ -202,6 +202,17 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<ScriptComponent>())
+        {
+            out << YAML::Key << "ScriptComponent";
+            out << YAML::BeginMap;
+
+            auto& script_component = entity.GetComponent<ScriptComponent>();
+            out << YAML::Key << "ClassName" << YAML::Value << script_component.ClassName;
+
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<Rigidbody2DComponent>())
         {
             out << YAML::Key << "Rigidbody2DComponent";
@@ -337,6 +348,13 @@ namespace Turbo
                             TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", path);
 
                     }
+                }
+
+                auto script_component = entity["ScriptComponent"];
+                if (script_component)
+                {
+                    auto& component = deserializedEntity.AddComponent<ScriptComponent>();
+                    component.ClassName = script_component["ClassName"].as<std::string>();
                 }
 
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
