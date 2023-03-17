@@ -5,8 +5,8 @@
 
 #include "Turbo/Scene/SceneCamera.h"
 #include "Turbo/Renderer/SceneRenderer.h"
-
 #include "Turbo/Scene/Entity.h"
+#include "Turbo/Scripting/Script.h"
 
 #include <box2d/b2_world.h>
 #include <box2d/b2_body.h>
@@ -41,7 +41,7 @@ namespace Turbo
 
                 for (auto srcEntity : view)
                 {
-                    entt::entity dstEntity = enttMap.at(src.get<IDComponent>(srcEntity).Uuid);
+                    entt::entity dstEntity = enttMap.at(src.get<IDComponent>(srcEntity).ID);
                     auto& srcComponent = src.get<Components>(srcEntity);
                     dst.emplace_or_replace<Components>(dstEntity, srcComponent);
                 }
@@ -105,10 +105,22 @@ namespace Turbo
     void Scene::OnRuntimeStart()
     {
         CreatePhysicsWorld2D();
+
+        Script::OnRuntimeStart(this);
+
+        // Call OnStart function in each script
+        auto& view = GetAllEntitiesWith<ScriptComponent>();
+        for (auto& e : view)
+        {
+            Entity entity = { e, this };
+            Script::InvokeEntityOnStart(entity);
+        }
     }
 
     void Scene::OnRuntimeStop()
     {
+        Script::OnRuntimeStop();
+
         delete m_PhysicsWorld;
         m_PhysicsWorld = nullptr;
     }
@@ -134,6 +146,14 @@ namespace Turbo
 
             if(rb2d.FixedRotation == false)
                 transform.Rotation.z = body->GetAngle();
+        }
+
+        // Call OnUpdate function in each script 
+        auto& view = GetAllEntitiesWith<ScriptComponent>();
+        for (auto& e : view)
+        {
+            Entity entity = { e, this };
+            Script::InvokeEntityOnUpdate(entity, ts);
         }
     }
 
@@ -200,7 +220,7 @@ namespace Turbo
 
         for (auto& it = view.rbegin(); it != view.rend(); ++it)
         {
-            UUID uuid = other->m_Registry.get<IDComponent>(*it).Uuid;
+            UUID uuid = other->m_Registry.get<IDComponent>(*it).ID;
 
             //TBO_CORE_ASSERT(entityMap.find(uuid) != entityMap.end());
 
@@ -326,12 +346,12 @@ namespace Turbo
         }
     }
 
-	Entity Scene::GetEntityByUUID(UUID uuid)
+	Entity Scene::FindEntityByUUID(UUID uuid)
     {
-        auto& view = GetAllEntitiesWith<IDComponent>();
+        auto& view = GetAllEntitiesWith<IDComponent>(); // TODO: Maybe not necessary
         for (auto e : view)
         {
-            auto& id = m_Registry.get<IDComponent>(e).Uuid;
+            auto& id = m_Registry.get<IDComponent>(e).ID;
 
             if (id == uuid)
                 return Entity{ e, this };
@@ -340,7 +360,21 @@ namespace Turbo
         return Entity{};
     }
 
-	// Events ------------------------------------------------------------------------------------
+    Entity Scene::FindEntityByName(const std::string& name)
+    {
+        auto& view = GetAllEntitiesWith<TagComponent>();
+        for (auto e : view)
+        {
+            auto& tag = m_Registry.get<TagComponent>(e).Tag;
+
+            if (tag == name)
+                return Entity{ e, this };
+        }
+
+        return Entity{};
+    }
+
+    // Events ------------------------------------------------------------------------------------
 
     template<typename T>
     void Scene::OnComponentAdded(Entity entity, T& component)
@@ -363,6 +397,11 @@ namespace Turbo
     {
         if(m_ViewportWidth > 0 && m_ViewportHeight > 0)
             component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+    }
+
+    template<>
+    void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
+    {
     }
 
     template<>

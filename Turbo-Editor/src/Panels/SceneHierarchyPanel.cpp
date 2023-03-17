@@ -3,6 +3,8 @@
 
 #include "Turbo/Renderer/Texture2D.h"
 
+#include "Turbo/Scripting/Script.h"
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -214,7 +216,7 @@ namespace Turbo::Ed
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
             //DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
-            //DisplayAddComponentEntry<ScriptComponent>("Script Component");
+            DisplayAddComponentEntry<ScriptComponent>("Script Component");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 
             ImGui::EndPopup();
@@ -395,7 +397,29 @@ namespace Turbo::Ed
             ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
         });
 
-        /*  DrawComponent<ScriptComponent>("Script Component", entity, [&entity, m_CurrentScene = m_CurrentScene](auto& component)
+        Utils::DrawComponent<ScriptComponent>("Script Component", entity, [&entity, m_Context = m_Context](auto& component)
+        {
+            static char s_ClassNameBuffer[64];
+
+            UUID entityUUID = entity.GetUUID();
+            bool entityClassExists = Script::ScriptClassExists(component.ClassName);
+
+            strcpy_s(s_ClassNameBuffer, sizeof(s_ClassNameBuffer), component.ClassName.c_str());
+
+            if (entityClassExists == false)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+
+            if (ImGui::InputText("Class", s_ClassNameBuffer, sizeof(s_ClassNameBuffer)))
+            {
+                component.ClassName = s_ClassNameBuffer;
+                TBO_INFO(component.ClassName);
+            }
+
+            if (entityClassExists == false)
+                ImGui::PopStyleColor();
+        });
+#if 0
+        Utils::DrawComponent<ScriptComponent>("Script Component", entity, [&entity, m_Context = m_Context](auto& component)
           {
               static char s_ClassNameBuffer[64];
 
@@ -412,9 +436,9 @@ namespace Turbo::Ed
                   component.ClassName = s_ClassNameBuffer;
               }
 
-              if (m_CurrentScene->IsRunning())
+              if (m_Context->IsRunning())
               {
-                  auto& scriptInstance = ScriptEngine::FindEntityInstance(entityUUID);
+                  auto& scriptInstance = Script::FindEntityInstance(entityUUID);
 
                   if (scriptInstance)
                   {
@@ -481,7 +505,8 @@ namespace Turbo::Ed
 
               if (entityClassExists == false)
                   ImGui::PopStyleColor();
-          });*/
+          });
+#endif
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)

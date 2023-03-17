@@ -53,10 +53,10 @@ namespace Turbo
             RightControl = VK_RCONTROL,
             LeftAlt = VK_LMENU,
             RightAlt = VK_RMENU,
-            Up = VK_UP,
-            Down = VK_DOWN,
             Left = VK_LEFT,
+            Up = VK_UP,
             Right = VK_RIGHT,
+            Down = VK_DOWN,
             Enter = VK_RETURN
         };
 #endif

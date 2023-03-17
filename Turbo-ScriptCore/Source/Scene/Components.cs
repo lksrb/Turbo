@@ -11,7 +11,7 @@ namespace Turbo
 		public Entity Entity { get; internal set; }
 	}
 
-	public class Transform : Component
+	public class TransformComponent : Component
 	{
 		public Vector3 Translation
 		{

@@ -32,9 +32,9 @@ namespace Turbo
 
     struct IDComponent
     {
-        UUID Uuid;
+        UUID ID;
 
-        IDComponent(const UUID& uuid) : Uuid(uuid) {}
+        IDComponent(const UUID& id) : ID(id) {}
     };
 
     struct TransformComponent

@@ -13,6 +13,9 @@ project "Turbo-ScriptCore"
         "Source/**.cs"
     }
 
+    filter "system:windows"
+        defines "TBO_PLATFORM_WIN32"
+
     filter "configurations:Debug"
         optimize "Off"
         symbols "Default"

@@ -7,5 +7,6 @@ namespace Turbo
     public:
         static void Init();
     private:
+        static void RegisterComponents();
     };
 }

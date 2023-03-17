@@ -3,6 +3,9 @@
 
 #include "InternalCalls.h"
 #include "ScriptInstance.h"
+#include "Turbo/Scene/Scene.h"
+#include "Turbo/Scene/Entity.h"
+#include "Turbo/Scene/Components.h"
 
 #include <fstream>
 
@@ -103,9 +106,43 @@ namespace Turbo
         return assembly;
     }
 
-    Scene* Script::GetCurrentScene()
+    void Script::OnRuntimeStart(Scene* scene)
     {
-        return g_Data->SceneContext;
+        g_Data->SceneContext = scene;
+    }
+
+    void Script::OnRuntimeStop()
+    {
+        g_Data->SceneContext = nullptr;
+
+        g_Data->ScriptInstances.clear();
+    }
+
+    void Script::InvokeEntityOnStart(Entity entity)
+    {
+        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+
+        Ref<ScriptClass> script_class = g_Data->ScriptClasses.at(script.ClassName);
+
+        Ref<ScriptInstance>& instance = g_Data->ScriptInstances[id.ID];
+        instance = Ref<ScriptInstance>::Create(script_class, id.ID);
+        instance->InvokeOnStart();
+    }
+
+    void Script::InvokeEntityOnUpdate(Entity entity, FTime ts)
+    {
+        auto& id = entity.GetComponents<IDComponent>();
+        g_Data->ScriptInstances.at(id.ID)->InvokeOnUpdate(ts);
+    }
+
+    bool Script::ScriptClassExists(const std::string& class_name)
+    {
+        auto& it = g_Data->ScriptClasses.find(class_name);
+
+        if (it == g_Data->ScriptClasses.end())
+            return false;
+
+        return true;
     }
 
     void Script::InitMono()
@@ -141,12 +178,12 @@ namespace Turbo
     {
         g_Data->EntityBaseClass = Ref<ScriptClass>::Create("Turbo", "Entity");
 
-        Ref<ScriptClass> klass = Ref<ScriptClass>::Create("Turbo", "ScriptCoreTest", g_Data->EntityBaseClass);
+        g_Data->ScriptClasses["Turbo.ScriptCoreTest"] = Ref<ScriptClass>::Create("Turbo", "ScriptCoreTest", g_Data->EntityBaseClass);
 
-        ScriptInstance instance(klass, 456);
-
-        instance.InvokeOnStart();
-        instance.InvokeOnUpdate(4);
+        //ScriptInstance instance(klass, 456);
+        //
+        //instance.InvokeOnStart();
+        //instance.InvokeOnUpdate(4);
     }
 
     void Script::ReflectAssembly(MonoAssembly* assembly)
@@ -193,6 +230,21 @@ namespace Turbo
         mono_domain_unload(g_Data->AppDomain);
 
         mono_jit_cleanup(g_Data->RootDomain);
+    }
+
+    Scene* Script::GetCurrentScene()
+    {
+        return g_Data->SceneContext;
+    }
+
+    Ref<ScriptInstance> Script::FindEntityInstance(UUID uuid)
+    {
+        auto& it = g_Data->ScriptInstances.find(uuid);
+
+        if (it == g_Data->ScriptInstances.end())
+            return nullptr;
+
+        return it->second;
     }
 
 }

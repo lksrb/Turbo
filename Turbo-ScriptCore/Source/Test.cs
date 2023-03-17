@@ -6,12 +6,18 @@ namespace Turbo
 		{
 			Log.Info("Hello from C#!");
 			Log.Warn("Hello from C#!");
+
+			Log.Info($"Entity ID: {ID}!");
+
+			Log.Info($"Entity transform: {transform.Translation.y}");
 		}
 
-		void OnUpdate(float f)
+		void OnUpdate(float ts)
 		{
-			Log.Error($"Hello from C#!{f}");
-			Log.Fatal("Hello from C#!");
+			if(Input.IsKeyPressed(KeyCode.A) || Input.IsMouseButtonPressed(MouseCode.ButtonLeft))
+			{
+				Log.Error($"Hello from C#!\n{ts}");
+			}
 		}
 	}
 }

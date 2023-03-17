@@ -680,7 +680,7 @@ namespace Turbo::Ed
             if (m_SelectedEntity)
                 selected_entity_uuid = m_SelectedEntity.GetUUID();
 
-            m_SelectedEntity = m_RuntimeScene->GetEntityByUUID(selected_entity_uuid);
+            m_SelectedEntity = m_RuntimeScene->FindEntityByUUID(selected_entity_uuid);
             m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
         }
 
@@ -702,7 +702,7 @@ namespace Turbo::Ed
             if (m_SelectedEntity)
                 selected_entity_uuid = m_SelectedEntity.GetUUID();
 
-            m_SelectedEntity = m_EditorScene->GetEntityByUUID(selected_entity_uuid);
+            m_SelectedEntity = m_EditorScene->FindEntityByUUID(selected_entity_uuid);
             m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
         }
 
