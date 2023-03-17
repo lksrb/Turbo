@@ -406,3 +406,4 @@ Turbo-Editor/assets/Shaders/cached/
 **.metadata
 *.frag
 *.vert
+Turbo-Editor/memoryleaks.txt
