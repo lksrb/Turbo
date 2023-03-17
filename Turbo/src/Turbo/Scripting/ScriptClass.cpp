@@ -32,7 +32,15 @@ namespace Turbo
     {
         MonoObject* exception;
         mono_runtime_invoke(method, instance, params, &exception);
-        TBO_ENGINE_ASSERT(!exception);
+
+        // Exception handling
+        if (exception)
+        {
+            MonoString* message = mono_object_to_string(exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_FATAL(cstring);
+            mono_free(cstring);
+        }
     }
 
 }

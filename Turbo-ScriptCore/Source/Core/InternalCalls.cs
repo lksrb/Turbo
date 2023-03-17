@@ -64,5 +64,41 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Transform_Set_Scale(ulong uuid, ref Vector3 scale);
 		#endregion
+
+		#region Rigidbody2DComponent
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_ApplyLinearImpulse(ulong uuid, ref Vector2 worldPosition, ref Vector2 impulse, bool wake);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(ulong uuid, ref Vector2 impulse, bool wake);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_ApplyTorque(ulong uuid, float torque, bool wake);
+
+		// Getters & setters
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_Rigidbody2D_Get_Gravity(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_Set_Gravity(ulong uuid, bool gravity);
+
+		#endregion
+
+		#region BoxCollider2DComponent
+		// Offset
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_BoxCollider2D_Get_Offset(ulong uuid, out Vector2 offset);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_BoxCollider2D_Set_Offset(ulong uuid, ref Vector2 offset);
+
+		// Size
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_BoxCollider2D_Get_Size(ulong uuid, out Vector2 size);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_BoxCollider2D_Set_Size(ulong uuid, ref Vector2 size);
+		#endregion
 	}
 }

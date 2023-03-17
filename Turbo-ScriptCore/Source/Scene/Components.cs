@@ -52,4 +52,63 @@ namespace Turbo
 			}
 		}
 	}
+
+	// Physics
+	public class Rigidbody2DComponent : Component
+	{
+		public bool Gravity
+		{
+			get
+			{
+				return InternalCalls.Component_Rigidbody2D_Get_Gravity(Entity.ID);
+			}
+			set
+			{
+				InternalCalls.Component_Rigidbody2D_Set_Gravity(Entity.ID, value);
+			}
+		}
+		public void ApplyTorque(float torque, bool wake = true)
+		{
+			InternalCalls.Component_Rigidbody2D_ApplyTorque(Entity.ID, torque, wake);
+		}
+
+		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake = true)
+		{
+			InternalCalls.Component_Rigidbody2D_ApplyLinearImpulse(Entity.ID, ref impulse, ref worldPosition, wake);
+		}
+
+		public void ApplyLinearImpulse(Vector2 impulse, bool wake = true)
+		{
+			InternalCalls.Component_Rigidbody2D_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
+		}
+	}
+	public class BoxCollider2DComponent : Component
+	{
+		public Vector2 Offset
+		{
+			get
+			{
+				InternalCalls.Component_BoxCollider2D_Get_Offset(Entity.ID, out Vector2 offset);
+				return offset;
+			}
+			set
+			{
+				InternalCalls.Component_BoxCollider2D_Set_Offset(Entity.ID, ref value);
+			}
+		}
+
+		public Vector2 Size
+		{
+			get
+			{
+				InternalCalls.Component_BoxCollider2D_Get_Size(Entity.ID, out Vector2 size);
+				return size;
+			}
+			set
+			{
+				InternalCalls.Component_BoxCollider2D_Set_Size(Entity.ID, ref value);
+			}
+		}
+
+	}
 }
