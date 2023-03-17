@@ -65,6 +65,16 @@ namespace Turbo
 		internal extern static void Component_Transform_Set_Scale(ulong uuid, ref Vector3 scale);
 		#endregion
 
+		#region SpriteRendererComponent
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_SpriteRenderer_Get_Color(ulong uuid, out Vector4 color);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_SpriteRenderer_Set_Color(ulong uuid, ref Vector4 color);
+
+		#endregion
+
 		#region Rigidbody2DComponent
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -76,12 +86,19 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody2D_ApplyTorque(ulong uuid, float torque, bool wake);
 
-		// Getters & setters
+		// Gravity
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Component_Rigidbody2D_Get_Gravity(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody2D_Set_Gravity(ulong uuid, bool gravity);
+
+		// BodyType
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static Rigidbody2DComponent.BodyType Component_Rigidbody2D_Get_BodyType(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_Set_BodyType(ulong uuid, Rigidbody2DComponent.BodyType type);
 
 		#endregion
 
@@ -99,6 +116,26 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_BoxCollider2D_Set_Size(ulong uuid, ref Vector2 size);
+
+		// IsSensor
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_BoxCollider2D_Get_IsSensor(ulong uuid);
+		#endregion
+
+		#region CircleCollider2DComponent
+		// Offset
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_CircleCollider2D_Get_Offset(ulong uuid, out Vector2 offset);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_CircleCollider2D_Set_Offset(ulong uuid, ref Vector2 offset);
+
+		// Size
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static float Component_CircleCollider2D_Get_Radius(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_CircleCollider2D_Set_Radius(ulong uuid, ref float radius);
 		#endregion
 	}
 }

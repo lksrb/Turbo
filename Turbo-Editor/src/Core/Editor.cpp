@@ -5,6 +5,7 @@
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
 
+#include <Turbo/Scripting/Script.h>
 #include <Turbo/Solution/ProjectSerializer.h>
 #include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Benchmark/ScopeTimer.h>
@@ -528,13 +529,13 @@ namespace Turbo::Ed
 
             // Set it as new active project
             Project::SetActive(project);
-        }
 
+        }
+        g_AssetPath = project_path.parent_path();
 
         const auto& config = project->GetConfig();
 
         // Set assets path for content browser, ...
-        g_AssetPath = project_path.parent_path();
         m_PanelManager->GetPanel<ContentBrowserPanel>()->SetProjectAssetPath();
 
         m_EditorScenePath = config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath;
@@ -552,6 +553,9 @@ namespace Turbo::Ed
 
         // Reset selected entity
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity();
+
+        // Load project assembly
+        Script::LoadProjectAssembly(g_AssetPath / project->GetConfig().ScriptModulePath);
 
         UpdateWindowTitle();
     }

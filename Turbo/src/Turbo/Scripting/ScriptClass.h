@@ -7,6 +7,7 @@ namespace Turbo
     class ScriptClass
     {
     public:
+        ScriptClass(MonoClass* klass, Ref<ScriptClass> base_class = nullptr);
         ScriptClass(const std::string& namespace_name, const std::string& class_name, Ref<ScriptClass> base_class = nullptr);
         ~ScriptClass();
 

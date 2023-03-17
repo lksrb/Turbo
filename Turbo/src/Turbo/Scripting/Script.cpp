@@ -3,9 +3,12 @@
 
 #include "InternalCalls.h"
 #include "ScriptInstance.h"
+
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Components.h"
+
+#include "Turbo/Solution/Project.h"
 
 #include <fstream>
 
@@ -55,50 +58,25 @@ namespace Turbo
         InitMono();
 
         // Load script core and project assembly
-        LoadAssemblies();
+        LoadCoreAssembly();
 
         // Register functions
         InternalCalls::Init();
 
-        // Setup script classes
-        SetupScriptClasses();
-
-/*
-        // Test class method invocation
-        {
-            MonoImage* image = mono_assembly_get_image(g_Data->ScriptCoreAssembly);
-            MonoClass* klass = mono_class_from_name(image, "Turbo", "ScriptCoreTest");
-
-            // Allocate an instance of a class
-            MonoObject* class_instance = mono_object_new(g_Data->AppDomain, klass);
-            TBO_ENGINE_ASSERT(class_instance, "Could not allocate memory for a class instance!");
-
-            // Call the parameterless constructor
-            mono_runtime_object_init(class_instance);
-
-            // Get a reference to the method in the class
-            MonoMethod* method = mono_class_get_method_from_name(klass, "PrintHello", 0);
-            TBO_ENGINE_ASSERT(method, "Could not find the method!");
-
-            // Call C# method on the object instance
-            MonoObject* exception = nullptr;
-            mono_runtime_invoke(method, class_instance, nullptr, &exception);
-        }*/
-
         TBO_ENGINE_INFO("Successfully initialized mono!");
     }
 
-    MonoAssembly* Script::LoadAssembly(const std::string& assembly_path)
+    MonoAssembly* Script::LoadAssembly(const std::filesystem::path& assembly_path)
     {
         u32 bytes_size;
-        char* bytes = Utils::ReadBytes(assembly_path, &bytes_size);
+        char* bytes = Utils::ReadBytes(assembly_path.string(), &bytes_size);
 
         MonoImageOpenStatus status;
         MonoImage* image = mono_image_open_from_data_full(bytes, bytes_size, true, &status, false);
 
         TBO_ENGINE_ASSERT(status == MONO_IMAGE_OK, "Could not load the assembly image!");
 
-        MonoAssembly* assembly = mono_assembly_load_from_full(image, assembly_path.c_str(), &status, false);
+        MonoAssembly* assembly = mono_assembly_load_from_full(image, assembly_path.string().c_str(), &status, false);
         mono_image_close(image);
 
         delete[] bytes;
@@ -135,6 +113,89 @@ namespace Turbo
         g_Data->ScriptInstances.at(id.ID)->InvokeOnUpdate(ts);
     }
 
+    void Script::LoadProjectAssembly(const std::filesystem::path& path)
+    {
+        if (g_Data->ProjectAssembly)
+        {
+            // TODO: Unload
+
+            // Clear all registered classes
+            g_Data->ScriptClasses.clear();
+        }
+
+        g_Data->ProjectAssembly = LoadAssembly(path);
+        g_Data->ProjectAssemblyImage = mono_assembly_get_image(g_Data->ProjectAssembly);
+
+        ReflectProjectAssembly();
+    }
+
+    void Script::ReflectProjectAssembly()
+    {
+        PrintAssembly(g_Data->ProjectAssembly);
+
+        // Reflection
+        {
+            const MonoTableInfo* typedef_table = mono_image_get_table_info(g_Data->ProjectAssemblyImage, MONO_TABLE_TYPEDEF);
+            i32 num_types = mono_table_info_get_rows(typedef_table);
+
+            // Iterate through all classes
+            for (i32 i = 0; i < num_types; ++i)
+            {
+                u32 cols[MONO_TYPEDEF_SIZE];
+                mono_metadata_decode_row(typedef_table, i, cols, MONO_TYPEDEF_SIZE);
+
+                const char* class_name = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAME]);
+                const char* namespace_name = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
+                std::string full_name;
+
+                // Use different formatting when dealing with namespace-less assemblies
+                if (strlen(namespace_name) != 0)
+                    full_name = fmt::format("{}.{}", namespace_name, class_name);
+                else
+                    full_name = class_name;
+
+                // Is null when not a class type
+                MonoClass* klass = mono_class_from_name(g_Data->ProjectAssemblyImage, namespace_name, class_name);
+
+                // If is not a class, skip
+                if (klass == nullptr)
+                    continue;
+
+                // If class is entity class, skip
+                if (g_Data->EntityBaseClass->GetMonoClass() == klass)
+                    continue;
+
+                // If entity class is not the base of the class, skip
+                bool has_entity_base = mono_class_is_subclass_of(klass, g_Data->EntityBaseClass->GetMonoClass(), false);
+                if (has_entity_base == false)
+                    continue;
+
+                g_Data->ScriptClasses[full_name] = Ref<ScriptClass>::Create(klass, g_Data->EntityBaseClass);
+                /*
+                // Iterate through all fields in a class
+
+                void* iter = nullptr;
+                while (MonoClassField* monoField = mono_class_get_fields(klass, &iter))
+                {
+                    const char* fieldName = mono_field_get_name(monoField);
+                    ClassFieldType fieldType = UTILS::GetFieldValueType(monoField);
+                    ClassFieldAccessFlags accessFlag = UTILS::GetFieldAccessMask(monoField);
+
+                    if (accessFlag & ClassFieldAccessFlags_Public)
+                    {
+                        auto& field = scriptClass->m_ClassFieldMap[fieldName];
+                        field.MonoField = monoField;
+                        field.Type = fieldType;
+
+                        PG_CORE_TRACE("[ScriptEngine][Mono] {0}", fieldName);
+                    }
+                }*/
+            }
+        }
+    }
+
+
+
     bool Script::ScriptClassExists(const std::string& class_name)
     {
         auto& it = g_Data->ScriptClasses.find(class_name);
@@ -165,28 +226,17 @@ namespace Turbo
         mono_domain_set(g_Data->AppDomain, true);
     }
 
-    void Script::LoadAssemblies()
+    void Script::LoadCoreAssembly()
     {
         g_Data->ScriptCoreAssembly = LoadAssembly("Resources/Scripts/Turbo-ScriptCore.dll");
         g_Data->ScriptCoreAssemblyImage = mono_assembly_get_image(g_Data->ScriptCoreAssembly);
 
-        ReflectAssembly(g_Data->ScriptCoreAssembly);
-        // TODO: Project assembly
-    }
-
-    void Script::SetupScriptClasses()
-    {
         g_Data->EntityBaseClass = Ref<ScriptClass>::Create("Turbo", "Entity");
 
-        g_Data->ScriptClasses["Turbo.ScriptCoreTest"] = Ref<ScriptClass>::Create("Turbo", "ScriptCoreTest", g_Data->EntityBaseClass);
-
-        //ScriptInstance instance(klass, 456);
-        //
-        //instance.InvokeOnStart();
-        //instance.InvokeOnUpdate(4);
+        PrintAssembly(g_Data->ScriptCoreAssembly);
     }
 
-    void Script::ReflectAssembly(MonoAssembly* assembly)
+    void Script::PrintAssembly(MonoAssembly* assembly)
     {
         MonoImage* image = mono_assembly_get_image(assembly);
 
@@ -205,13 +255,8 @@ namespace Turbo
 
                 const std::string& klass = fmt::format("{0}.{1}", namespace_name, class_name);
 
-                TBO_ENGINE_INFO(klass);
+                TBO_ENGINE_INFO("[Mono-Reflect]: {0}", klass);
             }
-        }
-
-        // Classes and methods
-        {
-            // TODO:
         }
     }
 

@@ -14,6 +14,7 @@ namespace Turbo
         {
             std::string Name;
             std::filesystem::path AssetsDirectory;
+            std::filesystem::path ScriptModulePath;
             std::filesystem::path StartScenePath;
 
             // Not serialized

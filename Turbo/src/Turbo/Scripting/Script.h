@@ -21,6 +21,9 @@ namespace Turbo
             MonoAssembly* ScriptCoreAssembly = nullptr;
             MonoImage* ScriptCoreAssemblyImage = nullptr;
 
+            MonoAssembly* ProjectAssembly = nullptr;
+            MonoImage* ProjectAssemblyImage = nullptr;
+
             Ref<ScriptClass> EntityBaseClass;
 
             std::unordered_map<UUID, Ref<ScriptInstance>> ScriptInstances;
@@ -36,6 +39,8 @@ namespace Turbo
         static void InvokeEntityOnStart(Entity entity);
         static void InvokeEntityOnUpdate(Entity entity, FTime ts);
 
+        static void LoadProjectAssembly(const std::filesystem::path& path);
+
         static bool ScriptClassExists(const std::string& class_name);
 
         static Scene* GetCurrentScene();
@@ -43,10 +48,11 @@ namespace Turbo
     private:
         static void InitMono();
         static void ShutdownMono();
-        static void LoadAssemblies();
-        static void SetupScriptClasses();
-        static void ReflectAssembly(MonoAssembly* assembly);
+        static void LoadCoreAssembly();
 
-        static MonoAssembly* LoadAssembly(const std::string& path);
+        static void ReflectProjectAssembly();
+        static void PrintAssembly(MonoAssembly* assembly);
+
+        static MonoAssembly* LoadAssembly(const std::filesystem::path& path);
     };
 }

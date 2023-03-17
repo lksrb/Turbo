@@ -122,7 +122,7 @@ namespace Turbo
 		[FieldOffset(8)] public float b;
 		[FieldOffset(12)] public float a;
 
-		Vector4(float _x, float _y, float _z, float _w)
+		public Vector4(float _x, float _y, float _z, float _w)
 		{
 			r = x = _x;
 			g = y = _y;

@@ -1,8 +1,11 @@
-namespace Turbo
+using Turbo;
+
+namespace Sandbox
 {
-	public class ScriptCoreTest : Entity
+	public class SandboxEntity : Entity
 	{
 		private Rigidbody2DComponent m_Rigidbody;
+		private SpriteRendererComponent m_SpriteRenderer;
 
 		public float m_Speed = 10.0f;
 
@@ -17,11 +20,15 @@ namespace Turbo
 
 			m_Rigidbody = GetComponent<Rigidbody2DComponent>();
 			m_Rigidbody.Gravity = false;
+
+			m_SpriteRenderer = GetComponent<SpriteRendererComponent>();
+
+			//m_SpriteRenderer.Color = new Vector4(0, 1, 1, 1);
 		}
 
 		void OnUpdate(float ts)
 		{
-			if(Input.IsKeyPressed(KeyCode.W))
+			if (Input.IsKeyPressed(KeyCode.W))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Up * m_Speed * ts);
 			}

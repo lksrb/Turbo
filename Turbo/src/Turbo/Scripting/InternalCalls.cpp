@@ -2,6 +2,7 @@
 #include "InternalCalls.h"
 
 #include "Script.h"
+#include "Turbo/Physics/Physics2D.h"
 
 #include "Turbo/Core/Input.h"
 #include "Turbo/Scene/Entity.h"
@@ -9,7 +10,6 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 
-#include <box2d/b2_body.h>
 
 #define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, name);
 
@@ -68,17 +68,14 @@ namespace Turbo
     {
         return Input::IsKeyPressed(key);
     }
-
     static inline bool Input_IsKeyReleased(uint32_t key)
     {
         return Input::IsKeyReleased(key);
     }
-
     static inline bool Input_IsMouseButtonPressed(uint32_t key)
     {
         return Input::IsMouseButtonPressed(key);
     }
-
     static inline bool Input_IsMouseButtonReleased(uint32_t key)
     {
         return Input::IsMouseButtonReleased(key);
@@ -103,7 +100,6 @@ namespace Turbo
 
         return entity.GetUUID();
     }
-
     static MonoObject* Entity_Instance_Get(UUID uuid)
     {
         Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
@@ -111,7 +107,6 @@ namespace Turbo
 
         return instance->GetInstance();
     }
-
     static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflection_type)
     {
         Scene* context = Script::GetCurrentScene();
@@ -199,6 +194,28 @@ namespace Turbo
 
     #pragma endregion
 
+    #pragma region SpriteRendererComponent
+
+    static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* out_color)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        *out_color = entity.GetComponent<SpriteRendererComponent>().Color;
+    }
+    static void Component_SpriteRenderer_Set_Color(UUID uuid, glm::vec4* color)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        entity.GetComponent<SpriteRendererComponent>().Color = *color;
+    }
+    #pragma endregion
+
     #pragma region RigidBody2DComponent
 
     static void Component_Rigidbody2D_ApplyLinearImpulse(UUID uuid, glm::vec2* impulse, glm::vec2* worldPosition, bool wake)
@@ -211,7 +228,6 @@ namespace Turbo
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
         body->ApplyLinearImpulse(b2Vec2(impulse->x, impulse->y), b2Vec2(worldPosition->x, worldPosition->y), wake);
     }
-
     static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(UUID uuid, glm::vec2* impulse, bool wake)
     {
         Scene* scene = Script::GetCurrentScene();
@@ -222,7 +238,6 @@ namespace Turbo
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
         body->ApplyLinearImpulseToCenter(b2Vec2(impulse->x, impulse->y), wake);
     }
-
     static void Component_Rigidbody2D_ApplyTorque(UUID uuid, float torque, bool wake)
     {
         Scene* scene = Script::GetCurrentScene();
@@ -241,10 +256,9 @@ namespace Turbo
         TBO_ENGINE_ASSERT(entity);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        b2Body* body = reinterpret_cast<b2Body*>(rb2d.RuntimeBody);
         return body->GetGravityScale() != 0.0f;
     }
-
     static void Component_Rigidbody2D_Set_Gravity(UUID uuid, bool gravity)
     {
         Scene* scene = Script::GetCurrentScene();
@@ -256,12 +270,32 @@ namespace Turbo
         body->SetGravityScale(gravity ? 1.0f : 0.0f);
     }
 
+    static Rigidbody2DComponent::BodyType Component_Rigidbody2D_Get_BodyType(UUID uuid)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = reinterpret_cast<b2Body*>(rb2d.RuntimeBody);
+        return Utils::Rigidbody2DTypeFromBox2DBody(body->GetType());
+    }
+
+    static void Component_Rigidbody2D_Set_BodyType(UUID uuid, Rigidbody2DComponent::BodyType type)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = reinterpret_cast<b2Body*>(rb2d.RuntimeBody);
+        body->SetType(Utils::Rigidbody2DTypeToBox2DBody(type));
+    }
+
     #pragma endregion
 
-    #pragma region BoxCollider2D
+    #pragma region BoxCollider2DComponent
 
-    // Offset
-    // Offset
     // Offset
     static void Component_BoxCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
     {
@@ -272,7 +306,6 @@ namespace Turbo
 
         *outOffset = entity.GetComponent<BoxCollider2DComponent>().Offset;
     }
-
     static void Component_BoxCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
     {
         Scene* context = Script::GetCurrentScene();
@@ -284,8 +317,6 @@ namespace Turbo
     }
 
     // Size
-    // Size
-    // Size
     static void Component_BoxCollider2D_Get_Size(UUID uuid, glm::vec2* outSize)
     {
         Scene* context = Script::GetCurrentScene();
@@ -295,7 +326,6 @@ namespace Turbo
 
         *outSize = entity.GetComponent<BoxCollider2DComponent>().Size;
     }
-
     static void Component_BoxCollider2D_Set_Size(UUID uuid, glm::vec2* size)
     {
         Scene* context = Script::GetCurrentScene();
@@ -306,6 +336,60 @@ namespace Turbo
         entity.GetComponent<BoxCollider2DComponent>().Size = *size;
     }
 
+    // Sensor
+    static bool Component_BoxCollider2D_Get_IsSensor(UUID uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        return entity.GetComponent<BoxCollider2DComponent>().IsSensor;
+    }
+
+    #pragma endregion
+
+    #pragma region CircleCollider2DComponent
+
+    // Offset
+    static void Component_CircleCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        *outOffset = entity.GetComponent<CircleCollider2DComponent>().Offset;
+    }
+    static void Component_CircleCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        entity.GetComponent<CircleCollider2DComponent>().Offset = *offset;
+    }
+
+    // Radius
+    static float Component_CircleCollider2D_Get_Radius(UUID uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        return entity.GetComponent<CircleCollider2DComponent>().Radius;
+    }
+    static void Component_CircleCollider2D_Set_Radius(UUID uuid, f32* radius)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        entity.GetComponent<CircleCollider2DComponent>().Radius = *radius;
+    }
     #pragma endregion
 
     void InternalCalls::Init()
@@ -330,17 +414,31 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Transform_Get_Scale);
         TBO_REGISTER_FUNCTION(Component_Transform_Set_Scale);
 
-        // Physics
+        // SpriteRenderer
+        TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Get_Color);
+        TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Set_Color);
+
+        // RigidBody2D
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulse);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulseToCenter);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyTorque);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_Gravity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_Gravity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_BodyType);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_BodyType);
         
+        // BoxCollider2D
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Offset);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Offset);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Size);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Size);
+        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_IsSensor);
+
+        // CircleCollider2D
+        TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_Offset);
+        TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_Offset);
+        TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_Radius);
+        TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_Radius);
 
         // Register components in AllComponents struct
         RegisterComponents();

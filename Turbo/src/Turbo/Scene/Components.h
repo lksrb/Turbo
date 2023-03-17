@@ -76,7 +76,7 @@ namespace Turbo
     // Physics
     struct Rigidbody2DComponent
     {
-        enum class BodyType { Static = 0, Dynamic, Kinematic };
+        enum class BodyType : u32 { Static = 0, Dynamic, Kinematic };
         BodyType Type = BodyType::Dynamic;
         bool FixedRotation = false;
         bool Gravity = true;
