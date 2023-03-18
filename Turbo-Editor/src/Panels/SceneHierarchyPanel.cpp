@@ -9,6 +9,52 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#define TBO_TYPEFUNC(debug_name, TYPE, UI_FUNC, ...)        \
+[](const std::string& name, ScriptFieldInstance& instance)  \
+{                                                           \
+     TYPE data = instance.GetValue<TYPE>();                 \
+     if(UI_FUNC(name.c_str(), &data, __VA_ARGS__))          \
+     {                                                      \
+         instance.SetValue<TYPE>(data);                     \
+     }                                                      \
+}                                                           
+
+#define TBO_TYPEFUNC_COMPLEX(debug_name, TYPE, UI_FUNC, ...)\
+[](const std::string& name, ScriptFieldInstance& instance)  \
+{                                                           \
+     TYPE data = instance.GetValue<TYPE>();                 \
+     if(UI_FUNC(name.c_str(), &data[0], __VA_ARGS__))       \
+     {                                                      \
+         instance.SetValue<TYPE>(data);                     \
+     }                                                      \
+}                                                           
+
+#define TBO_TYPEFUNC_EMPTY(debug_name) \
+[](const std::string& name, ScriptFieldInstance& instance) {}
+
+#define TBO_TYPEFUNC2_EMPTY(debug_name) \
+[](const std::string& name, Ref<ScriptInstance>& instance) {}
+
+#define TBO_TYPEFUNC2(debug_name, TYPE, UI_FUNC, ...)       \
+[](const std::string& name, Ref<ScriptInstance>& instance)  \
+{                                                           \
+    TYPE data = instance->GetFieldValue<TYPE>(name);        \
+    if (UI_FUNC(name.c_str(), &data, __VA_ARGS__))          \
+    {                                                       \
+        instance->SetFieldValue<TYPE>(name, &data);         \
+    }                                                       \
+}
+
+#define TBO_TYPEFUNC2_COMPLEX(debug_name, TYPE, UI_FUNC, ...)\
+[](const std::string& name, Ref<ScriptInstance>& instance)   \
+{                                                            \
+    TYPE data = instance->GetFieldValue<TYPE>(name);         \
+    if (UI_FUNC(name.c_str(), &data[0], __VA_ARGS__))           \
+    {                                                        \
+        instance->SetFieldValue<TYPE>(name, &data);          \
+    }                                                        \
+}    
+
 namespace Turbo::Ed
 {
     namespace Utils
@@ -128,137 +174,21 @@ namespace Turbo::Ed
         {
             static std::array<std::function<void(const std::string& name, ScriptFieldInstance& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsNSR =
             {
-                // Float
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    f32 data = instance.GetValue<f32>();
-                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                    {
-                        instance.SetValue<f32>(data);
-                    }
-                },
-                // Double
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    f32 data = instance.GetValue<f32>(); // We convert double to float, because float is faster
-                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                    {
-                        instance.SetValue<f32>(data);
-                    }
-                },
-                // Bool
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    bool data = instance.GetValue<bool>();
-                    if (ImGui::Checkbox(name.c_str(), &data))
-                    {
-                        instance.SetValue<bool>(data);
-                    }
-                },
-                // Char
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    // Nothing for char for now
-                },
-                // Integer
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    i32 data = instance.GetValue<i32>();
-                    if (UI::DragInt(name.c_str(), &data, 0.01f))
-                    {
-                        instance.SetValue<i32>(data);
-                    }
-                },
-                // Unsigned Integer
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    u32 data = instance.GetValue<u32>();
-                    if (UI::DragUInt(name.c_str(), &data, 1.0f))
-                    {
-                        instance.SetValue<u32>(data);
-                    }
-                },
-                // Short - behaves like int, just smaller boundaries
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    i32 data = instance.GetValue<i32>();
-                    if (UI::DragInt(name.c_str(), &data, 1.0f))
-                    {
-                        instance.SetValue<i32>(data);
-                    }
-                },
-                // Unsigned Short - behaves like unsigned int, just smaller boundaries
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    u32 data = instance.GetValue<u32>();
-                    if (UI::DragUInt(name.c_str(), &data, 1.0f))
-                    {
-                        instance.SetValue<u32>(data);
-                    }
-                },
-                // Long
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    i64 data = instance.GetValue<i64>();
-                    if (UI::DragLong(name.c_str(), &data, 1.0f))
-                    {
-                        instance.SetValue<i64>(data);
-                    }
-                },
-                // Unsigned Long
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    u64 data = instance.GetValue<u64>();
-                    if (UI::DragULong(name.c_str(), &data, 1.0f))
-                    {
-                        instance.SetValue<u64>(data);
-                    }
-                },
-                // Byte
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    char data = instance.GetValue<char>();
-                    if (UI::DragByte(name.c_str(), &data, 1.0f, 5))
-                    {
-                        instance.SetValue<char>(data);
-                    }
-                },
-                // Unsigned Byte
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    unsigned char data = instance.GetValue<unsigned char>();
-                    if (UI::DragUByte(name.c_str(), &data, 1.0f))
-                    {
-                        instance.SetValue<u8>(data);
-                    }
-                },
-                // Vector2
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    glm::vec2 data = instance.GetValue<glm::vec2>();
-                    if (ImGui::DragFloat2(name.c_str(), &data[0], 0.01f))
-                    {
-                        instance.SetValue<glm::vec2>(data);
-                    }
-                },
-                // Vector3
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    glm::vec3 data = instance.GetValue<glm::vec3>();
-                    if (ImGui::DragFloat3(name.c_str(), &data[0], 0.01f))
-                    {
-                        instance.SetValue<glm::vec3>(data);
-                    }
-                },
-                // Vector4
-                [](const std::string& name, ScriptFieldInstance& instance)
-                {
-                    glm::vec4 data = instance.GetValue<glm::vec4>();
-                    if (ImGui::DragFloat4(name.c_str(), &data[0], 0.01f))
-                    {
-                        instance.SetValue<glm::vec4>(data);
-                    }
-                },
+                TBO_TYPEFUNC("Float",  f32, ImGui::DragFloat, 0.01f),
+                TBO_TYPEFUNC("Double", f32, ImGui::DragFloat, 0.01f),
+                TBO_TYPEFUNC("Bool",  bool, ImGui::Checkbox),
+                TBO_TYPEFUNC_EMPTY("Char"),
+                TBO_TYPEFUNC("Integer", i32, UI::DragInt, 0.1f),
+                TBO_TYPEFUNC("Unsigned Integer", u32, UI::DragUInt, 0.1f),
+                TBO_TYPEFUNC("Short", i32, UI::DragInt, 0.1f),
+                TBO_TYPEFUNC("Unsigned Short", u32, UI::DragUInt, 0.1f),
+                TBO_TYPEFUNC("Long", i64, UI::DragLong, 0.1f),
+                TBO_TYPEFUNC("Unsigned Long", u64, UI::DragULong, 0.1f),
+                TBO_TYPEFUNC("Byte", char, UI::DragByte, 0.1f),
+                TBO_TYPEFUNC("Unsigned Byte", unsigned char, UI::DragUByte, 0.1f),
+                TBO_TYPEFUNC_COMPLEX("Vector2", glm::vec2, ImGui::DragFloat2, 0.1f),
+                TBO_TYPEFUNC_COMPLEX("Vector3", glm::vec3, ImGui::DragFloat3, 0.1f),
+                TBO_TYPEFUNC_COMPLEX("Vector4", glm::vec4, ImGui::DragFloat4, 0.1f),
             };
 
             u32 type = static_cast<u32>(field_type);
@@ -273,33 +203,21 @@ namespace Turbo::Ed
         {
             static std::array<std::function<void(const std::string& name, Ref<ScriptInstance>& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsSR =
             {
-                // Float
-                [](const std::string& name, Ref<ScriptInstance>& instance)
-                {
-                    f32 data = instance->GetFieldValue<f32>(name);
-                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                    {
-                        instance->SetFieldValue<f32>(name, &data);
-                    }
-                },
-                // Double
-                [](const std::string& name, Ref<ScriptInstance>& instance)
-                {
-                    f32 data = instance->GetFieldValue<f32>(name); // We convert double to float, because float is faster
-                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                    {
-                        instance->SetFieldValue<f32>(name, &data);
-                    }
-                },
-                // Bool
-                [](const std::string& name, Ref<ScriptInstance>& instance)
-                {
-                    bool data = instance->GetFieldValue<bool>(name);
-                    if (ImGui::Checkbox(name.c_str(), &data))
-                    {
-                        instance->SetFieldValue<bool>(name, &data);
-                    }
-                },
+                TBO_TYPEFUNC2("Float", f32, ImGui::DragFloat, 0.01f),
+                TBO_TYPEFUNC2("Double", f32, ImGui::DragFloat, 0.01f),
+                TBO_TYPEFUNC2("Bool", bool, ImGui::Checkbox),
+                TBO_TYPEFUNC2_EMPTY("Char"),
+                TBO_TYPEFUNC2("Integer", i32, UI::DragInt, 0.1f),
+                TBO_TYPEFUNC2("Unsigned Integer", u32, UI::DragUInt, 0.1f),
+                TBO_TYPEFUNC2("Short", i32, UI::DragInt, 0.1f),
+                TBO_TYPEFUNC2("Unsigned Short", u32, UI::DragUInt, 0.1f),
+                TBO_TYPEFUNC2("Long", i64, UI::DragLong, 0.1f),
+                TBO_TYPEFUNC2("Unsigned Long", u64, UI::DragULong, 0.1f),
+                TBO_TYPEFUNC2("Byte", char, UI::DragByte, 0.1f),
+                TBO_TYPEFUNC2("Unsigned Byte", unsigned char, UI::DragUByte, 0.1f),
+                TBO_TYPEFUNC2_COMPLEX("Vector2", glm::vec2, ImGui::DragFloat2, 0.1f),
+                TBO_TYPEFUNC2_COMPLEX("Vector3", glm::vec3, ImGui::DragFloat3, 0.1f),
+                TBO_TYPEFUNC2_COMPLEX("Vector4", glm::vec4, ImGui::DragFloat4, 0.1f),
             };
 
             u32 type = static_cast<u32>(field_type);

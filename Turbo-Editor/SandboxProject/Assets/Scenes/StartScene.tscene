@@ -1,23 +1,64 @@
 Scene: StartScene
 Entities:
-  - Entity: 2511981452619357033
+  - Entity: 1445474774719227887
     TagComponent:
-      Tag: Camera
+      Tag: Sprite
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [0, 2.94921875, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 1
-      Primary: true
-      FixedAspectRatio: false
+    SpriteRendererComponent:
+      Color: [0.800000012, 0.100000001, 0.200000003, 1]
+      TexturePath: None
+    ScriptComponent:
+      ClassName: Sandbox.SandboxEntity
+      Fields:
+        - Name: m_Bool
+          Type: Bool
+          Data: false
+        - Name: m_Float
+          Type: Float
+          Data: 3.75999999
+        - Name: m_UnsignedLong
+          Type: ULong
+          Data: 15
+        - Name: m_Double
+          Type: Double
+          Data: 5.2254146370306194e-315
+        - Name: m_Int
+          Type: Int
+          Data: 591
+        - Name: m_Byte
+          Type: Byte
+          Data: -128
+        - Name: m_UnsignedInt
+          Type: UInt
+          Data: 32
+        - Name: m_Long
+          Type: Long
+          Data: -80
+        - Name: m_UnsignedByte
+          Type: UByte
+          Data: 32
+        - Name: m_Vector2
+          Type: Vector2
+          Data: [3.0999999, -11.1999998]
+        - Name: m_Vector3
+          Type: Vector3
+          Data: [14.1999998, 11.3000002, 10.1999998]
+        - Name: m_Vector4
+          Type: Vector4
+          Data: [7.4000001, 4.5999999, 12.5, 5.4000001]
+    Rigidbody2DComponent:
+      BodyType: Dynamic
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
   - Entity: 12425978561696158902
     TagComponent:
       Tag: Ground
@@ -38,32 +79,21 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 1445474774719227887
+  - Entity: 2511981452619357033
     TagComponent:
-      Tag: Sprite
+      Tag: Camera
     TransformComponent:
-      Translation: [0, 2.94921875, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.800000012, 0.100000001, 0.200000003, 1]
-      TexturePath: None
-    ScriptComponent:
-      ClassName: Sandbox.SandboxEntity
-      Fields:
-        - Name: m_Speed
-          Type: Float
-          Data: 4.94000006
-        - Name: m_Input
-          Type: Bool
-          Data: true
-    Rigidbody2DComponent:
-      BodyType: Dynamic
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
