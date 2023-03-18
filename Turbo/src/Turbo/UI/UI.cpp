@@ -1,8 +1,6 @@
 #include "tbopch.h"
 #include "UI.h"
 
-#include <algorithm>
-
 #include "TurboImGui.h"
 
 #include "Turbo/Renderer/RendererContext.h"
@@ -37,17 +35,6 @@ namespace Turbo
 
     bool UI::DragUByte(const char* label, unsigned char* v, float v_speed , unsigned char v_min , unsigned char v_max , const char* format, ImGuiSliderFlags flags)
     {
-/*
-
-        ImGui::DragIntRange2()
-
-        int x = 5;
-        int lower_bound = 0;
-        int upper_bound = 10;
-
-        // Keep x within the range [lower_bound, upper_bound]
-        int clamped_x = std::clamp(x, 0, upper_bound);*/
-
         return ImGui::DragScalar(label, ImGuiDataType_U8, v, v_speed, &v_min, &v_max, format, flags);
     }
 
