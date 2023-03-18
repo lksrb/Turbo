@@ -6,7 +6,7 @@
 #include "Turbo/Scene/SceneCamera.h"
 #include "Turbo/Renderer/SceneRenderer.h"
 #include "Turbo/Scene/Entity.h"
-#include "Turbo/Scripting/Script.h"
+#include "Turbo/Script/Script.h"
 
 #include <box2d/b2_world.h>
 #include <box2d/b2_body.h>
@@ -115,6 +115,8 @@ namespace Turbo
             Entity entity = { e, this };
             Script::InvokeEntityOnStart(entity);
         }
+
+        m_Running = true;
     }
 
     void Scene::OnRuntimeStop()
@@ -123,6 +125,8 @@ namespace Turbo
 
         delete m_PhysicsWorld;
         m_PhysicsWorld = nullptr;
+
+        m_Running = false;
     }
 
     void Scene::OnRuntimeUpdate(FTime ts)

@@ -5,7 +5,7 @@
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
 
-#include <Turbo/Scripting/Script.h>
+#include <Turbo/Script/Script.h>
 #include <Turbo/Solution/ProjectSerializer.h>
 #include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Benchmark/ScopeTimer.h>
@@ -540,6 +540,9 @@ namespace Turbo::Ed
 
         m_EditorScenePath = config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath;
         
+        // Load project assembly
+        Script::LoadProjectAssembly(g_AssetPath / project->GetConfig().ScriptModulePath);
+
         // Create and deserialize scene
         m_EditorScene = Ref<Scene>::Create();
         SceneSerializer serializer(m_EditorScene);
@@ -553,9 +556,6 @@ namespace Turbo::Ed
 
         // Reset selected entity
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity();
-
-        // Load project assembly
-        Script::LoadProjectAssembly(g_AssetPath / project->GetConfig().ScriptModulePath);
 
         UpdateWindowTitle();
     }

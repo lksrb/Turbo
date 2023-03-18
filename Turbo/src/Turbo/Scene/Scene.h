@@ -57,6 +57,8 @@ namespace Turbo
         Entity FindEntityByUUID(UUID uuid);
         Entity FindEntityByName(const std::string& name);
 
+        bool IsRunning() const { return m_Running; }
+
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:

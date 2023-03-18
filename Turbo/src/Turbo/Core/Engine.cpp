@@ -7,7 +7,7 @@
 #include "Turbo/Core/Platform.h"
 
 #include "Turbo/Renderer/Renderer.h"
-#include "Turbo/Scripting/Script.h"
+#include "Turbo/Script/Script.h"
 
 #include <filesystem>
 #include <future>

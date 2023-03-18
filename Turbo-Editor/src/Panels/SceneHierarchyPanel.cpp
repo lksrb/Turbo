@@ -3,10 +3,10 @@
 
 #include "Turbo/Renderer/Texture2D.h"
 
-#include "Turbo/Scripting/Script.h"
+#include "Turbo/Script/Script.h"
 
-#include <imgui.h>
-#include <imgui_internal.h>
+#include "Turbo/UI/UI.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Turbo::Ed
@@ -58,7 +58,6 @@ namespace Turbo::Ed
                 }
             }
         }
-
         static void DrawVec3Control(const std::string& label, glm::vec3* values, float resetValue = 0.0f, float columnWidth = 100.0f)
         {
             ImGuiIO& io = ImGui::GetIO();
@@ -124,7 +123,194 @@ namespace Turbo::Ed
 
             ImGui::PopID();
         }
+
+        static void CallTypeSpecificFunctionNoSceneRunning(ScriptFieldType field_type, const std::string& name, ScriptFieldInstance& instance)
+        {
+            static std::array<std::function<void(const std::string& name, ScriptFieldInstance& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsNSR =
+            {
+                // Float
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    f32 data = instance.GetValue<f32>();
+                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
+                    {
+                        instance.SetValue<f32>(data);
+                    }
+                },
+                // Double
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    f32 data = instance.GetValue<f32>(); // We convert double to float, because float is faster
+                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
+                    {
+                        instance.SetValue<f32>(data);
+                    }
+                },
+                // Bool
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    bool data = instance.GetValue<bool>();
+                    if (ImGui::Checkbox(name.c_str(), &data))
+                    {
+                        instance.SetValue<bool>(data);
+                    }
+                },
+                // Char
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    // Nothing for char for now
+                },
+                // Integer
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    i32 data = instance.GetValue<i32>();
+                    if (UI::DragInt(name.c_str(), &data, 0.01f))
+                    {
+                        instance.SetValue<i32>(data);
+                    }
+                },
+                // Unsigned Integer
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    u32 data = instance.GetValue<u32>();
+                    if (UI::DragUInt(name.c_str(), &data, 1.0f))
+                    {
+                        instance.SetValue<u32>(data);
+                    }
+                },
+                // Short - behaves like int, just smaller boundaries
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    i32 data = instance.GetValue<i32>();
+                    if (UI::DragInt(name.c_str(), &data, 1.0f))
+                    {
+                        instance.SetValue<i32>(data);
+                    }
+                },
+                // Unsigned Short - behaves like unsigned int, just smaller boundaries
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    u32 data = instance.GetValue<u32>();
+                    if (UI::DragUInt(name.c_str(), &data, 1.0f))
+                    {
+                        instance.SetValue<u32>(data);
+                    }
+                },
+                // Long
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    i64 data = instance.GetValue<i64>();
+                    if (UI::DragLong(name.c_str(), &data, 1.0f))
+                    {
+                        instance.SetValue<i64>(data);
+                    }
+                },
+                // Unsigned Long
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    u64 data = instance.GetValue<u64>();
+                    if (UI::DragULong(name.c_str(), &data, 1.0f))
+                    {
+                        instance.SetValue<u64>(data);
+                    }
+                },
+                // Byte
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    char data = instance.GetValue<char>();
+                    if (UI::DragByte(name.c_str(), &data, 1.0f, 5))
+                    {
+                        instance.SetValue<char>(data);
+                    }
+                },
+                // Unsigned Byte
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    unsigned char data = instance.GetValue<unsigned char>();
+                    if (UI::DragUByte(name.c_str(), &data, 1.0f))
+                    {
+                        instance.SetValue<u8>(data);
+                    }
+                },
+                // Vector2
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    glm::vec2 data = instance.GetValue<glm::vec2>();
+                    if (ImGui::DragFloat2(name.c_str(), &data[0], 0.01f))
+                    {
+                        instance.SetValue<glm::vec2>(data);
+                    }
+                },
+                // Vector3
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    glm::vec3 data = instance.GetValue<glm::vec3>();
+                    if (ImGui::DragFloat3(name.c_str(), &data[0], 0.01f))
+                    {
+                        instance.SetValue<glm::vec3>(data);
+                    }
+                },
+                // Vector4
+                [](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    glm::vec4 data = instance.GetValue<glm::vec4>();
+                    if (ImGui::DragFloat4(name.c_str(), &data[0], 0.01f))
+                    {
+                        instance.SetValue<glm::vec4>(data);
+                    }
+                },
+            };
+
+            u32 type = static_cast<u32>(field_type);
+
+            TBO_ENGINE_ASSERT(type < s_TypeFunctionsNSR.size());
+
+            // Call type specific function
+            s_TypeFunctionsNSR[type](name, instance);
+        }
+
+        static void CallTypeSpecificFunctionSceneRunning(ScriptFieldType field_type, const std::string& name, Ref<ScriptInstance> instance)
+        {
+            static std::array<std::function<void(const std::string& name, Ref<ScriptInstance>& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsSR =
+            {
+                // Float
+                [](const std::string& name, Ref<ScriptInstance>& instance)
+                {
+                    f32 data = instance->GetFieldValue<f32>(name);
+                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
+                    {
+                        instance->SetFieldValue<f32>(name, &data);
+                    }
+                },
+                // Double
+                [](const std::string& name, Ref<ScriptInstance>& instance)
+                {
+                    f32 data = instance->GetFieldValue<f32>(name); // We convert double to float, because float is faster
+                    if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
+                    {
+                        instance->SetFieldValue<f32>(name, &data);
+                    }
+                },
+                // Bool
+                [](const std::string& name, Ref<ScriptInstance>& instance)
+                {
+                    bool data = instance->GetFieldValue<bool>(name);
+                    if (ImGui::Checkbox(name.c_str(), &data))
+                    {
+                        instance->SetFieldValue<bool>(name, &data);
+                    }
+                },
+            };
+
+            u32 type = static_cast<u32>(field_type);
+
+            TBO_ENGINE_ASSERT(type < s_TypeFunctionsSR.size());
+
+            // Call type specific function
+            s_TypeFunctionsSR[type](name, instance);
+        }
     }
+
 
     extern std::filesystem::path g_AssetPath;
 
@@ -321,7 +507,7 @@ namespace Turbo::Ed
 
                     if (success)
                     {
-                        Ref<Texture2D> texture = Texture2D::Create({ texturePath.string()});
+                        Ref<Texture2D> texture = Texture2D::Create({ texturePath.string() });
                         if (texture->IsLoaded())
                             component.Texture = texture;
                         else
@@ -412,101 +598,77 @@ namespace Turbo::Ed
             if (ImGui::InputText("Class", s_ClassNameBuffer, sizeof(s_ClassNameBuffer)))
             {
                 component.ClassName = s_ClassNameBuffer;
-                TBO_INFO(component.ClassName);
             }
 
             if (entityClassExists == false)
                 ImGui::PopStyleColor();
-        });
+
+            // Fields
+            if (m_Context->IsRunning())
+            {
+                Ref<ScriptInstance> instance = Script::FindEntityInstance(entityUUID);
+
+                if (instance)
+                {
+                    auto& fields = instance->GetScriptClass()->GetFields();
+
+                    for (const auto& [name, field] : fields)
+                    {
+                        Utils::CallTypeSpecificFunctionSceneRunning(field.Type, name, instance);
+                    }
+                }
+            }
+            else // Scene is not running
+            {
+                if (entityClassExists)
+                {
+                    Ref<ScriptClass> entityClass = Script::FindEntityClass(component.ClassName);
+
+                    const auto& fields = entityClass->GetFields();
+
+                    auto& entity_fields = Script::GetEntityFieldMap(entityUUID);
+
+                    for (auto& [name, field] : fields)
+                    {
+                        ScriptFieldInstance& field_instance = entity_fields[name];
+                        Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, field_instance);
 #if 0
-        Utils::DrawComponent<ScriptComponent>("Script Component", entity, [&entity, m_Context = m_Context](auto& component)
-          {
-              static char s_ClassNameBuffer[64];
+                        if (entity_fields.find(name) != entity_fields.end())
+                        {
+                            ScriptFieldInstance& field_instance = entity_fields.at(name);
 
-              UUID entityUUID = entity.GetUUID();
-              bool entityClassExists = ScriptEngine::EntityClassExists(component.ClassName);
-
-              strcpy_s(s_ClassNameBuffer, sizeof(s_ClassNameBuffer), component.ClassName.c_str());
-
-              if (entityClassExists == false)
-                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
-
-              if (ImGui::InputText("Class", s_ClassNameBuffer, sizeof(s_ClassNameBuffer)))
-              {
-                  component.ClassName = s_ClassNameBuffer;
-              }
-
-              if (m_Context->IsRunning())
-              {
-                  auto& scriptInstance = Script::FindEntityInstance(entityUUID);
-
-                  if (scriptInstance)
-                  {
-                      auto& fields = scriptInstance->GetScriptClass()->GetFields();
-
-                      for (auto& [name, field] : fields)
-                      {
-                          // TODO: function pointers?
-                          if (field.Type == ClassFieldType::Float)
-                          {
-                              float32_t data = scriptInstance->GetFieldValue<float32_t>(name);
-                              if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                              {
-                                  scriptInstance->SetFieldValue<float32_t>(name, &data);
-                              }
-                          }
-                      }
-                  }
-              }
-              else // Scene is not running
-              {
-                  // TODO: Editor fields
-                  if (entityClassExists)
-                  {
-                      Ref<ScriptClass> entityClass = ScriptEngine::FindEntityClass(component.ClassName);
-
-                      if (entityClass)
-                      {
-                          const auto& fields = entityClass->GetFields();
-
-                          auto& entityFields = ScriptEngine::GetEntityFieldMap(entityUUID);
-                          for (auto& [name, field] : fields)
-                          {
-                              if (entityFields.find(name) != entityFields.end())
-                              {
-                                  ClassFieldInstance& instance = entityFields.at(name);
-
-                                  if (field.Type == ClassFieldType::Float)
-                                  {
-                                      float32_t data = instance.GetValue<float32_t>();
-                                      if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                                      {
-                                          instance.SetValue<float32_t>(data);
-                                      }
-                                  }
-                              }
-                              else
-                              {
-                                  if (field.Type == ClassFieldType::Float)
-                                  {
-                                      float32_t data = 0.0f;
-                                      if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                                      {
-                                          ClassFieldInstance& fieldInstance = entityFields[name];
-                                          fieldInstance.Field = field;
-                                          fieldInstance.SetValue<float32_t>(data);
-                                      }
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-
-              if (entityClassExists == false)
-                  ImGui::PopStyleColor();
-          });
+                            // This is a fast way to remove all the branches
+                            // Function pointers are stored in a vector
+                            Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, field_instance);
+                        }
+                        else
+                        {
+                            if (field.Type == ScriptFieldType::Float)
+                            {
+                                f32 data = 0.0f;
+                                if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
+                                {
+                                    ScriptFieldInstance& field_instance = entity_fields[name];
+                                    field_instance.Field = field;
+                                    field_instance.SetValue<f32>(data);
+                                }
+                            }
+                            else if (field.Type == ScriptFieldType::Bool)
+                            {
+                                // FIXME: Default field values
+                                bool data = false;
+                                if (ImGui::Checkbox(name.c_str(), &data))
+                                {
+                                    field_instance.Field = field;
+                                    field_instance.SetValue<bool>(data);
+                                }
+                            }
+                        }
 #endif
+                    }
+                }
+            }
+        });
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)

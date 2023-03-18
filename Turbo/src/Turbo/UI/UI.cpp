@@ -27,4 +27,35 @@ namespace Turbo
 
         return ImGui::ImageButton(textureID, size, uv0, uv1, frame_padding, bg_col, tint_col);
     }
+
+    bool UI::DragByte(const char* label, char* v, float v_speed /*= 1.0f*/, char v_min /*= 0*/, char v_max /*= 0*/, const char* format /*= "%d"*/, ImGuiSliderFlags flags /*= 0*/)
+    {
+        return ImGui::DragScalar(label, ImGuiDataType_S8, v, v_speed, &v_min, &v_max, format, flags);
+    }
+
+    bool UI::DragUByte(const char* label, unsigned char* v, float v_speed /*= 1.0f*/, unsigned char v_min /*= 0*/, unsigned char v_max /*= 0*/, const char* format /*= "%d"*/, ImGuiSliderFlags flags /*= 0*/)
+    {
+        return ImGui::DragScalar(label, ImGuiDataType_U8, v, v_speed, &v_min, &v_max, format, flags);
+    }
+
+    bool UI::DragInt(const char* label, int* v, float v_speed /*= 1.0f*/, int v_min /*= 0*/, int v_max /*= 0*/, const char* format /*= "%d"*/, ImGuiSliderFlags flags /*= 0*/)
+    {
+        return ImGui::DragScalar(label, ImGuiDataType_S32, v, v_speed, &v_min, &v_max, format, flags);
+    }
+
+    bool UI::DragUInt(const char* label, unsigned int* v, float v_speed, unsigned int v_min, unsigned int v_max, const char* format, ImGuiSliderFlags flags)
+    {
+        return ImGui::DragScalar(label, ImGuiDataType_U32, v, v_speed, &v_min, &v_max, format, flags);
+    }
+
+    bool UI::DragLong(const char* label, long long* v, float v_speed /*= 1.0f*/, long long v_min /*= 0*/, long long v_max /*= 0*/, const char* format /*= "%d"*/, ImGuiSliderFlags flags /*= 0*/)
+    {
+        return ImGui::DragScalar(label, ImGuiDataType_S64, v, v_speed, &v_min, &v_max, format, flags);
+    }
+
+    bool UI::DragULong(const char* label, unsigned long long* v, float v_speed /*= 1.0f*/, unsigned long long v_min /*= 0*/, unsigned long long v_max /*= 0*/, const char* format /*= "%d"*/, ImGuiSliderFlags flags /*= 0*/)
+    {
+        return ImGui::DragScalar(label, ImGuiDataType_U64, v, v_speed, &v_min, &v_max, format, flags);
+    }
+
 }

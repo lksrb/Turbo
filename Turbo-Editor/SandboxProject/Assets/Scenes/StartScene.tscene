@@ -50,6 +50,13 @@ Entities:
       TexturePath: None
     ScriptComponent:
       ClassName: Sandbox.SandboxEntity
+      Fields:
+        - Name: m_Speed
+          Type: Float
+          Data: 4.94000006
+        - Name: m_Input
+          Type: Bool
+          Data: true
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false

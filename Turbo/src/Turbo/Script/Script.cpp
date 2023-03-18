@@ -3,6 +3,7 @@
 
 #include "InternalCalls.h"
 #include "ScriptInstance.h"
+#include "ScriptField.h"
 
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"
@@ -24,6 +25,39 @@ namespace Turbo
 {
     namespace Utils
     {
+        static ScriptFieldType GetFieldType(MonoClassField* field)
+        {
+            static const std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
+            {
+                { "System.Single",  ScriptFieldType::Float },
+                { "System.Double",  ScriptFieldType::Double },
+                { "System.Boolean", ScriptFieldType::Bool },
+                { "System.Char",    ScriptFieldType::Char },
+                { "System.Int16",   ScriptFieldType::Short },
+                { "System.Int32",   ScriptFieldType::Int },
+                { "System.Int64",   ScriptFieldType::Long },
+                { "System.UByte",   ScriptFieldType::Long },
+                { "System.Byte",    ScriptFieldType::Byte },
+                { "System.UInt16",  ScriptFieldType::UShort },
+                { "System.UInt32",  ScriptFieldType::UInt },
+                { "System.UInt64",  ScriptFieldType::ULong },
+                { "Turbo.Entity",   ScriptFieldType::Entity },
+                { "Turbo.Vector2",  ScriptFieldType::Vector2 },
+                { "Turbo.Vector3",  ScriptFieldType::Vector3 },
+                { "Turbo.Vector4",  ScriptFieldType::Vector4 }
+            };
+
+            MonoType* type = mono_field_get_type(field);
+            TBO_ENGINE_TRACE(mono_field_get_name(field));
+            auto& it = s_ScriptFieldTypeMap.find(mono_type_get_name(type));
+
+            if (it != s_ScriptFieldTypeMap.end())
+                return it->second;
+
+            return ScriptFieldType::None;
+
+        }
+
         static char* ReadBytes(const std::string& path, u32* out_size)
         {
             // std::ios::ate - seeks end of file
@@ -99,11 +133,23 @@ namespace Turbo
     void Script::InvokeEntityOnStart(Entity entity)
     {
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        UUID uuid = id.ID;
 
         Ref<ScriptClass> script_class = g_Data->ScriptClasses.at(script.ClassName);
 
-        Ref<ScriptInstance>& instance = g_Data->ScriptInstances[id.ID];
-        instance = Ref<ScriptInstance>::Create(script_class, id.ID);
+        Ref<ScriptInstance>& instance = g_Data->ScriptInstances[uuid];
+        instance = Ref<ScriptInstance>::Create(script_class, uuid);
+
+        // Copy fields
+        if (g_Data->EntityScriptFieldInstances.find(uuid) != g_Data->EntityScriptFieldInstances.end())
+        {
+            const ScriptFieldInstanceMap& fieldMap = g_Data->EntityScriptFieldInstances.at(uuid);
+            for (const auto& [name, fieldInstance] : fieldMap)
+            {
+                instance->SetFieldValueInternal(name, fieldInstance.Buffer);
+            }
+        }
+
         instance->InvokeOnStart();
     }
 
@@ -111,6 +157,11 @@ namespace Turbo
     {
         auto& id = entity.GetComponents<IDComponent>();
         g_Data->ScriptInstances.at(id.ID)->InvokeOnUpdate(ts);
+    }
+
+    Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)
+    {
+        return g_Data->EntityScriptFieldInstances[uuid];
     }
 
     void Script::LoadProjectAssembly(const std::filesystem::path& path)
@@ -170,26 +221,26 @@ namespace Turbo
                 if (has_entity_base == false)
                     continue;
 
-                g_Data->ScriptClasses[full_name] = Ref<ScriptClass>::Create(klass, g_Data->EntityBaseClass);
-                /*
+                Ref<ScriptClass>& script_class = g_Data->ScriptClasses[full_name];
+                script_class = Ref<ScriptClass>::Create(klass, g_Data->EntityBaseClass);
+
                 // Iterate through all fields in a class
 
                 void* iter = nullptr;
-                while (MonoClassField* monoField = mono_class_get_fields(klass, &iter))
+                while (MonoClassField* mono_field = mono_class_get_fields(klass, &iter))
                 {
-                    const char* fieldName = mono_field_get_name(monoField);
-                    ClassFieldType fieldType = UTILS::GetFieldValueType(monoField);
-                    ClassFieldAccessFlags accessFlag = UTILS::GetFieldAccessMask(monoField);
+                    const char* field_name = mono_field_get_name(mono_field);
+                    u32 access_flags = mono_field_get_flags(mono_field);
 
-                    if (accessFlag & ClassFieldAccessFlags_Public)
+                    if (access_flags & MONO_FIELD_ATTR_PUBLIC)
                     {
-                        auto& field = scriptClass->m_ClassFieldMap[fieldName];
-                        field.MonoField = monoField;
-                        field.Type = fieldType;
+                        ScriptField& field = script_class->m_ScriptFields[field_name];
+                        field.MonoField = mono_field;
+                        field.Type = Utils::GetFieldType(mono_field);
 
-                        PG_CORE_TRACE("[ScriptEngine][Mono] {0}", fieldName);
+                        TBO_ENGINE_TRACE("[Mono-Reflect-ClassFields]: public [FieldType] {0}", field_name);
                     }
-                }*/
+                }
             }
         }
     }
@@ -255,7 +306,7 @@ namespace Turbo
 
                 const std::string& klass = fmt::format("{0}.{1}", namespace_name, class_name);
 
-                TBO_ENGINE_INFO("[Mono-Reflect]: {0}", klass);
+                TBO_ENGINE_TRACE("[Mono-Reflect]: {0}", klass);
             }
         }
     }
@@ -287,6 +338,16 @@ namespace Turbo
         auto& it = g_Data->ScriptInstances.find(uuid);
 
         if (it == g_Data->ScriptInstances.end())
+            return nullptr;
+
+        return it->second;
+    }
+
+    Ref<ScriptClass> Script::FindEntityClass(const std::string& name)
+    {
+        auto& it = g_Data->ScriptClasses.find(name);
+
+        if (it == g_Data->ScriptClasses.end())
             return nullptr;
 
         return it->second;
