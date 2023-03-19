@@ -9,6 +9,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#pragma region Defines
+
 #define TBO_TYPEFUNC(debug_name, TYPE, UI_FUNC, ...)        \
 [](const std::string& name, ScriptFieldInstance& instance)  \
 {                                                           \
@@ -49,11 +51,13 @@
 [](const std::string& name, Ref<ScriptInstance>& instance)   \
 {                                                            \
     TYPE data = instance->GetFieldValue<TYPE>(name);         \
-    if (UI_FUNC(name.c_str(), &data[0], __VA_ARGS__))           \
+    if (UI_FUNC(name.c_str(), &data[0], __VA_ARGS__))        \
     {                                                        \
         instance->SetFieldValue<TYPE>(name, &data);          \
     }                                                        \
 }    
+
+#pragma endregion
 
 namespace Turbo::Ed
 {
@@ -198,7 +202,6 @@ namespace Turbo::Ed
             // Call type specific function
             s_TypeFunctionsNSR[type](name, instance);
         }
-
         static void CallTypeSpecificFunctionSceneRunning(ScriptFieldType field_type, const std::string& name, Ref<ScriptInstance> instance)
         {
             static std::array<std::function<void(const std::string& name, Ref<ScriptInstance>& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsSR =
@@ -228,7 +231,6 @@ namespace Turbo::Ed
             s_TypeFunctionsSR[type](name, instance);
         }
     }
-
 
     extern std::filesystem::path g_AssetPath;
 
@@ -550,7 +552,7 @@ namespace Turbo::Ed
                     {
                         ScriptFieldInstance& field_instance = entity_fields[name];
                         Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, field_instance);
-#if 0
+#if OLD
                         if (entity_fields.find(name) != entity_fields.end())
                         {
                             ScriptFieldInstance& field_instance = entity_fields.at(name);
