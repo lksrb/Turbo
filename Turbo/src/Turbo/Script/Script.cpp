@@ -48,7 +48,6 @@ namespace Turbo
             };
 
             MonoType* type = mono_field_get_type(field);
-            TBO_ENGINE_TRACE(mono_field_get_name(field));
             auto& it = s_ScriptFieldTypeMap.find(mono_type_get_name(type));
 
             if (it != s_ScriptFieldTypeMap.end())

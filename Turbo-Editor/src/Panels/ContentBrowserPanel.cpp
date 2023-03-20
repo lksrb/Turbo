@@ -1,6 +1,8 @@
 #include "ContentBrowserPanel.h"
 
 #include <Turbo/UI/UI.h>
+#include <Turbo/Core/Platform.h>
+#include <Turbo/Solution/Project.h>
 
 #include <filesystem>
 
@@ -55,10 +57,11 @@ namespace Turbo::Ed
             UI::ImageButton(icon, { thumbnail_size, thumbnail_size }, { 0,1 }, { 1,0 });
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
+                const wchar_t* item_path = path.c_str();
+                size_t item_path_size = (wcslen(item_path) + 1) * sizeof(wchar_t);
                 if (path.extension() == ".tscene")
                 {
-                    const wchar_t* itemPath = path.c_str();
-                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Always);
+                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", item_path, item_path_size, ImGuiCond_Always);
                 }
                 ImGui::EndDragDropSource();
             }
@@ -68,7 +71,30 @@ namespace Turbo::Ed
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
             {
                 if (directoryEntry.is_directory())
+                {
                     m_CurrentDirectory /= path.filename().string().c_str();
+                } 
+                else 
+                {
+                    if (path.extension() == ".cs")
+                    {
+                        std::filesystem::path path_to_solution = g_AssetPath / Project::GetProjectName();
+                        path_to_solution.concat(".sln");
+
+                        if (!Platform::Start("devenv.exe", path_to_solution.concat(" /Edit ").concat(path.string()).string()))
+                        {
+                            TBO_ERROR("Failed to open visual studio!");
+                        }
+                    } else if(path.extension() == ".sln")
+                    {
+                        // Opens Visual Studio, whatever version is registered first 
+                        // TODO: Client should have an option which visual studio to open
+                        if (!Platform::Start("devenv.exe", path.string()))
+                        {
+                            TBO_ERROR("Failed to open visual studio!");
+                        }
+                    }
+                }
             }
             ImGui::TextWrapped(filenameString.c_str());
 
