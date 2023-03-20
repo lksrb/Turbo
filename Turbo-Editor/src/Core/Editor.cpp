@@ -216,8 +216,12 @@ namespace Turbo::Ed
             {
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                 {
-                    const wchar_t* path = (const wchar_t*)payload->Data;
-                    OpenScene(path);
+                    std::filesystem::path path = (const wchar_t*)payload->Data;
+
+                    if (path.extension() == ".tscene")
+                    {
+                        OpenScene(path);
+                    }
                 }
 
                 ImGui::EndDragDropTarget();
