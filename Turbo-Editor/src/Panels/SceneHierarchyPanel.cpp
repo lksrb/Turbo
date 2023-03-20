@@ -49,7 +49,7 @@
 [](const std::string& name, Ref<ScriptInstance>& instance)   \
 {                                                            \
     TYPE data = instance->GetFieldValue<TYPE>(name);         \
-    if (UI_FUNC(name.c_str(), &data[0], __VA_ARGS__))           \
+    if (UI_FUNC(name.c_str(), &data[0], __VA_ARGS__))        \
     {                                                        \
         instance->SetFieldValue<TYPE>(name, &data);          \
     }                                                        \
