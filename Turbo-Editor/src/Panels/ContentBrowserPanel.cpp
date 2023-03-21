@@ -8,8 +8,6 @@
 
 namespace Turbo::Ed
 {
-    extern std::filesystem::path g_AssetPath;
-
     ContentBrowserPanel::ContentBrowserPanel()
     {
         m_DirectoryIcon = Texture2D::Create({ "Resources/Icons/DirectoryIcon.png" });
@@ -24,7 +22,7 @@ namespace Turbo::Ed
     {
         ImGui::Begin("Content Browser");
 
-        if (m_CurrentDirectory != g_AssetPath)
+        if (m_CurrentDirectory != m_BasePath)
         {
             if (ImGui::Button("<-"))
             {
@@ -47,7 +45,7 @@ namespace Turbo::Ed
         {
             const auto& path = directoryEntry.path();
 
-            const auto& relativePath = std::filesystem::relative(path, g_AssetPath.c_str());
+            const auto& relativePath = std::filesystem::relative(path, m_BasePath.c_str());
             const std::string& filenameString = relativePath.filename().string();
 
             ImGui::PushID(filenameString.c_str());
@@ -82,7 +80,7 @@ namespace Turbo::Ed
                 {
                     if (path.extension() == ".cs")
                     {
-                        std::filesystem::path path_to_solution = g_AssetPath / Project::GetProjectName();
+                        std::filesystem::path path_to_solution = m_BasePath / Project::GetProjectName();
                         path_to_solution.concat(".sln");
 
                         if (!Platform::Start("devenv.exe", path_to_solution.concat(path.string()).string()))
@@ -120,7 +118,8 @@ namespace Turbo::Ed
 
     void ContentBrowserPanel::SetProjectAssetPath()
     {
-        m_CurrentDirectory = g_AssetPath;
+        m_BasePath = Project::GetAssetsPath();
+        m_CurrentDirectory = Project::GetAssetsPath();
     }
 
 }

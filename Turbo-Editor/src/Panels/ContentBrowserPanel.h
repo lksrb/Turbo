@@ -18,6 +18,7 @@ namespace Turbo::Ed
     private:
         Ref<Texture2D> m_DirectoryIcon, m_FileIcon;
 
+        std::filesystem::path m_BasePath;
         std::filesystem::path m_CurrentDirectory;
     };
 }

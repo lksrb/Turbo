@@ -274,14 +274,17 @@ namespace Turbo::Ed
                 // Drag & drop
                 ImGuiWindow* window = ImGui::GetCurrentWindow();
                 ImRect window_content = window->ContentRegionRect;
-                // Handling scrolling
+                
+                // Handle scrolling
                 window_content.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
                 window_content.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
 
                 // Add script component if dragged into properties
                 if (ImGui::BeginDragDropTargetCustom(window_content, window->ID))
                 {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP"))
+                    const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP");
+
+                    if (!m_SelectedEntity.HasComponent<ScriptComponent>() && payload)
                     {
                         const auto& path = g_AssetPath / (const wchar_t*)payload->Data;
 
