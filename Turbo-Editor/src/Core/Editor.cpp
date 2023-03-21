@@ -186,6 +186,15 @@ namespace Turbo::Ed
 
         // Viewport
         {
+            ImGuiWindowFlags windowFlags = 0;
+            windowFlags |= ImGuiWindowFlags_NoTitleBar;
+            windowFlags |= ImGuiWindowFlags_NoMove;
+
+            ImGuiWindowClass window_class;
+            window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+            //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
+            ImGui::SetNextWindowClass(&window_class);
             ImGui::Begin("Viewport");
 
             m_ViewportHovered = ImGui::IsWindowHovered();
@@ -214,7 +223,7 @@ namespace Turbo::Ed
 
             if (ImGui::BeginDragDropTarget())
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_VIEWPORT"))
                 {
                     std::filesystem::path path = (const wchar_t*)payload->Data;
 
@@ -307,6 +316,8 @@ namespace Turbo::Ed
             }
 
             ImGui::End();
+            ImGui::PopStyleVar();
+            //ImGui::PopStyleVar();
         }
 
         // Menu

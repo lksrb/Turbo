@@ -270,20 +270,26 @@ namespace Turbo::Ed
             if (m_SelectedEntity)
             {
                 DrawComponents(m_SelectedEntity);
-                /*
 
-                            // Add script component if dragged into properties
-                            ImGui::Dummy(ImGui::GetContentRegionAvail()); // HOLY MOLY
-                            if (ImGui::BeginDragDropTarget())
-                            {
-                                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FILE_MANAGER_ITEM"))
-                                {
-                                    std::filesystem::path path = g_AssetPath / (const wchar_t*)payload->Data;
+                // Drag & drop
+                ImGuiWindow* window = ImGui::GetCurrentWindow();
+                ImRect window_content = window->ContentRegionRect;
+                // Handling scrolling
+                window_content.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
+                window_content.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
 
-                                    m_SelectedEntity.AddComponent<ScriptComponent>(path.string());
-                                }
-                                ImGui::EndDragDropTarget();
-                            }*/
+                // Add script component if dragged into properties
+                if (ImGui::BeginDragDropTargetCustom(window_content, window->ID))
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP"))
+                    {
+                        const auto& path = g_AssetPath / (const wchar_t*)payload->Data;
+
+                        m_SelectedEntity.AddComponent<ScriptComponent>(path.string());
+                    }
+
+                    ImGui::EndDragDropTarget();
+                }
             }
         }
 
@@ -586,10 +592,10 @@ namespace Turbo::Ed
                         }
 #endif
                     }
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
@@ -643,4 +649,4 @@ namespace Turbo::Ed
         }
     }
 
-}
+    }
