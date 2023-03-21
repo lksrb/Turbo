@@ -354,6 +354,15 @@ namespace Turbo::Ed
                     ImGui::EndMenu();
                 }
 
+                if (ImGui::BeginMenu("Project"))
+                {
+                    if (ImGui::MenuItem("Reload Assembly"))
+                    {
+                        Script::ReloadAssemblies();
+                    }
+                    ImGui::EndMenu();
+                }
+
                 ImGui::EndMenuBar();
             }
         }

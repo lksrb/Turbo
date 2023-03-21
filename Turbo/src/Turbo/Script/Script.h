@@ -1,6 +1,5 @@
 #pragma once
 
-#include "MonoForwards.h"
 #include "ScriptClass.h"
 #include "ScriptField.h"
 #include "ScriptInstance.h"
@@ -30,6 +29,9 @@ namespace Turbo
 
             Ref<ScriptClass> EntityBaseClass;
 
+            std::filesystem::path CoreAssemblyPath;
+            std::filesystem::path ProjectAssemblyPath;
+
             std::unordered_map<UUID, Ref<ScriptInstance>> ScriptInstances;
             std::unordered_map<std::string, Ref<ScriptClass>> ScriptClasses;
             std::unordered_map<UUID, ScriptFieldInstanceMap> EntityScriptFieldInstances;
@@ -46,6 +48,7 @@ namespace Turbo
 
         static ScriptFieldInstanceMap& GetEntityFieldMap(UUID uuid);
 
+        static void ReloadAssemblies();
         static void LoadProjectAssembly(const std::filesystem::path& path);
 
         static bool ScriptClassExists(const std::string& class_name);
@@ -56,11 +59,8 @@ namespace Turbo
     private:
         static void InitMono();
         static void ShutdownMono();
-        static void LoadCoreAssembly();
+        static void LoadCoreAssembly(const std::filesystem::path& path);
 
         static void ReflectProjectAssembly();
-        static void PrintAssembly(MonoAssembly* assembly);
-
-        static MonoAssembly* LoadAssembly(const std::filesystem::path& path);
     };
 }

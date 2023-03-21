@@ -79,6 +79,48 @@ namespace Turbo
 
             return bytes;
         }
+
+        static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assembly_path)
+        {
+            u32 bytes_size;
+            char* bytes = Utils::ReadBytes(assembly_path.string(), &bytes_size);
+
+            MonoImageOpenStatus status;
+            MonoImage* image = mono_image_open_from_data_full(bytes, bytes_size, true, &status, false);
+
+            TBO_ENGINE_ASSERT(status == MONO_IMAGE_OK, "Could not load the assembly image!");
+
+            MonoAssembly* assembly = mono_assembly_load_from_full(image, assembly_path.string().c_str(), &status, false);
+            mono_image_close(image);
+
+            delete[] bytes;
+
+            return assembly;
+        }
+
+        static void PrintAssembly(MonoAssembly* assembly)
+        {
+            MonoImage* image = mono_assembly_get_image(assembly);
+
+            // Classes and namespaces
+            {
+                const MonoTableInfo* typedefs = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+                i32 num_types = mono_table_info_get_rows(typedefs);
+
+                for (i32 i = 0; i < num_types; i++)
+                {
+                    u32 cols[MONO_TYPEDEF_SIZE];
+                    mono_metadata_decode_row(typedefs, i, cols, MONO_TYPEDEF_SIZE);
+
+                    const char* namespace_name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
+                    const char* class_name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
+
+                    const std::string& klass = fmt::format("{0}.{1}", namespace_name, class_name);
+
+                    TBO_ENGINE_TRACE("[Mono-Reflect]: {0}", klass);
+                }
+            }
+        }
     }
 
     extern Script::Data* g_Data = nullptr;
@@ -91,7 +133,7 @@ namespace Turbo
         InitMono();
 
         // Load script core and project assembly
-        LoadCoreAssembly();
+        LoadCoreAssembly("Resources/Scripts/Turbo-ScriptCore.dll");
 
         // Register functions
         InternalCalls::Init();
@@ -99,23 +141,7 @@ namespace Turbo
         TBO_ENGINE_INFO("Successfully initialized mono!");
     }
 
-    MonoAssembly* Script::LoadAssembly(const std::filesystem::path& assembly_path)
-    {
-        u32 bytes_size;
-        char* bytes = Utils::ReadBytes(assembly_path.string(), &bytes_size);
-
-        MonoImageOpenStatus status;
-        MonoImage* image = mono_image_open_from_data_full(bytes, bytes_size, true, &status, false);
-
-        TBO_ENGINE_ASSERT(status == MONO_IMAGE_OK, "Could not load the assembly image!");
-
-        MonoAssembly* assembly = mono_assembly_load_from_full(image, assembly_path.string().c_str(), &status, false);
-        mono_image_close(image);
-
-        delete[] bytes;
-
-        return assembly;
-    }
+   
 
     void Script::OnRuntimeStart(Scene* scene)
     {
@@ -165,6 +191,8 @@ namespace Turbo
 
     void Script::LoadProjectAssembly(const std::filesystem::path& path)
     {
+        g_Data->ProjectAssemblyPath = path;
+
         if (g_Data->ProjectAssembly)
         {
             // TODO: Unload
@@ -173,7 +201,7 @@ namespace Turbo
             g_Data->ScriptClasses.clear();
         }
 
-        g_Data->ProjectAssembly = LoadAssembly(path);
+        g_Data->ProjectAssembly = Utils::LoadMonoAssembly(path);
         g_Data->ProjectAssemblyImage = mono_assembly_get_image(g_Data->ProjectAssembly);
 
         ReflectProjectAssembly();
@@ -181,7 +209,7 @@ namespace Turbo
 
     void Script::ReflectProjectAssembly()
     {
-        PrintAssembly(g_Data->ProjectAssembly);
+        Utils::PrintAssembly(g_Data->ProjectAssembly);
 
         // Reflection
         {
@@ -259,7 +287,7 @@ namespace Turbo
     void Script::InitMono()
     {
         // Set path for important C# assemblies
-        mono_set_assemblies_path("Mono/lib");
+         mono_set_assemblies_path("Mono/lib");
 
         // Create root domain
         g_Data->RootDomain = mono_jit_init("TBOJITRuntime");
@@ -276,38 +304,28 @@ namespace Turbo
         mono_domain_set(g_Data->AppDomain, true);
     }
 
-    void Script::LoadCoreAssembly()
+    void Script::LoadCoreAssembly(const std::filesystem::path& path)
     {
-        g_Data->ScriptCoreAssembly = LoadAssembly("Resources/Scripts/Turbo-ScriptCore.dll");
+        g_Data->CoreAssemblyPath = path;
+        g_Data->ScriptCoreAssembly = Utils::LoadMonoAssembly(path);
         g_Data->ScriptCoreAssemblyImage = mono_assembly_get_image(g_Data->ScriptCoreAssembly);
 
         g_Data->EntityBaseClass = Ref<ScriptClass>::Create("Turbo", "Entity");
 
-        PrintAssembly(g_Data->ScriptCoreAssembly);
+        Utils::PrintAssembly(g_Data->ScriptCoreAssembly);
     }
 
-    void Script::PrintAssembly(MonoAssembly* assembly)
+    void Script::ReloadAssemblies()
     {
-        MonoImage* image = mono_assembly_get_image(assembly);
+        TBO_ENGINE_ASSERT(!g_Data->CoreAssemblyPath.empty());
+        TBO_ENGINE_ASSERT(!g_Data->ProjectAssemblyPath.empty());
 
-        // Classes and namespaces
-        {
-            const MonoTableInfo* typedefs = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
-            i32 num_types = mono_table_info_get_rows(typedefs);
+        // Switch away from the reloaded app domain
+        mono_domain_set(g_Data->RootDomain, false);
+        mono_domain_unload(g_Data->AppDomain);
 
-            for (i32 i = 0; i < num_types; i++)
-            {
-                u32 cols[MONO_TYPEDEF_SIZE];
-                mono_metadata_decode_row(typedefs, i, cols, MONO_TYPEDEF_SIZE);
-
-                const char* namespace_name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
-                const char* class_name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
-
-                const std::string& klass = fmt::format("{0}.{1}", namespace_name, class_name);
-
-                TBO_ENGINE_TRACE("[Mono-Reflect]: {0}", klass);
-            }
-        }
+        LoadCoreAssembly(g_Data->CoreAssemblyPath);
+        LoadProjectAssembly(g_Data->ProjectAssemblyPath);
     }
 
     void Script::Shutdown()
@@ -321,7 +339,6 @@ namespace Turbo
     void Script::ShutdownMono()
     {
         mono_domain_set(g_Data->RootDomain, false);
-
         mono_domain_unload(g_Data->AppDomain);
 
         mono_jit_cleanup(g_Data->RootDomain);
