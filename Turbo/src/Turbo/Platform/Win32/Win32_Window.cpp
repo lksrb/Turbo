@@ -73,6 +73,9 @@ namespace Turbo
 
         DWORD style = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_BORDER;
 
+        if (m_Config.StartMaximized)
+            style |= WS_MAXIMIZE;
+
         if (m_Config.Resizable)
             style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
 
