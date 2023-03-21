@@ -732,6 +732,6 @@ namespace Turbo::Ed
     {
         // TODO: Make this an option
 
-        SaveProject(); // Auto safe
+        SaveProject(); // Auto save
     }
 }
