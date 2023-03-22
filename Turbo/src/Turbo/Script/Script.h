@@ -60,7 +60,6 @@ namespace Turbo
         static void InitMono();
         static void ShutdownMono();
         static void LoadCoreAssembly(const std::filesystem::path& path);
-
         static void ReflectProjectAssembly();
     };
 }

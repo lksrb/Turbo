@@ -296,11 +296,8 @@ namespace Turbo
         // Set main thread as current thread
         mono_thread_set_main(mono_thread_current());
 
-        // Create App Domain
-        g_Data->AppDomain = mono_domain_create_appdomain("TBOAppDomain", nullptr);
-        TBO_ENGINE_ASSERT(g_Data->AppDomain, "Could not create mono app domain!");
-
-        // Set it as current app domain
+        // Recreate App Domain
+        g_Data->AppDomain = mono_domain_create_appdomain("TBORuntime", nullptr);
         mono_domain_set(g_Data->AppDomain, true);
     }
 
@@ -324,8 +321,16 @@ namespace Turbo
         mono_domain_set(g_Data->RootDomain, false);
         mono_domain_unload(g_Data->AppDomain);
 
+        // Recreate App Domain
+        g_Data->AppDomain = mono_domain_create_appdomain("TBORuntime", nullptr);
+        mono_domain_set(g_Data->AppDomain, true);
+
         LoadCoreAssembly(g_Data->CoreAssemblyPath);
         LoadProjectAssembly(g_Data->ProjectAssemblyPath);
+
+        InternalCalls::RegisterComponents();
+
+        TBO_ENGINE_INFO("Assembly successfully reloaded!");
     }
 
     void Script::Shutdown()
@@ -339,9 +344,12 @@ namespace Turbo
     void Script::ShutdownMono()
     {
         mono_domain_set(g_Data->RootDomain, false);
+
         mono_domain_unload(g_Data->AppDomain);
+        g_Data->AppDomain = nullptr;
 
         mono_jit_cleanup(g_Data->RootDomain);
+        g_Data->RootDomain = nullptr;
     }
 
     Scene* Script::GetCurrentScene()

@@ -43,6 +43,8 @@ namespace Sandbox
 			if (!m_Bool)
 				return;
 
+			Log.Warn("Hello from C#!");
+
 			if (Input.IsKeyPressed(KeyCode.W))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Up * m_Float * ts);

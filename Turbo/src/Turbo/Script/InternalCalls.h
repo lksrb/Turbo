@@ -4,9 +4,10 @@ namespace Turbo
 {
     class InternalCalls
     {
-    public:
-        static void Init();
     private:
+        static void Init();
         static void RegisterComponents();
+
+        friend class Script;
     };
 }

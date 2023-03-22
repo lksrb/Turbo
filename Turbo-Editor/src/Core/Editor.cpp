@@ -356,7 +356,7 @@ namespace Turbo::Ed
 
                 if (ImGui::BeginMenu("Project"))
                 {
-                    if (ImGui::MenuItem("Reload Assembly"))
+                    if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::Edit))
                     {
                         Script::ReloadAssemblies();
                     }

@@ -80,10 +80,11 @@ namespace Turbo::Ed
                 {
                     if (path.extension() == ".cs")
                     {
-                        std::filesystem::path path_to_solution = m_BasePath / Project::GetProjectName();
+                        std::filesystem::path path_to_solution = m_BasePath.parent_path() / Project::GetProjectName();
                         path_to_solution.concat(".sln");
-
-                        if (!Platform::Start("devenv.exe", path_to_solution.concat(path.string()).string()))
+                        
+                        // Currently opening specific files is not supported due to Visual Studio being Visual Studio
+                        if (!Platform::Start("devenv.exe", path_to_solution.string()))
                         {
                             TBO_ERROR("Failed to open visual studio!");
                         }

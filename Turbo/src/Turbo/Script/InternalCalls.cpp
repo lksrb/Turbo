@@ -466,6 +466,8 @@ namespace Turbo
 
     void InternalCalls::RegisterComponents()
     {
+        s_EntityHasComponentFuncs.clear();
+
         RegisterComponent(AllComponents{});
     }
 
