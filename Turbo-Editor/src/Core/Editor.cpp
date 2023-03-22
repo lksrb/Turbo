@@ -4,6 +4,7 @@
 #include "../Panels/QuickAccessPanel.h"
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
+#include "../Panels/EditorConsolePanel.h"
 
 #include <Turbo/Script/Script.h>
 #include <Turbo/Solution/ProjectSerializer.h>
@@ -39,6 +40,7 @@ namespace Turbo::Ed
         m_PanelManager->AddPanel<SceneHierarchyPanel>();
         m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
+        m_PanelManager->AddPanel<EditorConsolePanel>();
 
         // TODO: Think about panel callbacks
         m_PanelManager->AddPanel<CreateProjectPopupPanel>()->SetCallback([this](const auto& path)
@@ -378,12 +380,6 @@ namespace Turbo::Ed
         ImGui::Text("Quad Count %d", stats.QuadCount);
         ImGui::Text("Drawcalls %d", stats.DrawCalls);
         ImGui::End();
-
-        // EditorConsole
-        {
-            ImGui::Begin("Editor Console");
-            ImGui::End();
-        }
 
         // Draw all panels
         m_PanelManager->OnDrawUI();
