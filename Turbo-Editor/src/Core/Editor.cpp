@@ -319,7 +319,6 @@ namespace Turbo::Ed
 
             ImGui::End();
             ImGui::PopStyleVar();
-            //ImGui::PopStyleVar();
         }
 
         // Menu

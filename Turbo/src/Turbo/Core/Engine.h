@@ -30,7 +30,7 @@ namespace Turbo
 
         static Turbo::Engine& Get()
         {
-            TBO_ENGINE_ASSERT(s_Instance, "Engine is not running!");
+            TBO_ENGINE_ASSERT(s_Instance, "Engine is not initialized!");
             return *s_Instance;
         }
 
@@ -39,13 +39,23 @@ namespace Turbo
 
         Window* GetViewportWindow() const { return m_ViewportWindow; }
         Ref<UserInterface> GetUI() const { return m_UI; }
+
+        template<typename F>
+        void SubmitToMainThread(F&& func)
+        {
+            std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+
+            m_MainThreadQueue.emplace_back(func);
+        }
     private:
         Engine(ApplicationCreateCallback callback);
 
         void Initialize();
         void Shutdown();
-
+        
         void OnEvent(Event& event);
+
+        void ExecuteMainThreadQueue();
 
         bool WindowResized(WindowResizeEvent& e);
         bool WindowClosed(WindowCloseEvent& e);
@@ -53,7 +63,8 @@ namespace Turbo
         bool m_Initialized = false;
         bool m_Running = false;
 
-        std::thread m_RenderThread;
+        std::vector<std::function<void()>> m_MainThreadQueue;
+        std::mutex m_MainThreadQueueMutex;
 
         Ref<UserInterface> m_UI;
         Ref<Renderer> m_Renderer;

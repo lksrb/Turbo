@@ -5,6 +5,7 @@
 #include "ScriptInstance.h"
 
 #include "Turbo/Core/UUID.h"
+#include "Turbo/Core/FileWatcher.h"
 
 namespace Turbo
 {
@@ -18,7 +19,6 @@ namespace Turbo
 
         struct Data
         {
-
             MonoDomain* RootDomain = nullptr;
             MonoDomain* AppDomain = nullptr;
             MonoAssembly* ScriptCoreAssembly = nullptr;
@@ -37,6 +37,10 @@ namespace Turbo
             std::unordered_map<UUID, ScriptFieldInstanceMap> EntityScriptFieldInstances;
 
             Scene* SceneContext = nullptr;
+
+            Scope<FileWatcher> ProjectPathWatcher;
+            bool AssemblyReloadPending = false;
+            bool ProjectAssemblyDirty = false;
         };
 
         static void Init();
@@ -57,6 +61,7 @@ namespace Turbo
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);
     private:
+        static void OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent e);
         static void InitMono();
         static void ShutdownMono();
         static void LoadCoreAssembly(const std::filesystem::path& path);

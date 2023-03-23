@@ -11,7 +11,7 @@ namespace Turbo
         static void Initialize();
         static void Shutdown();
 
-        static void Begin();
+        static void BeginFrame();
         static void Render();
 
         template<typename F>

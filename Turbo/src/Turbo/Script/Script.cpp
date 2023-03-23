@@ -9,6 +9,8 @@
 #include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Components.h"
 
+#include "Turbo/Core/Engine.h"
+
 #include "Turbo/Solution/Project.h"
 
 #include <fstream>
@@ -141,8 +143,6 @@ namespace Turbo
         TBO_ENGINE_INFO("Successfully initialized mono!");
     }
 
-   
-
     void Script::OnRuntimeStart(Scene* scene)
     {
         g_Data->SceneContext = scene;
@@ -151,8 +151,13 @@ namespace Turbo
     void Script::OnRuntimeStop()
     {
         g_Data->SceneContext = nullptr;
-
         g_Data->ScriptInstances.clear();
+
+        if (g_Data->ProjectAssemblyDirty)
+        {
+            g_Data->ProjectAssemblyDirty = false;
+            ReloadAssemblies();
+        }
     }
 
     void Script::InvokeEntityOnStart(Entity entity)
@@ -193,18 +198,18 @@ namespace Turbo
     {
         g_Data->ProjectAssemblyPath = path;
 
-        if (g_Data->ProjectAssembly)
-        {
-            // TODO: Unload
-
-            // Clear all registered classes
-            g_Data->ScriptClasses.clear();
-        }
+        // Clear all registered classes
+        g_Data->ScriptClasses.clear();
 
         g_Data->ProjectAssembly = Utils::LoadMonoAssembly(path);
         g_Data->ProjectAssemblyImage = mono_assembly_get_image(g_Data->ProjectAssembly);
 
         ReflectProjectAssembly();
+
+        // Start watching the path
+        g_Data->ProjectPathWatcher = CreateScope<FileWatcher>(FileWatcher::NotifyEvent_All, false, Script::OnProjectDirectoryChange);
+        g_Data->ProjectPathWatcher->Watch(g_Data->ProjectAssemblyPath.parent_path());
+        g_Data->AssemblyReloadPending = false;
     }
 
     void Script::ReflectProjectAssembly()
@@ -272,8 +277,6 @@ namespace Turbo
         }
     }
 
-
-
     bool Script::ScriptClassExists(const std::string& class_name)
     {
         auto& it = g_Data->ScriptClasses.find(class_name);
@@ -287,7 +290,7 @@ namespace Turbo
     void Script::InitMono()
     {
         // Set path for important C# assemblies
-         mono_set_assemblies_path("Mono/lib");
+        mono_set_assemblies_path("Mono/lib");
 
         // Create root domain
         g_Data->RootDomain = mono_jit_init("TBOJITRuntime");
@@ -310,6 +313,30 @@ namespace Turbo
         g_Data->EntityBaseClass = Ref<ScriptClass>::Create("Turbo", "Entity");
 
         Utils::PrintAssembly(g_Data->ScriptCoreAssembly);
+    }
+
+    void Script::OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent e)
+    {
+        // NOTE: Without 'AssemblyReloadPending' this method is called twice when the project is built
+        if (!g_Data->AssemblyReloadPending && e == FileWatcher::FileEvent_Modified && path.stem() == Project::GetProjectName() && path.extension() == ".dll")
+        {
+            // After scene runtime stops, reload assemblies automatically if dirty
+            if (g_Data->SceneContext)
+            {
+                g_Data->ProjectAssemblyDirty = true;
+                return;
+            }
+
+            // Project assembly reloaded
+            g_Data->AssemblyReloadPending = true;
+
+            Engine::Get().SubmitToMainThread([e, &path]() 
+            {
+                g_Data->ProjectPathWatcher.reset();
+
+                Script::ReloadAssemblies();
+            });
+        }
     }
 
     void Script::ReloadAssemblies()
