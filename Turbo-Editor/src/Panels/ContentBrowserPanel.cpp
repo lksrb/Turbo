@@ -113,14 +113,9 @@ namespace Turbo::Ed
         ImGui::End();
     }
 
-    void ContentBrowserPanel::OnEvent(Event& e)
+    void ContentBrowserPanel::OnProjectChanged(const Ref<Project>& project)
     {
-    }
-
-    void ContentBrowserPanel::SetProjectAssetPath()
-    {
-        m_BasePath = Project::GetAssetsPath();
-        m_CurrentDirectory = Project::GetAssetsPath();
+        m_CurrentDirectory = m_BasePath = Project::GetAssetsPath();
     }
 
 }

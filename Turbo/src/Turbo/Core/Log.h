@@ -11,16 +11,27 @@ namespace Turbo
     class Log 
     {
     public:
+        enum Level
+        {
+            Trace = 0,
+            Info,
+            Warn,
+            Error,
+            Fatal
+        };
+
         static void Initialize();
         static void Shutdown();
 
-        inline static std::shared_ptr<spdlog::logger>& GetEngineLogger() { return s_EngineLogger; }
-        inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+        static inline std::shared_ptr<spdlog::logger>& GetEngineLogger() { return s_EngineLogger; }
+        static inline std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+        static inline std::shared_ptr<spdlog::logger>& GetEditorConsoleLogger() { return s_EditorConsoleLogger; }
     private:
-        static std::shared_ptr<spdlog::logger> s_EngineLogger;
-        static std::shared_ptr<spdlog::logger> s_ClientLogger;
+        static inline std::shared_ptr<spdlog::logger> s_EngineLogger;
+        static inline std::shared_ptr<spdlog::logger> s_ClientLogger;
+        static inline std::shared_ptr<spdlog::logger> s_EditorConsoleLogger;
 
-        static bool s_Initialized;
+        static inline bool s_Initialized = false;
     };
 }
 
@@ -49,6 +60,12 @@ OStream& operator<<(OStream& os, const glm::vec4& vec)
     #define TBO_ENGINE_WARN(...)	::Turbo::Log::GetEngineLogger()->warn(__VA_ARGS__)
     #define TBO_ENGINE_ERROR(...)	::Turbo::Log::GetEngineLogger()->error(__VA_ARGS__)
     #define TBO_ENGINE_FATAL(...)	::Turbo::Log::GetEngineLogger()->critical(__VA_ARGS__)
+    // Editor log macros
+    #define TBO_CONSOLE_TRACE(...)	::Turbo::Log::GetEditorConsoleLogger()->trace(__VA_ARGS__)
+    #define TBO_CONSOLE_INFO(...)	::Turbo::Log::GetEditorConsoleLogger()->info(__VA_ARGS__)
+    #define TBO_CONSOLE_WARN(...)	::Turbo::Log::GetEditorConsoleLogger()->warn(__VA_ARGS__)
+    #define TBO_CONSOLE_ERROR(...)	::Turbo::Log::GetEditorConsoleLogger()->error(__VA_ARGS__)
+    #define TBO_CONSOLE_FATAL(...)	::Turbo::Log::GetEditorConsoleLogger()->critical(__VA_ARGS__)
 #elif TBO_RELEASE
     //Client log macros
     #define TBO_ERROR(...)		
@@ -56,12 +73,17 @@ OStream& operator<<(OStream& os, const glm::vec4& vec)
     #define TBO_TRACE(...)		
     #define TBO_INFO(...)			
     #define TBO_FATAL(...)		
-    
     //Core log macros
     #define TBO_ENGINE_TRACE(...)
     #define TBO_ENGINE_INFO(...)
     #define TBO_ENGINE_WARN(...)
     #define TBO_ENGINE_ERROR(...)
     #define TBO_ENGINE_FATAL(...)
+    // Editor log macros
+    #define TBO_CONSOLE_TRACE(...)	::Turbo::Log::GetEditorConsoleLogger()->trace(__VA_ARGS__)
+    #define TBO_CONSOLE_INFO(...)	::Turbo::Log::GetEditorConsoleLogger()->info(__VA_ARGS__)
+    #define TBO_CONSOLE_WARN(...)	::Turbo::Log::GetEditorConsoleLogger()->warn(__VA_ARGS__)
+    #define TBO_CONSOLE_ERROR(...)	::Turbo::Log::GetEditorConsoleLogger()->error(__VA_ARGS__)
+    #define TBO_CONSOLE_FATAL(...)	::Turbo::Log::GetEditorConsoleLogger()->critical(__VA_ARGS__)
 #endif
 

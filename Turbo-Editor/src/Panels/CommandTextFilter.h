@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
+#include <Turbo/Core/PrimitiveTypes.h>
 
 #include <vector>
 #include <string>
@@ -8,10 +8,11 @@
 typedef int ImGuiInputTextFlags;
 struct ImGuiInputTextCallbackData;
 
-namespace Turbo::Ed {
-
+namespace Turbo::Ed
+{
     // Helper class
-    class CommandTextFilter {
+    class CommandTextFilter 
+    {
     public:
         CommandTextFilter();
         void AddKey(const std::string& key);

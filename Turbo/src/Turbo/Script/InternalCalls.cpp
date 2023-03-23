@@ -23,36 +23,33 @@ namespace Turbo
 
     static void Log_String(u32 level, MonoString* string)
     {
-        enum LogLevel : u32
-        {
-            Info = 0,
-            Warn,
-            Error,
-            Fatal
-        };
-
         char* cstring = mono_string_to_utf8(string);
         std::string msg = cstring;
         mono_free(cstring);
 
         switch (level)
         {
-            case LogLevel::Info:
+            case Log::Level::Trace:
+            {
+                TBO_TRACE(msg);
+                break;
+            }
+            case Log::Level::Info:
             {
                 TBO_INFO(msg);
                 break;
             }
-            case LogLevel::Warn:
+            case Log::Level::Warn:
             {
                 TBO_WARN(msg);
                 break;
             }
-            case LogLevel::Error:
+            case Log::Level::Error:
             {
                 TBO_ERROR(msg);
                 break;
             }
-            case LogLevel::Fatal:
+            case Log::Level::Fatal:
             {
                 TBO_FATAL(msg);
                 break;

@@ -2,9 +2,7 @@
 #include "SceneHierarchyPanel.h"
 
 #include "Turbo/Renderer/Texture2D.h"
-
 #include "Turbo/Script/Script.h"
-
 #include "Turbo/UI/UI.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -59,7 +57,7 @@
 
 #pragma endregion
 
-namespace Turbo::Ed
+namespace Turbo
 {
     namespace Utils
     {
@@ -232,8 +230,6 @@ namespace Turbo::Ed
         }
     }
 
-    extern std::filesystem::path g_AssetPath;
-
     SceneHierarchyPanel::SceneHierarchyPanel()
     {
     }
@@ -286,7 +282,7 @@ namespace Turbo::Ed
 
                     if (!m_SelectedEntity.HasComponent<ScriptComponent>() && payload)
                     {
-                        const auto& path = g_AssetPath / (const wchar_t*)payload->Data;
+                        const auto& path = m_AssetsPath / (const wchar_t*)payload->Data;
 
                         m_SelectedEntity.AddComponent<ScriptComponent>(path.string());
                     }
@@ -299,8 +295,17 @@ namespace Turbo::Ed
         ImGui::End();
     }
 
-    void SceneHierarchyPanel::OnEvent(Event& e)
+    void SceneHierarchyPanel::OnSceneContextChanged(const Ref<Scene>& context)
     {
+        m_Context = context;
+
+        // Reset selected entity
+        SetSelectedEntity();
+    }
+
+    void SceneHierarchyPanel::OnProjectChanged(const Ref<Project>& project)
+    {
+        m_AssetsPath = Project::GetAssetsPath();
     }
 
     void SceneHierarchyPanel::DrawComponents(Entity entity)
@@ -407,7 +412,7 @@ namespace Turbo::Ed
             }
         });
 
-        Utils::DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
+        Utils::DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [&m_AssetsPath = m_AssetsPath](auto& component)
         {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
@@ -427,7 +432,7 @@ namespace Turbo::Ed
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                 {
                     const char* path = (const char*)payload->Data;
-                    const std::filesystem::path& texturePath = g_AssetPath / path;
+                    const std::filesystem::path& texturePath = m_AssetsPath / path;
 
                     auto& fileExtension = texturePath.extension();
 

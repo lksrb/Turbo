@@ -2,13 +2,18 @@
 {
 	internal enum LogLevel : uint
 	{
-		Info = 0,
+		Trace = 0,
+		Info,
 		Warn,
 		Error,
 		Fatal
 	}
 	public static class Log
 	{
+		public static void Trace(string message)
+		{
+			InternalCalls.Log_String(LogLevel.Trace, message);
+		}
 		public static void Info(string message)
 		{
 			InternalCalls.Log_String(LogLevel.Info, message);

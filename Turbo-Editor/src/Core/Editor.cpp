@@ -1,15 +1,15 @@
 #include "Editor.h"
 
-#include "../Panels/SceneHierarchyPanel.h"
 #include "../Panels/QuickAccessPanel.h"
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
-#include "../Panels/EditorConsolePanel.h"
 
+#include <Turbo/Benchmark/ScopeTimer.h>
+#include <Turbo/Editor/SceneHierarchyPanel.h>
+#include <Turbo/Editor/EditorConsolePanel.h>
 #include <Turbo/Script/Script.h>
 #include <Turbo/Solution/ProjectSerializer.h>
 #include <Turbo/Scene/SceneSerializer.h>
-#include <Turbo/Benchmark/ScopeTimer.h>
 #include <Turbo/UI/UI.h>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -58,6 +58,8 @@ namespace Turbo::Ed
 
         // Open sandbox project
         OpenProject(m_CurrentPath / "SandboxProject\\SandboxProject.tproject");
+
+        TBO_CONSOLE_TRACE("HEllo");
     }
 
     void Editor::OnShutdown()
@@ -554,29 +556,14 @@ namespace Turbo::Ed
 
         const auto& config = project->GetConfig();
 
-        // Set assets path for content browser, ...
-        m_PanelManager->GetPanel<ContentBrowserPanel>()->SetProjectAssetPath();
+        // All panels receive this event
+        m_PanelManager->OnProjectChanged(project);
 
-        m_EditorScenePath = config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath;
-        
         // Load project assembly
         Script::LoadProjectAssembly(g_AssetPath / project->GetConfig().ScriptModulePath);
 
-        // Create and deserialize scene
-        m_EditorScene = Ref<Scene>::Create();
-        SceneSerializer serializer(m_EditorScene);
-        serializer.Deserialize(m_EditorScenePath);
-
-        // Set viewport extent
-        m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-
-        // Set scene context for panels
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
-
-        // Reset selected entity
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity();
-
-        UpdateWindowTitle();
+        // Open scene
+        OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
     }
 
     void Editor::UpdateWindowTitle()
@@ -646,7 +633,8 @@ namespace Turbo::Ed
         TBO_ASSERT(serializer.Deserialize(scene_path.string()), "Could not deserialize scene!");
 
         m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+
+        m_PanelManager->SetSceneContext(m_EditorScene);
 
         m_EditorScenePath = scene_path;
 
@@ -704,10 +692,10 @@ namespace Turbo::Ed
                 selected_entity_uuid = m_SelectedEntity.GetUUID();
 
             m_SelectedEntity = m_RuntimeScene->FindEntityByUUID(selected_entity_uuid);
-            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
         }
 
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_RuntimeScene);
+        m_PanelManager->SetSceneContext(m_RuntimeScene);
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 
     void Editor::OnSceneStop()
@@ -726,10 +714,10 @@ namespace Turbo::Ed
                 selected_entity_uuid = m_SelectedEntity.GetUUID();
 
             m_SelectedEntity = m_EditorScene->FindEntityByUUID(selected_entity_uuid);
-            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
         }
 
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+        m_PanelManager->SetSceneContext(m_RuntimeScene);
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 
     void Editor::Close()
