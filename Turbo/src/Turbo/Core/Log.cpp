@@ -23,12 +23,14 @@ namespace Turbo
         spdlog::sink_ptr editor_sinks[1] =
         {
             std::make_shared<EditorConsoleSink>(),
+            //std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
         };
 
         log_sinks[0]->set_pattern("%^[%T] %n: %v%$");
         log_sinks[1]->set_pattern("[%T] [%l] %n: %v");
 
         editor_sinks[0]->set_pattern("%^[%T] %n: %v%$");
+        //editor_sinks[1]->set_pattern("%^[%T] %n: %v%$");
 
         s_EngineLogger = std::make_shared<spdlog::logger>("Turbo", begin(log_sinks), end(log_sinks));
         spdlog::register_logger(s_EngineLogger);

@@ -31,27 +31,27 @@ namespace Turbo
         {
             case Log::Level::Trace:
             {
-                TBO_TRACE(msg);
+                TBO_CONSOLE_TRACE(msg);
                 break;
             }
             case Log::Level::Info:
             {
-                TBO_INFO(msg);
+                TBO_CONSOLE_INFO(msg);
                 break;
             }
             case Log::Level::Warn:
             {
-                TBO_WARN(msg);
+                TBO_CONSOLE_WARN(msg);
                 break;
             }
             case Log::Level::Error:
             {
-                TBO_ERROR(msg);
+                TBO_CONSOLE_ERROR(msg);
                 break;
             }
             case Log::Level::Fatal:
             {
-                TBO_FATAL(msg);
+                TBO_CONSOLE_FATAL(msg);
                 break;
             }
         }

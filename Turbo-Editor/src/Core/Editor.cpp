@@ -58,8 +58,6 @@ namespace Turbo::Ed
 
         // Open sandbox project
         OpenProject(m_CurrentPath / "SandboxProject\\SandboxProject.tproject");
-
-        TBO_CONSOLE_TRACE("HEllo");
     }
 
     void Editor::OnShutdown()
@@ -678,6 +676,9 @@ namespace Turbo::Ed
 
     void Editor::OnScenePlay()
     {
+        // Clear logs
+        EditorConsolePanel::Clear();
+
         m_EditorMode = Mode::Play;
 
         m_RuntimeScene = Scene::Copy(m_EditorScene);
