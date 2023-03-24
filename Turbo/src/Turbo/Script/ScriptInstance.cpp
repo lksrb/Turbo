@@ -3,7 +3,7 @@
 
 #include "Script.h"
 
-#include "Turbo/Benchmark/ScopeTimer.h"
+#include "Turbo/Debug/ScopeTimer.h"
 
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/class.h>

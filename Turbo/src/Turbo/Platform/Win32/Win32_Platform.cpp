@@ -165,7 +165,7 @@ namespace Turbo
         return selected_path;
     }
 
-    bool Platform::Start(const std::string& app_name, const std::string& args)
+    bool Platform::Execute(const std::string& app_name, const std::string& args)
     {
         STARTUPINFOA si = {};
         si.cb = sizeof(si);

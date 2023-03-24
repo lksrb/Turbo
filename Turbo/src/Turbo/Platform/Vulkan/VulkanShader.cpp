@@ -3,7 +3,7 @@
 #include "VulkanShader.h"
 
 #include "Turbo/Core/Platform.h"
-#include "Turbo/Benchmark/ScopeTimer.h"
+#include "Turbo/Debug/ScopeTimer.h"
 
 #include "Turbo/Renderer/RendererContext.h"
 

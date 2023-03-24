@@ -41,8 +41,11 @@ namespace Turbo
             Scope<FileWatcher> ProjectPathWatcher;
             bool AssemblyReloadPending = false;
             bool ProjectAssemblyDirty = false;
-
+#ifdef TBO_DEBUG
             bool MonoDebugging = true;
+#else
+            bool MonoDebugging = false;
+#endif
         };
 
         static void Init();

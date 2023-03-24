@@ -5,7 +5,6 @@
 #include "Turbo/Scene/SceneSerializer.h"
 
 #include "Turbo/Solution/ProjectSerializer.h"
-#include "Turbo/Benchmark/ScopeTimer.h"
 
 namespace Turbo
 {

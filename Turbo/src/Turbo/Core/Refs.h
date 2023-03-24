@@ -128,7 +128,6 @@ namespace Turbo
         template<typename T2>
         Ref<T2> As() const
         {
-            //static_assert(std::is_base_of<T, T2>::value, "Class must be derived from \"Panel\" base class!");
             return Ref<T2>(*this);
         }
 

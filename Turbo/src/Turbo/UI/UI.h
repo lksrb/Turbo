@@ -9,6 +9,31 @@
 
 namespace Turbo::UI
 {
+    struct ScopedStyleColor
+    {
+        ScopedStyleColor(ImGuiCol idx, const ImVec4& color, bool predicate = true)
+            : Set(predicate)
+        {
+            if (Set)
+                ImGui::PushStyleColor(idx, color);
+        }
+
+        ScopedStyleColor(ImGuiCol idx, ImU32 color, bool predicate = true)
+            : Set(predicate)
+        {
+            if (Set)
+                ImGui::PushStyleColor(idx, color);
+        }
+
+        ~ScopedStyleColor()
+        {
+            if (Set)
+                ImGui::PopStyleColor();
+        }
+    private:
+        bool Set = false;
+    };
+
     // For displaying image
     void Image(Ref<Image2D> image, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));
 

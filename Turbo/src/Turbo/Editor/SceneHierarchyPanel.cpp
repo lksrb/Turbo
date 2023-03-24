@@ -270,7 +270,7 @@ namespace Turbo
                 // Drag & drop
                 ImGuiWindow* window = ImGui::GetCurrentWindow();
                 ImRect window_content = window->ContentRegionRect;
-                
+
                 // Handle scrolling
                 window_content.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
                 window_content.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
@@ -523,19 +523,15 @@ namespace Turbo
 
             UUID entityUUID = entity.GetUUID();
             bool entityClassExists = Script::ScriptClassExists(component.ClassName);
-
             strcpy_s(s_ClassNameBuffer, sizeof(s_ClassNameBuffer), component.ClassName.c_str());
 
-            if (entityClassExists == false)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+            UI::ScopedStyleColor text_color(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !entityClassExists);
 
             if (ImGui::InputText("Class", s_ClassNameBuffer, sizeof(s_ClassNameBuffer)))
             {
                 component.ClassName = s_ClassNameBuffer;
+                return;
             }
-
-            if (entityClassExists == false)
-                ImGui::PopStyleColor();
 
             // Fields
             if (m_Context->IsRunning())
@@ -566,44 +562,11 @@ namespace Turbo
                     {
                         ScriptFieldInstance& field_instance = entity_fields[name];
                         Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, field_instance);
-#if OLD
-                        if (entity_fields.find(name) != entity_fields.end())
-                        {
-                            ScriptFieldInstance& field_instance = entity_fields.at(name);
-
-                            // This is a fast way to remove all the branches
-                            // Function pointers are stored in a vector
-                            Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, field_instance);
-                        }
-                        else
-                        {
-                            if (field.Type == ScriptFieldType::Float)
-                            {
-                                f32 data = 0.0f;
-                                if (ImGui::DragFloat(name.c_str(), &data, 0.01f))
-                                {
-                                    ScriptFieldInstance& field_instance = entity_fields[name];
-                                    field_instance.Field = field;
-                                    field_instance.SetValue<f32>(data);
-                                }
-                            }
-                            else if (field.Type == ScriptFieldType::Bool)
-                            {
-                                // FIXME: Default field values
-                                bool data = false;
-                                if (ImGui::Checkbox(name.c_str(), &data))
-                                {
-                                    field_instance.Field = field;
-                                    field_instance.SetValue<bool>(data);
-                                }
-                            }
-                        }
-#endif
-                    }
                     }
                 }
-            });
-        }
+            }
+        });
+    }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
@@ -657,4 +620,4 @@ namespace Turbo
         }
     }
 
-    }
+}

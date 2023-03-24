@@ -4,7 +4,7 @@
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
 
-#include <Turbo/Benchmark/ScopeTimer.h>
+#include <Turbo/Debug/ScopeTimer.h>
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
 #include <Turbo/Script/Script.h>
@@ -339,6 +339,8 @@ namespace Turbo::Ed
                     {
                         SaveProject();
                     }
+                    ImGui::Separator();
+
                     if (ImGui::MenuItem("Save Scene"))
                     {
                         SaveScene();

@@ -2,7 +2,7 @@
 #include "Renderer2D.h"
 
 #include "Turbo/Core/Engine.h"
-#include "Turbo/Benchmark/ScopeTimer.h"
+#include "Turbo/Debug/ScopeTimer.h"
 
 #include <glm/ext/matrix_transform.hpp>
 

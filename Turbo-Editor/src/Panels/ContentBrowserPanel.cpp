@@ -84,7 +84,7 @@ namespace Turbo::Ed
                         path_to_solution.concat(".sln");
                         
                         // Currently opening specific files is not supported due to Visual Studio being Visual Studio
-                        if (!Platform::Start("devenv.exe", path_to_solution.string()))
+                        if (!Platform::Execute("devenv.exe", path_to_solution.string()))
                         {
                             TBO_ERROR("Failed to open visual studio!");
                         }
@@ -92,7 +92,7 @@ namespace Turbo::Ed
                     {
                         // Opens Visual Studio, whatever version is registered first 
                         // TODO: Client should have an option which visual studio to open
-                        if (!Platform::Start("devenv.exe", path.string()))
+                        if (!Platform::Execute("devenv.exe", path.string()))
                         {
                             TBO_ERROR("Failed to open visual studio!");
                         }

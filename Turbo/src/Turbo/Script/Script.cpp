@@ -5,19 +5,17 @@
 #include "ScriptInstance.h"
 #include "ScriptField.h"
 
+#include "Turbo/Core/FileSystem.h"
+#include "Turbo/Core/Engine.h"
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Components.h"
-
-#include "Turbo/Core/Engine.h"
-
 #include "Turbo/Solution/Project.h"
 
 #include <fstream>
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/mono-debug.h>
-
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/appdomain.h>
 #include <mono/metadata/threads.h>
@@ -59,36 +57,13 @@ namespace Turbo
             return ScriptFieldType::None;
 
         }
-        static char* ReadBytes(const std::filesystem::path& path, u32* out_size)
-        {
-            // std::ios::ate - seeks end of file
-            std::ifstream stream(path, std::ios::binary | std::ios::ate);
-
-            if (!stream)
-                return nullptr;
-
-            std::streampos end = stream.tellg();
-            stream.seekg(0, std::ios::beg);
-            size_t size = end - stream.tellg();
-            if (size == 0)
-                return nullptr;
-
-            char* bytes = new char[size];
-            stream.read(bytes, size);
-            stream.close();
-
-            *out_size = static_cast<u32>(size);
-
-            return bytes;
-        }
 
         static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assembly_path, bool load_pdb = false)
         {
-            u32 assembly_data_size;
-            char* asssembly_data = Utils::ReadBytes(assembly_path, &assembly_data_size);
+            ScopedBuffer assembly_data = FileSystem::ReadBinary(assembly_path);
 
             MonoImageOpenStatus status;
-            MonoImage* image = mono_image_open_from_data_full(asssembly_data, assembly_data_size, true, &status, false);
+            MonoImage* image = mono_image_open_from_data_full(assembly_data.As<char>(), static_cast<u32>(assembly_data.Size()), true, &status, false);
 
             if (status != MONO_IMAGE_OK)
             {
@@ -97,8 +72,6 @@ namespace Turbo
                 return nullptr;
             }
 
-            delete[] asssembly_data;
-
             if (load_pdb)
             {
                 std::filesystem::path pdb_path = assembly_path;
@@ -106,11 +79,8 @@ namespace Turbo
 
                 if (std::filesystem::exists(pdb_path))
                 {
-                    u32 pdb_data_size;
-                    char* pdb_data = ReadBytes(pdb_path, &pdb_data_size);
-                    mono_debug_open_image_from_memory(image, (const mono_byte*)pdb_data, pdb_data_size);
-                    delete[] pdb_data;
-
+                    ScopedBuffer pdb_data = FileSystem::ReadBinary(pdb_path);
+                    mono_debug_open_image_from_memory(image, pdb_data.As<const mono_byte>(), static_cast<u32>(pdb_data.Size()));
                     TBO_ENGINE_INFO("Loaded PDB File! ({})", pdb_path);
                 }
             }
