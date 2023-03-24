@@ -1,6 +1,6 @@
 #pragma once
 
-/**
+/****************************************
  * Those are most important header files
  */
 
@@ -17,6 +17,7 @@
 #include "Turbo/Event/MouseEvent.h"
 #include "Turbo/Event/WindowEvent.h"
 
+#include "Turbo/Editor/PanelManager.h"
 
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"

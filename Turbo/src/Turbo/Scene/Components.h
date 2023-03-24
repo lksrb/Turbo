@@ -32,9 +32,9 @@ namespace Turbo
 
     struct IDComponent
     {
-        UUID Uuid;
+        UUID ID;
 
-        IDComponent(const UUID& uuid) : Uuid(uuid) {}
+        IDComponent(const UUID& id) : ID(id) {}
     };
 
     struct TransformComponent
@@ -68,10 +68,15 @@ namespace Turbo
         Ref<SubTexture2D> SubTexture;
     };
 
+    struct ScriptComponent
+    {
+        std::string ClassName;
+    };
+
     // Physics
     struct Rigidbody2DComponent
     {
-        enum class BodyType { Static = 0, Dynamic, Kinematic };
+        enum class BodyType : u32 { Static = 0, Dynamic, Kinematic };
         BodyType Type = BodyType::Dynamic;
         bool FixedRotation = false;
         bool Gravity = true;
@@ -112,6 +117,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, SpriteRendererComponent, CameraComponent,
+        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, ScriptComponent,
         Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

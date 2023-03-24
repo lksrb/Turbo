@@ -52,6 +52,7 @@ namespace Turbo
         m_Project->m_Config.Name = data["Project"].as<std::string>();
         m_Project->m_Config.AssetsDirectory = data["AssetsDirectory"].as<std::string>();
         m_Project->m_Config.StartScenePath = data["StartScene"].as<std::string>();
+        m_Project->m_Config.ScriptModulePath = data["ScriptModulePath"].as<std::string>();
 
         // Not serialized
         m_Project->m_Config.ProjectDirectory = filepath.parent_path();
@@ -70,6 +71,7 @@ namespace Turbo
             out << YAML::Key << "Project" << YAML::Value << config.Name;
             out << YAML::Key << "AssetsDirectory" << YAML::Value << config.AssetsDirectory;
             out << YAML::Key << "StartScene" << YAML::Value << config.StartScenePath;
+            out << YAML::Key << "ScriptModulePath" << YAML::Value << config.ScriptModulePath;
             out << YAML::EndMap;
             std::ofstream fout(filepath);
             

@@ -1,18 +1,29 @@
 #include "tbopch.h"
 #include "Memory.h"
 
-namespace Turbo 
+#include <filesystem>
+
+#if defined(_MSC_VER) && defined(TBO_PROFILE_MEMORY)
+#include <crtdbg.h>
+#include <windows.h>
+
+#define _CRTDBG_MAP_ALLOC
+#define TBO_CHECK_MEMORYLEAKS(__buffer)  _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE); \
+_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT); \
+_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); \
+_CrtSetReportFile(_CRT_WARN, __buffer);
+
+#else
+#error Currently Windows only!
+#endif
+
+namespace Turbo
 {
     constexpr size_t DefaultPoolSize = size_t(100) * size_t(1024) * size_t(1024);
 
     struct MemoryInternal
     {
-        u8* MemoryPool;
-
-        MemoryInternal()
-        {
-            memset(this, 0, sizeof(*this));
-        }
+        HANDLE OutMemoryLeakStream = nullptr;
     };
 
     // Statically allocated
@@ -20,14 +31,29 @@ namespace Turbo
 
     void Memory::Initialize()
     {
-        //s_Internal.MemoryPool = new u8[DefaultPoolSize];
-        // TODO: Memory
+        // NOTE: Moved memory leaks checks because mono leaks so much I cannot even see the console output
+        // Now outputs to memoryleaks.txt
+
+        // Outputs memory leaks 
+#ifdef TBO_PROFILE_MEMORY
+
+        //    _CrtSetBreakAlloc(462);
+
+        const auto& path = std::filesystem::current_path() / "memoryleaks.txt";
+        s_Internal.OutMemoryLeakStream = ::CreateFile(path.c_str(), GENERIC_WRITE,
+            FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL, NULL);
+        _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+        _CrtSetReportFile(_CRT_WARN, s_Internal.OutMemoryLeakStream);
+#endif
     }
 
     void Memory::Shutdown()
     {
-        //delete s_Internal.MemoryPool;
-        //s_Internal.MemoryPool = nullptr;
+#ifdef TBO_PROFILE_MEMORY
+        _CrtDumpMemoryLeaks();
+        ::CloseHandle(s_Internal.OutMemoryLeakStream);
+#endif
     }
 
 }

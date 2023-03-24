@@ -8,6 +8,8 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <commdlg.h>
+#include <stdio.h>
+#include <tchar.h>
 
 #define CheckPLATFORMError CheckError()
 
@@ -162,4 +164,43 @@ namespace Turbo
         TBO_ENGINE_WARN("[Win32_Platform::SaveFileDialog] Cancelled!");
         return selected_path;
     }
+
+    bool Platform::Execute(const std::string& app_name, const std::string& args)
+    {
+        STARTUPINFOA si = {};
+        si.cb = sizeof(si);
+        PROCESS_INFORMATION pi = {};
+
+        CHAR szCmd[MAX_PATH] = { 0 };
+        strcat_s(szCmd, "cmd.exe /C start ");
+        strcat_s(szCmd, app_name.c_str());
+        strcat_s(szCmd, " ");
+        strcat_s(szCmd, args.c_str());
+        // Start the child process. 
+        if (!CreateProcessA(NULL,   // No module name (use command line)
+            szCmd,        // Command line
+            NULL,           // Process handle not inheritable
+            NULL,           // Thread handle not inheritable
+            FALSE,          // Set handle inheritance to FALSE
+            0,              // No creation flags
+            NULL,           // Use parent's environment block
+            NULL,           // Use parent's starting directory 
+            &si,            // Pointer to STARTUPINFO structure
+            &pi)           // Pointer to PROCESS_INFORMATION structure
+            )
+        {
+            TBO_ENGINE_ERROR("CreateProcess failed! ErrorCode: {0}", GetLastError());
+            return false;
+        }
+
+        // Wait until child process exits.
+        WaitForSingleObject(pi.hProcess, INFINITE);
+
+        // Close process and thread handles. 
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+
+        return true;
+    }
+
 }

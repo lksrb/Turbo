@@ -17,6 +17,6 @@ namespace Turbo
         static std::filesystem::path OpenBrowseFolderDialog(const char* title = "", const char* savedPath = "");
         static std::filesystem::path SaveFileDialog(const char* filter = "", const char* suffix = "");
 
+        static bool Execute(const std::string& app_name, const std::string& args);
     };
-
 }

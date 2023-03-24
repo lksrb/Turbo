@@ -1,13 +1,13 @@
 #include "ContentBrowserPanel.h"
 
 #include <Turbo/UI/UI.h>
+#include <Turbo/Core/Platform.h>
+#include <Turbo/Solution/Project.h>
 
 #include <filesystem>
 
 namespace Turbo::Ed
 {
-    extern std::filesystem::path g_AssetPath;
-
     ContentBrowserPanel::ContentBrowserPanel()
     {
         m_DirectoryIcon = Texture2D::Create({ "Resources/Icons/DirectoryIcon.png" });
@@ -22,7 +22,7 @@ namespace Turbo::Ed
     {
         ImGui::Begin("Content Browser");
 
-        if (m_CurrentDirectory != g_AssetPath)
+        if (m_CurrentDirectory != m_BasePath)
         {
             if (ImGui::Button("<-"))
             {
@@ -45,7 +45,7 @@ namespace Turbo::Ed
         {
             const auto& path = directoryEntry.path();
 
-            const auto& relativePath = std::filesystem::relative(path, g_AssetPath.c_str());
+            const auto& relativePath = std::filesystem::relative(path, m_BasePath.c_str());
             const std::string& filenameString = relativePath.filename().string();
 
             ImGui::PushID(filenameString.c_str());
@@ -55,10 +55,15 @@ namespace Turbo::Ed
             UI::ImageButton(icon, { thumbnail_size, thumbnail_size }, { 0,1 }, { 1,0 });
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
-                if (path.extension() == ".tscene")
+                const wchar_t* item_path = path.c_str();
+                size_t item_path_size = (wcslen(item_path) + 1) * sizeof(wchar_t);
+                if (path.extension() == ".cs")
                 {
-                    const wchar_t* itemPath = path.c_str();
-                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Always);
+                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_SHP", item_path, item_path_size, ImGuiCond_Always);
+                }
+                else if (path.extension() == ".tscene")
+                {
+                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_VIEWPORT", item_path, item_path_size, ImGuiCond_Always);
                 }
                 ImGui::EndDragDropSource();
             }
@@ -68,7 +73,31 @@ namespace Turbo::Ed
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
             {
                 if (directoryEntry.is_directory())
+                {
                     m_CurrentDirectory /= path.filename().string().c_str();
+                } 
+                else
+                {
+                    if (path.extension() == ".cs")
+                    {
+                        std::filesystem::path path_to_solution = m_BasePath.parent_path() / Project::GetProjectName();
+                        path_to_solution.concat(".sln");
+                        
+                        // Currently opening specific files is not supported due to Visual Studio being Visual Studio
+                        if (!Platform::Execute("devenv.exe", path_to_solution.string()))
+                        {
+                            TBO_ERROR("Failed to open visual studio!");
+                        }
+                    } else if(path.extension() == ".sln")
+                    {
+                        // Opens Visual Studio, whatever version is registered first 
+                        // TODO: Client should have an option which visual studio to open
+                        if (!Platform::Execute("devenv.exe", path.string()))
+                        {
+                            TBO_ERROR("Failed to open visual studio!");
+                        }
+                    }
+                }
             }
             ImGui::TextWrapped(filenameString.c_str());
 
@@ -84,13 +113,9 @@ namespace Turbo::Ed
         ImGui::End();
     }
 
-    void ContentBrowserPanel::OnEvent(Event& e)
+    void ContentBrowserPanel::OnProjectChanged(const Ref<Project>& project)
     {
-    }
-
-    void ContentBrowserPanel::SetProjectAssetPath()
-    {
-        m_CurrentDirectory = g_AssetPath;
+        m_CurrentDirectory = m_BasePath = Project::GetAssetsPath();
     }
 
 }

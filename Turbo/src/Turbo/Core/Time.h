@@ -4,10 +4,10 @@
 
 namespace Turbo
 {
-    class Time_T
+    struct FTime
     {
     public:
-        Time_T(f32 ts = 0.0f) : m_Time(ts) {}
+        FTime(f32 ts = 0.0f) : m_Time(ts) {}
 
         f32 ms() const { return m_Time * 1000.0f; }
         f32 s() const { return m_Time; }
@@ -30,8 +30,8 @@ namespace Turbo
 
     struct Time
     {
-        Time_T DeltaTime;
-        Time_T TimeSinceStart;
+        FTime DeltaTime;
+        FTime TimeSinceStart;
     };
 
 }

@@ -1,15 +1,14 @@
 #pragma once
 
-#include <Turbo/Core/Common.h>
-
 #include "CommandTextFilter.h"
-#include "Panel.h"
 
+#include <Turbo/Core/Common.h>
 #include <Turbo/Event/KeyEvent.h>
+#include <Turbo/Editor/EditorPanel.h>
 
-namespace Turbo::Ed 
+namespace Turbo::Ed
 {
-    class QuickAccessPanel : public Panel
+    class QuickAccessPanel : public EditorPanel
     {
     public:
         QuickAccessPanel();

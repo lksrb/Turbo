@@ -14,6 +14,7 @@ namespace Turbo
         {
             std::string Name;
             std::filesystem::path AssetsDirectory;
+            std::filesystem::path ScriptModulePath;
             std::filesystem::path StartScenePath;
 
             // Not serialized
@@ -34,10 +35,16 @@ namespace Turbo
             TBO_ENGINE_ASSERT(s_ActiveProject);
             return s_ActiveProject->m_Config.Name;
         }
-        static const std::filesystem::path& GetProjectDirectory() 
+        static std::filesystem::path GetProjectDirectory() 
         {
             TBO_ENGINE_ASSERT(s_ActiveProject);
             return s_ActiveProject->m_Config.ProjectDirectory; 
+        }
+
+        static const std::filesystem::path GetAssetsPath()
+        {
+            TBO_ENGINE_ASSERT(s_ActiveProject);
+            return GetProjectDirectory() / s_ActiveProject->m_Config.AssetsDirectory;
         }
 
         static std::filesystem::path GetProjectConfigPath()

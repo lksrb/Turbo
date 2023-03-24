@@ -7,6 +7,7 @@
 #include "Turbo/Core/Platform.h"
 
 #include "Turbo/Renderer/Renderer.h"
+#include "Turbo/Script/Script.h"
 
 #include <filesystem>
 #include <future>
@@ -51,7 +52,7 @@ namespace Turbo
         config.Resizable = m_Application->m_Config.Resizable;
 
         // TODO: If UI is disabled, change render target to swapchain framebuffers i.e. render into the window instead of the UI
-        config.SwapChainTarget = !m_Application->m_Config.EnableUI; 
+        config.SwapChainTarget = !m_Application->m_Config.EnableUI;
 
         m_ViewportWindow = Window::Create(config);
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Engine::OnEvent));
@@ -62,7 +63,10 @@ namespace Turbo
         // Initializes rendering
         Renderer::Initialize();
 
-        if(m_Application->m_Config.EnableUI)
+        // Initialize mono script engine
+        Script::Init();
+
+        if (m_Application->m_Config.EnableUI)
             m_UI = UserInterface::Create();
 
         // Client access
@@ -77,6 +81,8 @@ namespace Turbo
     void Engine::Shutdown()
     {
         m_Initialized = false;
+
+        Script::Shutdown();
 
         RendererContext::WaitIdle();
 
@@ -118,23 +124,17 @@ namespace Turbo
 
             m_ViewportWindow->ProcessEvents();
 
+            ExecuteMainThreadQueue();
+
             if (!m_ViewportWindow->IsMinimized())
             {
-                if (m_Application)
-                    m_Application->OnUpdate();
+                m_Application->OnUpdate();
 
-                // Wait for render thread
-                if (m_RenderThread.joinable())
-                    m_RenderThread.join();
-
-                // Main renderer
-                Renderer::Begin();
-
-                // Render2D
+                Renderer::BeginFrame();
                 Renderer::Submit([this]() { m_Application->OnDraw(); });
 
                 // Render UI
-                if(m_Application->m_Config.EnableUI)
+                if (m_Application->m_Config.EnableUI)
                 {
                     Renderer::Submit([this]() { m_UI->BeginUI(); });
                     Renderer::Submit([this]() { m_Application->OnDrawUI(); });
@@ -147,15 +147,11 @@ namespace Turbo
                     Renderer::Render();
                     m_ViewportWindow->SwapFrame();
                 }
-                //);
+                
             }
         }
+
         // On Exit
-
-        // Wait for render thread
-        if (m_RenderThread.joinable())
-            m_RenderThread.join();
-
         m_Application->OnShutdown();
     }
 
@@ -166,11 +162,21 @@ namespace Turbo
         dispatcher.Dispatch<WindowResizeEvent>(TBO_BIND_FN(Engine::WindowResized));
         dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Engine::WindowClosed));
 
-        if(m_Application->m_Config.EnableUI)
+        if (m_Application->m_Config.EnableUI)
             m_UI->OnEvent(e);
 
         if (e.Handled == false)
             m_Application->OnEvent(e);
+    }
+
+    void Engine::ExecuteMainThreadQueue()
+    {
+        std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+
+        for (const auto& func : m_MainThreadQueue)
+            func();
+
+        m_MainThreadQueue.clear();
     }
 
     bool Engine::WindowResized(WindowResizeEvent& e)

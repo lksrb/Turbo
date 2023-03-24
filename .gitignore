@@ -73,7 +73,6 @@ StyleCopReport.xml
 *.obj
 *.iobj
 *.pch
-*.pdb
 *.ipdb
 *.pgc
 *.pgd
@@ -406,3 +405,7 @@ Turbo-Editor/assets/Shaders/cached/
 **.metadata
 *.frag
 *.vert
+Turbo-Editor/memoryleaks.txt
+
+Turbo-Editor/SandboxProject/Binaries
+

@@ -1,13 +1,15 @@
 #include "Editor.h"
 
-#include "../Panels/SceneHierarchyPanel.h"
 #include "../Panels/QuickAccessPanel.h"
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
 
+#include <Turbo/Debug/ScopeTimer.h>
+#include <Turbo/Editor/SceneHierarchyPanel.h>
+#include <Turbo/Editor/EditorConsolePanel.h>
+#include <Turbo/Script/Script.h>
 #include <Turbo/Solution/ProjectSerializer.h>
 #include <Turbo/Scene/SceneSerializer.h>
-#include <Turbo/Benchmark/ScopeTimer.h>
 #include <Turbo/UI/UI.h>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -38,6 +40,7 @@ namespace Turbo::Ed
         m_PanelManager->AddPanel<SceneHierarchyPanel>();
         m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
+        m_PanelManager->AddPanel<EditorConsolePanel>();
 
         // TODO: Think about panel callbacks
         m_PanelManager->AddPanel<CreateProjectPopupPanel>()->SetCallback([this](const auto& path)
@@ -185,6 +188,15 @@ namespace Turbo::Ed
 
         // Viewport
         {
+            ImGuiWindowFlags windowFlags = 0;
+            windowFlags |= ImGuiWindowFlags_NoTitleBar;
+            windowFlags |= ImGuiWindowFlags_NoMove;
+
+            ImGuiWindowClass window_class;
+            window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+            //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
+            ImGui::SetNextWindowClass(&window_class);
             ImGui::Begin("Viewport");
 
             m_ViewportHovered = ImGui::IsWindowHovered();
@@ -213,10 +225,14 @@ namespace Turbo::Ed
 
             if (ImGui::BeginDragDropTarget())
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_VIEWPORT"))
                 {
-                    const wchar_t* path = (const wchar_t*)payload->Data;
-                    OpenScene(path);
+                    std::filesystem::path path = (const wchar_t*)payload->Data;
+
+                    if (path.extension() == ".tscene")
+                    {
+                        OpenScene(path);
+                    }
                 }
 
                 ImGui::EndDragDropTarget();
@@ -302,6 +318,7 @@ namespace Turbo::Ed
             }
 
             ImGui::End();
+            ImGui::PopStyleVar();
         }
 
         // Menu
@@ -322,6 +339,8 @@ namespace Turbo::Ed
                     {
                         SaveProject();
                     }
+                    ImGui::Separator();
+
                     if (ImGui::MenuItem("Save Scene"))
                     {
                         SaveScene();
@@ -334,6 +353,15 @@ namespace Turbo::Ed
                     if (ImGui::MenuItem("Exit", "Alt+F4"))
                     {
                         Close();
+                    }
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Project"))
+                {
+                    if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::Edit))
+                    {
+                        Script::ReloadAssemblies();
                     }
                     ImGui::EndMenu();
                 }
@@ -353,12 +381,6 @@ namespace Turbo::Ed
         ImGui::Text("Quad Count %d", stats.QuadCount);
         ImGui::Text("Drawcalls %d", stats.DrawCalls);
         ImGui::End();
-
-        // EditorConsole
-        {
-            ImGui::Begin("Editor Console");
-            ImGui::End();
-        }
 
         // Draw all panels
         m_PanelManager->OnDrawUI();
@@ -528,32 +550,20 @@ namespace Turbo::Ed
 
             // Set it as new active project
             Project::SetActive(project);
-        }
 
+        }
+        g_AssetPath = project_path.parent_path();
 
         const auto& config = project->GetConfig();
 
-        // Set assets path for content browser, ...
-        g_AssetPath = project_path.parent_path();
-        m_PanelManager->GetPanel<ContentBrowserPanel>()->SetProjectAssetPath();
+        // All panels receive this event
+        m_PanelManager->OnProjectChanged(project);
 
-        m_EditorScenePath = config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath;
-        
-        // Create and deserialize scene
-        m_EditorScene = Ref<Scene>::Create();
-        SceneSerializer serializer(m_EditorScene);
-        serializer.Deserialize(m_EditorScenePath);
+        // Load project assembly
+        Script::LoadProjectAssembly(g_AssetPath / project->GetConfig().ScriptModulePath);
 
-        // Set viewport extent
-        m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-
-        // Set scene context for panels
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
-
-        // Reset selected entity
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity();
-
-        UpdateWindowTitle();
+        // Open scene
+        OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
     }
 
     void Editor::UpdateWindowTitle()
@@ -623,7 +633,8 @@ namespace Turbo::Ed
         TBO_ASSERT(serializer.Deserialize(scene_path.string()), "Could not deserialize scene!");
 
         m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+
+        m_PanelManager->SetSceneContext(m_EditorScene);
 
         m_EditorScenePath = scene_path;
 
@@ -667,6 +678,9 @@ namespace Turbo::Ed
 
     void Editor::OnScenePlay()
     {
+        // Clear logs
+        EditorConsolePanel::Clear();
+
         m_EditorMode = Mode::Play;
 
         m_RuntimeScene = Scene::Copy(m_EditorScene);
@@ -680,11 +694,11 @@ namespace Turbo::Ed
             if (m_SelectedEntity)
                 selected_entity_uuid = m_SelectedEntity.GetUUID();
 
-            m_SelectedEntity = m_RuntimeScene->GetEntityByUUID(selected_entity_uuid);
-            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
+            m_SelectedEntity = m_RuntimeScene->FindEntityByUUID(selected_entity_uuid);
         }
 
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_RuntimeScene);
+        m_PanelManager->SetSceneContext(m_RuntimeScene);
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 
     void Editor::OnSceneStop()
@@ -702,17 +716,17 @@ namespace Turbo::Ed
             if (m_SelectedEntity)
                 selected_entity_uuid = m_SelectedEntity.GetUUID();
 
-            m_SelectedEntity = m_EditorScene->GetEntityByUUID(selected_entity_uuid);
-            m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
+            m_SelectedEntity = m_EditorScene->FindEntityByUUID(selected_entity_uuid);
         }
 
-        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetContext(m_EditorScene);
+        m_PanelManager->SetSceneContext(m_RuntimeScene);
+        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 
     void Editor::Close()
     {
         // TODO: Make this an option
 
-        SaveProject(); // Auto safe
+        SaveProject(); // Auto save
     }
 }

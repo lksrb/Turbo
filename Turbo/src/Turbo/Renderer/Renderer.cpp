@@ -48,7 +48,7 @@ namespace Turbo
         return current_frame;
     }
 
-    void Renderer::Begin()
+    void Renderer::BeginFrame()
     {
 
     }

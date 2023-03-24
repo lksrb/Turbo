@@ -3,9 +3,10 @@
 
 #include <imgui.h>
 
-namespace Turbo::Ed {
-
-    namespace Utils {
+namespace Turbo::Ed
+{
+    namespace Utils 
+    {
         static inline bool IsCharBlankA(char c)
         {
             return c == ' ' || c == '\t';

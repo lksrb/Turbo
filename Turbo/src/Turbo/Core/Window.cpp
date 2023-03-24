@@ -20,14 +20,6 @@ namespace Turbo {
 
     Window* Window::Create(const Window::Config& specification)
     {
-        //Window::Config wndSpecification;
-        //wndSpecification.Title = appSpecification.Title;
-        //wndSpecification.Width = appSpecification.Width;
-        //wndSpecification.Height = appSpecification.Height;
-        //wndSpecification.VSync = appSpecification.VSync;
-        //wndSpecification.StartMaximized = appSpecification.StartMaximized;
-        //wndSpecification.Resizable = appSpecification.Resizable;
-
 #ifdef TBO_PLATFORM_WIN32
         return new Win32_Window(specification);
 #else

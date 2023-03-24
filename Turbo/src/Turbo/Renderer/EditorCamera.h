@@ -19,7 +19,7 @@ namespace Turbo
 
         virtual ~EditorCamera() = default;
 
-        void OnUpdate(Time_T ts);
+        void OnUpdate(FTime ts);
         void OnEvent(Event& e);
 
         inline f32 GetDistance() const { return m_Distance; }

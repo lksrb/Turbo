@@ -2,8 +2,6 @@
 
 #include <Turbo.h>
 
-#include "../Panels/PanelManager.h"
-
 namespace Turbo::Ed
 {
     class Editor : public Application

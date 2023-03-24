@@ -20,6 +20,12 @@ namespace Turbo
             IncRef();
         }
 
+        Ref(std::nullptr_t)
+        {
+            m_Instance = nullptr;
+            m_Counter = nullptr;
+        }
+
         Ref(const Ref<T>& other)
             : m_Instance(other.m_Instance), m_Counter(other.m_Counter)
         {
@@ -122,7 +128,6 @@ namespace Turbo
         template<typename T2>
         Ref<T2> As() const
         {
-            //static_assert(std::is_base_of<T, T2>::value, "Class must be derived from \"Panel\" base class!");
             return Ref<T2>(*this);
         }
 

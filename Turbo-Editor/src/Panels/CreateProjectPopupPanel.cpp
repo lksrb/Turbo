@@ -113,9 +113,4 @@ namespace Turbo::Ed
             ImGui::EndPopup();
         }
     }
-
-    void CreateProjectPopupPanel::OnEvent(Event& e)
-    {
-    }
-
 }

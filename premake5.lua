@@ -29,9 +29,10 @@ group ".Dependencies"
 	include "dependencies/yaml-cpp"
 group "Core"
 	include "Turbo"
+	include "Turbo-ScriptCore"
 
-group "Core-Tools"
+group "Tools"
 	include "Turbo-Editor"
 	
-	--group "Runtime"
+--group "Runtime"
 	--	include "Turbo-Runtime"
