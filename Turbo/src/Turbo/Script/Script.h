@@ -41,6 +41,8 @@ namespace Turbo
             Scope<FileWatcher> ProjectPathWatcher;
             bool AssemblyReloadPending = false;
             bool ProjectAssemblyDirty = false;
+
+            bool MonoDebugging = true;
         };
 
         static void Init();

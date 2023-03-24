@@ -23,10 +23,10 @@ namespace Sandbox
 
 		void OnStart()
 		{
-			Log.Info("Hello from C#!");
-			Log.Warn("Hello from C#!");
-
 			Log.Info($"Entity ID: {ID}!");
+			Log.Warn("Hello from C#!");
+			Log.Warn("Hello from C#!");
+			Log.Error("Hello from C#!");
 			
 			Log.Info($"Entity transform: {transform.Translation.y}");
 			
@@ -34,7 +34,6 @@ namespace Sandbox
 			m_Rigidbody.Gravity = false;
 			
 			m_SpriteRenderer = GetComponent<SpriteRendererComponent>();
-
 			m_SpriteRenderer.Color = new Vector4(0, 1, 1, 1);
 		}
 
@@ -42,6 +41,8 @@ namespace Sandbox
 		{
 			if (!m_Bool)
 				return;
+
+			Log.Warn("Hello from C#!");
 
 			if (Input.IsKeyPressed(KeyCode.W))
 			{

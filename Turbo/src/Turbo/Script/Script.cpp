@@ -16,8 +16,9 @@
 #include <fstream>
 
 #include <mono/jit/jit.h>
-#include <mono/metadata/assembly.h>
+#include <mono/metadata/mono-debug.h>
 
+#include <mono/metadata/assembly.h>
 #include <mono/metadata/appdomain.h>
 #include <mono/metadata/threads.h>
 #include <mono/metadata/tabledefs.h>
@@ -58,8 +59,7 @@ namespace Turbo
             return ScriptFieldType::None;
 
         }
-
-        static char* ReadBytes(const std::string& path, u32* out_size)
+        static char* ReadBytes(const std::filesystem::path& path, u32* out_size)
         {
             // std::ios::ate - seeks end of file
             std::ifstream stream(path, std::ios::binary | std::ios::ate);
@@ -82,20 +82,41 @@ namespace Turbo
             return bytes;
         }
 
-        static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assembly_path)
+        static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assembly_path, bool load_pdb = false)
         {
-            u32 bytes_size;
-            char* bytes = Utils::ReadBytes(assembly_path.string(), &bytes_size);
+            u32 assembly_data_size;
+            char* asssembly_data = Utils::ReadBytes(assembly_path, &assembly_data_size);
 
             MonoImageOpenStatus status;
-            MonoImage* image = mono_image_open_from_data_full(bytes, bytes_size, true, &status, false);
+            MonoImage* image = mono_image_open_from_data_full(asssembly_data, assembly_data_size, true, &status, false);
 
-            TBO_ENGINE_ASSERT(status == MONO_IMAGE_OK, "Could not load the assembly image!");
+            if (status != MONO_IMAGE_OK)
+            {
+                const char* message = mono_image_strerror(status);
+                TBO_ENGINE_ERROR(message);
+                return nullptr;
+            }
+
+            delete[] asssembly_data;
+
+            if (load_pdb)
+            {
+                std::filesystem::path pdb_path = assembly_path;
+                pdb_path.replace_extension(".pdb");
+
+                if (std::filesystem::exists(pdb_path))
+                {
+                    u32 pdb_data_size;
+                    char* pdb_data = ReadBytes(pdb_path, &pdb_data_size);
+                    mono_debug_open_image_from_memory(image, (const mono_byte*)pdb_data, pdb_data_size);
+                    delete[] pdb_data;
+
+                    TBO_ENGINE_INFO("Loaded PDB File! ({})", pdb_path);
+                }
+            }
 
             MonoAssembly* assembly = mono_assembly_load_from_full(image, assembly_path.string().c_str(), &status, false);
             mono_image_close(image);
-
-            delete[] bytes;
 
             return assembly;
         }
@@ -201,7 +222,7 @@ namespace Turbo
         // Clear all registered classes
         g_Data->ScriptClasses.clear();
 
-        g_Data->ProjectAssembly = Utils::LoadMonoAssembly(path);
+        g_Data->ProjectAssembly = Utils::LoadMonoAssembly(path, g_Data->MonoDebugging);
         g_Data->ProjectAssemblyImage = mono_assembly_get_image(g_Data->ProjectAssembly);
 
         ReflectProjectAssembly();
@@ -292,22 +313,35 @@ namespace Turbo
         // Set path for important C# assemblies
         mono_set_assemblies_path("Mono/lib");
 
+        if (g_Data->MonoDebugging)
+        {
+            const char* argv[2] = {
+                "--debugger-agent=transport=dt_socket,address=127.0.0.1:2550,server=y,suspend=n,loglevel=3,logfile=MonoDebugger.log",
+                "--soft-breakpoints"
+            };
+
+            mono_jit_parse_options(2, (char**)argv);
+            mono_debug_init(MONO_DEBUG_FORMAT_MONO);
+        }
+
         // Create root domain
         g_Data->RootDomain = mono_jit_init("TBOJITRuntime");
         TBO_ENGINE_ASSERT(g_Data->RootDomain, "Could not initialize mono runtime!");
 
-        // Set main thread as current thread
-        mono_thread_set_main(mono_thread_current());
+        if (g_Data->MonoDebugging)
+            mono_debug_domain_create(g_Data->RootDomain);
 
-        // Recreate App Domain
-        g_Data->AppDomain = mono_domain_create_appdomain("TBORuntime", nullptr);
-        mono_domain_set(g_Data->AppDomain, true);
+        mono_thread_set_main(mono_thread_current());
     }
 
     void Script::LoadCoreAssembly(const std::filesystem::path& path)
     {
+        // Create App Domain
+        g_Data->AppDomain = mono_domain_create_appdomain("TBORuntime", nullptr);
+        mono_domain_set(g_Data->AppDomain, true);
+
         g_Data->CoreAssemblyPath = path;
-        g_Data->ScriptCoreAssembly = Utils::LoadMonoAssembly(path);
+        g_Data->ScriptCoreAssembly = Utils::LoadMonoAssembly(path, g_Data->MonoDebugging);
         g_Data->ScriptCoreAssemblyImage = mono_assembly_get_image(g_Data->ScriptCoreAssembly);
 
         g_Data->EntityBaseClass = Ref<ScriptClass>::Create("Turbo", "Entity");
@@ -344,13 +378,12 @@ namespace Turbo
         TBO_ENGINE_ASSERT(!g_Data->CoreAssemblyPath.empty());
         TBO_ENGINE_ASSERT(!g_Data->ProjectAssemblyPath.empty());
 
-        // Switch away from the reloaded app domain
-        mono_domain_set(g_Data->RootDomain, false);
-        mono_domain_unload(g_Data->AppDomain);
-
-        // Recreate App Domain
-        g_Data->AppDomain = mono_domain_create_appdomain("TBORuntime", nullptr);
-        mono_domain_set(g_Data->AppDomain, true);
+        // Unloading
+        {
+            // Switch away from the reloaded app domain
+            mono_domain_set(g_Data->RootDomain, false);
+            mono_domain_unload(g_Data->AppDomain);
+        }
 
         LoadCoreAssembly(g_Data->CoreAssemblyPath);
         LoadProjectAssembly(g_Data->ProjectAssemblyPath);

@@ -9,7 +9,7 @@ namespace Turbo
     class ScriptInstance
     {
     private:
-        using OnUpdateMethod = void(__stdcall*)(MonoObject*, f32, MonoException**);
+        using OnUpdateMethod = void(__stdcall*)(MonoObject*, f32, MonoObject**);
         static inline u8 s_FieldValueBuffer[16];
     public:
         ScriptInstance(Ref<ScriptClass> script_class, u64 entity);

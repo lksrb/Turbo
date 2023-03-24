@@ -46,9 +46,21 @@ namespace Turbo
     void ScriptInstance::InvokeOnUpdate(FTime ts)
     {
 #if TBO_USE_MANAGED_THUNKS
-        MonoException* e;
-        m_OnUpdateMethodFP(m_Instance, ts, &e);
-        TBO_ENGINE_ASSERT(!e);
+        // NOTE: When an exception is thrown while the debugger is attached,
+        // with managed thunks, debugger does not tell client that an exception has been thrown other than is prints into console.
+        // With mono_runtime_invoke, this works
+        // TODO: Find out how to show exception to a client in his opened editor
+
+        MonoObject* exception;
+        m_OnUpdateMethodFP(m_Instance, ts, &exception);
+
+        if (exception)
+        {
+            MonoString* message = mono_object_to_string(exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_FATAL(cstring);
+            mono_free(cstring);
+        }
 #else
         void* params = &ts;
         m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod, &params);
