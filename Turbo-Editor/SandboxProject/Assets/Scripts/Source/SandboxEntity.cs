@@ -25,7 +25,6 @@ namespace Sandbox
 		{
 			Log.Info($"Entity ID: {ID}!");
 			Log.Warn("Hello from C#!");
-			Log.Warn("Hello from C#!");
 			Log.Error("Hello from C#!");
 			
 			Log.Info($"Entity transform: {transform.Translation.y}");
@@ -41,8 +40,6 @@ namespace Sandbox
 		{
 			if (!m_Bool)
 				return;
-
-			Log.Warn("Hello from C#!");
 
 			if (Input.IsKeyPressed(KeyCode.W))
 			{
