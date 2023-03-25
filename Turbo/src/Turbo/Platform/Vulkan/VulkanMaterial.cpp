@@ -16,10 +16,6 @@ namespace Turbo
 
     VulkanMaterial::~VulkanMaterial()
     {
-        for (auto& [name, uniformBuffer] : m_UniformBufferMap)
-        {
-            delete uniformBuffer;
-        }
     }
 
     void VulkanMaterial::Set(const std::string& resource_name, const glm::mat4& matrix)
@@ -110,7 +106,7 @@ namespace Turbo
                 bufferConfig.Size = uniformBuffer.Size;
                 bufferConfig.UsageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
                 bufferConfig.MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-                m_UniformBufferMap[uniformBuffer.Name] = new VulkanBuffer(bufferConfig);
+                m_UniformBufferMap[uniformBuffer.Name] = Ref<VulkanBuffer>::Create(bufferConfig);
 
                 VkDescriptorBufferInfo bufferInfo{};
                 bufferInfo.buffer = m_UniformBufferMap[uniformBuffer.Name]->GetBuffer();
