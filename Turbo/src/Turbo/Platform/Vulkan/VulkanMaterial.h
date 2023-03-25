@@ -24,7 +24,7 @@ namespace Turbo
     private:
         void CreateWriteDescriptors();
     private:
-        std::unordered_map<std::string, VulkanBuffer*> m_UniformBufferMap;
+        std::unordered_map<std::string, Ref<VulkanBuffer>> m_UniformBufferMap;
         std::unordered_map<std::string, std::vector<VkDescriptorImageInfo>> m_TextureDescriptorMap;
 
         std::unordered_map<std::string, VkWriteDescriptorSet> m_DescriptorWrites;
