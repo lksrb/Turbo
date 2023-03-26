@@ -71,9 +71,11 @@ namespace Turbo
             config.TargetFramebuffer = m_TargetFramebuffer; 
             m_QuadPipeline = GraphicsPipeline::Create(config);
             m_QuadPipeline->Invalidate();
+
+            // Material
+            m_QuadMaterial = Material::Create({ m_QuadShader });
         }
 
-        m_QuadMaterial = Material::Create({ m_QuadShader });
 
         // White texture for texture-less quads
         m_WhiteTexture = Texture2D::Create(0xffffffff);
@@ -119,7 +121,7 @@ namespace Turbo
         m_BeginDraw = false;
     }
 
-    void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, f32 rotation, const glm::vec4& color, i32 entityID)
+    void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, f32 rotation, const glm::vec4& color, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
@@ -127,10 +129,10 @@ namespace Turbo
             * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
             * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-        DrawQuad(transform, color, entityID);
+        DrawQuad(transform, color, entity);
     }
 
-    void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entityID)
+    void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
@@ -144,7 +146,7 @@ namespace Turbo
         {
             m_QuadVertexBufferPointer->Position = transform * QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
-            m_QuadVertexBufferPointer->EntityID = entityID;
+            m_QuadVertexBufferPointer->EntityID = entity;
             m_QuadVertexBufferPointer->TextureIndex = 0;
             m_QuadVertexBufferPointer->TexCoord = textureCoords[i];
             m_QuadVertexBufferPointer->TilingFactor = 0.0f;
@@ -156,7 +158,7 @@ namespace Turbo
         m_RenderInfo.QuadCount++;
     }
 
-    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/)
+    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity /*= -1*/)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
@@ -194,7 +196,7 @@ namespace Turbo
         {
             m_QuadVertexBufferPointer->Position = transform * QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
-            m_QuadVertexBufferPointer->EntityID = entityID;
+            m_QuadVertexBufferPointer->EntityID = entity;
             m_QuadVertexBufferPointer->TextureIndex = texture_index;
             m_QuadVertexBufferPointer->TexCoord = texture_coords[i];
             m_QuadVertexBufferPointer->TilingFactor = tiling;
@@ -206,7 +208,7 @@ namespace Turbo
         m_RenderInfo.QuadCount++;
     }
 
-    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subtexture, f32 tiling, i32 entityID /*= -1*/)
+    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subtexture, f32 tiling, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
@@ -245,7 +247,7 @@ namespace Turbo
         {
             m_QuadVertexBufferPointer->Position = transform * QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
-            m_QuadVertexBufferPointer->EntityID = entityID;
+            m_QuadVertexBufferPointer->EntityID = entity;
             m_QuadVertexBufferPointer->TextureIndex = texture_index;
             m_QuadVertexBufferPointer->TexCoord = texture_coords[i];
             m_QuadVertexBufferPointer->TilingFactor = tiling;
@@ -257,7 +259,12 @@ namespace Turbo
         m_RenderInfo.QuadCount++;
     }
 
-    void Renderer2D::Flush()
+	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
+	{
+        // TODO:
+	}
+
+	void Renderer2D::Flush()
     {
         Renderer::Submit([this]()
         {

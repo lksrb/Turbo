@@ -68,6 +68,13 @@ namespace Turbo
         Ref<SubTexture2D> SubTexture;
     };
 
+    struct CircleRendererComponent
+    {
+        glm::vec4 Color{ 1.0f };
+        f32 Thickness = 1.0f;
+        f32 Fade = 0.005f;
+    };
+
     struct ScriptComponent
     {
         std::string ClassName;
@@ -117,6 +124,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, ScriptComponent,
+        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, ScriptComponent,
         Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

@@ -11,7 +11,7 @@ namespace Turbo
     VulkanMaterial::VulkanMaterial(const Material::Config& config)
         : Material(config)
     {
-        CreateWriteDescriptors();
+        UpdateDescriptors();
     }
 
     VulkanMaterial::~VulkanMaterial()
@@ -61,7 +61,7 @@ namespace Turbo
         // Invalidate descriptor sets
     }
 
-    void VulkanMaterial::CreateWriteDescriptors()
+    void VulkanMaterial::UpdateDescriptors()
     {
         VkDevice device = RendererContext::GetDevice();
 

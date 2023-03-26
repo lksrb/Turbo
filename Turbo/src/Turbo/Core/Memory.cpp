@@ -3,7 +3,9 @@
 
 #include <filesystem>
 
-#if defined(_MSC_VER) && defined(TBO_PROFILE_MEMORY)
+#if defined(_MSC_VER)
+#if defined(TBO_PROFILE_MEMORY)
+
 #include <crtdbg.h>
 #include <windows.h>
 
@@ -13,8 +15,9 @@ _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT); \
 _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); \
 _CrtSetReportFile(_CRT_WARN, __buffer);
 
+#endif
 #else
-#error Currently Windows only!
+    #error Currently Windows only!
 #endif
 
 namespace Turbo
@@ -33,12 +36,17 @@ namespace Turbo
     {
         // NOTE: Moved memory leaks checks because mono leaks so much I cannot even see the console output
         // Now outputs to memoryleaks.txt
+        
+#if 0
+        _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+        _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
 
-        // Outputs memory leaks 
+        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+        //_CrtSetBreakAlloc(462);
+#endif
+
+        // Outputs memory leaks
 #ifdef TBO_PROFILE_MEMORY
-
-        //    _CrtSetBreakAlloc(462);
-
         const auto& path = std::filesystem::current_path() / "memoryleaks.txt";
         s_Internal.OutMemoryLeakStream = ::CreateFile(path.c_str(), GENERIC_WRITE,
             FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,
@@ -52,7 +60,8 @@ namespace Turbo
     {
 #ifdef TBO_PROFILE_MEMORY
         _CrtDumpMemoryLeaks();
-        ::CloseHandle(s_Internal.OutMemoryLeakStream);
+        // FIXME: CRTDBG thinks, this is a memory leak but isn't because we just dump them before closing the file handle
+        ::CloseHandle(s_Internal.OutMemoryLeakStream); 
 #endif
     }
 

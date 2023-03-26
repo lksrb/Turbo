@@ -11,36 +11,6 @@ namespace Turbo
 
     using ShaderStage = u32;
 
-    // Should match VkVertexInputAttributeDescription 
-    struct alignas(u32) VertexInputAttribute
-    {
-        u32 Location;
-        u32 Binding;
-        u32 Format;
-        u32 Offset;
-    };
-
-    struct UniformBuffer
-    {
-        u32 Binding;
-        u32 Stage;
-        u32 Size;
-        std::string Name;
-    };
-
-    struct TextureSamplerArray
-    {
-        std::string Name;
-        u32 Binding;
-        u32 Size = 0;
-    };
-
-    struct ShaderBufferLayout
-    {
-        std::vector<VertexInputAttribute> Descriptions;
-        u32 Stride;
-    };
-
     enum class ShaderLanguage : u32
     {
         GLSL = 0,
@@ -49,6 +19,37 @@ namespace Turbo
 
     class Shader
     {
+    protected:
+        struct UniformBufferInfo
+        {
+            u32 Binding;
+            u32 Stage;
+            u32 Size;
+            std::string Name;
+        };
+
+        struct TextureSamplerArrayInfo
+        {
+            std::string Name;
+            u32 Binding;
+            u32 Size = 0;
+        };
+
+        // Should match VkVertexInputAttributeDescription 
+        struct VertexInputAttribute
+        {
+            u32 Location;
+            u32 Binding;
+            u32 Format;
+            u32 Offset;
+        };
+
+        struct ShaderBufferLayout
+        {
+            std::vector<VertexInputAttribute> Descriptions;
+            u32 Stride;
+        };
+
     public:
         struct Config
         {
@@ -58,8 +59,8 @@ namespace Turbo
 
         struct Resources
         {
-            std::vector<UniformBuffer> UniformBuffers;
-            TextureSamplerArray TextureSamplerArray;
+            std::vector<UniformBufferInfo> UniformBuffers;
+            TextureSamplerArrayInfo TextureSamplerArray;
         };
 
         static Ref<Shader> Create(const Shader::Config& config);

@@ -334,7 +334,7 @@ namespace Turbo
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
-            //DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+            DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
             DisplayAddComponentEntry<ScriptComponent>("Script Component");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
@@ -464,13 +464,12 @@ namespace Turbo
 
         });
 
-        /*
-                DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
-                {
-                    ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-                    ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
-                });*/
+        Utils::DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
+        {
+            ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+            ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
+            ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
+        });
 
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
         {

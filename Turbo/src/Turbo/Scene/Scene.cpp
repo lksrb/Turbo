@@ -148,7 +148,7 @@ namespace Turbo
             transform.Translation.x = position.x;
             transform.Translation.y = position.y;
 
-            if(rb2d.FixedRotation == false)
+            if (rb2d.FixedRotation == false)
                 transform.Rotation.z = body->GetAngle();
         }
 
@@ -188,6 +188,7 @@ namespace Turbo
                 auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
                 camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
 
+                // Sprites
                 renderer2d->Begin(camera);
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
@@ -204,6 +205,18 @@ namespace Turbo
                     }
                 }
 
+                // Circles
+#if 0           
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
+
+                    for (auto& entity : view)
+                    {
+                        auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                        renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                    }
+                }
+#endif
                 renderer2d->End();
             }
         }
@@ -279,7 +292,7 @@ namespace Turbo
     void Scene::CreatePhysicsWorld2D()
     {
         m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
-        
+
         // View all physics actors
         auto view = m_Registry.view<Rigidbody2DComponent>();
         for (auto e : view)
@@ -350,7 +363,7 @@ namespace Turbo
         }
     }
 
-	Entity Scene::FindEntityByUUID(UUID uuid)
+    Entity Scene::FindEntityByUUID(UUID uuid)
     {
         auto& view = GetAllEntitiesWith<IDComponent>(); // TODO: Maybe not necessary
         for (auto e : view)
@@ -399,7 +412,7 @@ namespace Turbo
     template<>
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
     {
-        if(m_ViewportWidth > 0 && m_ViewportHeight > 0)
+        if (m_ViewportWidth > 0 && m_ViewportHeight > 0)
             component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
     }
 
@@ -410,6 +423,11 @@ namespace Turbo
 
     template<>
     void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
     {
     }
 

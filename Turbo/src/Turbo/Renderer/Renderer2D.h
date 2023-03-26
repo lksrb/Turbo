@@ -28,6 +28,7 @@ namespace Turbo
         {
             u32 QuadCount;
             u32 QuadIndexCount;
+            u32 CircleIndexCount;
             u32 DrawCalls;
 
             RenderInfo() { Reset(); }
@@ -36,7 +37,6 @@ namespace Turbo
             {
                 memset(this, 0, sizeof(*this));
             }
-
         };
 
         Renderer2D();
@@ -49,14 +49,16 @@ namespace Turbo
         void Begin(const Camera& camera);
         void End();
 
-        void DrawQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entityID = -1);
-        void DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entityID = -1);
-        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entityID /*= -1*/);
-        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entityID /*= -1*/);
+        void DrawQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
+        void DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
+        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity = -1);
+        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity = -1);
+
+        void DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
 
         RenderInfo GetRenderInfo() const { return m_RenderInfo; }
 
-        void SetRenderTarget(Ref<FrameBuffer> framebuffer) { m_TargetFramebuffer = framebuffer; }
+        void SetRenderTarget(const Ref<FrameBuffer>& framebuffer) { m_TargetFramebuffer = framebuffer; }
     private:
         void Shutdown();
 
@@ -82,10 +84,18 @@ namespace Turbo
             glm::vec2 TexCoord;
             u32 TextureIndex;
             f32 TilingFactor;
-            u32 EntityID;
+            i32 EntityID;
         };
 
-        RenderInfo m_RenderInfo;
+        struct CircleVertex
+        {
+            glm::vec3 Position;
+            glm::vec4 Color;
+
+            f32 Thickness;
+            f32 Fade;
+            i32 EntityID;
+        };
 
         // Quads
         QuadVertex* m_QuadVertexBufferBase = nullptr;
@@ -98,11 +108,23 @@ namespace Turbo
         Ref<Shader> m_QuadShader;
         Ref<GraphicsPipeline> m_QuadPipeline;
 
+        // TODO: Circles
+#if 0
+        CircleVertex* m_CircleVertexBufferBase = nullptr;
+        CircleVertex* m_CircleVertexBufferPointer = nullptr;
+
+        Ref<VertexBuffer> m_CircleVertexBuffer;
+        Ref<Material> m_CircleMaterial;
+
+        Ref<Shader> m_CircleShader;
+        Ref<GraphicsPipeline> m_CirclePipeline;
+#endif
         Ref<Texture2D> m_WhiteTexture;
 
         Ref<FrameBuffer> m_TargetFramebuffer;
-
         Ref<CommandBuffer> m_CommandBuffer;
+
+        RenderInfo m_RenderInfo;
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;

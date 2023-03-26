@@ -22,7 +22,7 @@ namespace Turbo
 
         void Update() override;
     private:
-        void CreateWriteDescriptors();
+        void UpdateDescriptors();
     private:
         std::unordered_map<std::string, Ref<VulkanBuffer>> m_UniformBufferMap;
         std::unordered_map<std::string, std::vector<VkDescriptorImageInfo>> m_TextureDescriptorMap;
