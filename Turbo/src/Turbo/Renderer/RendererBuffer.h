@@ -25,7 +25,7 @@ namespace Turbo
     protected:
         RendererBuffer(const RendererBuffer::Config& config);
 
-        void* m_Data;
+        void* m_Data = nullptr;
         RendererBuffer::Config m_Config;
     };
 }

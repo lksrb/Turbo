@@ -30,10 +30,8 @@ namespace Turbo
     private:
         void Init();
     private:
-
-
         Ref<FrameBuffer> m_TargetFramebuffer;
-        Ref<CommandBuffer> m_RenderCommandBuffer;
+        Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
         Ref<RenderPass> m_Renderpass;
         Ref<Renderer2D> m_Renderer2D;

@@ -3,8 +3,6 @@
 #include "Turbo/Core/Common.h"
 #include "Turbo/Renderer/ResourceQueue.h"
 
-#define TBO_MAX_FRAMESINFLIGHT 3
-
 extern "C"
 {
     // TODO: How does this work

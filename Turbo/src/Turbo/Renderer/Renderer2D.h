@@ -2,17 +2,18 @@
 
 #include "Camera.h"
 
-#include "CommandBuffer.h"
+#include "RenderCommandBuffer.h"
 #include "Shader.h"
 #include "GraphicsPipeline.h"
 #include "IndexBuffer.h"
 #include "Image2D.h"
+#include "Material.h"
 #include "Texture2D.h"
 #include "RendererContext.h"
 #include "RenderPass.h"
 #include "FrameBuffer.h"
+#include "UniformBuffer.h"
 #include "VertexBuffer.h"
-#include "Material.h"
 
 #include <array>
 
@@ -46,8 +47,8 @@ namespace Turbo
         void Initialize();
         static Ref<Renderer2D> Create() { return Ref<Renderer2D>::Create(); }
 
-        void Begin(const Camera& camera);
-        void End();
+        void Begin2D(const Camera& camera);
+        void End2D();
 
         void DrawQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
@@ -120,9 +121,10 @@ namespace Turbo
         Ref<GraphicsPipeline> m_CirclePipeline;
 #endif
         Ref<Texture2D> m_WhiteTexture;
+        Ref<UniformBufferSet> m_CameraBuffer;
 
         Ref<FrameBuffer> m_TargetFramebuffer;
-        Ref<CommandBuffer> m_CommandBuffer;
+        Ref<RenderCommandBuffer> m_CommandBuffer;
 
         RenderInfo m_RenderInfo;
 

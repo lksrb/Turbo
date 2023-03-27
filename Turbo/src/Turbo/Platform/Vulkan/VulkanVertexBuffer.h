@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Turbo/Renderer/CommandBuffer.h"
+#include "Turbo/Renderer/RenderCommandBuffer.h"
 #include "Turbo/Renderer/RendererContext.h"
 #include "Turbo/Renderer/VertexBuffer.h"
 
@@ -27,6 +27,6 @@ namespace Turbo
         VkDeviceMemory m_StagingBufferMemory = VK_NULL_HANDLE;
         void* m_StagingBufferPtr = nullptr;
 
-        Ref<CommandBuffer> m_TranferCommandBuffer;
+        Ref<RenderCommandBuffer> m_TranferCommandBuffer;
     };
 }

@@ -6,7 +6,7 @@
 namespace Turbo
 {
     RendererBuffer::RendererBuffer(const RendererBuffer::Config& config)
-        : m_Config(config), m_Data(nullptr)
+        : m_Config(config)
     {
     }
 

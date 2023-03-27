@@ -6,8 +6,7 @@
 
 namespace Turbo
 {
-    VulkanCommandBuffer::VulkanCommandBuffer(CommandBufferLevel type)
-        : CommandBuffer(type)
+    VulkanCommandBuffer::VulkanCommandBuffer()
     {
         u32 frames_in_flight = RendererContext::FramesInFlight();
         VkDevice device = RendererContext::GetDevice();
@@ -18,7 +17,7 @@ namespace Turbo
             VkCommandBufferAllocateInfo alloc_info = {};
             alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             alloc_info.commandPool = RendererContext::GetCommandPool();
-            alloc_info.level = static_cast<VkCommandBufferLevel>(type);
+            alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
             alloc_info.commandBufferCount = frames_in_flight;
 
             TBO_VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, m_CommandBuffers.data()));
@@ -56,7 +55,7 @@ namespace Turbo
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.pNext = nullptr;
-        beginInfo.flags = (m_Type == CommandBufferLevel::Primary) ? VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT : VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         beginInfo.pInheritanceInfo = nullptr;
         TBO_VK_ASSERT(vkBeginCommandBuffer(m_CommandBuffers[current_frame], &beginInfo));
     }
@@ -71,7 +70,7 @@ namespace Turbo
     void VulkanCommandBuffer::Submit()
     {
         // Secondary command buffers cannot be submitted directly into queue
-        TBO_ENGINE_ASSERT(m_Type == CommandBufferLevel::Primary, "Cannot submit secondary command buffers directly!");
+        //TBO_ENGINE_ASSERT(m_Type == CommandBufferLevel::Primary, "Cannot submit secondary command buffers directly!");
 
         VkDevice device = RendererContext::GetDevice();
         u32 current_frame = Renderer::GetCurrentFrame();

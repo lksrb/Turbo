@@ -20,7 +20,7 @@ namespace Turbo
     void Renderer2D::Initialize()
     {
         // Render command buffer
-        m_CommandBuffer = CommandBuffer::Create(CommandBufferLevel::Primary);
+        m_CommandBuffer = RenderCommandBuffer::Create();
 
         // Default clear color
         m_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -76,6 +76,8 @@ namespace Turbo
             m_QuadMaterial = Material::Create({ m_QuadShader });
         }
 
+        // Create camera uniform buffer
+        m_CameraBuffer = UniformBufferSet::Create({ 0, 0, sizeof(glm::mat4)});
 
         // White texture for texture-less quads
         m_WhiteTexture = Texture2D::Create(0xffffffff);
@@ -89,10 +91,12 @@ namespace Turbo
         delete m_QuadVertexBufferBase;
     }
 
-    void Renderer2D::Begin(const Camera& camera)
+    void Renderer2D::Begin2D(const Camera& camera)
     {
         // Enable drawing
         m_BeginDraw = true;
+
+        //m_CameraBuffer->SetData(&camera.GetViewProjection());
 
         m_QuadMaterial->Set("u_Camera", camera.GetViewProjection());
 
@@ -114,7 +118,7 @@ namespace Turbo
         m_RenderInfo.Reset();
     }
 
-    void Renderer2D::End()
+    void Renderer2D::End2D()
     {
         Flush();
 

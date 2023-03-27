@@ -58,7 +58,7 @@ namespace Turbo
             m_Renderer2D->SetRenderTarget(m_TargetFramebuffer);
 
             // Separate command buffer
-            m_RenderCommandBuffer = CommandBuffer::Create(CommandBufferLevel::Primary);
+            m_RenderCommandBuffer = RenderCommandBuffer::Create();
         }
         else
         {

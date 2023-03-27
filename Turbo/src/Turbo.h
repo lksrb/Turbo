@@ -1,6 +1,6 @@
 #pragma once
 
-/****************************************
+/*****************************************
  * Those are most important header files
  */
 
@@ -21,9 +21,9 @@
 
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"
+#include "Turbo/Scene/SceneRenderer.h"
 
 #include "Turbo/Solution/Project.h"
 
 #include "Turbo/Renderer/EditorCamera.h"
-#include "Turbo/Renderer/SceneRenderer.h"
 #include "Turbo/Renderer/Texture2D.h"

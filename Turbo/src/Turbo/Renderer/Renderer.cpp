@@ -1,10 +1,10 @@
 #include "tbopch.h"
 #include "Renderer.h"
 
-#include "Turbo/Core/Engine.h"
-
 #include "Renderer2D.h"
 #include "SwapChain.h"
+
+#include "Turbo/Core/Engine.h"
 
 #include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
 #include "Turbo/Platform/Vulkan/VulkanBuffer.h"
@@ -18,16 +18,16 @@
 
 namespace Turbo
 {
-    struct Internal
+    struct RendererInternal
     {
         RenderCommandQueue RenderQueue;
     };
 
-    static Internal* s_Internal;
+    static RendererInternal* s_Internal;
 
     void Renderer::Initialize()
     {
-        s_Internal = new Internal;
+        s_Internal = new RendererInternal;
     }
 
     void Renderer::Shutdown()
@@ -62,7 +62,7 @@ namespace Turbo
     // Command buffer functions
     // Command buffer functions
 
-    void Renderer::SetViewport(Ref<CommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 he, f32 min_depth, f32 max_depth)
+    void Renderer::SetViewport(Ref<RenderCommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 he, f32 min_depth, f32 max_depth)
     {
         VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
 
@@ -76,7 +76,7 @@ namespace Turbo
         vkCmdSetViewport(vk_commandbuffer, 0, 1, &viewport);
     }
 
-    void Renderer::SetScissor(Ref<CommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 height)
+    void Renderer::SetScissor(Ref<RenderCommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 height)
     {
         VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
 
@@ -86,7 +86,7 @@ namespace Turbo
         vkCmdSetScissor(vk_commandbuffer, 0, 1, &scissor);
     }
 
-    void Renderer::BeginRenderPass(Ref<CommandBuffer> commandbuffer, Ref<FrameBuffer> framebuffer, const glm::vec4& clear_color)
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandbuffer, Ref<FrameBuffer> framebuffer, const glm::vec4& clear_color)
     {
         const FrameBuffer::Config& framebuffer_config = framebuffer->GetConfig();
 
@@ -114,26 +114,26 @@ namespace Turbo
         vkCmdBeginRenderPass(vk_commandbuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void Renderer::EndRenderPass(Ref<CommandBuffer> commandbuffer)
+    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandbuffer)
     {
         VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
 
         vkCmdEndRenderPass(vk_commandbuffer);
     }
 
-    void Renderer::DrawIndexed(Ref<CommandBuffer> commandbuffer, Ref<VertexBuffer> vertexbuffer, Ref<IndexBuffer> indexbuffer, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 index_count)
+    void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandbuffer, Ref<VertexBuffer> vertexbuffer, Ref<IndexBuffer> indexbuffer, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 index_count)
     {
         VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
 
-        VkBuffer vk_vertexBuffer = vertexbuffer.As<VulkanVertexBuffer>()->GetBuffer();
-        VkBuffer vk_indexBuffer = indexbuffer.As<VulkanIndexBuffer>()->GetBuffer();
+        VkBuffer vk_vertex_buffer = vertexbuffer.As<VulkanVertexBuffer>()->GetBuffer();
+        VkBuffer vk_index_buffer = indexbuffer.As<VulkanIndexBuffer>()->GetBuffer();
         VkPipeline vk_pipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipeline();
         VkPipelineLayout vk_pipeline_layout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayout();
         VkDescriptorSet vk_descriptor_set = shader.As<VulkanShader>()->GetDescriptorSet();
 
         VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(vk_commandbuffer, 0, 1, &vk_vertexBuffer, offsets);
-        vkCmdBindIndexBuffer(vk_commandbuffer, vk_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindVertexBuffers(vk_commandbuffer, 0, 1, &vk_vertex_buffer, offsets);
+        vkCmdBindIndexBuffer(vk_commandbuffer, vk_index_buffer, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdBindPipeline(vk_commandbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline);
 

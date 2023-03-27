@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Turbo/Renderer/CommandBuffer.h"
+#include "Turbo/Renderer/RenderCommandBuffer.h"
 
 #include <vulkan/vulkan.h>
 
 namespace Turbo
 {
-    class VulkanCommandBuffer : public CommandBuffer
+    class VulkanCommandBuffer : public RenderCommandBuffer
     {
     public:
-        VulkanCommandBuffer(CommandBufferLevel type);
+        VulkanCommandBuffer();
         ~VulkanCommandBuffer();
 
         VkCommandBuffer GetCommandBuffer() const;

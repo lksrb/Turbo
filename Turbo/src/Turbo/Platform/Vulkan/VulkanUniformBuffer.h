@@ -1,20 +1,21 @@
 #pragma once
 
-#include "Turbo/Renderer/RendererBuffer.h"
+#include "Turbo/Renderer/UniformBuffer.h"
 
 #include <vulkan/vulkan.h>
 
 namespace Turbo
 {
-    class VulkanBuffer : public RendererBuffer
+    class VulkanUniformBuffer : public UniformBuffer
     {
     public:
-        VulkanBuffer(const RendererBuffer::Config& config);
-        ~VulkanBuffer();
+        VulkanUniformBuffer(const UniformBuffer::Config& config);
+        ~VulkanUniformBuffer();
+
+        void Invalidate() override;
 
         VkBuffer GetBuffer() const { return m_Buffer; }
         VkDeviceMemory GetMemory() const { return m_Memory; }
-
         void SetData(const void* data) override;
     private:
         VkDeviceMemory m_Memory = VK_NULL_HANDLE;

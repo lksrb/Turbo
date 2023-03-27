@@ -1,11 +1,11 @@
 #include "tbopch.h"
 #include "Scene.h"
 
-#include "Turbo/Core/KeyCodes.h"
+#include "Entity.h"
+#include "SceneRenderer.h"
+#include "SceneCamera.h"
 
-#include "Turbo/Scene/SceneCamera.h"
-#include "Turbo/Renderer/SceneRenderer.h"
-#include "Turbo/Scene/Entity.h"
+#include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Script/Script.h"
 
 #include <box2d/b2_world.h>
@@ -79,7 +79,7 @@ namespace Turbo
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
             {
-                renderer2d->Begin(editor_camera);
+                renderer2d->Begin2D(editor_camera);
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
@@ -95,7 +95,7 @@ namespace Turbo
                     }
                 }
 
-                renderer2d->End();
+                renderer2d->End2D();
             }
         }
 
@@ -189,7 +189,7 @@ namespace Turbo
                 camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
 
                 // Sprites
-                renderer2d->Begin(camera);
+                renderer2d->Begin2D(camera);
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
@@ -217,7 +217,7 @@ namespace Turbo
                     }
                 }
 #endif
-                renderer2d->End();
+                renderer2d->End2D();
             }
         }
 

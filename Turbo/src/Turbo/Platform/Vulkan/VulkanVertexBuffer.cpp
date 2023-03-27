@@ -81,7 +81,7 @@ namespace Turbo
             vkFreeMemory(device, m_Memory, nullptr);
         });
 
-        m_TranferCommandBuffer = CommandBuffer::Create(CommandBufferLevel::Primary);
+        m_TranferCommandBuffer = RenderCommandBuffer::Create();
     }
 
     VulkanVertexBuffer::~VulkanVertexBuffer()
