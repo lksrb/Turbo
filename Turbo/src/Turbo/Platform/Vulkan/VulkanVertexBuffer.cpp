@@ -2,7 +2,7 @@
 #include "VulkanVertexBuffer.h"
 
 #include "VulkanUtils.h"
-#include "VulkanCommandBuffer.h"
+#include "VulkanRenderCommandBuffer.h"
 
 namespace Turbo
 {
@@ -107,7 +107,7 @@ namespace Turbo
         copyRegion.srcOffset = 0; // Optional
         copyRegion.dstOffset = 0; // Optional
         copyRegion.size = static_cast<VkDeviceSize>(size);
-        vkCmdCopyBuffer(m_TranferCommandBuffer.As<VulkanCommandBuffer>()->GetCommandBuffer(), m_StagingBuffer, m_Buffer, 1, &copyRegion);
+        vkCmdCopyBuffer(m_TranferCommandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer(), m_StagingBuffer, m_Buffer, 1, &copyRegion);
 
         m_TranferCommandBuffer->End();
         m_TranferCommandBuffer->Submit();

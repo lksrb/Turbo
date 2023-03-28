@@ -1,12 +1,12 @@
 #include "tbopch.h"
-#include "VulkanCommandBuffer.h"
+#include "VulkanRenderCommandBuffer.h"
 
 #include "Turbo/Renderer/Renderer.h"
 #include "Turbo/Renderer/RendererContext.h"
 
 namespace Turbo
 {
-    VulkanCommandBuffer::VulkanCommandBuffer()
+    VulkanRenderCommandBuffer::VulkanRenderCommandBuffer()
     {
         u32 frames_in_flight = RendererContext::FramesInFlight();
         VkDevice device = RendererContext::GetDevice();
@@ -35,20 +35,20 @@ namespace Turbo
         }
     }
 
-    VulkanCommandBuffer::~VulkanCommandBuffer()
+    VulkanRenderCommandBuffer::~VulkanRenderCommandBuffer()
     {
         VkDevice device = RendererContext::GetDevice();
         for (auto& fence : m_WaitFences)
             vkDestroyFence(device, fence, nullptr);
     }
 
-    VkCommandBuffer VulkanCommandBuffer::GetCommandBuffer() const
+    VkCommandBuffer VulkanRenderCommandBuffer::GetCommandBuffer() const
     {
         u32 current_frame = Renderer::GetCurrentFrame();
         return m_CommandBuffers[current_frame];
     }
 
-    void VulkanCommandBuffer::Begin()
+    void VulkanRenderCommandBuffer::Begin()
     {
         u32 current_frame = Renderer::GetCurrentFrame();
 
@@ -60,14 +60,14 @@ namespace Turbo
         TBO_VK_ASSERT(vkBeginCommandBuffer(m_CommandBuffers[current_frame], &beginInfo));
     }
 
-    void VulkanCommandBuffer::End()
+    void VulkanRenderCommandBuffer::End()
     {
         u32 current_frame = Renderer::GetCurrentFrame();
 
         TBO_VK_ASSERT(vkEndCommandBuffer(m_CommandBuffers[current_frame]));
     }
 
-    void VulkanCommandBuffer::Submit()
+    void VulkanRenderCommandBuffer::Submit()
     {
         // Secondary command buffers cannot be submitted directly into queue
         //TBO_ENGINE_ASSERT(m_Type == CommandBufferLevel::Primary, "Cannot submit secondary command buffers directly!");

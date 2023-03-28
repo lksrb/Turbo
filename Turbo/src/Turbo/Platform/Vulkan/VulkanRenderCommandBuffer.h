@@ -6,11 +6,11 @@
 
 namespace Turbo
 {
-    class VulkanCommandBuffer : public RenderCommandBuffer
+    class VulkanRenderCommandBuffer : public RenderCommandBuffer
     {
     public:
-        VulkanCommandBuffer();
-        ~VulkanCommandBuffer();
+        VulkanRenderCommandBuffer();
+        ~VulkanRenderCommandBuffer();
 
         VkCommandBuffer GetCommandBuffer() const;
 

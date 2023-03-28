@@ -124,7 +124,7 @@ namespace Turbo
         Ref<UniformBufferSet> m_CameraBuffer;
 
         Ref<FrameBuffer> m_TargetFramebuffer;
-        Ref<RenderCommandBuffer> m_CommandBuffer;
+        Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
         RenderInfo m_RenderInfo;
 

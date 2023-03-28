@@ -20,7 +20,7 @@ namespace Turbo
     void Renderer2D::Initialize()
     {
         // Render command buffer
-        m_CommandBuffer = RenderCommandBuffer::Create();
+        m_RenderCommandBuffer = RenderCommandBuffer::Create();
 
         // Default clear color
         m_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -77,7 +77,7 @@ namespace Turbo
         }
 
         // Create camera uniform buffer
-        m_CameraBuffer = UniformBufferSet::Create({ 0, 0, sizeof(glm::mat4)});
+        m_CameraBuffer = UniformBufferSet::Create({ 1, 0, sizeof(glm::mat4)});
 
         // White texture for texture-less quads
         m_WhiteTexture = Texture2D::Create(0xffffffff);
@@ -96,7 +96,7 @@ namespace Turbo
         // Enable drawing
         m_BeginDraw = true;
 
-        //m_CameraBuffer->SetData(&camera.GetViewProjection());
+        m_CameraBuffer->SetData(&camera.GetViewProjection());
 
         m_QuadMaterial->Set("u_Camera", camera.GetViewProjection());
 
@@ -285,20 +285,20 @@ namespace Turbo
 
             u32 dataSize = (u32)((u8*)m_QuadVertexBufferPointer - (u8*)m_QuadVertexBufferBase);
 
-            m_CommandBuffer->Begin();
+            m_RenderCommandBuffer->Begin();
 
-            Renderer::BeginRenderPass(m_CommandBuffer, m_TargetFramebuffer, m_ClearColor);
+            Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargetFramebuffer, m_ClearColor);
             if (dataSize)
             {
                 m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
 
                 // Record buffer
-                Renderer::DrawIndexed(m_CommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_QuadPipeline, m_QuadShader, m_RenderInfo.QuadIndexCount);
+                Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_QuadPipeline, m_QuadShader, m_RenderInfo.QuadIndexCount);
             }
-            Renderer::EndRenderPass(m_CommandBuffer);
+            Renderer::EndRenderPass(m_RenderCommandBuffer);
 
-            m_CommandBuffer->End();
-            m_CommandBuffer->Submit();
+            m_RenderCommandBuffer->End();
+            m_RenderCommandBuffer->Submit();
         });
 
         // Increment draw calls

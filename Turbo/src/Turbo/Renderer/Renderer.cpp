@@ -9,7 +9,7 @@
 #include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
 #include "Turbo/Platform/Vulkan/VulkanBuffer.h"
 #include "Turbo/Platform/Vulkan/VulkanRenderPass.h"
-#include "Turbo/Platform/Vulkan/VulkanCommandBuffer.h"
+#include "Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h"
 #include "Turbo/Platform/Vulkan/VulkanImage2D.h"
 #include "Turbo/Platform/Vulkan/VulkanIndexBuffer.h"
 #include "Turbo/Platform/Vulkan/VulkanVertexBuffer.h"
@@ -64,7 +64,7 @@ namespace Turbo
 
     void Renderer::SetViewport(Ref<RenderCommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 he, f32 min_depth, f32 max_depth)
     {
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
 
         VkViewport viewport = {};
         viewport.x = static_cast<f32>(x);
@@ -78,7 +78,7 @@ namespace Turbo
 
     void Renderer::SetScissor(Ref<RenderCommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 height)
     {
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
 
         VkRect2D scissor = {};
         scissor.offset = { x,y };
@@ -93,7 +93,7 @@ namespace Turbo
         Renderer::SetViewport(commandbuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
         Renderer::SetScissor(commandbuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
 
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
         VkFramebuffer vk_framebuffer = framebuffer.As<VulkanFrameBuffer>()->GetFrameBuffer();
         VkRenderPass vk_renderpass = framebuffer_config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
 
@@ -116,14 +116,14 @@ namespace Turbo
 
     void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandbuffer)
     {
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
 
         vkCmdEndRenderPass(vk_commandbuffer);
     }
 
     void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandbuffer, Ref<VertexBuffer> vertexbuffer, Ref<IndexBuffer> indexbuffer, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 index_count)
     {
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
 
         VkBuffer vk_vertex_buffer = vertexbuffer.As<VulkanVertexBuffer>()->GetBuffer();
         VkBuffer vk_index_buffer = indexbuffer.As<VulkanIndexBuffer>()->GetBuffer();
