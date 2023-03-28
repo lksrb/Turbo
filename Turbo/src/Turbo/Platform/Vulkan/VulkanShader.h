@@ -15,6 +15,33 @@ namespace Turbo
     class VulkanShader : public Shader
     {
     public:
+        struct UniformBufferInfo
+        {
+            u32 Binding;
+            u32 Stage;
+            u32 Size;
+            std::string Name;
+        };
+
+        struct TextureSamplerArrayInfo
+        {
+            std::string Name;
+            u32 Binding;
+            u32 Size = 0;
+        };
+
+        struct ShaderBufferLayout
+        {
+            std::vector<VkVertexInputAttributeDescription> Descriptions;
+            u32 Stride;
+        };
+
+        struct Resources
+        {
+            std::vector<UniformBufferInfo> UniformBuffers;
+            TextureSamplerArrayInfo TextureSamplerArray;
+        };
+
         VulkanShader(const Shader::Config& config);
         ~VulkanShader();
 

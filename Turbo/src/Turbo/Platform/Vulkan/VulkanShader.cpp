@@ -414,11 +414,11 @@ namespace Turbo
             // Building shader vertex buffer layout
             if (shaderStage == ShaderStage_Vertex)
             {
-                VertexInputAttribute& attributeDesc = m_Layout.Descriptions.emplace_back();
-                attributeDesc.Binding = binding; // Not sure
-                attributeDesc.Location = location;
-                attributeDesc.Offset = attributeOffset;
-                attributeDesc.Format = Utils::ShaderDataTypeToVulkanFormat(type.basetype, actualDataTypeSize);
+                VkVertexInputAttributeDescription& attributeDesc = m_Layout.Descriptions.emplace_back();
+                attributeDesc.binding = binding; // Not sure
+                attributeDesc.location = location;
+                attributeDesc.offset = attributeOffset;
+                attributeDesc.format = Utils::ShaderDataTypeToVulkanFormat(type.basetype, actualDataTypeSize);
                 attributeOffset += actualDataTypeSize;
                 m_Layout.Stride += actualDataTypeSize;
             }
@@ -436,7 +436,7 @@ namespace Turbo
                 const auto& bufferType = compiler.get_type(uniformBuffer.base_type_id);
 
                 // Create uniform buffer for each stage
-                auto& rUniformBuffer = m_Resources.UniformBuffers.emplace_back();
+                UniformBufferInfo& rUniformBuffer = m_Resources.UniformBuffers.emplace_back();
                 rUniformBuffer.Binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
                 rUniformBuffer.Size = (uint32_t)compiler.get_declared_struct_size(bufferType);
                 rUniformBuffer.Name = compiler.get_name(uniformBuffer.id);

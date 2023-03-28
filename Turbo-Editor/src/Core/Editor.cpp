@@ -376,8 +376,7 @@ namespace Turbo::Ed
         ImGui::Text("StartTime %.5f ms", Time.TimeSinceStart.ms());
         ImGui::Separator();
 
-        Renderer2D::RenderInfo stats = m_SceneRenderer->GetRenderer2D()->GetRenderInfo();
-        ImGui::Text("Quad Indices %d", stats.QuadIndexCount);
+        Renderer2D::Statistics stats = m_SceneRenderer->GetRenderer2D()->GetStatistics();
         ImGui::Text("Quad Count %d", stats.QuadCount);
         ImGui::Text("Drawcalls %d", stats.DrawCalls);
         ImGui::End();

@@ -3,6 +3,7 @@
 #include "RendererBuffer.h"
 
 #include "Turbo/Core/Common.h"
+#include <map>
 
 namespace Turbo
 {
@@ -11,8 +12,8 @@ namespace Turbo
     public:
         struct Config
         {
-            u32 Binding;
             u32 Set;
+            u32 Binding;
             size_t Size;
         };
 
@@ -32,23 +33,16 @@ namespace Turbo
     class UniformBufferSet
     {
     public:
-        struct Config
-        {
-            u32 Binding;
-            u32 Set;
-            size_t Size;
-        };
-
-        UniformBufferSet(const UniformBufferSet::Config& config);
+        UniformBufferSet();
         ~UniformBufferSet();
 
-        void SetData(const void* data);
+        void Create(u32 set, u32 binding, size_t data_size);
 
-        static Ref<UniformBufferSet> Create(const UniformBufferSet::Config& config);
+        void SetData(u32 set, u32 binding, const void* data);
+
+        static Ref<UniformBufferSet> Create();
     private:
-        std::vector<Ref<UniformBuffer>> m_Buffers;
-
-        UniformBufferSet::Config m_Config;
+        std::map<u32, std::map<u32, std::vector<Ref<UniformBuffer>>>> m_UniformBufferMap;
     };
 
 }

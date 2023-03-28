@@ -18,6 +18,45 @@
 
 namespace Turbo
 {
+    static void GetOrCreateWriteDescriptors(const Ref<UniformBufferSet>& uniformBufferSet, const std::vector<VulkanShader::UniformBufferInfo>& uniformBuffers)
+    {
+        //static std::unordered_map<std::string, VkWriteDescriptorSet> s_CachedWriteDescriptorSets;
+
+      /*  for (auto& uniformBuffer : uniformBuffers)
+        {
+            auto& it = s_CachedWriteDescriptorSets.find(uniformBuffer.Name);
+
+            if (it != s_CachedWriteDescriptorSets.end())
+            {
+
+            }
+            // Create new vulkan buffer for resource
+            RendererBuffer::Config bufferConfig = {};
+            bufferConfig.Size = uniformBuffer.Size;
+            bufferConfig.UsageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+            bufferConfig.MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            s_CachedWriteDescriptorSets[uniformBuffer.Name] = Ref<VulkanBuffer>::Create(bufferConfig);
+
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = m_UniformBufferMap[uniformBuffer.Name]->GetBuffer();
+            bufferInfo.offset = 0;
+            bufferInfo.range = uniformBuffer.Size;
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = shader->GetDescriptorSet();
+            descriptorWrite.dstBinding = uniformBuffer.Binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+
+            vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+        }
+*/
+
+    }
+
     struct RendererInternal
     {
         RenderCommandQueue RenderQueue;
@@ -42,10 +81,10 @@ namespace Turbo
 
     u32 Renderer::GetCurrentFrame()
     {
-        const Ref<SwapChain>& swap_chain = Engine::Get().GetViewportWindow()->GetSwapchain();
-        const u32 current_frame = swap_chain->GetCurrentFrame();
+        const Ref<SwapChain>& swapChain = Engine::Get().GetViewportWindow()->GetSwapchain();
+        const u32 currentFrame = swapChain->GetCurrentFrame();
 
-        return current_frame;
+        return currentFrame;
     }
 
     void Renderer::BeginFrame()
@@ -86,19 +125,19 @@ namespace Turbo
         vkCmdSetScissor(vk_commandbuffer, 0, 1, &scissor);
     }
 
-    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandbuffer, Ref<FrameBuffer> framebuffer, const glm::vec4& clear_color)
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<FrameBuffer> frameBuffer, const glm::vec4& clearColor)
     {
-        const FrameBuffer::Config& framebuffer_config = framebuffer->GetConfig();
+        const FrameBuffer::Config& framebuffer_config = frameBuffer->GetConfig();
 
-        Renderer::SetViewport(commandbuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
-        Renderer::SetScissor(commandbuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
+        Renderer::SetViewport(commandBuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
+        Renderer::SetScissor(commandBuffer, 0, 0, framebuffer_config.Width, framebuffer_config.Height);
 
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
-        VkFramebuffer vk_framebuffer = framebuffer.As<VulkanFrameBuffer>()->GetFrameBuffer();
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+        VkFramebuffer vk_framebuffer = frameBuffer.As<VulkanFrameBuffer>()->GetFrameBuffer();
         VkRenderPass vk_renderpass = framebuffer_config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
 
         VkClearValue clearValues[2]{};
-        clearValues[0].color = { { clear_color.x, clear_color.y, clear_color.z, clear_color.w } };
+        clearValues[0].color = { { clearColor.x, clearColor.y, clearColor.z, clearColor.w } };
         clearValues[1].depthStencil = { 1.0f, 0 };
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -111,36 +150,43 @@ namespace Turbo
         renderPassBeginInfo.pClearValues = clearValues;
         renderPassBeginInfo.framebuffer = vk_framebuffer;
 
-        vkCmdBeginRenderPass(vk_commandbuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(vkCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandbuffer)
+    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer)
     {
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
 
-        vkCmdEndRenderPass(vk_commandbuffer);
+        vkCmdEndRenderPass(vkCommandBuffer);
     }
 
-    void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandbuffer, Ref<VertexBuffer> vertexbuffer, Ref<IndexBuffer> indexbuffer, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 index_count)
+    void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount)
     {
-        VkCommandBuffer vk_commandbuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
 
-        VkBuffer vk_vertex_buffer = vertexbuffer.As<VulkanVertexBuffer>()->GetBuffer();
-        VkBuffer vk_index_buffer = indexbuffer.As<VulkanIndexBuffer>()->GetBuffer();
-        VkPipeline vk_pipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipeline();
-        VkPipelineLayout vk_pipeline_layout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayout();
-        VkDescriptorSet vk_descriptor_set = shader.As<VulkanShader>()->GetDescriptorSet();
+        VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetBuffer();
+        VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetBuffer();
+        VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipeline();
+        VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayout();
+
+        Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
+        VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
+
+        // Updating or creating descriptor sets
+        {
+            const auto& resources = vkShader->GetResources();
+            GetOrCreateWriteDescriptors(uniformBufferSet, resources.UniformBuffers);
+        }
 
         VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(vk_commandbuffer, 0, 1, &vk_vertex_buffer, offsets);
-        vkCmdBindIndexBuffer(vk_commandbuffer, vk_index_buffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
+        vkCmdBindIndexBuffer(vkCommandBuffer, vkIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindPipeline(vk_commandbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline);
+        vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
-        if (vk_descriptor_set) // TODO: Make this more convenient
-            vkCmdBindDescriptorSets(vk_commandbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_layout, 0, 1, &vk_descriptor_set, 0, nullptr);
+        vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
 
-        vkCmdDrawIndexed(vk_commandbuffer, index_count, 1, 0, 0, 0);
+        vkCmdDrawIndexed(vkCommandBuffer, indexCount, 1, 0, 0, 0);
     }
 
 }

@@ -23,31 +23,39 @@ namespace Turbo
         return Ref<VulkanUniformBuffer>::Create(config);
     }
 
-    UniformBufferSet::UniformBufferSet(const UniformBufferSet::Config& config)
-        : m_Config(config)
+    UniformBufferSet::UniformBufferSet()
     {
-        m_Buffers.resize(RendererContext::FramesInFlight());
-
-        for (size_t i = 0; i < m_Buffers.size(); ++i)
-        {
-            m_Buffers[i] = UniformBuffer::Create({ m_Config.Binding, m_Config.Set, m_Config.Size });
-            m_Buffers[i]->Invalidate();
-        }
     }
 
     UniformBufferSet::~UniformBufferSet()
     {
     }
 
-    void UniformBufferSet::SetData(const void* data)
+    Ref<UniformBufferSet> UniformBufferSet::Create()
     {
-        u32 current_frame = Renderer::GetCurrentFrame();
-        m_Buffers[current_frame]->SetData(data);
+        return Ref<UniformBufferSet>::Create();
     }
 
-    Ref<UniformBufferSet> UniformBufferSet::Create(const UniformBufferSet::Config& config)
+    void UniformBufferSet::SetData(u32 set, u32 binding, const void* data)
     {
-        return Ref<UniformBufferSet>::Create(config);
+        u32 current_frame = Renderer::GetCurrentFrame();
+        // Uniform buffer at specific frame, at specific binding and at specific set (WOO!)
+        m_UniformBufferMap.at(set).at(binding).at(current_frame)->SetData(data);
+    }
+
+    void UniformBufferSet::Create(u32 set, u32 binding, size_t data_size)
+    {
+        // Create or recreate uniform buffer
+        u32 framesInFlight = RendererContext::FramesInFlight();
+
+        auto& uniformBuffers = m_UniformBufferMap[set][binding];
+        uniformBuffers.resize(framesInFlight);
+        for (u32 i = 0; i < framesInFlight; ++i)
+        {
+            auto& uniformBuffer = m_UniformBufferMap[set][binding][i];
+            uniformBuffer = UniformBuffer::Create({ set, binding, data_size });
+            uniformBuffer->Invalidate();
+        }
     }
 
 }

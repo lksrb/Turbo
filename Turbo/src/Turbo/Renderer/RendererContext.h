@@ -84,7 +84,7 @@ namespace Turbo
         static u32 FramesInFlight();
 
         /**
-         * Resource queue manages vulkan handles on runtime, if vulkan wrappers are freed, vulkan handles will be submitted, to this queue, 
+         * Resource queue manages vulkan handles on runtime, if vulkan wrappers are freed, vulkan handles will be submitted, to this queue
          * and safely released when the resource is not used.
          */
         static ResourceQueue& GetResourceQueue();

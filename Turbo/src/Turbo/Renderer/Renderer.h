@@ -33,13 +33,13 @@ namespace Turbo
         static RenderCommandQueue& GetRenderCommandQueue();
         static u32 GetCurrentFrame();
 
-        static void SetViewport(Ref<RenderCommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 height, f32 min_depth = 0.0f, f32 max_depth = 1.0f);
-        static void SetScissor(Ref<RenderCommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 height);
+        static void SetViewport(Ref<RenderCommandBuffer> commandBuffer, i32 x, i32 y, u32 width, u32 height, f32 minDepth = 0.0f, f32 maxDepth = 1.0f);
+        static void SetScissor(Ref<RenderCommandBuffer> commandBuffer, i32 x, i32 y, u32 width, u32 height);
 
-        static void BeginRenderPass(Ref<RenderCommandBuffer> commandbuffer, Ref<FrameBuffer> frame_buffer, const glm::vec4& clear_color);
-        static void EndRenderPass(Ref<RenderCommandBuffer> commandbuffer);
+        static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<FrameBuffer> frameBuffer, const glm::vec4& clearColor);
+        static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer);
 
-        static void DrawIndexed(Ref<RenderCommandBuffer> commandbuffer, Ref<VertexBuffer> vertexbuffer, Ref<IndexBuffer> indexbuffer, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 index_count);
+        static void DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount);
     private:
     };
 }

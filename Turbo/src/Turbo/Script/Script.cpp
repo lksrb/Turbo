@@ -320,6 +320,7 @@ namespace Turbo
         Utils::PrintAssembly(g_Data->ScriptCoreAssembly);
     }
 
+    // Callback from filewatcher
     void Script::OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent e)
     {
         // NOTE: Without 'AssemblyReloadPending' this method is called twice when the project is built

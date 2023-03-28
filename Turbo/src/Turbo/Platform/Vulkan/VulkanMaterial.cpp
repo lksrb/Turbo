@@ -96,7 +96,7 @@ namespace Turbo
 
         // Writing to Descriptor set
         Ref<VulkanShader> shader = m_Config.MaterialShader.As<VulkanShader>();
-        Shader::Resources resources = shader->GetResources();
+        VulkanShader::Resources resources = shader->GetResources();
         {
             // Uniform buffers
             for (auto& uniformBuffer : resources.UniformBuffers)
@@ -113,7 +113,7 @@ namespace Turbo
                 bufferInfo.offset = 0;
                 bufferInfo.range = uniformBuffer.Size;
 
-                VkWriteDescriptorSet descriptorWrite{};
+                VkWriteDescriptorSet descriptorWrite = {};
                 descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 descriptorWrite.dstSet = shader->GetDescriptorSet();
                 descriptorWrite.dstBinding = uniformBuffer.Binding;

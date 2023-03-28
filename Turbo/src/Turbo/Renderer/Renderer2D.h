@@ -25,14 +25,13 @@ namespace Turbo
     class Renderer2D
     {
     public:
-        struct RenderInfo
+        struct Statistics
         {
             u32 QuadCount;
-            u32 QuadIndexCount;
             u32 CircleIndexCount;
             u32 DrawCalls;
 
-            RenderInfo() { Reset(); }
+            Statistics() { Reset(); }
 
             void Reset()
             {
@@ -57,9 +56,9 @@ namespace Turbo
 
         void DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
 
-        RenderInfo GetRenderInfo() const { return m_RenderInfo; }
+        Statistics GetStatistics() const { return m_Statistics; }
 
-        void SetRenderTarget(const Ref<FrameBuffer>& framebuffer) { m_TargetFramebuffer = framebuffer; }
+        void SetRenderTarget(const Ref<FrameBuffer>& frameBuffer) { m_TargetFramebuffer = frameBuffer; }
     private:
         void Shutdown();
 
@@ -120,13 +119,19 @@ namespace Turbo
         Ref<Shader> m_CircleShader;
         Ref<GraphicsPipeline> m_CirclePipeline;
 #endif
+        struct UBCamera
+        {
+            glm::mat4 ViewProjection;
+        };
+
         Ref<Texture2D> m_WhiteTexture;
-        Ref<UniformBufferSet> m_CameraBuffer;
+        Ref<UniformBufferSet> m_UniformBufferSet;
 
         Ref<FrameBuffer> m_TargetFramebuffer;
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
-        RenderInfo m_RenderInfo;
+        Statistics m_Statistics;
+        u32 m_QuadIndexCount = 0;
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;
