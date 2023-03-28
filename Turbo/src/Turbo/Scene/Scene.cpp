@@ -80,6 +80,8 @@ namespace Turbo
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
             {
                 renderer2d->Begin2D(editor_camera);
+
+                // Quads
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
@@ -92,6 +94,17 @@ namespace Turbo
                         else
                             renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.Texture, src.Tiling, (u32)entity);
 
+                    }
+                }
+
+                // Circles
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
+
+                    for (auto& entity : view)
+                    {
+                        auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                        renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Thickness, crc.Fade, (u32)entity);
                     }
                 }
 

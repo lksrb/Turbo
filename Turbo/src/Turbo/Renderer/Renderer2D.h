@@ -90,9 +90,9 @@ namespace Turbo
 
         struct CircleVertex
         {
-            glm::vec3 Position;
+            glm::vec3 WorldPosition;
+            glm::vec3 LocalPosition;
             glm::vec4 Color;
-
             f32 Thickness;
             f32 Fade;
             i32 EntityID;

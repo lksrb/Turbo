@@ -44,46 +44,44 @@ namespace Turbo
 
     VkCommandBuffer VulkanRenderCommandBuffer::GetCommandBuffer() const
     {
-        u32 current_frame = Renderer::GetCurrentFrame();
-        return m_CommandBuffers[current_frame];
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        return m_CommandBuffers[currentFrame];
     }
 
     void VulkanRenderCommandBuffer::Begin()
     {
-        u32 current_frame = Renderer::GetCurrentFrame();
+        VkDevice device = RendererContext::GetDevice();
+        u32 currentFrame = Renderer::GetCurrentFrame();
+
+        TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_WaitFences[currentFrame], VK_TRUE, UINT64_MAX));
+        TBO_VK_ASSERT(vkResetFences(device, 1, &m_WaitFences[currentFrame]));
 
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.pNext = nullptr;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         beginInfo.pInheritanceInfo = nullptr;
-        TBO_VK_ASSERT(vkBeginCommandBuffer(m_CommandBuffers[current_frame], &beginInfo));
+        TBO_VK_ASSERT(vkBeginCommandBuffer(m_CommandBuffers[currentFrame], &beginInfo));
     }
 
     void VulkanRenderCommandBuffer::End()
     {
-        u32 current_frame = Renderer::GetCurrentFrame();
+        u32 currentFrame = Renderer::GetCurrentFrame();
 
-        TBO_VK_ASSERT(vkEndCommandBuffer(m_CommandBuffers[current_frame]));
+        TBO_VK_ASSERT(vkEndCommandBuffer(m_CommandBuffers[currentFrame]));
     }
 
     void VulkanRenderCommandBuffer::Submit()
     {
-        // Secondary command buffers cannot be submitted directly into queue
-        //TBO_ENGINE_ASSERT(m_Type == CommandBufferLevel::Primary, "Cannot submit secondary command buffers directly!");
-
         VkDevice device = RendererContext::GetDevice();
-        u32 current_frame = Renderer::GetCurrentFrame();
-        VkQueue graphics_queue = RendererContext::GetGraphicsQueue();
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        VkQueue graphicsQueue = RendererContext::GetGraphicsQueue();
 
         VkSubmitInfo submit_info = {};
         submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.pCommandBuffers = &m_CommandBuffers[current_frame];
+        submit_info.pCommandBuffers = &m_CommandBuffers[currentFrame];
         submit_info.commandBufferCount = 1;
-
-        TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_WaitFences[current_frame], VK_TRUE, UINT64_MAX));
-        TBO_VK_ASSERT(vkResetFences(device, 1, &m_WaitFences[current_frame]));
-        TBO_VK_ASSERT(vkQueueSubmit(graphics_queue, 1, &submit_info, m_WaitFences[current_frame]));
+        TBO_VK_ASSERT(vkQueueSubmit(graphicsQueue, 1, &submit_info, m_WaitFences[currentFrame]));
     }
 
 }

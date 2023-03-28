@@ -256,7 +256,7 @@ namespace Turbo
             if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
             {
                 if (ImGui::MenuItem("Create Empty Entity"))
-                    m_Context->CreateEntity("Empty Entity");
+                    m_SelectedEntity = m_Context->CreateEntity("Empty Entity");
 
                 ImGui::EndPopup();
             }

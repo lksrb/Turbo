@@ -312,7 +312,7 @@ namespace Turbo
 
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
-        options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
+        options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
         options.SetGenerateDebugInfo();
         constexpr bool optimize = true;
 
@@ -329,23 +329,23 @@ namespace Turbo
 
         m_CompiledShaders[shaderStage] = std::vector<uint32_t>(result.cbegin(), result.cend());
 
-        std::filesystem::path shader_path = cachedPath / std::filesystem::path(m_Config.ShaderPath)
+        std::filesystem::path shaderPath = cachedPath / std::filesystem::path(m_Config.ShaderPath)
             .stem()
             .concat(Utils::GLShaderStageCachedVulkanFileExtension(shaderStage));
 
         // This should overwrite the contents of previous cached shader
-        std::ofstream out_stream(shader_path, std::ios::binary | std::ios::trunc);
-        if (out_stream)
+        std::ofstream outStream(shaderPath, std::ios::binary | std::ios::trunc);
+        if (outStream)
         {
             auto& data = m_CompiledShaders[shaderStage];
-            out_stream.write((char*)data.data(), data.size() * sizeof(uint32_t));
-            out_stream.flush();
-            out_stream.close();
+            outStream.write((char*)data.data(), data.size() * sizeof(uint32_t));
+            outStream.flush();
+            outStream.close();
 
             return;
         }
 
-        TBO_ENGINE_ERROR("Could not compile shader! Path: {0}", shader_path.string());
+        TBO_ENGINE_ERROR("Could not compile shader! Path: {0}", shaderPath.string());
     }
 
     void VulkanShader::Reflect()

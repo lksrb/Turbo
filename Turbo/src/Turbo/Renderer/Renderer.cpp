@@ -19,14 +19,20 @@
 
 namespace Turbo
 {
-    static void GetOrCreateWriteDescriptors(const Ref<UniformBufferSet>& uniformBufferSet, const Ref<VulkanShader>& shader, const std::vector<VulkanShader::UniformBufferInfo>& uniformBufferInfos)
+    struct WriteDescriptorSetInfo
     {
-        struct WriteDescriptorSetInfo
-        {
-            VkWriteDescriptorSet WriteDescriptorSet;
-            VkDescriptorBufferInfo BufferInfo;
-        };
-        static std::unordered_map<UniformBuffer*, WriteDescriptorSetInfo> s_CachedWriteDescriptorSets;
+        VkWriteDescriptorSet WriteDescriptorSet;
+        VkDescriptorBufferInfo BufferInfo;
+    };
+    static std::unordered_map<UniformBuffer*, WriteDescriptorSetInfo> s_CachedWriteDescriptorSets;
+
+    static void UpdateWriteDescriptors(const Ref<UniformBufferSet>& uniformBufferSet, const Ref<VulkanShader>& shader, const std::vector<VulkanShader::UniformBufferInfo>& uniformBufferInfos)
+    {
+        static u32 s_LastFrame = -1;
+
+        if (s_LastFrame == Renderer::GetCurrentFrame()) // Ensure that we update uniform buffer sets once a frame
+            return;
+
 
         VkDevice device = RendererContext::GetDevice();
 
@@ -57,6 +63,8 @@ namespace Turbo
 
             vkUpdateDescriptorSets(device, 1, &s_CachedWriteDescriptorSets.at(uniformBuffer.Get()).WriteDescriptorSet, 0, nullptr);
         }
+
+        s_LastFrame = Renderer::GetCurrentFrame();
     }
 
     struct RendererInternal
@@ -177,7 +185,7 @@ namespace Turbo
         // Updating or creating descriptor sets
         {
             const auto& resources = vkShader->GetResources();
-            GetOrCreateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers);
+            UpdateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers);
         }
 
         VkDeviceSize offsets[] = { 0 };

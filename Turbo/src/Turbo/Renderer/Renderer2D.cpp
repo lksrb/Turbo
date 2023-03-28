@@ -250,9 +250,7 @@ namespace Turbo
     void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-
-        if (m_QuadIndexCount >= Renderer2D::MaxIndices)
-            TBO_ENGINE_ASSERT(false); // TODO(Urby): Flush and reset
+        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxIndices); // TODO(Urby): Flush and reset
 
         u32 textureIndex = 0; // White Texture
         constexpr u32 quadVertexCount = 4;
@@ -301,16 +299,12 @@ namespace Turbo
     void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
+        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxIndices);
 
-        if (m_QuadIndexCount >= Renderer2D::MaxIndices)
-            TBO_ENGINE_ASSERT(false);
-
-        u32 textureIndex = 0; // White Texture
-        constexpr u32 quadVertexCount = 4;
-
-        for (u32 i = 0; i < quadVertexCount; ++i)
+        for (u32 i = 0; i < 4; ++i)
         {
-            m_CircleVertexBufferPointer->Position = transform * QuadVertexPositions[i];
+            m_CircleVertexBufferPointer->WorldPosition = transform * QuadVertexPositions[i];
+            m_CircleVertexBufferPointer->LocalPosition = QuadVertexPositions[i] * 2.0f;
             m_CircleVertexBufferPointer->Color = color;
             m_CircleVertexBufferPointer->Fade = fade;
             m_CircleVertexBufferPointer->Thickness = thickness;
@@ -327,56 +321,43 @@ namespace Turbo
     {
         Renderer::Submit([this]()
         {
-            // Texture slots
-            for (u32 i = 0; i < m_TextureSlots.size(); ++i)
-            {
-                if (m_TextureSlots[i])
-                    m_QuadMaterial->Set("u_Textures", m_TextureSlots[i], i);
-                else
-                    m_QuadMaterial->Set("u_Textures", m_WhiteTexture, i);
-            }
+            m_RenderCommandBuffer->Begin();
+            Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargetFramebuffer, m_ClearColor);
 
             // Quads
+            if (m_QuadIndexCount)
             {
-                m_RenderCommandBuffer->Begin();
-                u32 dataSize = (u32)((u8*)m_QuadVertexBufferPointer - (u8*)m_QuadVertexBufferBase);
-
-                Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargetFramebuffer, m_ClearColor);
-                if (dataSize)
+                // Texture slots
+                for (u32 i = 0; i < m_TextureSlots.size(); ++i)
                 {
-                    m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
-
-                    // Record buffer
-                    Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
+                    if (m_TextureSlots[i])
+                        m_QuadMaterial->Set("u_Textures", m_TextureSlots[i], i);
+                    else
+                        m_QuadMaterial->Set("u_Textures", m_WhiteTexture, i);
                 }
-                Renderer::EndRenderPass(m_RenderCommandBuffer);
 
-                m_RenderCommandBuffer->End();
-                m_RenderCommandBuffer->Submit();
+                u32 dataSize = (u32)((u8*)m_QuadVertexBufferPointer - (u8*)m_QuadVertexBufferBase);
+                m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
+
+                Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
 
                 m_Statistics.DrawCalls++;
             }
 
-          /*  // Circles
+            // Circles
+            if (m_CircleIndexCount)
             {
-                m_RenderCommandBuffer->Begin();
                 u32 dataSize = (u32)((u8*)m_CircleVertexBufferPointer - (u8*)m_CircleVertexBufferBase);
+                m_CircleVertexBuffer->SetData(m_CircleVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
 
-                Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargetFramebuffer, m_ClearColor);
-                if (dataSize)
-                {
-                    m_QuadVertexBuffer->SetData(m_CircleVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
-
-                    // Record buffer
-                    Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
-                }
-                Renderer::EndRenderPass(m_RenderCommandBuffer);
-
-                m_RenderCommandBuffer->End();
-                m_RenderCommandBuffer->Submit();
+                Renderer::DrawIndexed(m_RenderCommandBuffer, m_CircleVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_CirclePipeline, m_CircleShader, m_CircleIndexCount);
 
                 m_Statistics.DrawCalls++;
-            }*/
+            }
+
+            Renderer::EndRenderPass(m_RenderCommandBuffer);
+            m_RenderCommandBuffer->End();
+            m_RenderCommandBuffer->Submit();
         });
     }
 
