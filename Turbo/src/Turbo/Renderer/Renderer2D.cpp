@@ -27,6 +27,10 @@ namespace Turbo
 
         // Quad setup
         {
+            // Vertex buffer
+            m_QuadVertexBufferBase = m_QuadVertexBufferPointer = new QuadVertex[MaxVertices];
+            m_QuadVertexBuffer = VertexBuffer::Create({ MaxVertices * sizeof(QuadVertex) });
+
             // Index buffer
             {
                 u32* quadIndices = new u32[MaxIndices];
@@ -51,10 +55,6 @@ namespace Turbo
 
                 delete[] quadIndices;
             }
-            // Vertex buffer
-            m_QuadVertexBufferBase = m_QuadVertexBufferPointer = new QuadVertex[MaxVertices];
-
-            m_QuadVertexBuffer = VertexBuffer::Create({ MaxVertices * sizeof(QuadVertex) });
 
             // Shader
             Shader::Config shaderConfig = {};
@@ -76,6 +76,34 @@ namespace Turbo
             m_QuadMaterial = Material::Create({ m_QuadShader });
         }
 
+        // Circle setup
+        {
+            // Vertex buffer
+            m_CircleVertexBufferBase = m_CircleVertexBufferPointer = new CircleVertex[MaxVertices];
+            m_CircleVertexBuffer = VertexBuffer::Create({ MaxVertices * sizeof(CircleVertex) });
+
+            // Index buffer from quads
+
+            // Shader
+            Shader::Config shaderConfig = {};
+            shaderConfig.Language = ShaderLanguage::GLSL;
+            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Circle.glsl";
+            m_CircleShader = Shader::Create(shaderConfig);
+
+            // Graphics pipeline
+            GraphicsPipeline::Config config = {};
+            config.Shader = m_CircleShader;
+            config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
+            config.Topology = PrimitiveTopology::Triangle;
+            config.DepthTesting = true;
+            config.TargetFramebuffer = m_TargetFramebuffer;
+            m_CirclePipeline = GraphicsPipeline::Create(config);
+            m_CirclePipeline->Invalidate();
+
+            // Material - Maybe not necessary
+            // m_CircleMaterial = Material::Create({ m_CircleShader });
+        }
+
         // Create camera uniform buffer
         m_UniformBufferSet = UniformBufferSet::Create();
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
@@ -89,7 +117,8 @@ namespace Turbo
 
     void Renderer2D::Shutdown()
     {
-        delete m_QuadVertexBufferBase;
+        delete[] m_QuadVertexBufferBase;
+        delete[] m_CircleVertexBufferBase;
     }
 
     void Renderer2D::Begin2D(const Camera& camera)
@@ -97,10 +126,8 @@ namespace Turbo
         // Enable drawing
         m_BeginDraw = true;
 
-        // u_Camera
+        // u_Camera, will be on the set on 0 and bound on 0
         m_UniformBufferSet->SetData(0, 0, &camera.GetViewProjection());
-
-        m_QuadMaterial->Set("u_Camera", camera.GetViewProjection());
 
         // Reset texture indexing
         m_TextureSlotsIndex = 1;
@@ -119,6 +146,8 @@ namespace Turbo
         m_QuadVertexBufferPointer = m_QuadVertexBufferBase;
 
         // Circles
+        m_CircleIndexCount = 0;
+        m_CircleVertexBufferPointer = m_CircleVertexBufferBase;
 
         // Reset statistics
         m_Statistics.Reset();
@@ -271,7 +300,27 @@ namespace Turbo
 
     void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
     {
-        // TODO:
+        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
+
+        if (m_QuadIndexCount >= Renderer2D::MaxIndices)
+            TBO_ENGINE_ASSERT(false);
+
+        u32 textureIndex = 0; // White Texture
+        constexpr u32 quadVertexCount = 4;
+
+        for (u32 i = 0; i < quadVertexCount; ++i)
+        {
+            m_CircleVertexBufferPointer->Position = transform * QuadVertexPositions[i];
+            m_CircleVertexBufferPointer->Color = color;
+            m_CircleVertexBufferPointer->Fade = fade;
+            m_CircleVertexBufferPointer->Thickness = thickness;
+            m_CircleVertexBufferPointer->EntityID = entity;
+            m_CircleVertexBufferPointer++;
+        }
+
+        m_CircleIndexCount += 6;
+
+        m_Statistics.CircleCount++;
     }
 
     void Renderer2D::Flush()
@@ -286,8 +335,6 @@ namespace Turbo
                 else
                     m_QuadMaterial->Set("u_Textures", m_WhiteTexture, i);
             }
-
-            //m_QuadMaterial->Update();
 
             // Quads
             {
@@ -309,6 +356,27 @@ namespace Turbo
 
                 m_Statistics.DrawCalls++;
             }
+
+          /*  // Circles
+            {
+                m_RenderCommandBuffer->Begin();
+                u32 dataSize = (u32)((u8*)m_CircleVertexBufferPointer - (u8*)m_CircleVertexBufferBase);
+
+                Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargetFramebuffer, m_ClearColor);
+                if (dataSize)
+                {
+                    m_QuadVertexBuffer->SetData(m_CircleVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
+
+                    // Record buffer
+                    Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
+                }
+                Renderer::EndRenderPass(m_RenderCommandBuffer);
+
+                m_RenderCommandBuffer->End();
+                m_RenderCommandBuffer->Submit();
+
+                m_Statistics.DrawCalls++;
+            }*/
         });
     }
 

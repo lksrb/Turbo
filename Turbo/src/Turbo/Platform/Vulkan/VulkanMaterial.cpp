@@ -98,6 +98,7 @@ namespace Turbo
         Ref<VulkanShader> shader = m_Config.MaterialShader.As<VulkanShader>();
         VulkanShader::Resources resources = shader->GetResources();
         {
+#if OLD
             // Uniform buffers
             for (auto& uniformBuffer : resources.UniformBuffers)
             {
@@ -124,6 +125,7 @@ namespace Turbo
 
                 vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
             }
+#endif
 
             // Texture samplers
             if(resources.TextureSamplerArray.Size)

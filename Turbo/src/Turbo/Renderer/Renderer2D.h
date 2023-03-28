@@ -28,6 +28,7 @@ namespace Turbo
         struct Statistics
         {
             u32 QuadCount;
+            u32 CircleCount;
             u32 CircleIndexCount;
             u32 DrawCalls;
 
@@ -108,8 +109,7 @@ namespace Turbo
         Ref<Shader> m_QuadShader;
         Ref<GraphicsPipeline> m_QuadPipeline;
 
-        // TODO: Circles
-#if 0
+        // Circle
         CircleVertex* m_CircleVertexBufferBase = nullptr;
         CircleVertex* m_CircleVertexBufferPointer = nullptr;
 
@@ -118,7 +118,7 @@ namespace Turbo
 
         Ref<Shader> m_CircleShader;
         Ref<GraphicsPipeline> m_CirclePipeline;
-#endif
+
         struct UBCamera
         {
             glm::mat4 ViewProjection;
@@ -131,7 +131,9 @@ namespace Turbo
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
         Statistics m_Statistics;
+
         u32 m_QuadIndexCount = 0;
+        u32 m_CircleIndexCount = 0;
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;

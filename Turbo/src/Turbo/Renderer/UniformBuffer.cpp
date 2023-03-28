@@ -38,9 +38,14 @@ namespace Turbo
 
     void UniformBufferSet::SetData(u32 set, u32 binding, const void* data)
     {
-        u32 current_frame = Renderer::GetCurrentFrame();
+        Get(set, binding)->SetData(data);
+    }
+
+    Ref<UniformBuffer> UniformBufferSet::Get(u32 set, u32 binding) const
+    {
+        u32 currentFrame = Renderer::GetCurrentFrame();
         // Uniform buffer at specific frame, at specific binding and at specific set (WOO!)
-        m_UniformBufferMap.at(set).at(binding).at(current_frame)->SetData(data);
+        return m_UniformBufferMap.at(set).at(binding).at(currentFrame);
     }
 
     void UniformBufferSet::Create(u32 set, u32 binding, size_t data_size)

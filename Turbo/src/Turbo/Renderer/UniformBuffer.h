@@ -40,6 +40,8 @@ namespace Turbo
 
         void SetData(u32 set, u32 binding, const void* data);
 
+        Ref<UniformBuffer> Get(u32 set, u32 binding) const;
+
         static Ref<UniformBufferSet> Create();
     private:
         std::map<u32, std::map<u32, std::vector<Ref<UniformBuffer>>>> m_UniformBufferMap;
