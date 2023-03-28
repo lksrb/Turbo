@@ -185,7 +185,7 @@ namespace Turbo
         // Updating or creating descriptor sets
         {
             const auto& resources = vkShader->GetResources();
-            UpdateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers);
+            UpdateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
         }
 
         VkDeviceSize offsets[] = { 0 };
