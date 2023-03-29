@@ -104,6 +104,31 @@ namespace Turbo
             // m_CircleMaterial = Material::Create({ m_CircleShader });
         }
 
+        // Line setup
+        {
+            // Vertex buffer
+            m_LineVertexBufferBase = m_LineVertexBufferPointer = new LineVertex[MaxVertices];
+            m_LineVertexBuffer = VertexBuffer::Create({ MaxVertices * sizeof(CircleVertex) });
+
+            // Index buffer is not needed
+
+            // Shader
+            Shader::Config shaderConfig = {};
+            shaderConfig.Language = ShaderLanguage::GLSL;
+            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Line.glsl";
+            m_LineShader = Shader::Create(shaderConfig);
+
+            // Graphics pipeline
+            GraphicsPipeline::Config config = {};
+            config.Shader = m_LineShader;
+            config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
+            config.Topology = PrimitiveTopology::Line;
+            config.DepthTesting = true;
+            config.TargetFramebuffer = m_TargetFramebuffer;
+            m_LinePipeline = GraphicsPipeline::Create(config);
+            m_LinePipeline->Invalidate();
+        }
+
         // Create camera uniform buffer
         m_UniformBufferSet = UniformBufferSet::Create();
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
@@ -119,6 +144,7 @@ namespace Turbo
     {
         delete[] m_QuadVertexBufferBase;
         delete[] m_CircleVertexBufferBase;
+        delete[] m_LineVertexBufferBase;
     }
 
     void Renderer2D::Begin2D(const Camera& camera)
@@ -148,6 +174,10 @@ namespace Turbo
         // Circles
         m_CircleIndexCount = 0;
         m_CircleVertexBufferPointer = m_CircleVertexBufferBase;
+
+        // Lines
+        m_LineVertexCount = 0;
+        m_LineVertexBufferPointer = m_LineVertexBufferBase;
 
         // Reset statistics
         m_Statistics.Reset();
@@ -183,7 +213,7 @@ namespace Turbo
 
         for (u32 i = 0; i < quadVertexCount; ++i)
         {
-            m_QuadVertexBufferPointer->Position = transform * QuadVertexPositions[i];
+            m_QuadVertexBufferPointer->Position = transform * m_QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
             m_QuadVertexBufferPointer->EntityID = entity;
             m_QuadVertexBufferPointer->TextureIndex = 0;
@@ -233,7 +263,7 @@ namespace Turbo
 
         for (u32 i = 0; i < quadVertexCount; ++i)
         {
-            m_QuadVertexBufferPointer->Position = transform * QuadVertexPositions[i];
+            m_QuadVertexBufferPointer->Position = transform * m_QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
             m_QuadVertexBufferPointer->EntityID = entity;
             m_QuadVertexBufferPointer->TextureIndex = textureIndex;
@@ -282,7 +312,7 @@ namespace Turbo
 
         for (u32 i = 0; i < quadVertexCount; ++i)
         {
-            m_QuadVertexBufferPointer->Position = transform * QuadVertexPositions[i];
+            m_QuadVertexBufferPointer->Position = transform * m_QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
             m_QuadVertexBufferPointer->EntityID = entity;
             m_QuadVertexBufferPointer->TextureIndex = textureIndex;
@@ -296,6 +326,23 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
+    void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity /*= -1*/)
+    {
+        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
+
+        m_LineVertexBufferPointer->Position = p0;
+        m_LineVertexBufferPointer->Color = color;
+        m_LineVertexBufferPointer->EntityID = entity;
+        m_LineVertexBufferPointer++;
+
+        m_LineVertexBufferPointer->Position = p1;
+        m_LineVertexBufferPointer->Color = color;
+        m_LineVertexBufferPointer->EntityID = entity;
+        m_LineVertexBufferPointer++;
+
+        m_LineVertexCount += 2;
+    }
+
     void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
@@ -303,8 +350,8 @@ namespace Turbo
 
         for (u32 i = 0; i < 4; ++i)
         {
-            m_CircleVertexBufferPointer->WorldPosition = transform * QuadVertexPositions[i];
-            m_CircleVertexBufferPointer->LocalPosition = QuadVertexPositions[i] * 2.0f;
+            m_CircleVertexBufferPointer->WorldPosition = transform * m_QuadVertexPositions[i];
+            m_CircleVertexBufferPointer->LocalPosition = m_QuadVertexPositions[i] * 2.0f;
             m_CircleVertexBufferPointer->Color = color;
             m_CircleVertexBufferPointer->Fade = fade;
             m_CircleVertexBufferPointer->Thickness = thickness;
@@ -315,6 +362,34 @@ namespace Turbo
         m_CircleIndexCount += 6;
 
         m_Statistics.CircleCount++;
+    }
+
+    void Renderer2D::DrawRect(const glm::vec3& position, const glm::vec2& size, f32 rotation, const glm::vec4& color, i32 entity)
+    {
+        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+            * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
+            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+        DrawRect(transform);
+    }
+
+    void Renderer2D::DrawRect(const glm::mat4& transform, f32 rotation, const glm::vec4& color, i32 entity)
+    {
+        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
+
+        glm::vec3 lineVertices[4];
+
+        for (uint32_t i = 0; i < 4; i++)
+        {
+            lineVertices[i] = transform * m_QuadVertexPositions[i];
+        }
+
+        DrawLine(lineVertices[0], lineVertices[1], color, entity);
+        DrawLine(lineVertices[1], lineVertices[2], color, entity);
+        DrawLine(lineVertices[2], lineVertices[3], color, entity);
+        DrawLine(lineVertices[3], lineVertices[0], color, entity);
     }
 
     void Renderer2D::Flush()
@@ -353,6 +428,16 @@ namespace Turbo
                 Renderer::DrawIndexed(m_RenderCommandBuffer, m_CircleVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_CirclePipeline, m_CircleShader, m_CircleIndexCount);
 
                 m_Statistics.DrawCalls++;
+            }
+
+            // Lines
+            if (m_LineVertexCount)
+            {
+                u32 dataSize = (u32)((u8*)m_LineVertexBufferPointer - (u8*)m_LineVertexBufferBase);
+                m_LineVertexBuffer->SetData(m_LineVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
+
+                Renderer::SetLineWidth(m_RenderCommandBuffer, m_LineWidth);
+                Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
             }
 
             Renderer::EndRenderPass(m_RenderCommandBuffer);

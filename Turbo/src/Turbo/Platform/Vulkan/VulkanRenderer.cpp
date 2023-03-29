@@ -1,21 +1,18 @@
 #include "tbopch.h"
-#include "Renderer.h"
+#include "Turbo/Renderer/Renderer.h"
 
-#include "Renderer2D.h"
-#include "SwapChain.h"
+#include "VulkanSwapChain.h"
+#include "VulkanBuffer.h"
+#include "VulkanRenderPass.h"
+#include "VulkanRenderCommandBuffer.h"
+#include "VulkanImage2D.h"
+#include "VulkanIndexBuffer.h"
+#include "VulkanVertexBuffer.h"
+#include "VulkanGraphicsPipeline.h"
+#include "VulkanShader.h"
+#include "VulkanUniformBuffer.h"
 
 #include "Turbo/Core/Engine.h"
-
-#include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
-#include "Turbo/Platform/Vulkan/VulkanBuffer.h"
-#include "Turbo/Platform/Vulkan/VulkanRenderPass.h"
-#include "Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h"
-#include "Turbo/Platform/Vulkan/VulkanImage2D.h"
-#include "Turbo/Platform/Vulkan/VulkanIndexBuffer.h"
-#include "Turbo/Platform/Vulkan/VulkanVertexBuffer.h"
-#include "Turbo/Platform/Vulkan/VulkanGraphicsPipeline.h"
-#include "Turbo/Platform/Vulkan/VulkanShader.h"
-#include "Turbo/Platform/Vulkan/VulkanUniformBuffer.h"
 
 namespace Turbo
 {
@@ -23,28 +20,26 @@ namespace Turbo
     {
         VkWriteDescriptorSet WriteDescriptorSet;
         VkDescriptorBufferInfo BufferInfo;
+        bool IsDirty = true;
     };
-    static std::unordered_map<UniformBuffer*, WriteDescriptorSetInfo> s_CachedWriteDescriptorSets;
 
-    static void UpdateWriteDescriptors(const Ref<UniformBufferSet>& uniformBufferSet, const Ref<VulkanShader>& shader, const std::vector<VulkanShader::UniformBufferInfo>& uniformBufferInfos)
+    static std::map<VulkanShader const*, std::map<UniformBuffer const*, WriteDescriptorSetInfo>> s_CachedWriteDescriptorSets;
+
+    static void UpdateWriteDescriptors(Ref<UniformBufferSet> uniformBufferSet, const Ref<VulkanShader>& shader, const std::vector<VulkanShader::UniformBufferInfo>& uniformBufferInfos)
     {
-        static u32 s_LastFrame = -1;
-
-        if (s_LastFrame == Renderer::GetCurrentFrame()) // Ensure that we update uniform buffer sets once a frame
-            return;
-
-
         VkDevice device = RendererContext::GetDevice();
 
         for (const auto& ubInfo : uniformBufferInfos)
         {
-            Ref<UniformBuffer> uniformBuffer = uniformBufferSet->Get(0, ubInfo.Binding); // Set is 0 for now
+            const Ref<UniformBuffer>& uniformBuffer = uniformBufferSet->Get(0, ubInfo.Binding); // Set is 0 for now
 
-            auto& it = s_CachedWriteDescriptorSets.find(uniformBuffer.Get());
-            if (it == s_CachedWriteDescriptorSets.end())
+            // Retrieve or create shader map
+            auto& shaderMap = s_CachedWriteDescriptorSets[shader.Get()];
+
+            auto& it = shaderMap.find(uniformBuffer.Get());
+            if (it == shaderMap.end())
             {
-                WriteDescriptorSetInfo& info = s_CachedWriteDescriptorSets[uniformBuffer.Get()];
-                info = {};
+                auto& info = shaderMap[uniformBuffer.Get()] = {};
 
                 // Buffer
                 info.BufferInfo.buffer = uniformBuffer.As<VulkanUniformBuffer>()->GetBuffer();
@@ -61,10 +56,14 @@ namespace Turbo
                 info.WriteDescriptorSet.pBufferInfo = &info.BufferInfo;
             }
 
-            vkUpdateDescriptorSets(device, 1, &s_CachedWriteDescriptorSets.at(uniformBuffer.Get()).WriteDescriptorSet, 0, nullptr);
-        }
+            auto& cached = shaderMap.at(uniformBuffer.Get());
 
-        s_LastFrame = Renderer::GetCurrentFrame();
+            if (cached.IsDirty) // Ensure that the descriptor is updated only once a frame
+            {
+                cached.IsDirty = false;
+                vkUpdateDescriptorSets(device, 1, &cached.WriteDescriptorSet, 0, nullptr);
+            }
+        }
     }
 
     struct RendererInternal
@@ -99,7 +98,14 @@ namespace Turbo
 
     void Renderer::BeginFrame()
     {
-
+        // On new frame, invalidate descriptors
+        for (auto& [_, writeDescriptorMap] : s_CachedWriteDescriptorSets)
+        {
+            for (auto& [_, wds] : writeDescriptorMap)
+            {
+                wds.IsDirty = true;
+            }
+        }
     }
 
     void Renderer::Render()
@@ -111,9 +117,17 @@ namespace Turbo
     // Command buffer functions
     // Command buffer functions
 
-    void Renderer::SetViewport(Ref<RenderCommandBuffer> commandbuffer, i32 x, i32 y, u32 width, u32 he, f32 min_depth, f32 max_depth)
+
+    void Renderer::SetLineWidth(Ref<RenderCommandBuffer> commandBuffer, f32 lineWidth)
     {
-        VkCommandBuffer vkCommandBuffer = commandbuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+        vkCmdSetLineWidth(vkCommandBuffer, lineWidth);
+    }
+
+
+    void Renderer::SetViewport(Ref<RenderCommandBuffer> commandBuffer, i32 x, i32 y, u32 width, u32 he, f32 min_depth, f32 max_depth)
+    {
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
 
         VkViewport viewport = {};
         viewport.x = static_cast<f32>(x);
@@ -170,6 +184,29 @@ namespace Turbo
         vkCmdEndRenderPass(vkCommandBuffer);
     }
 
+    void Renderer::Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 vertexCount)
+    {
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+
+        VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetBuffer();
+        VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipeline();
+        VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayout();
+
+        Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
+        VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
+
+        // Updating or creating descriptor sets
+        const auto& resources = vkShader->GetResources();
+        UpdateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
+
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
+        vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
+        vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
+
+        vkCmdDraw(vkCommandBuffer, vertexCount, 1, 0, 0);
+    }
+
     void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount)
     {
         VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
@@ -183,17 +220,13 @@ namespace Turbo
         VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
 
         // Updating or creating descriptor sets
-        {
-            const auto& resources = vkShader->GetResources();
-            UpdateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
-        }
+        const auto& resources = vkShader->GetResources();
+        UpdateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
 
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
         vkCmdBindIndexBuffer(vkCommandBuffer, vkIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
         vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
-
         vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
 
         vkCmdDrawIndexed(vkCommandBuffer, indexCount, 1, 0, 0, 0);

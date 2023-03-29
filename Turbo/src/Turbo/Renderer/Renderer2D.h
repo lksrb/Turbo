@@ -49,13 +49,16 @@ namespace Turbo
 
         void Begin2D(const Camera& camera);
         void End2D();
-
+        
         void DrawQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
         void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity = -1);
         void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity = -1);
 
+        void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity = -1);
         void DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
+        void DrawRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
+        void DrawRect(const glm::mat4& transform, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
 
         Statistics GetStatistics() const { return m_Statistics; }
 
@@ -70,7 +73,7 @@ namespace Turbo
         static constexpr u32 MaxVertices = MaxQuad * 4;
         static constexpr u32 MaxIndices = MaxQuad * 6;
         static constexpr u32 MaxTextureSlots = 32; // LIMITED
-        static constexpr glm::vec4 QuadVertexPositions[4]
+        static constexpr glm::vec4 m_QuadVertexPositions[4]
         {
             { -0.5f, -0.5f, 0.0f, 1.0f },
             {  0.5f, -0.5f, 0.0f, 1.0f },
@@ -98,9 +101,17 @@ namespace Turbo
             i32 EntityID;
         };
 
+        struct LineVertex
+        {
+            glm::vec3 Position;
+            glm::vec4 Color;
+            i32 EntityID;
+        };
+
         // Quads
         QuadVertex* m_QuadVertexBufferBase = nullptr;
         QuadVertex* m_QuadVertexBufferPointer = nullptr;
+        u32 m_QuadIndexCount = 0;
 
         Ref<VertexBuffer> m_QuadVertexBuffer;
         Ref<IndexBuffer> m_QuadIndexBuffer;
@@ -109,15 +120,27 @@ namespace Turbo
         Ref<Shader> m_QuadShader;
         Ref<GraphicsPipeline> m_QuadPipeline;
 
-        // Circle
+        // Circles
         CircleVertex* m_CircleVertexBufferBase = nullptr;
         CircleVertex* m_CircleVertexBufferPointer = nullptr;
+        u32 m_CircleIndexCount = 0;
 
         Ref<VertexBuffer> m_CircleVertexBuffer;
-        Ref<Material> m_CircleMaterial;
+        // Ref<Material> m_CircleMaterial;
 
         Ref<Shader> m_CircleShader;
         Ref<GraphicsPipeline> m_CirclePipeline;
+
+        // Lines
+        LineVertex* m_LineVertexBufferBase = nullptr;
+        LineVertex* m_LineVertexBufferPointer = nullptr;
+        u32 m_LineVertexCount = 0;
+        f32 m_LineWidth = 2.0;
+
+        Ref<VertexBuffer> m_LineVertexBuffer;
+
+        Ref<Shader> m_LineShader;
+        Ref<GraphicsPipeline> m_LinePipeline;
 
         struct UBCamera
         {
@@ -131,9 +154,6 @@ namespace Turbo
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
         Statistics m_Statistics;
-
-        u32 m_QuadIndexCount = 0;
-        u32 m_CircleIndexCount = 0;
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;

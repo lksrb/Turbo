@@ -193,13 +193,13 @@ namespace Turbo
         // ###############################################################################################################
         // ##################                              Dynamic States                               ##################
         // ###############################################################################################################
-        VkDynamicState states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR/*, VK_DYNAMIC_STATE_LINE_WIDTH*/ };
+        std::array<VkDynamicState, 3> states = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR , VK_DYNAMIC_STATE_LINE_WIDTH };
 
         VkPipelineDynamicStateCreateInfo dynamicStatesInfo{};
         dynamicStatesInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-        dynamicStatesInfo.pDynamicStates = states;
+        dynamicStatesInfo.pDynamicStates = states.data();
         dynamicStatesInfo.flags = 0;
-        dynamicStatesInfo.dynamicStateCount = 2;
+        dynamicStatesInfo.dynamicStateCount = static_cast<u32>(states.size());
 
         // ###############################################################################################################
         // ##################                              Pipeline Layout                              ##################

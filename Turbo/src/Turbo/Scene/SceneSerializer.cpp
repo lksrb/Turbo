@@ -170,9 +170,7 @@ namespace Turbo
             TBO_ENGINE_ASSERT(false, "Unknown ScriptFieldType");
             return ScriptFieldType::None;
         }
-
     }
-
 
     YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
     {
@@ -287,6 +285,19 @@ namespace Turbo
                 out << YAML::Key << "TexturePath" << YAML::Value << spriteRendererComponent.Texture->GetFilepath();
             else
                 out << YAML::Key << "TexturePath" << YAML::Value << "None";
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<CircleRendererComponent>())
+        {
+            out << YAML::Key << "CircleRendererComponent";
+            out << YAML::BeginMap;
+
+            auto& circleRendererComponent = entity.GetComponent<CircleRendererComponent>();
+            out << YAML::Key << "Color" << YAML::Value << circleRendererComponent.Color;
+            out << YAML::Key << "Thickness" << YAML::Value << circleRendererComponent.Thickness;
+            out << YAML::Key << "Fade" << YAML::Value << circleRendererComponent.Fade;
 
             out << YAML::EndMap;
         }
@@ -441,13 +452,13 @@ namespace Turbo
 
                 TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
-                Entity deserialized_entity = m_Scene->CreateEntityWithUUID(uuid, name);
+                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid, name);
 
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)
                 {
                     // Entities always have transforms
-                    auto& tc = deserialized_entity.GetComponent<TransformComponent>();
+                    auto& tc = deserializedEntity.GetComponent<TransformComponent>();
                     tc.Translation = transformComponent["Translation"].as<glm::vec3>();
                     tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
                     tc.Scale = transformComponent["Scale"].as<glm::vec3>();
@@ -456,7 +467,7 @@ namespace Turbo
                 auto cameraComponent = entity["CameraComponent"];
                 if (cameraComponent)
                 {
-                    auto& cc = deserialized_entity.AddComponent<CameraComponent>();
+                    auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
                     auto& cameraProps = cameraComponent["Camera"];
                     cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<i32>());
@@ -476,7 +487,7 @@ namespace Turbo
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];
                 if (spriteRendererComponent)
                 {
-                    auto& src = deserialized_entity.AddComponent<SpriteRendererComponent>();
+                    auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
                     src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
                     auto& path = spriteRendererComponent["TexturePath"].as<std::string>();
                     if (path != "None")
@@ -490,20 +501,29 @@ namespace Turbo
                     }
                 }
 
-                auto script_component = entity["ScriptComponent"];
-                if (script_component)
+                auto circleRendererComponent = entity["CircleRendererComponent"];
+                if (circleRendererComponent)
                 {
-                    auto& component = deserialized_entity.AddComponent<ScriptComponent>();
-                    component.ClassName = script_component["ClassName"].as<std::string>();
+                    auto& crc = deserializedEntity.AddComponent<CircleRendererComponent>();
+                    crc.Color = circleRendererComponent["Color"].as<glm::vec4>();
+                    crc.Thickness = circleRendererComponent["Thickness"].as<f32>();
+                    crc.Fade = circleRendererComponent["Fade"].as<f32>();
+                }
 
-                    auto scriptFields = script_component["Fields"];
+                auto scriptComponent = entity["ScriptComponent"];
+                if (scriptComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<ScriptComponent>();
+                    component.ClassName = scriptComponent["ClassName"].as<std::string>();
+
+                    auto scriptFields = scriptComponent["Fields"];
                     if (scriptFields)
                     {
                         Ref<ScriptClass> entityClass = Script::FindEntityClass(component.ClassName);
                         if (entityClass)
                         {
                             const auto& fields = entityClass->GetFields();
-                            auto& entity_fields = Script::GetEntityFieldMap(uuid);
+                            auto& entityFields = Script::GetEntityFieldMap(uuid);
 
                             for (auto scriptField : scriptFields)
                             {
@@ -511,7 +531,7 @@ namespace Turbo
                                 std::string typeString = scriptField["Type"].as<std::string>();
                                 ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
 
-                                ScriptFieldInstance& fieldInstance = entity_fields[name];
+                                ScriptFieldInstance& fieldInstance = entityFields[name];
 
                                 if (fields.find(name) == fields.end())
                                     continue;
@@ -545,7 +565,7 @@ namespace Turbo
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
                 if (rigidbody2DComponent)
                 {
-                    auto& rb2d = deserialized_entity.AddComponent<Rigidbody2DComponent>();
+                    auto& rb2d = deserializedEntity.AddComponent<Rigidbody2DComponent>();
                     rb2d.Type = RigidBody2DBodyTypeFromString(rigidbody2DComponent["BodyType"].as<std::string>());
                     rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
                 }
@@ -553,7 +573,7 @@ namespace Turbo
                 auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
                 if (boxCollider2DComponent)
                 {
-                    auto& bc2d = deserialized_entity.AddComponent<BoxCollider2DComponent>();
+                    auto& bc2d = deserializedEntity.AddComponent<BoxCollider2DComponent>();
                     bc2d.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
                     bc2d.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
                     bc2d.Density = boxCollider2DComponent["Density"].as<f32>();
@@ -565,7 +585,7 @@ namespace Turbo
                 auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
                 if (circleCollider2DComponent)
                 {
-                    auto& cc2d = deserialized_entity.AddComponent<CircleCollider2DComponent>();
+                    auto& cc2d = deserializedEntity.AddComponent<CircleCollider2DComponent>();
                     cc2d.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
                     cc2d.Radius = circleCollider2DComponent["Radius"].as<f32>();
                     cc2d.Density = circleCollider2DComponent["Density"].as<f32>();

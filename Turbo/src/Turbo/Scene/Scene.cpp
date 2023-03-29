@@ -43,9 +43,11 @@ namespace Turbo
                 {
                     entt::entity dstEntity = enttMap.at(src.get<IDComponent>(srcEntity).ID);
                     auto& srcComponent = src.get<Components>(srcEntity);
+
                     dst.emplace_or_replace<Components>(dstEntity, srcComponent);
                 }
             }(), ...);
+
         }
 
         template<typename... Components>
@@ -106,6 +108,11 @@ namespace Turbo
                         auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
                         renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Thickness, crc.Fade, (u32)entity);
                     }
+                }
+
+                // Debug Line
+                {
+                    renderer2d->DrawRect({ 0,0,0 });
                 }
 
                 renderer2d->End2D();
@@ -201,8 +208,8 @@ namespace Turbo
                 auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
                 camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
 
-                // Sprites
                 renderer2d->Begin2D(camera);
+                // Sprites
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
@@ -219,17 +226,16 @@ namespace Turbo
                 }
 
                 // Circles
-#if 0           
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
 
                     for (auto& entity : view)
                     {
                         auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                        renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                        renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Thickness, crc.Fade, (u32)entity);
                     }
                 }
-#endif
+
                 renderer2d->End2D();
             }
         }
@@ -239,12 +245,12 @@ namespace Turbo
 
     Ref<Scene> Scene::Copy(Ref<Scene> other)
     {
-        Ref<Scene> new_scene = Ref<Scene>::Create();
+        Ref<Scene> newScene = Ref<Scene>::Create();
 
-        new_scene->m_ViewportWidth = other->m_ViewportWidth;
-        new_scene->m_ViewportHeight = other->m_ViewportHeight;
+        newScene->m_ViewportWidth = other->m_ViewportWidth;
+        newScene->m_ViewportHeight = other->m_ViewportHeight;
 
-        std::unordered_map<UUID, entt::entity> entity_map;
+        std::unordered_map<UUID, entt::entity> entityMap;
 
         auto& view = other->m_Registry.view<IDComponent>();
 
@@ -256,13 +262,13 @@ namespace Turbo
 
             const auto& name = other->m_Registry.get<TagComponent>(*it).Tag;
 
-            entity_map[uuid] = (entt::entity)new_scene->CreateEntityWithUUID(uuid, name);
+            entityMap[uuid] = (entt::entity)newScene->CreateEntityWithUUID(uuid, name);
         }
 
         // Copy components (except IDComponent and TagComponent)
-        Utils::CopyComponents(AllComponents{}, new_scene->m_Registry, other->m_Registry, entity_map, new_scene);
+        Utils::CopyComponents(AllComponents{}, newScene->m_Registry, other->m_Registry, entityMap, newScene);
 
-        return new_scene;
+        return newScene;
     }
 
     Entity Scene::CreateEntity(const std::string& tag)
