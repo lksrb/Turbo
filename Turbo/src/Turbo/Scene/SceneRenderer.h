@@ -25,8 +25,6 @@ namespace Turbo
         u32 GetViewportHeight() const { return m_Config.ViewportHeight; }
         Ref<Renderer2D> GetRenderer2D() { return m_Renderer2D; }
         Ref<Image2D> GetFinalImage() const;
-
-        void ClearFramebuffer();
     private:
         void Init();
     private:

@@ -8,6 +8,11 @@
 
 namespace Turbo
 {
+    void UI::Image(Ref<Texture2D> texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
+    {
+        UI::Image(texture->GetImage(), size, uv0, uv1, tint_col, border_col);
+    }
+
     void UI::Image(Ref<Image2D> image, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
     {
         Ref<VulkanImage2D> vulkanImage = image.As<VulkanImage2D>();

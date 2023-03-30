@@ -14,6 +14,8 @@ IncludeDir["yaml_cpp"] = "%{wks.location}/dependencies/yaml-cpp/include"
 IncludeDir["entt"] = "%{wks.location}/dependencies/entt"
 IncludeDir["box2d"] = "%{wks.location}/dependencies/Box2D/include"
 IncludeDir["IconFontCppHeaders"] = "%{wks.location}/dependencies/IconFontCppHeaders"
+IncludeDir["msdfgen"] = "%{wks.location}/dependencies/msdf-atlas-gen/msdfgen"
+IncludeDir["msdf_atlas_gen"] = "%{wks.location}/dependencies/msdf-atlas-gen/msdf-atlas-gen"
 
 -- Vulkan
 VULKAN_SDK = os.getenv("VULKAN_SDK")

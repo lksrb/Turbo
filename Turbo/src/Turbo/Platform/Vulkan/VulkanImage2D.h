@@ -19,10 +19,10 @@ namespace Turbo
 
         void Invalidate(u32 width, u32 height) override;
     private:
-        VkDeviceMemory m_Memory;
+        VkDeviceMemory m_Memory = nullptr;
 
-        VkSampler m_Sampler;
-        VkImageView m_ImageView;
-        VkImage m_Image;
+        VkSampler m_Sampler = nullptr;
+        VkImageView m_ImageView = nullptr;
+        VkImage m_Image = nullptr;
     };
 }

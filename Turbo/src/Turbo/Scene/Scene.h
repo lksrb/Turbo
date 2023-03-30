@@ -34,7 +34,6 @@ namespace Turbo
         void OnRuntimeUpdate(FTime ts);
         void OnRuntimeRender(Ref<SceneRenderer> renderer);
 
-
         static Ref<Scene> Copy(Ref<Scene> other);
 
         Entity CreateEntity(const std::string& tag = "");

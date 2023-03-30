@@ -10,8 +10,8 @@ namespace Turbo::Ed
 {
     ContentBrowserPanel::ContentBrowserPanel()
     {
-        m_DirectoryIcon = Texture2D::Create({ "Resources/Icons/DirectoryIcon.png" });
-        m_FileIcon = Texture2D::Create({ "Resources/Icons/FileIcon.png" });
+        m_DirectoryIcon = Texture2D::Create("Resources/Icons/DirectoryIcon.png");
+        m_FileIcon = Texture2D::Create("Resources/Icons/FileIcon.png");
     }
 
     ContentBrowserPanel::~ContentBrowserPanel()

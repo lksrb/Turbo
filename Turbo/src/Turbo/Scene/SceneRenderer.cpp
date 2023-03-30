@@ -154,10 +154,4 @@ namespace Turbo
         // Returns final image that is produced by the scene renderer
         return m_TargetFramebuffer->GetColorAttachment(); 
     }
-
-    void SceneRenderer::ClearFramebuffer()
-    {
-        // TODO: Clear framebuffer
-    }
-
 }

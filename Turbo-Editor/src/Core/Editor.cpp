@@ -10,6 +10,8 @@
 #include <Turbo/Script/Script.h>
 #include <Turbo/Solution/ProjectSerializer.h>
 #include <Turbo/Scene/SceneSerializer.h>
+
+#include <Turbo/Renderer/Font.h>
 #include <Turbo/UI/UI.h>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,7 +22,7 @@
 
 namespace Turbo::Ed
 {
-    extern std::filesystem::path g_AssetPath = {};
+    static Font* s_Font;
 
     Editor::Editor(const Application::Config& config)
         : Application(config)
@@ -51,17 +53,21 @@ namespace Turbo::Ed
         // Render 
         m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_Config.Width, m_Config.Height, true });
 
-        m_PlayIcon = Texture2D::Create({ "Resources/Icons/PlayButton.png" });
-        m_StopIcon = Texture2D::Create({ "Resources/Icons/StopButton.png" });
+        m_PlayIcon = Texture2D::Create("Resources/Icons/PlayButton.png");
+        m_StopIcon = Texture2D::Create("Resources/Icons/StopButton.png");
 
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_Config.Width) / static_cast<f32>(m_Config.Height), 0.1f, 10000.0f);
 
         // Open sandbox project
         OpenProject(m_CurrentPath / "SandboxProject\\SandboxProject.tproject");
+
+        // Test font
+        s_Font = new Font("Assets\\Fonts\\OpenSans\\OpenSans-Regular.ttf");
     }
 
     void Editor::OnShutdown()
     {
+        delete s_Font;
     }
 
     void Editor::OnUpdate()
@@ -258,7 +264,7 @@ namespace Turbo::Ed
                         ++x;
                         auto& src = e.AddComponent<SpriteRendererComponent>();
 
-                        Ref<Texture2D> texture2d = Texture2D::Create({ "Assets/Textures/smile.png" });
+                        Ref<Texture2D> texture2d = Texture2D::Create({"Assets/Textures/smile.png" });
 
                         if (texture2d->IsLoaded())
                             src.Texture = texture2d;
@@ -368,6 +374,14 @@ namespace Turbo::Ed
 
                 ImGui::EndMenuBar();
             }
+        }
+
+        if (s_Font)
+        {
+            ImGui::Begin("Font Atlas");
+            const auto& a = s_Font->GetAtlasTexture();
+            UI::Image(a, { 512, 512 });
+            ImGui::End();
         }
 
         // Scene settings
@@ -559,7 +573,6 @@ namespace Turbo::Ed
             Project::SetActive(project);
 
         }
-        g_AssetPath = project_path.parent_path();
 
         const auto& config = project->GetConfig();
 
@@ -567,7 +580,7 @@ namespace Turbo::Ed
         m_PanelManager->OnProjectChanged(project);
 
         // Load project assembly
-        Script::LoadProjectAssembly(g_AssetPath / project->GetConfig().ScriptModulePath);
+        Script::LoadProjectAssembly(project_path.parent_path() / project->GetConfig().ScriptModulePath);
 
         // Open scene
         OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);

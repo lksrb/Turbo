@@ -267,7 +267,7 @@ namespace Turbo
     void VulkanUserInterface::CreateImGuiContext()
     {
         VkDevice device = RendererContext::GetDevice();
-        u32 frames_in_flight = RendererContext::FramesInFlight();
+        u32 framesInFlight = RendererContext::FramesInFlight();
         Window* viewport_window = Engine::Get().GetViewportWindow();
 
         ImGui::CreateContext();
@@ -284,7 +284,7 @@ namespace Turbo
         icons_config.MergeMode = true;
         icons_config.PixelSnapH = true;
         icons_config.GlyphOffset.y = 3;
-        io.Fonts->AddFontFromFileTTF("Resources\\Fonts\\" FONT_ICON_FILE_NAME_FAR, 16.0f, &icons_config, icons_ranges);
+        io.Fonts->AddFontFromFileTTF("Assets\\Fonts\\IconFonts\\" FONT_ICON_FILE_NAME_FAR, 16.0f, &icons_config, icons_ranges);
 
         ImGuiStyleSpectrum();
 
@@ -334,8 +334,8 @@ namespace Turbo
         init_info.PipelineCache = nullptr;
         init_info.DescriptorPool = m_DescriptorPool;
         init_info.Subpass = 0;
-        init_info.MinImageCount = frames_in_flight; // Swapchain image count
-        init_info.ImageCount = frames_in_flight; // Swapchain image count
+        init_info.MinImageCount = framesInFlight; // Swapchain image count
+        init_info.ImageCount = framesInFlight; // Swapchain image count
         init_info.Allocator = nullptr;
         init_info.CheckVkResultFn = CheckVkResult;
 
@@ -353,8 +353,8 @@ namespace Turbo
         ImGui_ImplVulkan_DestroyFontUploadObjects();
 
         // Create secondary command buffers for each frame in flight
-        m_SecondaryBuffers.resize(frames_in_flight);
-        RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers.data(), frames_in_flight);
+        m_SecondaryBuffers.resize(framesInFlight);
+        RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers.data(), framesInFlight);
     }
 
     void VulkanUserInterface::BeginUI()
@@ -371,18 +371,18 @@ namespace Turbo
 
         // Swapchain primary command buffer
         {
-            const Window* viewport_window = Engine::Get().GetViewportWindow();
-            Ref<VulkanSwapChain> swap_chain = viewport_window->GetSwapchain().As<VulkanSwapChain>();
-            u32 width = viewport_window->GetWidth();
-            u32 height = viewport_window->GetHeight();
-            u32 current_frame = swap_chain->GetCurrentFrame();
+            const Window* viewportWindow = Engine::Get().GetViewportWindow();
+            Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+            u32 width = viewportWindow->GetWidth();
+            u32 height = viewportWindow->GetHeight();
+            u32 current_frame = swapChain->GetCurrentFrame();
 
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.pNext = nullptr;
             beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
             beginInfo.pInheritanceInfo = nullptr;
-            VkCommandBuffer currentbuffer = swap_chain->GetCurrentRenderCommandBuffer();
+            VkCommandBuffer currentbuffer = swapChain->GetCurrentRenderCommandBuffer();
             TBO_VK_ASSERT(vkBeginCommandBuffer(currentbuffer, &beginInfo));
 
             VkClearValue clear_values[2]{};
@@ -391,13 +391,13 @@ namespace Turbo
 
             VkRenderPassBeginInfo renderPassBeginInfo = {};
             renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderPassBeginInfo.renderPass = swap_chain->GetRenderPass();
+            renderPassBeginInfo.renderPass = swapChain->GetRenderPass();
             renderPassBeginInfo.renderArea.offset.x = 0;
             renderPassBeginInfo.renderArea.offset.y = 0;
             renderPassBeginInfo.renderArea.extent = { width, height };
             renderPassBeginInfo.clearValueCount = 2; // Color
             renderPassBeginInfo.pClearValues = clear_values;
-            renderPassBeginInfo.framebuffer = swap_chain->GetCurrentFramebuffer();
+            renderPassBeginInfo.framebuffer = swapChain->GetCurrentFramebuffer();
 
             vkCmdBeginRenderPass(currentbuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
@@ -405,8 +405,8 @@ namespace Turbo
             {
                 VkCommandBufferInheritanceInfo inheritanceInfo = {};
                 inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-                inheritanceInfo.renderPass = swap_chain->GetRenderPass();
-                inheritanceInfo.framebuffer = swap_chain->GetCurrentFramebuffer();
+                inheritanceInfo.renderPass = swapChain->GetRenderPass();
+                inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
 
                 VkCommandBufferBeginInfo cmdBufInfo = {};
                 cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

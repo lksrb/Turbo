@@ -7,54 +7,66 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #pragma warning(push, 0)
-    #include <stb_image.h>
+#include <stb_image.h>
 #pragma warning(pop)
 
 namespace Turbo
 {
-    VulkanTexture2D::VulkanTexture2D(const Texture2D::Config& config)
-        : Texture2D(config)
+    namespace Utils
     {
-        TBO_ENGINE_ASSERT(!m_Config.FilePath.empty());
+        static u32 BytesPerPixelFromFormat(Image2D::Format format)
+        {
+            switch (format)
+            {
+                case Image2D::Format_RGB_Unorm:
+                case Image2D::Format_RGB_SRGB:
+                    return 3;
+                case Image2D::Format_RGBA_SRGB:
+                case Image2D::Format_RGBA_Unorm:
+                case Image2D::Format_BGRA_Unorm:
+                case Image2D::Format_BGRA_SRGB:
+                    return 4;
+                case Image2D::Format_RGBA32F:
+                    return 4 * 4;
+            }
 
+            TBO_ENGINE_ASSERT(false, "Invalid format!");
+            return 0;
+        }
+    }
+
+    VulkanTexture2D::VulkanTexture2D(const std::string& filepath)
+        : Texture2D(filepath)
+    {
         // Load picture from filepath
         int texWidth = 0, texHeight = 0, texChannel = 0;
 
         // Vertical flip of the texture
         stbi_set_flip_vertically_on_load(1);
 
-        stbi_uc* pixels = stbi_load(config.FilePath.c_str(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
+        void* pixels = stbi_load(m_FilePath.c_str(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
 
         // Texture could not be loaded
         if (texWidth * texHeight <= 0)
         {
-            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", config.FilePath.c_str());
+            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", m_FilePath.c_str());
             stbi_set_flip_vertically_on_load(0);
             return;
         }
 
-        m_IsLoaded = true;
-
-        // Create storage for the loaded texture
-        Image2D::Config imageConfig = {};
-        imageConfig.Aspect = Image2D::AspectFlags_Color;
-        imageConfig.Usage = Image2D::ImageUsageFlags_Sampled | Image2D::ImageUsageFlags_Transfer_Destination;
-        imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
-        imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
-        imageConfig.ImageFormat = Image2D::Format_RGBA8_SRGB;
-        m_TextureImage = Image2D::Create(imageConfig);
-        m_TextureImage->Invalidate(texWidth, texHeight);
-
         // Update width and height
-        m_Width = texWidth;
-        m_Height = texHeight;
+        m_Config.Width = texWidth;
+        m_Config.Height = texHeight;
+
+        CreateImage2D();
 
         // Tranfer buffer to GPU memory
-        Transfer(pixels, m_Width * m_Height * 4);
+        SetData(pixels);
+
+        m_IsLoaded = true;
 
         // Free pixels
         stbi_image_free(pixels);
-
         stbi_set_flip_vertically_on_load(0);
     }
 
@@ -62,23 +74,19 @@ namespace Turbo
         : Texture2D(color)
     {
         // Create storage for the loaded texture
-        Image2D::Config imageConfig = {};
-        imageConfig.Aspect = Image2D::AspectFlags_Color;
-        imageConfig.Usage = Image2D::ImageUsageFlags_Sampled | Image2D::ImageUsageFlags_Transfer_Destination;
-        imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
-        imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
-        imageConfig.ImageFormat = Image2D::Format_RGBA8_SRGB;
-        m_TextureImage = Image2D::Create(imageConfig);
-        m_TextureImage->Invalidate(1, 1);
-
-        m_IsLoaded = true;
-
-        // Update width and height
-        m_Width = 1;
-        m_Height = 1;
+        CreateImage2D();
 
         // Transfer pixels
-        Transfer(&color, 4);
+        SetData(&color);
+
+        m_IsLoaded = true;
+    }
+
+    VulkanTexture2D::VulkanTexture2D(const Texture2D::Config& config)
+        : Texture2D(config)
+    {
+        // Create storage for the loaded texture
+        CreateImage2D();
     }
 
     VulkanTexture2D::~VulkanTexture2D()
@@ -87,16 +95,20 @@ namespace Turbo
 
     void VulkanTexture2D::Invalidate(u32 width, u32 height)
     {
-        m_Width = width;
-        m_Height = height;
+        m_Config.Width = width;
+        m_Config.Height = height;
+
+        // TODO:
+
+        TBO_ENGINE_ASSERT(false);
     }
 
-	void VulkanTexture2D::Transfer(const void* pixels, size_t size)
+    void VulkanTexture2D::SetData(const void* pixels)
     {
         VkDevice device = RendererContext::GetDevice();
 
         RendererBuffer::Config config = {};
-        config.Size = size;
+        config.Size = m_Config.Width * m_Config.Height * Utils::BytesPerPixelFromFormat(m_Config.Format);
         config.UsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         config.MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         config.Temporary = true;
@@ -106,7 +118,7 @@ namespace Turbo
 
         // Executing command buffers
          // Pipeline barrier, transition image layout
-        VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer(true);
+        VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
         {
             VkImageMemoryBarrier barrier{};
             barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -148,7 +160,7 @@ namespace Turbo
                 region.imageSubresource.layerCount = 1;
 
                 region.imageOffset = { 0, 0, 0 };
-                region.imageExtent = { m_Width, m_Height, 1 };
+                region.imageExtent = { m_Config.Width, m_Config.Height, 1 };
 
                 vkCmdCopyBufferToImage(
                     commandBuffer,
@@ -194,4 +206,18 @@ namespace Turbo
             RendererContext::FlushCommandBuffer(commandBuffer);
         }
     }
+
+    void VulkanTexture2D::CreateImage2D()
+    {
+        // Create storage for the loaded texture
+        Image2D::Config imageConfig = {};
+        imageConfig.Aspect = Image2D::AspectFlags_Color;
+        imageConfig.Usage = Image2D::ImageUsageFlags_Sampled | Image2D::ImageUsageFlags_Transfer_Destination;
+        imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
+        imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
+        imageConfig.ImageFormat = m_Config.Format;
+        m_TextureImage = Image2D::Create(imageConfig);
+        m_TextureImage->Invalidate(m_Config.Width, m_Config.Height);
+    }
+
 }

@@ -36,7 +36,7 @@ namespace Turbo
     }
 
     VulkanImage2D::VulkanImage2D(const Image2D::Config& config) 
-        : Image2D(config), m_Image(VK_NULL_HANDLE), m_ImageView(VK_NULL_HANDLE), m_Memory(VK_NULL_HANDLE), m_Sampler(VK_NULL_HANDLE)
+        : Image2D(config)
     {
     }
 

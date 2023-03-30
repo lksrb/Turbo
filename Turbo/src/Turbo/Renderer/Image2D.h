@@ -9,10 +9,19 @@ namespace Turbo
     public:
         enum Format : u32
         {
-            Format_RGBA8_SRGB = 43,
-            Format_BGRA8_Unorm = 44,
-            Format_RGBA8_Unorm = 37,
-            Format_BGRA8_SRGB = 50,
+            Format_None = 0,
+            Format_RGB_Unorm = 23,
+            Format_RGB_UInt = 27,
+            Format_RGB_SRGB = 29,
+
+            Format_RGBA_SRGB = 43,
+            Format_RGBA_Unorm = 37,
+
+            Format_BGRA_Unorm = 44,
+            Format_BGRA_SRGB = 50,
+
+            Format_RGBA32F = 109,
+
             Format_D32_SFloat_S8_Uint = 130
         };
 

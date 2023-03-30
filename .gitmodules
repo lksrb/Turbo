@@ -20,3 +20,6 @@
 [submodule "dependencies/ImGuizmo"]
 	path = dependencies/ImGuizmo
 	url = https://github.com/lksrb/ImGuizmo.git
+[submodule "dependencies/msdf-atlas-gen"]
+	path = dependencies/msdf-atlas-gen
+	url = https://github.com/TheCherno/msdf-atlas-gen.git

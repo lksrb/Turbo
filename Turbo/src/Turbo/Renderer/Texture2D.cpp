@@ -6,9 +6,10 @@
 namespace Turbo
 {
     // Texture2D
-    Texture2D::Texture2D(const Texture2D::Config& config)
-        : m_Config(config)
+    Texture2D::Texture2D(const std::string& filepath)
+        : m_FilePath(filepath)
     {
+        TBO_ENGINE_ASSERT(!m_FilePath.empty());
     }
 
     Texture2D::Texture2D(u32 color)
@@ -16,18 +17,29 @@ namespace Turbo
     {
     }
 
+    Texture2D::Texture2D(const Texture2D::Config& config)
+        : m_Config(config)
+    {
+        TBO_ENGINE_ASSERT(m_Config.Width != 0 && m_Config.Height != 0);
+    }
+
     Texture2D::~Texture2D()
     {
     }
 
-    Ref<Texture2D> Texture2D::Create(const Texture2D::Config& config)
+    Ref<Texture2D> Texture2D::Create(const std::string& filepath)
     {
-        return Ref<VulkanTexture2D>::Create(config);
+        return Ref<VulkanTexture2D>::Create(filepath);
     }
 
     Ref<Texture2D> Texture2D::Create(u32 color)
     {
         return Ref<VulkanTexture2D>::Create(color);
+    }
+
+    Ref<Texture2D> Texture2D::Create(const Texture2D::Config& config)
+    {
+        return Ref<VulkanTexture2D>::Create(config);
     }
 
     // SubTexture2D

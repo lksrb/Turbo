@@ -33,6 +33,8 @@ project "Turbo"
         "src",
         "%{IncludeDir.spdlog}",
         "%{IncludeDir.glm}",
+        "%{IncludeDir.msdfgen}",
+        "%{IncludeDir.msdf_atlas_gen}",
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.IconFontCppHeaders}",
@@ -48,8 +50,9 @@ project "Turbo"
         "ImGui",
         "Shlwapi.lib",
         "box2d",
-        "%{Library.Vulkan}",
         "yaml-cpp",
+        "msdf-atlas-gen",
+        "%{Library.Vulkan}",
         "%{Library.mono}"
     }
 
