@@ -50,12 +50,12 @@ namespace Turbo::Ed
         glm::vec2 m_ViewportBounds[2] = {};
 
         EditorCamera m_EditorCamera;
-
+        bool m_ShowPhysics2DColliders = false;
         bool m_ViewportHovered = false, m_ViewportFocused = false;
         Ref<Texture2D> m_PlayIcon, m_StopIcon;
         Ref<SceneRenderer> m_SceneRenderer;
         Mode m_EditorMode = Mode::Edit;
-        Ref<Scene> m_EditorScene, m_RuntimeScene;
+        Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
 
         std::filesystem::path m_EditorScenePath;
         std::filesystem::path m_CurrentPath;

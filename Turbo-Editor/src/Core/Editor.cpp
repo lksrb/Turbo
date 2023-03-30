@@ -198,7 +198,7 @@ namespace Turbo::Ed
             //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
             ImGui::SetNextWindowClass(&window_class);
             ImGui::Begin("Viewport");
-
+            
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
             Engine->GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
@@ -209,18 +209,18 @@ namespace Turbo::Ed
             m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
             m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 
-            ImVec2 window_size = ImGui::GetWindowSize();
+            ImVec2 windowSize = ImGui::GetWindowSize();
 
-            ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
+            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
-            if (m_ViewportWidth != window_size.x || m_ViewportHeight != window_size.y)
+            if (m_ViewportWidth != windowSize.x || m_ViewportHeight != windowSize.y)
             {
-                OnViewportResize(static_cast<u32>(window_size.x), static_cast<u32>(window_size.y));
+                OnViewportResize(static_cast<u32>(windowSize.x), static_cast<u32>(windowSize.y));
             }
 
             if (m_EditorScene)
             {
-                UI::Image(m_SceneRenderer->GetFinalImage(), { viewport_panel_size.x,viewport_panel_size.y }, { 0, 1 }, { 1, 0 });
+                UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x,viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
             }
 
             if (ImGui::BeginDragDropTarget())
@@ -370,15 +370,23 @@ namespace Turbo::Ed
             }
         }
 
+        // Scene settings
+        {
+            ImGui::Begin("Scene settings");
+            ImGui::Checkbox("Physics Colliders", &m_CurrentScene->ShowPhysics2DColliders);
+            
+            ImGui::End();
+        }
 
         ImGui::Begin("Statistics & Renderer2D");
-        ImGui::Text("Timestep %.5f ms", Time.DeltaTime.ms());
-        ImGui::Text("StartTime %.5f ms", Time.TimeSinceStart.ms());
+        ImGui::Text("Timestep: %.5f ms", Time.DeltaTime.ms());
+        ImGui::Text("StartTime: %.5f ms", Time.TimeSinceStart.ms());
         ImGui::Separator();
 
+        // TODO: Better statistics
         Renderer2D::Statistics stats = m_SceneRenderer->GetRenderer2D()->GetStatistics();
-        ImGui::Text("Quad Count %d", stats.QuadCount);
-        ImGui::Text("Drawcalls %d", stats.DrawCalls);
+        ImGui::Text("Quad Count: %d", stats.QuadCount);
+        ImGui::Text("Drawcalls: %d", stats.DrawCalls);
         ImGui::End();
 
         // Draw all panels
@@ -628,6 +636,9 @@ namespace Turbo::Ed
 
         m_EditorScene = Ref<Scene>::Create();
 
+        // Set current scene
+        m_CurrentScene = m_EditorScene;
+
         SceneSerializer serializer(m_EditorScene);
         TBO_ASSERT(serializer.Deserialize(scene_path.string()), "Could not deserialize scene!");
 
@@ -685,6 +696,9 @@ namespace Turbo::Ed
         m_RuntimeScene = Scene::Copy(m_EditorScene);
         m_RuntimeScene->OnRuntimeStart();
 
+        // Set current scene
+        m_CurrentScene = m_RuntimeScene;
+
         // Select the same entity in runtime scene
         {
             UUID selected_entity_uuid = 0;
@@ -706,6 +720,9 @@ namespace Turbo::Ed
 
         m_RuntimeScene->OnRuntimeStop();
         m_RuntimeScene = m_EditorScene;
+
+        // Set current scene
+        m_CurrentScene = m_EditorScene;
 
         // Select the same entity in editor scene
         {

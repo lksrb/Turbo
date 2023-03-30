@@ -19,6 +19,7 @@ namespace Turbo
         {
             Ref<Image2D> DepthAttachment;
             ImageLayout DestinationLayout;
+            bool ClearOnLoad = true; // Do not change
         };
 
         static Ref<RenderPass> Create(const RenderPass::Config& config = {});

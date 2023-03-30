@@ -20,8 +20,8 @@ namespace Turbo
 
     VkFramebuffer VulkanFrameBuffer::GetFrameBuffer() const
     {
-        u32 current_frame = Renderer::GetCurrentFrame();
-        return m_Framebuffers[current_frame];
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        return m_Framebuffers[currentFrame];
     }
 
     void VulkanFrameBuffer::Invalidate(u32 width, u32 height)
@@ -30,25 +30,25 @@ namespace Turbo
         m_Config.Height = height;
 
         VkDevice device = RendererContext::GetDevice();
-        u32 frames_in_flight = RendererContext::FramesInFlight();
+        u32 framesInFlight = RendererContext::FramesInFlight();
 
-        m_ColorAttachments.resize(frames_in_flight);
-        m_Framebuffers.resize(frames_in_flight);
+        m_ColorAttachments.resize(framesInFlight);
+        m_Framebuffers.resize(framesInFlight);
         for (u32 i = 0; i < m_Framebuffers.size(); ++i)
         {
             // Images
-            Image2D::Config image_config = {};
-            image_config.ImageFormat = Image2D::Format_BGRA8_Unorm;
-            image_config.Aspect = Image2D::AspectFlags_Color;
-            image_config.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
-            image_config.Usage = Image2D::ImageUsageFlags_ColorAttachment | Image2D::ImageUsageFlags_Sampled;
-            image_config.ImageTiling = Image2D::ImageTiling_Optimal;
+            Image2D::Config imageConfig = {};
+            imageConfig.ImageFormat = Image2D::Format_BGRA8_Unorm;
+            imageConfig.Aspect = Image2D::AspectFlags_Color;
+            imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
+            imageConfig.Usage = Image2D::ImageUsageFlags_ColorAttachment | Image2D::ImageUsageFlags_Sampled;
+            imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
 
-            m_ColorAttachments[i] = Image2D::Create(image_config);
+            m_ColorAttachments[i] = Image2D::Create(imageConfig);
             m_ColorAttachments[i]->Invalidate(width, height);
 
             // Attachments
-            u32 attachment_count = 1;
+            u32 attachmentCount = 1;
 
             VkImageView attachments[2] = {};
             attachments[0] = m_ColorAttachments[i].As<VulkanImage2D>()->GetImageView();
@@ -56,7 +56,7 @@ namespace Turbo
             if (m_Config.DepthBuffer)
             {
                 attachments[1] = m_Config.DepthBuffer.As<VulkanImage2D>()->GetImageView();
-                attachment_count++;
+                attachmentCount++;
             }
 
             VkFramebufferCreateInfo create_info = {};
@@ -66,16 +66,16 @@ namespace Turbo
             create_info.width = width;
             create_info.height = height;
             create_info.layers = 1;
-            create_info.attachmentCount = attachment_count;
+            create_info.attachmentCount = attachmentCount;
             create_info.pAttachments = attachments;
 
             TBO_VK_ASSERT(vkCreateFramebuffer(device, &create_info, nullptr, &m_Framebuffers[i]));
         }
 
         // Add it to deletion queue 
-        auto& resource_free_queue = RendererContext::GetResourceQueue();
+        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
 
-        resource_free_queue.Submit(FRAMEBUFFER, [device, framebuffers = m_Framebuffers]()
+        resourceFreeQueue.Submit(FRAMEBUFFER, [device, framebuffers = m_Framebuffers]()
         {
             for (u32 i = 0; i < framebuffers.size(); ++i)
                 vkDestroyFramebuffer(device, framebuffers[i], nullptr);

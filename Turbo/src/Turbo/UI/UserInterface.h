@@ -15,7 +15,7 @@ namespace Turbo
 
         virtual void OnEvent(Event& e) = 0;
 
-        void SetBlockEvents(bool block_events);
+        void SetBlockEvents(bool blockEvents);
     protected:
         UserInterface();
 

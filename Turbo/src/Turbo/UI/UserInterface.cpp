@@ -13,9 +13,9 @@ namespace Turbo
     {
     }
 
-	void UserInterface::SetBlockEvents(bool block_events)
+	void UserInterface::SetBlockEvents(bool blockEvents)
 	{
-        m_BlockEvents = block_events;
+        m_BlockEvents = blockEvents;
 	}
 
 	Ref<UserInterface> UserInterface::Create()

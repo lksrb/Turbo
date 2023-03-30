@@ -15,6 +15,6 @@ namespace Turbo
         VkRenderPass GetRenderPass() const { return m_RenderPass; }
         void Invalidate() override;
     private:
-        VkRenderPass m_RenderPass = VK_NULL_HANDLE;
+        VkRenderPass m_RenderPass = nullptr;
     };
 }

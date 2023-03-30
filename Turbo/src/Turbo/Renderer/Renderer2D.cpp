@@ -375,13 +375,13 @@ namespace Turbo
         DrawRect(transform);
     }
 
-    void Renderer2D::DrawRect(const glm::mat4& transform, f32 rotation, const glm::vec4& color, i32 entity)
+    void Renderer2D::DrawRect(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
         glm::vec3 lineVertices[4];
 
-        for (uint32_t i = 0; i < 4; i++)
+        for (u32 i = 0; i < 4; ++i)
         {
             lineVertices[i] = transform * m_QuadVertexPositions[i];
         }

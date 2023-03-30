@@ -15,12 +15,16 @@ namespace Turbo
 {
     class Entity;
     class SceneRenderer;
+    class Renderer2D;
 
     class Scene
     {
     public:
         Scene();
         ~Scene();
+
+        // Accessible variables
+        bool ShowPhysics2DColliders = false;
 
         void OnEditorUpdate(FTime ts);
         void OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editor_camera);
@@ -29,6 +33,7 @@ namespace Turbo
         void OnRuntimeStop();
         void OnRuntimeUpdate(FTime ts);
         void OnRuntimeRender(Ref<SceneRenderer> renderer);
+
 
         static Ref<Scene> Copy(Ref<Scene> other);
 
@@ -62,6 +67,7 @@ namespace Turbo
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:
+        void RenderColliders(Ref<Renderer2D> renderer2d);
         void CreatePhysicsWorld2D();
     private:
         entt::registry m_Registry;
