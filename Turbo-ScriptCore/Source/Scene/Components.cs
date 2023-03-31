@@ -53,6 +53,11 @@ namespace Turbo
 		}
 	}
 
+	public class TextComponent : Component
+	{
+
+	}
+
 	// Physics
 	public class Rigidbody2DComponent : Component
 	{

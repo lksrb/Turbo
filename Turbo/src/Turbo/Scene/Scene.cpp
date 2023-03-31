@@ -110,12 +110,53 @@ namespace Turbo
                     }
                 }
 
-                // Render debug lines
-                RenderColliders(renderer2d);
+                // Text
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
 
-                // Render text
-                renderer2d->DrawString("HELLO\nHow are you?", 
-                    Font::GetDefaultFont(), glm::mat4(1.0f), glm::vec4(1.0f));
+                    for (auto& entity : view)
+                    {
+                        auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+                        renderer2d->DrawString(transform.GetMatrix(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                    }
+                }
+
+                // Debug lines
+                if (ShowPhysics2DColliders)
+                {
+                    // Box collider
+                    auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+                    for (auto& entity : bview)
+                    {
+                        auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+                        const glm::vec3& translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
+                        const glm::vec3& scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+
+                        const glm::mat4& offsetTransform =
+                            glm::translate(glm::mat4(1.0f), translation) *
+                            glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
+                            glm::scale(glm::mat4(1.0f), scale);
+
+                        renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                    }
+
+                    // Circle collider
+                    auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+                    for (auto& entity : cview)
+                    {
+                        auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+                        const glm::vec3& translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
+                        const glm::vec3& scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
+
+                        const glm::mat4& offsetTransform =
+                            glm::translate(glm::mat4(1.0f), translation) *
+                            glm::scale(glm::mat4(1.0f), scale);
+
+                        renderer2d->DrawCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035, 0.005f, (i32)entity);
+                    }
+                }
 
                 renderer2d->End2D();
             }
@@ -201,6 +242,7 @@ namespace Turbo
                 if (camera.Primary)
                 {
                     cameraEntity = { entity, this };
+                    m_CameraEntity = entity;
                 }
             }
 
@@ -238,7 +280,52 @@ namespace Turbo
                     }
                 }
 
-                RenderColliders(renderer2d);
+                // Text
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
+
+                    for (auto& entity : view)
+                    {
+                        auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+                        renderer2d->DrawString(transform.GetMatrix(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                    }
+                }
+
+                // Debug lines
+                if (ShowPhysics2DColliders)
+                {
+                    // Box collider
+                    auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+                    for (auto& entity : bview)
+                    {
+                        auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+                        glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+
+                        glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), transform.Translation)
+                            * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
+                            * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, 0.001f))
+                            * glm::scale(glm::mat4(1.0f), scale);
+
+                        renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                    }
+
+                    // Circle collider
+                    auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+                    for (auto& entity : cview)
+                    {
+                        auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+                        const glm::vec3& translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
+                        const glm::vec3& scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
+
+                        const glm::mat4& offsetTransform =
+                            glm::translate(glm::mat4(1.0f), translation) *
+                            glm::scale(glm::mat4(1.0f), scale);
+
+                        renderer2d->DrawCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035, 0.005f, (i32)entity);
+                    }
+                }
 
                 renderer2d->End2D();
             }
@@ -315,50 +402,6 @@ namespace Turbo
         }
     }
 
-    void Scene::RenderColliders(Ref<Renderer2D> renderer2d) // TODO: Restructurize rendering(again)
-    {
-        if (!ShowPhysics2DColliders)
-            return;
-
-        // Debug lines
-        {
-            auto& view = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-
-            for (auto& entity : view)
-            {
-                auto& [transform, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
-
-                const glm::vec3& translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
-                const glm::vec3& scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
-
-                const glm::mat4& offsetTransform =
-                    glm::translate(glm::mat4(1.0f), translation) *
-                    glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                    glm::scale(glm::mat4(1.0f), scale);
-
-                renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-            }
-        }
-
-        {
-            auto& view = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-
-            for (auto& entity : view)
-            {
-                auto& [transform, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
-
-                const glm::vec3& translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
-                const glm::vec3& scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
-
-                const glm::mat4& offsetTransform =
-                    glm::translate(glm::mat4(1.0f), translation) *
-                    glm::scale(glm::mat4(1.0f), scale);
-
-                renderer2d->DrawCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035, 0.005f, (i32)entity);
-            }
-        }
-    }
-
     void Scene::CreatePhysicsWorld2D()
     {
         m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
@@ -390,7 +433,7 @@ namespace Turbo
                 auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
 
                 b2PolygonShape boxShape;
-                boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y);
+                boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
                 b2FixtureDef fixtureDef;
                 fixtureDef.shape = &boxShape;
                 fixtureDef.density = bc2d.Density;
@@ -453,12 +496,22 @@ namespace Turbo
         return Entity{};
     }
 
+    Entity Scene::GetCameraEntity()
+    {
+        return Entity{ m_CameraEntity, this };
+    }
+
     // Events ------------------------------------------------------------------------------------
 
     template<typename T>
     void Scene::OnComponentAdded(Entity entity, T& component)
     {
         static_assert(sizeof(T) == 0);
+    }
+
+    template<>
+    void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+    {
     }
 
     template<>
@@ -494,7 +547,7 @@ namespace Turbo
     }
 
     template<>
-    void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+    void Scene::OnComponentAdded<TextComponent>(Entity entity, TextComponent& component)
     {
     }
 

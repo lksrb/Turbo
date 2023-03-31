@@ -331,13 +331,14 @@ namespace Turbo
 
         if (ImGui::BeginPopup("AddComponent"))
         {
-            DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
             DisplayAddComponentEntry<CameraComponent>("Camera");
-            DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
-            DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
-            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
-            DisplayAddComponentEntry<ScriptComponent>("Script Component");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+            DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+            DisplayAddComponentEntry<TextComponent>("Text Component");
+            DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
+            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
+            DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
+            DisplayAddComponentEntry<ScriptComponent>("Script Component");
 
             ImGui::EndPopup();
         }
@@ -471,6 +472,14 @@ namespace Turbo
             ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
         });
 
+        Utils::DrawComponent<TextComponent>("Text Component", entity, [&entity, m_Context = m_Context](auto& component)
+        {
+            ImGui::InputTextMultiline("Text", &component.Text);
+            ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+            ImGui::InputFloat("Kerning Offset", &component.KerningOffset, 0.025f);
+            ImGui::InputFloat("Line Spacing", &component.LineSpacing, 0.025f);
+        });
+
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
         {
             const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
@@ -492,7 +501,6 @@ namespace Turbo
 
                 ImGui::EndCombo();
             }
-
             ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
         });
 

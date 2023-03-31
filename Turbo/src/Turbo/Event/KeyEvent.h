@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Turbo/Core/KeyCodes.h"
-#include "Turbo/Event/event.h"
+#include "Turbo/Event/Event.h"
 
 namespace Turbo 
 {

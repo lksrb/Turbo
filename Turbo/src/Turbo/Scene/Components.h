@@ -4,6 +4,7 @@
 #include "Turbo/Core/UUID.h"
 
 #include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Font.h"
 
 #include "Turbo/Scene/SceneCamera.h"
 
@@ -75,6 +76,15 @@ namespace Turbo
         f32 Fade = 0.005f;
     };
 
+    struct TextComponent
+    {
+        std::string Text;
+        glm::vec4 Color{ 1.0f };
+        f32 KerningOffset = 0.0f;
+        f32 LineSpacing = 0.0f;
+        Ref<Font> FontAsset = Font::GetDefaultFont();
+    };
+
     struct ScriptComponent
     {
         std::string ClassName;
@@ -124,6 +134,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, ScriptComponent,
+        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent,
         Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

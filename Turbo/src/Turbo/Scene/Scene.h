@@ -61,15 +61,18 @@ namespace Turbo
         Entity FindEntityByUUID(UUID uuid);
         Entity FindEntityByName(const std::string& name);
 
+        Entity GetCameraEntity();
+
         bool IsRunning() const { return m_Running; }
 
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:
-        void RenderColliders(Ref<Renderer2D> renderer2d);
         void CreatePhysicsWorld2D();
     private:
         entt::registry m_Registry;
+
+        entt::entity m_CameraEntity = entt::null;
 
         bool m_Running = false;
 

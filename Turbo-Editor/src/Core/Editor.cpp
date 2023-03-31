@@ -23,8 +23,9 @@
 namespace Turbo::Ed
 {
     Editor::Editor(const Application::Config& config)
-        : Application(config)
+        : Application(config), m_ViewportWidth(config.Width), m_ViewportHeight(config.Height)
     {
+        // TODO: Load imgui.ini file to retrieve viewport size
     }
 
     Editor::~Editor()
@@ -49,12 +50,12 @@ namespace Turbo::Ed
         });
 
         // Render 
-        m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_Config.Width, m_Config.Height, true });
+        m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_ViewportWidth, m_ViewportHeight, true });
 
         m_PlayIcon = Texture2D::Create("Resources/Icons/PlayButton.png");
         m_StopIcon = Texture2D::Create("Resources/Icons/StopButton.png");
 
-        m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_Config.Width) / static_cast<f32>(m_Config.Height), 0.1f, 10000.0f);
+        m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
 
         // Open sandbox project
         OpenProject(m_CurrentPath / "SandboxProject\\SandboxProject.tproject");
@@ -220,7 +221,7 @@ namespace Turbo::Ed
 
             if (m_EditorScene)
             {
-                UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x,viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
+                UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x, viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
             }
 
             if (ImGui::BeginDragDropTarget())
@@ -275,22 +276,30 @@ namespace Turbo::Ed
             }
 
             // Gizmos
-            Entity selected_entity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
+            Entity selectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
 
-            if (selected_entity && m_GizmoType != -1)
+            if (selectedEntity && m_GizmoType != -1)
             {
-                // Editor camera
-                glm::mat4 camera_projection = m_EditorCamera.GetProjection();
-                glm::mat4 camera_view = m_EditorCamera.GetViewMatrix();
-
+                glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
+                glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
+                if (m_EditorMode == Mode::Play)
+                {
+                    Entity cameraEntity = m_RuntimeScene->GetCameraEntity();
+                    if (cameraEntity)
+                    {
+                        SceneCamera sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
+                        cameraProjection = sceneCamera.GetProjection();
+                        cameraView = glm::inverse(cameraEntity.Transform().GetMatrix());
+                    }
+                }
                 ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();
 
                 ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
                 // Entity transform
-                auto& transform_cmp = selected_entity.Transform();
-                glm::mat4 transform = transform_cmp.GetMatrix();
+                auto& transformComponent = selectedEntity.Transform();
+                glm::mat4 transform = transformComponent.GetMatrix();
 
                 // Snapping
                 bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -301,7 +310,7 @@ namespace Turbo::Ed
 
                 f32 snap_values[] = { snap_value, snap_value, snap_value };
 
-                ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+                ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
                 (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
                 nullptr, snap ? snap_values : nullptr);
 
@@ -310,10 +319,10 @@ namespace Turbo::Ed
                     glm::vec3 translation, rotation, scale;
                     Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                    glm::vec3 deltaRotation = rotation - transform_cmp.Rotation;
-                    transform_cmp.Translation = translation;
-                    transform_cmp.Rotation += deltaRotation;
-                    transform_cmp.Scale = scale;
+                    glm::vec3 deltaRotation = rotation - transformComponent.Rotation;
+                    transformComponent.Translation = translation;
+                    transformComponent.Rotation += deltaRotation;
+                    transformComponent.Scale = scale;
                 }
             }
 
@@ -417,6 +426,7 @@ namespace Turbo::Ed
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
+
         dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
         dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Editor::OnWindowClosed));
@@ -424,8 +434,8 @@ namespace Turbo::Ed
 
     bool Editor::OnKeyPressed(KeyPressedEvent& e)
     {
-        //if (e.GetRepeatCount())
-        //    return false;
+        if (e.GetRepeatCount() > 1)
+            return false;
 
         bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);

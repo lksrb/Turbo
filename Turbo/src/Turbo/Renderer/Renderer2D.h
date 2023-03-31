@@ -61,7 +61,7 @@ namespace Turbo
         void DrawRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void DrawRect(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
 
-        void DrawString(const std::string& string, const Ref<Font>& font, const glm::mat4& transform, const glm::vec4& color);
+        void DrawString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset = 0.0f, f32 lineSpacing = 0.0f, i32 entity = -1);
 
         Statistics GetStatistics() const { return m_Statistics; }
 

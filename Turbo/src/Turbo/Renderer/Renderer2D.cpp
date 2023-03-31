@@ -431,7 +431,7 @@ namespace Turbo
         DrawLine(lineVertices[3], lineVertices[0], color, entity);
     }
 
-    void Renderer2D::DrawString(const std::string& string, const Ref<Font>& font, const glm::mat4& transform, const glm::vec4& color)
+    void Renderer2D::DrawString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity)
     {
         const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
         const auto& metrics = fontGeometry.getMetrics();
@@ -443,6 +443,8 @@ namespace Turbo
         f64 y = 0.0;
         f32 lineHeightOffset = 0.0f;
 
+        const f64 spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
+
         for (size_t i = 0; i < string.size(); ++i)
         {
             char character = string[i];
@@ -453,7 +455,24 @@ namespace Turbo
             if (character == '\n')
             {
                 x = 0; // TODO: Text aligning
-                y -= fsScale * metrics.lineHeight + lineHeightOffset;
+                y -= fsScale * metrics.lineHeight + lineHeightOffset + lineSpacing;
+                continue;
+            }
+
+            if (character == ' ')
+            {
+                f32 advance = static_cast<f32>(spaceGlyphAdvance);
+                if (i < string.size() - 1) // TODO: Figure out monospacing
+                {
+                    char nextCharacter = string[i + 1];
+                    double dAdvance;
+                    fontGeometry.getAdvance(dAdvance, character, nextCharacter);
+                    x += fsScale * dAdvance + kerningOffset;
+
+                    advance = static_cast<f32>(dAdvance);
+                }
+                x += fsScale * advance + kerningOffset;
+
                 continue;
             }
 
@@ -464,7 +483,10 @@ namespace Turbo
                 continue;
 
             if (character == '\t')
-                glyph = fontGeometry.getGlyph(' ');
+            {
+                x += 4.0 * (fsScale * spaceGlyphAdvance + kerningOffset); // 4x 
+                continue;
+            }
 
             f64 al, ab, ar, at;
             glyph->getQuadAtlasBounds(al, ab, ar, at);
@@ -489,28 +511,28 @@ namespace Turbo
             // Render 
             m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMin, 0.0f, 1.0f);
             m_TextVertexBufferPointer->Color = color;
-            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->EntityID = entity;
             m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
             m_TextVertexBufferPointer->TexCoord = texCoordMin;
             m_TextVertexBufferPointer++;
 
             m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMin.x, quadMax.y, 0.0f, 1.0f);
             m_TextVertexBufferPointer->Color = color;
-            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->EntityID = entity;
             m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
             m_TextVertexBufferPointer->TexCoord = { texCoordMin.x, texCoordMax.y };
             m_TextVertexBufferPointer++;
 
             m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMax, 0.0f, 1.0f);
             m_TextVertexBufferPointer->Color = color;
-            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->EntityID = entity;
             m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
             m_TextVertexBufferPointer->TexCoord = texCoordMax;
             m_TextVertexBufferPointer++;
 
             m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMax.x, quadMin.y, 0.0f, 1.0f);
             m_TextVertexBufferPointer->Color = color;
-            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->EntityID = entity;
             m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
             m_TextVertexBufferPointer->TexCoord = { texCoordMax.x, texCoordMin.y };
             m_TextVertexBufferPointer++;
@@ -520,11 +542,11 @@ namespace Turbo
 
             if (i < string.size() - 1)
             {
-                f64 advance = glyph->getAdvance();
                 char nextCharacter = string[i + 1];
+
+                f64 advance;
                 fontGeometry.getAdvance(advance, character, nextCharacter);
 
-                f32 kerningOffset = 0.0f; // Space between each character
                 x += fsScale * advance + kerningOffset;
             }
         }

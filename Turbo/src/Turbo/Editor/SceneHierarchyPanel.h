@@ -5,6 +5,7 @@
 #include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Event/Event.h"
+#include "Turbo/Event/KeyEvent.h"
 
 namespace Turbo
 {

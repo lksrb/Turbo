@@ -302,6 +302,21 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<TextComponent>())
+        {
+            out << YAML::Key << "TextComponent";
+            out << YAML::BeginMap;
+
+            auto& textComponent = entity.GetComponent<TextComponent>();
+            out << YAML::Key << "Text" << YAML::Value << textComponent.Text;
+            out << YAML::Key << "Color" << YAML::Value << textComponent.Color;
+            out << YAML::Key << "KerningOffset" << YAML::Value << textComponent.KerningOffset;
+            out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.LineSpacing;
+            //out << YAML::Key << "FontAsset" << YAML::Value << textComponent.FontAsset; // TODO: Font assets
+
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<ScriptComponent>())
         {
             out << YAML::Key << "ScriptComponent";
@@ -508,6 +523,17 @@ namespace Turbo
                     crc.Color = circleRendererComponent["Color"].as<glm::vec4>();
                     crc.Thickness = circleRendererComponent["Thickness"].as<f32>();
                     crc.Fade = circleRendererComponent["Fade"].as<f32>();
+                }
+
+                auto textComponent = entity["TextComponent"];
+                if (textComponent)
+                {
+                    auto& tc = deserializedEntity.AddComponent<TextComponent>();
+                    tc.Text = textComponent["Text"].as<std::string>();
+                    //tc.FontAsset = textComponent["FontAsset"].as<std::string>(); TODO: Font Asset
+                    tc.Color = textComponent["Color"].as<glm::vec4>();
+                    tc.KerningOffset = textComponent["KerningOffset"].as<f32>();
+                    tc.LineSpacing = textComponent["LineSpacing"].as<f32>();
                 }
 
                 auto scriptComponent = entity["ScriptComponent"];

@@ -226,10 +226,10 @@ namespace Turbo
     }
 #pragma endregion
 
+#ifdef TBO_PLATFORM_WIN32
     static int ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface)
     {
         ImGuiIO& io = ImGui::GetIO();
-#ifdef TBO_PLATFORM_WIN32
         VkWin32SurfaceCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
         createInfo.hinstance = ::GetModuleHandle(NULL);
@@ -237,9 +237,9 @@ namespace Turbo
 
         VkResult err = vkCreateWin32SurfaceKHR((VkInstance)vk_instance, &createInfo, (const VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
         return err;
-#endif
         return -1;
     }
+#endif
 
     static void CheckVkResult(VkResult r)
     {
@@ -272,6 +272,7 @@ namespace Turbo
 
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;    // Enable mouse input
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;			// Enable Multi-Viewport / Platform Windows
