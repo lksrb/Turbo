@@ -110,7 +110,12 @@ namespace Turbo
                     }
                 }
 
+                // Render debug lines
                 RenderColliders(renderer2d);
+
+                // Render text
+                renderer2d->DrawString("HELLO\nHow are you?", 
+                    Font::GetDefaultFont(), glm::mat4(1.0f), glm::vec4(1.0f));
 
                 renderer2d->End2D();
             }

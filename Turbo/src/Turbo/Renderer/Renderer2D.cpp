@@ -1,5 +1,7 @@
-#include "tbopch.h"
+﻿#include "tbopch.h"
 #include "Renderer2D.h"
+
+#include "Font-Internal.h"
 
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Debug/ScopeTimer.h"
@@ -28,14 +30,14 @@ namespace Turbo
         // Quad setup
         {
             // Vertex buffer
-            m_QuadVertexBufferBase = m_QuadVertexBufferPointer = new QuadVertex[MaxVertices];
-            m_QuadVertexBuffer = VertexBuffer::Create({ MaxVertices * sizeof(QuadVertex) });
+            m_QuadVertexBufferBase = m_QuadVertexBufferPointer = new QuadVertex[MaxQuadVertices];
+            m_QuadVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(QuadVertex) });
 
             // Index buffer
             {
-                u32* quadIndices = new u32[MaxIndices];
+                u32* quadIndices = new u32[MaxQuadIndices];
                 u32 offset = 0;
-                for (u32 i = 0; i < MaxIndices; i += 6)
+                for (u32 i = 0; i < MaxQuadIndices; i += 6)
                 {
                     quadIndices[i + 0] = offset + 0;
                     quadIndices[i + 1] = offset + 1;
@@ -49,7 +51,7 @@ namespace Turbo
                 }
 
                 IndexBuffer::Config config = {};
-                config.Size = MaxIndices * sizeof(u32);
+                config.Size = MaxQuadIndices * sizeof(u32);
                 config.Indices = quadIndices;
                 m_QuadIndexBuffer = IndexBuffer::Create(config);
 
@@ -79,8 +81,8 @@ namespace Turbo
         // Circle setup
         {
             // Vertex buffer
-            m_CircleVertexBufferBase = m_CircleVertexBufferPointer = new CircleVertex[MaxVertices];
-            m_CircleVertexBuffer = VertexBuffer::Create({ MaxVertices * sizeof(CircleVertex) });
+            m_CircleVertexBufferBase = m_CircleVertexBufferPointer = new CircleVertex[MaxQuadVertices];
+            m_CircleVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(CircleVertex) });
 
             // Index buffer from quads
 
@@ -107,8 +109,8 @@ namespace Turbo
         // Line setup
         {
             // Vertex buffer
-            m_LineVertexBufferBase = m_LineVertexBufferPointer = new LineVertex[MaxVertices];
-            m_LineVertexBuffer = VertexBuffer::Create({ MaxVertices * sizeof(CircleVertex) });
+            m_LineVertexBufferBase = m_LineVertexBufferPointer = new LineVertex[MaxQuadVertices];
+            m_LineVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(CircleVertex) });
 
             // Index buffer is not needed
 
@@ -129,6 +131,34 @@ namespace Turbo
             m_LinePipeline->Invalidate();
         }
 
+        // Text setup
+        {
+            // Vertex buffer
+            m_TextVertexBufferBase = m_TextVertexBufferPointer = new TextVertex[MaxQuadVertices];
+            m_TextVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(TextVertex) });
+
+            // Index buffer is not needed
+
+            // Shader
+            Shader::Config shaderConfig = {};
+            shaderConfig.Language = ShaderLanguage::GLSL;
+            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Text.glsl";
+            m_TextShader = Shader::Create(shaderConfig);
+
+            // Graphics pipeText
+            GraphicsPipeline::Config config = {};
+            config.Shader = m_TextShader;
+            config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
+            config.Topology = PrimitiveTopology::Triangle;
+            config.DepthTesting = true;
+            config.TargetFramebuffer = m_TargetFramebuffer;
+            m_TextPipeline = GraphicsPipeline::Create(config);
+            m_TextPipeline->Invalidate();
+
+            // Material
+            m_TextMaterial = Material::Create({ m_TextShader });
+        }
+
         // Create camera uniform buffer
         m_UniformBufferSet = UniformBufferSet::Create();
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
@@ -145,6 +175,7 @@ namespace Turbo
         delete[] m_QuadVertexBufferBase;
         delete[] m_CircleVertexBufferBase;
         delete[] m_LineVertexBufferBase;
+        delete[] m_TextVertexBufferBase;
     }
 
     void Renderer2D::Begin2D(const Camera& camera)
@@ -159,8 +190,15 @@ namespace Turbo
         m_TextureSlotsIndex = 1;
 
         // Reset textures
-        for (u32 i = 1; i < m_TextureSlots.size(); ++i)
+        for (size_t i = 1; i < m_TextureSlots.size(); ++i)
             m_TextureSlots[i] = nullptr;
+
+        // Reset font texture indexing
+        m_FontTextureSlotsIndex = 0;
+
+        // Reset font atlas textures
+        for (size_t i = 0; i < m_FontTextureSlots.size(); ++i)
+            m_FontTextureSlots[i] = nullptr;
 
         StartBatch();
     }
@@ -178,6 +216,10 @@ namespace Turbo
         // Lines
         m_LineVertexCount = 0;
         m_LineVertexBufferPointer = m_LineVertexBufferBase;
+
+        // Text
+        m_TextIndexCount = 0;
+        m_TextVertexBufferPointer = m_TextVertexBufferBase;
 
         // Reset statistics
         m_Statistics.Reset();
@@ -208,10 +250,9 @@ namespace Turbo
         /*if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices) // // TODO(Urby): Flushing batch renderer
             NextBatch();*/
 
-        constexpr u32 quadVertexCount = 4;
         constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 
-        for (u32 i = 0; i < quadVertexCount; ++i)
+        for (u32 i = 0; i < 4; ++i)
         {
             m_QuadVertexBufferPointer->Position = transform * m_QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
@@ -231,11 +272,10 @@ namespace Turbo
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
-        if (m_QuadIndexCount >= Renderer2D::MaxIndices)
+        if (m_QuadIndexCount >= Renderer2D::MaxQuadIndices)
             TBO_ENGINE_ASSERT(false);
 
         u32 textureIndex = 0; // White Texture
-        constexpr u32 quadVertexCount = 4;
         constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 
         if (texture)
@@ -261,7 +301,7 @@ namespace Turbo
             }
         }
 
-        for (u32 i = 0; i < quadVertexCount; ++i)
+        for (u32 i = 0; i < 4; ++i)
         {
             m_QuadVertexBufferPointer->Position = transform * m_QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
@@ -280,10 +320,9 @@ namespace Turbo
     void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxIndices); // TODO(Urby): Flush and reset
+        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxQuadIndices); // TODO(Urby): Flush and reset
 
         u32 textureIndex = 0; // White Texture
-        constexpr u32 quadVertexCount = 4;
         glm::vec2 textureCoords[4];
         memcpy(textureCoords, subTexture->GetCoords().data(), 4 * sizeof(glm::vec2));
 
@@ -310,7 +349,7 @@ namespace Turbo
             }
         }
 
-        for (u32 i = 0; i < quadVertexCount; ++i)
+        for (u32 i = 0; i < 4; ++i)
         {
             m_QuadVertexBufferPointer->Position = transform * m_QuadVertexPositions[i];
             m_QuadVertexBufferPointer->Color = color;
@@ -346,7 +385,7 @@ namespace Turbo
     void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxIndices);
+        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxQuadIndices);
 
         for (u32 i = 0; i < 4; ++i)
         {
@@ -390,6 +429,105 @@ namespace Turbo
         DrawLine(lineVertices[1], lineVertices[2], color, entity);
         DrawLine(lineVertices[2], lineVertices[3], color, entity);
         DrawLine(lineVertices[3], lineVertices[0], color, entity);
+    }
+
+    void Renderer2D::DrawString(const std::string& string, const Ref<Font>& font, const glm::mat4& transform, const glm::vec4& color)
+    {
+        const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
+        const auto& metrics = fontGeometry.getMetrics();
+
+        Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
+
+        f64 x = 0.0;
+        f64 fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
+        f64 y = 0.0;
+        f32 lineHeightOffset = 0.0f;
+
+        for (size_t i = 0; i < string.size(); ++i)
+        {
+            char character = string[i];
+
+            if (character == '\r')
+                continue;
+
+            if (character == '\n')
+            {
+                x = 0; // TODO: Text aligning
+                y -= fsScale * metrics.lineHeight + lineHeightOffset;
+                continue;
+            }
+
+            auto glyph = fontGeometry.getGlyph(character);
+            if (!glyph)
+                glyph = fontGeometry.getGlyph('?');
+            if (!glyph)
+                continue;
+
+            if (character == '\t')
+                glyph = fontGeometry.getGlyph(' ');
+
+            f64 al, ab, ar, at;
+            glyph->getQuadAtlasBounds(al, ab, ar, at);
+            glm::vec2 texCoordMin((f32)al, (f32)ab);
+            glm::vec2 texCoordMax((f32)ar, (f32)at);
+
+            f64 pl, pb, pr, pt;
+            glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+            glm::vec2 quadMin((f32)pl, (f32)pb);
+            glm::vec2 quadMax((f32)pr, (f32)pt);
+
+            quadMin *= fsScale;
+            quadMax *= fsScale;
+            quadMin += glm::vec2(x, y);
+            quadMax += glm::vec2(x, y);
+
+            f32 texelWidth = 1.0f / fontAtlas->GetWidth();
+            f32 texelHeight = 1.0f / fontAtlas->GetHeight();
+            texCoordMin *= glm::vec2(texelWidth, texelHeight);
+            texCoordMax *= glm::vec2(texelWidth, texelHeight);
+
+            // Render 
+            m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMin, 0.0f, 1.0f);
+            m_TextVertexBufferPointer->Color = color;
+            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
+            m_TextVertexBufferPointer->TexCoord = texCoordMin;
+            m_TextVertexBufferPointer++;
+
+            m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMin.x, quadMax.y, 0.0f, 1.0f);
+            m_TextVertexBufferPointer->Color = color;
+            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
+            m_TextVertexBufferPointer->TexCoord = { texCoordMin.x, texCoordMax.y };
+            m_TextVertexBufferPointer++;
+
+            m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMax, 0.0f, 1.0f);
+            m_TextVertexBufferPointer->Color = color;
+            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
+            m_TextVertexBufferPointer->TexCoord = texCoordMax;
+            m_TextVertexBufferPointer++;
+
+            m_TextVertexBufferPointer->Position = transform * glm::vec4(quadMax.x, quadMin.y, 0.0f, 1.0f);
+            m_TextVertexBufferPointer->Color = color;
+            m_TextVertexBufferPointer->EntityID = 0;
+            m_TextVertexBufferPointer->TextureIndex = m_FontTextureSlotsIndex;
+            m_TextVertexBufferPointer->TexCoord = { texCoordMax.x, texCoordMin.y };
+            m_TextVertexBufferPointer++;
+
+            m_TextIndexCount += 6;
+            m_Statistics.QuadCount++;
+
+            if (i < string.size() - 1)
+            {
+                f64 advance = glyph->getAdvance();
+                char nextCharacter = string[i + 1];
+                fontGeometry.getAdvance(advance, character, nextCharacter);
+
+                f32 kerningOffset = 0.0f; // Space between each character
+                x += fsScale * advance + kerningOffset;
+            }
+        }
     }
 
     void Renderer2D::Flush()
@@ -438,6 +576,28 @@ namespace Turbo
 
                 Renderer::SetLineWidth(m_RenderCommandBuffer, m_LineWidth);
                 Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
+
+                m_Statistics.DrawCalls++;
+            }
+
+            // Text
+            if (m_TextIndexCount)
+            {
+                // Font texture slots
+                for (u32 i = 0; i < m_FontTextureSlots.size(); ++i)
+                {
+                    if (m_FontTextureSlots[i])
+                        m_TextMaterial->Set("u_Textures", m_FontTextureSlots[i], i); // FIXME: Clear descriptors, because textures wont unbound automatically
+                    else
+                        m_TextMaterial->Set("u_Textures", Font::GetDefaultFont()->GetAtlasTexture(), i);
+                }
+
+                u32 dataSize = (u32)((u8*)m_TextVertexBufferPointer - (u8*)m_TextVertexBufferBase);
+                m_TextVertexBuffer->SetData(m_TextVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
+
+                Renderer::DrawIndexed(m_RenderCommandBuffer, m_TextVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_TextPipeline, m_TextShader, m_TextIndexCount);
+
+                m_Statistics.DrawCalls++;
             }
 
             Renderer::EndRenderPass(m_RenderCommandBuffer);

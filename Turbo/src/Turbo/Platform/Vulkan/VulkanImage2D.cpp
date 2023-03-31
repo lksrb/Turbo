@@ -100,8 +100,8 @@ namespace Turbo
         // Sampler
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_NEAREST;
-        samplerInfo.minFilter = VK_FILTER_NEAREST;
+        samplerInfo.magFilter = static_cast<VkFilter>(m_Config.ImageFilter);
+        samplerInfo.minFilter = static_cast<VkFilter>(m_Config.ImageFilter);
         samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;

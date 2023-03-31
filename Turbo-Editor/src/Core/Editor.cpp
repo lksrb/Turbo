@@ -22,8 +22,6 @@
 
 namespace Turbo::Ed
 {
-    static Font* s_Font;
-
     Editor::Editor(const Application::Config& config)
         : Application(config)
     {
@@ -60,14 +58,10 @@ namespace Turbo::Ed
 
         // Open sandbox project
         OpenProject(m_CurrentPath / "SandboxProject\\SandboxProject.tproject");
-
-        // Test font
-        s_Font = new Font("Assets\\Fonts\\OpenSans\\OpenSans-Regular.ttf");
     }
 
     void Editor::OnShutdown()
     {
-        delete s_Font;
     }
 
     void Editor::OnUpdate()
@@ -376,11 +370,16 @@ namespace Turbo::Ed
             }
         }
 
-        if (s_Font)
         {
+            static ImVec2 uv0 = { 0, 1 };
+            static ImVec2 uv1 = { 1, 0 };
+
             ImGui::Begin("Font Atlas");
-            const auto& a = s_Font->GetAtlasTexture();
-            UI::Image(a, { 512, 512 });
+            ImGui::DragFloat2("UV0", &uv0[0]);
+            ImGui::DragFloat2("UV1", &uv1[0]);
+
+            Ref<Font> defaultFont = Font::GetDefaultFont();
+            UI::Image(defaultFont->GetAtlasTexture(), { 512, 512 }, uv0, uv1);
             ImGui::End();
         }
 

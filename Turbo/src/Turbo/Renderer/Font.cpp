@@ -1,19 +1,15 @@
 ﻿#include "tbopch.h"
 #include "Font.h"
 
-#undef INFINITE
-#include <msdf-atlas-gen.h>
-#include <GlyphGeometry.h>
+#include "Font-Internal.h"
+
+#define DEFAULT_ANGLE_THRESHOLD 3.0
+#define LCG_MULTIPLIER 6364136223846793005ull
+#define LCG_INCREMENT 1442695040888963407ull
+#define THREAD_COUNT 8
 
 namespace Turbo
 {
-    struct Font::MSDFData
-    {
-        std::vector<msdf_atlas::GlyphGeometry> Glyphs;
-        msdf_atlas::FontGeometry FontGeometry;
-    };
-
-
     template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
     static Ref<Texture2D> CreateAndCacheAtlas(const std::string& fontName, f32 fontSize, const std::vector<msdf_atlas::GlyphGeometry>& glyphs,
         const msdf_atlas::FontGeometry& fontGeometry, u32 width, u32 height)
@@ -24,7 +20,7 @@ namespace Turbo
 
         msdf_atlas::ImmediateAtlasGenerator<S, N, GenFunc, msdf_atlas::BitmapAtlasStorage<T, N>> generator(width, height);
         generator.setAttributes(attributes);
-        generator.setThreadCount(8);
+        generator.setThreadCount(THREAD_COUNT);
         generator.generate(glyphs.data(), (int)glyphs.size());
 
         msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>)generator.atlasStorage();
@@ -86,16 +82,36 @@ namespace Turbo
         atlasPacker.getDimensions(width, height);
         emSize = atlasPacker.getScale();
 
-        TBO_ENGINE_INFO("Generating texture font atlas...");
-        m_AtlasTexture = CreateAndCacheAtlas<u8, f32, 3, msdf_atlas::msdfGenerator>("Test", (f32)emSize, m_Data->Glyphs, m_Data->FontGeometry, width, height);
 
         // if MSDF || MTSDF
+        u64 coloringSeed = 0;
+        bool expensiveColoring = true;
+        if (expensiveColoring)
+        {
+            msdf_atlas::Workload([&glyphs = m_Data->Glyphs, &coloringSeed](int i, int threadNo) -> bool {
+                unsigned long long glyphSeed = (LCG_MULTIPLIER * (coloringSeed ^ i) + LCG_INCREMENT);
+                glyphs[i].edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
+                return true;
+            }, static_cast<int>(m_Data->Glyphs.size())).finish(THREAD_COUNT);
+        }
+        else
+        {
+            unsigned long long glyphSeed = coloringSeed;
+            for (msdf_atlas::GlyphGeometry& glyph : m_Data->Glyphs)
+            {
+                glyphSeed *= LCG_MULTIPLIER;
+                glyph.edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
+            }
+        }
 
-
+        TBO_ENGINE_INFO("Generating texture font atlas...");
+        m_AtlasTexture = CreateAndCacheAtlas<u8, f32, 4, msdf_atlas::mtsdfGenerator>("Test", (f32)emSize, m_Data->Glyphs, m_Data->FontGeometry, width, height);
+        TBO_ENGINE_INFO("Generated texture font atlas!");
 #if 0
         msdfgen::Shape shape;
         if (msdfgen::loadGlyph(shape, font, 'C'))
         {
+
             shape.normalize();
             //                      max. angle
             msdfgen::edgeColoringSimple(shape, 3.0);
@@ -114,6 +130,18 @@ namespace Turbo
     {
         delete m_Data;
         m_Data = nullptr;
+    }
+
+    Ref<Font> Font::GetDefaultFont()
+    {
+        static Ref<Font> s_DefaultFont;
+
+        if (!s_DefaultFont)
+        {
+            s_DefaultFont = Ref<Font>::Create("Assets\\Fonts\\OpenSans\\OpenSans-Regular.ttf");
+        }
+
+        return s_DefaultFont;
     }
 
 }

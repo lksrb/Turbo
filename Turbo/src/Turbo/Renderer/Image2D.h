@@ -56,17 +56,24 @@ namespace Turbo
             ImageUsageFlags_DepthStencilSttachment = 0x00000020,
         };
 
+        enum Filter : u32
+        {
+            Nearest = 0,
+            Linear
+        };
+
         using MemoryPropertyFlags   = u32;
         using ImageUsageFlags       = u32;
         using MemoryPropertyFlags   = u32;
 
         struct Config
         {
-            Format                  ImageFormat;    // VkFormat
-            ImageTiling             ImageTiling;    // VkImageTiling
-            AspectFlags             Aspect;         // VkImageAspectFlags
-            MemoryPropertyFlags     Storage;        // VkMemoryPropertyFlags
-            ImageUsageFlags         Usage;          // VkImageUsageFlags
+            Format ImageFormat;                     // VkFormat
+            ImageTiling ImageTiling;                // VkImageTiling
+            AspectFlags Aspect;                     // VkImageAspectFlags
+            MemoryPropertyFlags Storage;            // VkMemoryPropertyFlags
+            ImageUsageFlags Usage;                  // VkImageUsageFlags
+            Filter ImageFilter = Filter::Linear;    // VkFilter
         };
 
         virtual ~Image2D();

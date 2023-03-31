@@ -2,6 +2,7 @@
 
 #include "Camera.h"
 
+#include "Font.h"
 #include "RenderCommandBuffer.h"
 #include "Shader.h"
 #include "GraphicsPipeline.h"
@@ -60,6 +61,8 @@ namespace Turbo
         void DrawRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void DrawRect(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
 
+        void DrawString(const std::string& string, const Ref<Font>& font, const glm::mat4& transform, const glm::vec4& color);
+
         Statistics GetStatistics() const { return m_Statistics; }
 
         void SetRenderTarget(const Ref<FrameBuffer>& frameBuffer) { m_TargetFramebuffer = frameBuffer; }
@@ -70,9 +73,10 @@ namespace Turbo
         void Flush();
     private:
         static constexpr u32 MaxQuad = 2000;
-        static constexpr u32 MaxVertices = MaxQuad * 4;
-        static constexpr u32 MaxIndices = MaxQuad * 6;
-        static constexpr u32 MaxTextureSlots = 32; // LIMITED
+        static constexpr u32 MaxQuadVertices = MaxQuad * 4;
+        static constexpr u32 MaxQuadIndices = MaxQuad * 6;
+        static constexpr u32 MaxTextureSlots = 32; // TODO: RenderCaps
+        static constexpr u32 MaxFontTextureSlots = 2;
         static constexpr glm::vec4 m_QuadVertexPositions[4]
         {
             { -0.5f, -0.5f, 0.0f, 1.0f },
@@ -105,6 +109,15 @@ namespace Turbo
         {
             glm::vec3 Position;
             glm::vec4 Color;
+            i32 EntityID;
+        };
+
+        struct TextVertex
+        {
+            glm::vec3 Position;
+            glm::vec4 Color;
+            glm::vec2 TexCoord;
+            u32 TextureIndex;
             i32 EntityID;
         };
 
@@ -142,6 +155,18 @@ namespace Turbo
         Ref<Shader> m_LineShader;
         Ref<GraphicsPipeline> m_LinePipeline;
 
+        // Text
+        TextVertex* m_TextVertexBufferBase = nullptr;
+        TextVertex* m_TextVertexBufferPointer = nullptr;
+        u32 m_TextIndexCount = 0;
+
+        Ref<VertexBuffer> m_TextVertexBuffer;
+        Ref<Material> m_TextMaterial;
+
+        Ref<Shader> m_TextShader;
+        Ref<GraphicsPipeline> m_TextPipeline;
+
+
         struct UBCamera
         {
             glm::mat4 ViewProjection;
@@ -158,6 +183,11 @@ namespace Turbo
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;
         u32 m_TextureSlotsIndex = 1;
+
+        // Font Texture slots
+        std::array<Ref<Texture2D>, MaxFontTextureSlots> m_FontTextureSlots;
+        u32 m_FontTextureSlotsIndex = 0;
+
         glm::vec4 m_ClearColor = glm::vec4{ 0.0f };
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
         bool m_BeginDraw = false;
