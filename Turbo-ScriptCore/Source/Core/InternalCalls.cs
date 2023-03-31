@@ -75,6 +75,16 @@ namespace Turbo
 
 		#endregion
 
+		#region TextComponent
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Text_Set_Text(ulong uuid, string text);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Component_Text_Get_Text(ulong uuid);
+
+		#endregion
+
 		#region Rigidbody2DComponent
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]

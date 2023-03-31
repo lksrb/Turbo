@@ -86,14 +86,12 @@ namespace Turbo
 
     static u64 Entity_FindEntityByName(MonoString* name)
     {
-        char* cstring = mono_string_to_utf8(name);
-        std::string string_name = cstring;
-        mono_free(cstring);
-
+        char* cString = mono_string_to_utf8(name);
         Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByName(cString);
 
-        Entity entity = context->FindEntityByName(string_name);
         TBO_ENGINE_ASSERT(entity);
+        mono_free(cString);
 
         return entity.GetUUID();
     }
@@ -104,14 +102,14 @@ namespace Turbo
 
         return instance->GetInstance();
     }
-    static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflection_type)
+    static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflectionType)
     {
         Scene* context = Script::GetCurrentScene();
 
         Entity entity = context->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
-        MonoType* component_type = mono_reflection_type_get_type(reflection_type);
+        MonoType* component_type = mono_reflection_type_get_type(reflectionType);
         TBO_ENGINE_ASSERT(s_EntityHasComponentFuncs.find(component_type) != s_EntityHasComponentFuncs.end());
 
         return s_EntityHasComponentFuncs.at(component_type)(entity);
@@ -210,6 +208,39 @@ namespace Turbo
         TBO_ENGINE_ASSERT(entity);
 
         entity.GetComponent<SpriteRendererComponent>().Color = *color;
+    }
+
+    #pragma endregion
+
+    #pragma region CircleRendererComponent_TODO
+    #pragma endregion   
+
+    #pragma region TextComponent
+
+    static void Component_Text_Set_Text(u64 uuid, MonoString* monoString)
+    {
+        char* cString = mono_string_to_utf8(monoString);
+        std::string string = cString;
+        mono_free(cString);
+
+        Scene* context = Script::GetCurrentScene();
+
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        entity.GetComponent<TextComponent>().Text = string;
+    }
+
+    static MonoString* Component_Text_Get_Text(u64 uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        const std::string& text = entity.GetComponent<TextComponent>().Text;
+        MonoString* monoString = mono_string_new(g_Data->AppDomain, text.c_str());
+        return monoString;
     }
     #pragma endregion
 
@@ -414,6 +445,12 @@ namespace Turbo
         // SpriteRenderer
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Get_Color);
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Set_Color);
+
+        // CircleRenderer
+
+        // Text
+        TBO_REGISTER_FUNCTION(Component_Text_Set_Text);
+        TBO_REGISTER_FUNCTION(Component_Text_Get_Text);
 
         // RigidBody2D
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulse);

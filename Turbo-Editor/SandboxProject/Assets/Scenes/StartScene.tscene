@@ -122,7 +122,7 @@ Entities:
     TagComponent:
       Tag: Text
     TransformComponent:
-      Translation: [-11.9495249, 0.697266281, 0]
+      Translation: [-6.03027534, 1.47613597, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 0.999999762, 1]
     TextComponent:

@@ -23,27 +23,9 @@ namespace Turbo
 		{
 			return $"(x: {x}, y: {y})";
 		}
-		public static Vector2 Zero
-		{
-			get
-			{
-				return new Vector2(0.0f, 0.0f);
-			}
-		}
-		public static Vector2 Up
-		{
-			get
-			{
-				return new Vector2(0.0f, 1.0f);
-			}
-		}
-		public static Vector2 Right
-		{
-			get
-			{
-				return new Vector2(1.0f, 0.0f);
-			}
-		}
+		public static Vector2 Zero => new Vector2(0.0f, 0.0f);
+		public static Vector2 Up => new Vector2(0.0f, 1.0f);
+		public static Vector2 Right => new Vector2(1.0f, 0.0f);
 
 		public static Vector2 operator +(Vector2 u, Vector2 v)
 		{
@@ -75,34 +57,12 @@ namespace Turbo
 		}
 
 		public Vector3(float xyz) : this(xyz, xyz, xyz) { }
-		public static Vector3 Zero
-		{
-			get
-			{
-				return new Vector3(0.0f, 0.0f, 0.0f);
-			}
-		}
-		public static Vector3 Up
-		{
-			get
-			{
-				return new Vector3(0.0f, 1.0f, 0.0f);
-			}
-		}
-		public static Vector3 Right
-		{
-			get
-			{
-				return new Vector3(1.0f, 0.0f, 0.0f);
-			}
-		}
-		public static Vector3 Forward
-		{
-			get
-			{
-				return new Vector3(0.0f, 0.0f, 1.0f);
-			}
-		}
+
+		public static Vector3 Zero => new Vector3(0.0f, 0.0f, 0.0f);
+		public static Vector3 Up => new Vector3(0.0f, 1.0f, 0.0f);
+		public static Vector3 Right => new Vector3(1.0f, 0.0f, 0.0f);
+		public static Vector3 Forward => new Vector3(0.0f, 0.0f, 1.0f);
+
 		public override string ToString()
 		{
 			return $"(x: {x}, y: {y}, z: {z})";
@@ -130,13 +90,7 @@ namespace Turbo
 			a = w = _w;
 		}
 		public Vector4(float xyzw) : this(xyzw, xyzw, xyzw, xyzw) { }
-		public static Vector4 Zero
-		{
-			get
-			{
-				return new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-			}
-		}
+
 		public override string ToString()
 		{
 			return $"(x: {x}, y: {y}, z: {z}, w: {w})";

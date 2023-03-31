@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -55,7 +56,11 @@ namespace Turbo
 
 	public class TextComponent : Component
 	{
-
+		public string Text
+		{
+			get => InternalCalls.Component_Text_Get_Text(Entity.ID);
+			set => InternalCalls.Component_Text_Set_Text(Entity.ID, value);
+		}
 	}
 
 	// Physics

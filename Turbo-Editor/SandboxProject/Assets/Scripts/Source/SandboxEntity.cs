@@ -33,7 +33,7 @@ namespace Sandbox
 			m_Rigidbody.Gravity = false;
 			
 			m_SpriteRenderer = GetComponent<SpriteRendererComponent>();
-			m_SpriteRenderer.Color = new Vector4(0, 1, 1, 1);
+			m_SpriteRenderer.Color = new Vector4(1, 0, 1, 1);
 		}
 
 		void OnUpdate(float ts)
