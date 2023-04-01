@@ -53,7 +53,8 @@ project "Turbo"
         "yaml-cpp",
         "msdf-atlas-gen",
         "%{Library.Vulkan}",
-        "%{Library.mono}"
+        "%{Library.mono}",
+        "XAudio2"
     }
 
     -- Ignore already defined symbols warning(LNK4006), symbols not found(LNK4099)

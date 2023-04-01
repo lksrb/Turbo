@@ -1,39 +1,44 @@
 Scene: StartScene
 Entities:
-  - Entity: 2511981452619357033
+  - Entity: 17489375651344337891
     TagComponent:
-      Tag: Camera
+      Tag: Text
     TransformComponent:
-      Translation: [0, 0, 13.2701359]
+      Translation: [-6.03027534, 1.47613597, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: 0
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 1
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 12425978561696158902
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Translation: [0, -2, 0]
-      Rotation: [0, 0, 0.232855648]
-      Scale: [13.8999891, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [0.103037283, 0.542839825, 0.656862736, 1]
-      TexturePath: None
+      Scale: [1, 0.999999762, 1]
+    TextComponent:
+      Text: Welcome to the demo scene
+      Color: [0.84803921, 0.170439228, 0.170439228, 1]
+      KerningOffset: 0
+      LineSpacing: 0.0250000004
     Rigidbody2DComponent:
-      BodyType: Static
+      BodyType: Dynamic
       FixedRotation: false
     BoxCollider2DComponent:
+      Offset: [5.25, 0.25]
+      Size: [5.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 11837830512272370972
+    TagComponent:
+      Tag: KRUH
+    TransformComponent:
+      Translation: [0.9080199, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [1, 0, 0, 1]
+      Thickness: 1
+      Fade: 0
+    Rigidbody2DComponent:
+      BodyType: Dynamic
+      FixedRotation: false
+    CircleCollider2DComponent:
       Offset: [0, 0]
-      Size: [0.5, 0.5]
+      Radius: 0.5
       Density: 1
       Friction: 0.5
       Restitution: 0
@@ -97,46 +102,48 @@ Entities:
       Friction: 0
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 11837830512272370972
+  - Entity: 12425978561696158902
     TagComponent:
-      Tag: KRUH
+      Tag: Ground
     TransformComponent:
-      Translation: [0.9080199, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CircleRendererComponent:
-      Color: [1, 0, 0, 1]
-      Thickness: 1
-      Fade: 0
+      Translation: [0, -2, 0]
+      Rotation: [0, 0, 0.232855648]
+      Scale: [13.8999891, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [0.103037283, 0.542839825, 0.656862736, 1]
+      TexturePath: None
     Rigidbody2DComponent:
-      BodyType: Dynamic
-      FixedRotation: false
-    CircleCollider2DComponent:
-      Offset: [0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 17489375651344337891
-    TagComponent:
-      Tag: Text
-    TransformComponent:
-      Translation: [-6.03027534, 1.47613597, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.999999762, 1]
-    TextComponent:
-      Text: Welcome to the demo scene
-      Color: [0.84803921, 0.170439228, 0.170439228, 1]
-      KerningOffset: 0
-      LineSpacing: 0.0250000004
-    Rigidbody2DComponent:
-      BodyType: Dynamic
+      BodyType: Static
       FixedRotation: false
     BoxCollider2DComponent:
-      Offset: [5.25, 0.25]
-      Size: [5.5, 0.5]
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 2511981452619357033
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 13.2701359]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 88873582718550028
+    TagComponent:
+      Tag: Audio
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]

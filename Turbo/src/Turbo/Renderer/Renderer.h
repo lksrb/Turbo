@@ -8,7 +8,7 @@ namespace Turbo
     class Renderer 
     {
     public:
-        static void Initialize();
+        static void Init();
         static void Shutdown();
 
         static void BeginFrame();
@@ -42,6 +42,5 @@ namespace Turbo
 
         static void Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 vertexCount);
         static void DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount);
-    private:
     };
 }

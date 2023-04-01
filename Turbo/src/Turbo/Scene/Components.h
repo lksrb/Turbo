@@ -6,6 +6,8 @@
 #include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Renderer/Font.h"
 
+#include "Turbo/Audio/AudioClip.h"
+
 #include "Turbo/Scene/SceneCamera.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -52,6 +54,18 @@ namespace Turbo
                 * rotation
                 * glm::scale(glm::mat4(1.0f), Scale);
         }
+    };
+
+    struct AudioSourceComponent
+    {
+        f32 Volume = 1.0f;
+        bool Spacial = false;
+        Ref<AudioClip> Clip;
+    };
+
+    struct AudioListenerComponent
+    {
+        f32 Volume = 1.0f;
     };
 
     struct CameraComponent

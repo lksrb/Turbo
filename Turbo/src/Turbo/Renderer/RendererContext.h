@@ -48,7 +48,7 @@ namespace Turbo
     class RendererContext
     {
     public:
-        static void Initialize(bool validationLayer = true, u32 framesInFlight = 3);
+        static void Init(bool validationLayer = true, u32 framesInFlight = 3);
         static void Shutdown();
 
         static bool ValidationLayerEnabled();

@@ -8,6 +8,7 @@
 
 #include "Turbo/Renderer/Renderer.h"
 #include "Turbo/Script/Script.h"
+#include "Turbo/Audio/Audio.h"
 
 #include <filesystem>
 #include <future>
@@ -37,10 +38,10 @@ namespace Turbo
         m_Application = m_ApplicationCreateCallback();
 
         // Initialize platform (Timers, dialogs, ...)
-        Platform::Initialize();
+        Platform::Init();
 
         // Initialize render context (VulkanContext)
-        RendererContext::Initialize();
+        RendererContext::Init();
 
         // Create window 
         Window::Config config;
@@ -57,14 +58,17 @@ namespace Turbo
         m_ViewportWindow = Window::Create(config);
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Engine::OnEvent));
 
-        // Creates Win32 surface and initializes swapchain
+        // Create Win32 surface and initializes swapchain
         RendererContext::SetWindowContext(m_ViewportWindow);
 
-        // Initializes rendering
-        Renderer::Initialize();
+        // Initialize rendering
+        Renderer::Init();
 
         // Initialize mono script engine
         Script::Init();
+
+        // Initialize audio engine
+        Audio::Init();
 
         if (m_Application->m_Config.EnableUI)
             m_UI = UserInterface::Create();
@@ -82,8 +86,8 @@ namespace Turbo
     {
         m_Initialized = false;
 
+        Audio::Shutdown();
         Script::Shutdown();
-
         RendererContext::WaitIdle();
 
         delete m_ViewportWindow;
@@ -91,6 +95,7 @@ namespace Turbo
 
         Renderer::Shutdown();
         m_UI.Reset();
+
 
         RendererContext::Shutdown();
 

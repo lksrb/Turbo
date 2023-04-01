@@ -29,10 +29,28 @@ namespace Turbo
             Size = 0;
         }
 
+        void CopySection(const u8* beginIndex, u64 size)
+        {
+            TBO_ENGINE_ASSERT(Data);
+            memcpy(Data, beginIndex, size);
+        }
+
         template<typename T>
         T* As()
         {
             return reinterpret_cast<T*>(Data);
+        }
+
+        u8& operator[](u64 index)
+        {
+            TBO_ENGINE_ASSERT(index < Size, "Index is out of bounds!");
+            return Data[index];
+        }
+
+        u8& operator[](u64 index) const
+        {
+            TBO_ENGINE_ASSERT(index < Size, "Index is out of bounds!");
+            return Data[index];
         }
 
         operator bool() const
@@ -61,7 +79,13 @@ namespace Turbo
             m_Buffer.Release();
         }
 
-        uint8_t* Data() { return m_Buffer.Data; }
+        u8& operator[](u64 index)
+        {
+            TBO_ENGINE_ASSERT(index < Size(), "Index is out of bounds!");
+            return m_Buffer[index];
+        }
+
+        u8* Data() { return m_Buffer.Data; }
         u64 Size() { return m_Buffer.Size; }
 
         template<typename T>

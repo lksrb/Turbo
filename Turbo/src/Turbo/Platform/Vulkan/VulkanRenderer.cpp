@@ -73,7 +73,7 @@ namespace Turbo
 
     static RendererInternal* s_Internal;
 
-    void Renderer::Initialize()
+    void Renderer::Init()
     {
         s_Internal = new RendererInternal;
     }

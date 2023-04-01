@@ -37,19 +37,19 @@ namespace Turbo
         } Timer;
     };
 
-    static Win32_Platform* I;
+    static Win32_Platform* s_PlatformData = nullptr;
 
-    void Platform::Initialize()
+    void Platform::Init()
     {
-        I = new Win32_Platform;
+        s_PlatformData = new Win32_Platform;
 
-        ::QueryPerformanceFrequency((LARGE_INTEGER*)&I->Timer.Frequency);
-        ::QueryPerformanceCounter((LARGE_INTEGER*)&I->Timer.Offset);
+        ::QueryPerformanceFrequency((LARGE_INTEGER*)&s_PlatformData->Timer.Frequency);
+        ::QueryPerformanceCounter((LARGE_INTEGER*)&s_PlatformData->Timer.Offset);
     }
 
     void Platform::Shutdown()
     {
-        delete I;
+        delete s_PlatformData;
     }
 
     f32 Platform::GetTime()
@@ -57,7 +57,7 @@ namespace Turbo
         uint64_t timerValue;
         ::QueryPerformanceCounter((LARGE_INTEGER*)&timerValue);
 
-        return (static_cast<f32>(timerValue - I->Timer.Offset) / (I->Timer.Frequency));
+        return (static_cast<f32>(timerValue - s_PlatformData->Timer.Offset) / (s_PlatformData->Timer.Frequency));
     }
 
     std::filesystem::path Platform::OpenFileDialog(const char* title, const char* filter)

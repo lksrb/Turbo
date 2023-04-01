@@ -334,6 +334,8 @@ namespace Turbo
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+            DisplayAddComponentEntry<AudioSourceComponent>("Audio Source Component");
+            DisplayAddComponentEntry<AudioListenerComponent>("Audio Listener Component");
             DisplayAddComponentEntry<TextComponent>("Text Component");
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
@@ -502,6 +504,28 @@ namespace Turbo
                 ImGui::EndCombo();
             }
             ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+        });
+        Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [](auto& component)
+        {
+            static char s_AudioSourcePath[128];
+
+            ImGui::DragFloat("Volume", &component.Volume, 0.05f, 0.0f, 1.0f);
+            ImGui::Checkbox("Spacial", &component.Spacial);
+            
+            bool isValidAudioFile = std::filesystem::exists(s_AudioSourcePath) && std::filesystem::path(s_AudioSourcePath).extension() == ".wav";
+
+            UI::ScopedStyleColor text_color(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !isValidAudioFile);
+            ImGui::InputText("Clip Path", s_AudioSourcePath, sizeof(s_AudioSourcePath));
+            if (isValidAudioFile && ImGui::Button("Load"))
+            {
+                component.Clip = AudioClip::Create(s_AudioSourcePath);
+            }
+
+        });
+
+        Utils::DrawComponent<AudioListenerComponent>("Audio Listener Component", entity, [](auto& component)
+        {
+
         });
 
         Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)

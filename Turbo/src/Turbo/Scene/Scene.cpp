@@ -5,6 +5,7 @@
 #include "SceneRenderer.h"
 #include "SceneCamera.h"
 
+#include "Turbo/Audio/Audio.h"
 #include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Script/Script.h"
 
@@ -172,11 +173,18 @@ namespace Turbo
         Script::OnRuntimeStart(this);
 
         // Call OnStart function in each script
-        auto& view = GetAllEntitiesWith<ScriptComponent>();
-        for (auto& e : view)
+        auto& scripts = GetAllEntitiesWith<ScriptComponent>();
+        for (auto& e : scripts)
         {
             Entity entity = { e, this };
             Script::InvokeEntityOnStart(entity);
+        }
+
+        auto& audioClips = GetAllEntitiesWith<AudioSourceComponent>();
+        for (auto& e : audioClips)
+        {
+            Entity entity = { e, this };
+            //Audio::PlayClip(entity);
         }
 
         m_Running = true;
@@ -548,6 +556,16 @@ namespace Turbo
 
     template<>
     void Scene::OnComponentAdded<TextComponent>(Entity entity, TextComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<AudioSourceComponent>(Entity entity, AudioSourceComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<AudioListenerComponent>(Entity entity, AudioListenerComponent& component)
     {
     }
 
