@@ -11,8 +11,8 @@ namespace Turbo
         static bool IsKeyPressed(KeyCode keycode);
         static bool IsKeyReleased(KeyCode keycode);
 
-        static bool IsMouseButtonPressed(KeyCode keycode);
-        static bool IsMouseButtonReleased(KeyCode keycode);
+        static bool IsMouseButtonPressed(MouseCode mousecode);
+        static bool IsMouseButtonReleased(MouseCode mousecode);
 
         static i32 GetMouseX();
         static i32 GetMouseY();

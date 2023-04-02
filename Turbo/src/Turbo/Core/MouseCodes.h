@@ -15,9 +15,9 @@ namespace Turbo
 #ifdef TBO_PLATFORM_WIN32
         enum : MouseCode
         {
-            ButtonLeft = MK_LBUTTON,
-            ButtonRight = MK_RBUTTON,
-            ButtonMiddle = MK_MBUTTON
+            ButtonLeft = VK_LBUTTON,
+            ButtonRight = VK_RBUTTON,
+            ButtonMiddle = VK_MBUTTON
         };
     }
 #endif

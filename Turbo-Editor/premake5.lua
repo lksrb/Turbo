@@ -21,9 +21,9 @@ project "Turbo-Editor"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.IconFontCppHeaders}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.ImGuizmo}"
 	}
 	links 
 	{

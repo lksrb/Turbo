@@ -199,7 +199,7 @@ namespace Turbo::Ed
             //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
             ImGui::SetNextWindowClass(&window_class);
             ImGui::Begin("Viewport");
-            
+
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
             Engine->GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
@@ -259,7 +259,7 @@ namespace Turbo::Ed
                         ++x;
                         auto& src = e.AddComponent<SpriteRendererComponent>();
 
-                        Ref<Texture2D> texture2d = Texture2D::Create({"Assets/Textures/smile.png" });
+                        Ref<Texture2D> texture2d = Texture2D::Create({ "Assets/Textures/smile.png" });
 
                         if (texture2d->IsLoaded())
                             src.Texture = texture2d;
@@ -396,7 +396,13 @@ namespace Turbo::Ed
         {
             ImGui::Begin("Scene settings");
             ImGui::Checkbox("Physics Colliders", &m_CurrentScene->ShowPhysics2DColliders);
-            
+
+            ImGui::End();
+        }
+
+        // Audio clip configuration
+        {
+            ImGui::Begin("Audio Clip");
             ImGui::End();
         }
 
@@ -556,8 +562,8 @@ namespace Turbo::Ed
         SceneSerializer serializer(scene);
         TBO_ASSERT(serializer.Serialize(m_EditorScenePath))
 
-        // ... and open project
-        OpenProject(Project::GetProjectConfigPath());
+            // ... and open project
+            OpenProject(Project::GetProjectConfigPath());
     }
 
     void Editor::OpenProject(std::filesystem::path project_path)

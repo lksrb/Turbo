@@ -123,6 +123,7 @@ namespace Turbo
 
                 if (wParam & MK_LBUTTON) { button = Mouse::ButtonLeft; }
                 if (wParam & MK_RBUTTON) { button = Mouse::ButtonRight; }
+
                 //if (uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONDBLCLK) { button = Mouse::Button2; }
                 //if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
 

@@ -37,12 +37,12 @@ project "Turbo"
         "%{IncludeDir.msdf_atlas_gen}",
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.IconFontCppHeaders}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.stb}",
         "%{IncludeDir.box2d}",
         "%{IncludeDir.yaml_cpp}",
-        "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.mono}"
     }
 
