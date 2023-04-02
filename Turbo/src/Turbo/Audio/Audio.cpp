@@ -7,7 +7,7 @@
 
 namespace Turbo
 {
-    // Global platform agnostic data
+    // Global platform agnostic data, probably for storing global settings
     struct Audio::Data
     {
         BackendType AudioBackendType = BackendType::XAudio2;
