@@ -59,13 +59,14 @@ namespace Turbo
     struct AudioSourceComponent
     {
         f32 Volume = 1.0f;
-        bool Spacial = false;
+        bool Spatial = false;
         Ref<AudioClip> Clip;
     };
 
     struct AudioListenerComponent
     {
         f32 Volume = 1.0f;
+        bool Primary = true;
     };
 
     struct CameraComponent
@@ -148,6 +149,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent,
-        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
+        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent, 
+        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

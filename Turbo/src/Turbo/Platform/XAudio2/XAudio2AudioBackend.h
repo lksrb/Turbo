@@ -25,7 +25,8 @@ namespace Turbo
             TBO_ENGINE_ERROR("XAudio2 error: {}", error);
         }
     };
-
+#if 0
+    // Maybe not necessary
     class SourceVoiceCallback : public IXAudio2VoiceCallback
     {
     public:
@@ -53,6 +54,8 @@ namespace Turbo
             TBO_ENGINE_ERROR("XAudio2 error: {}", error);
         }
     };
+#endif
+
 
     struct AudioSourceData
     {
@@ -67,16 +70,26 @@ namespace Turbo
         ~XAudio2AudioBackend();
 
         void RegisterAudioClip(Ref<AudioClip> audioClip) override;
+        void PlayAudioClip(Ref<AudioClip> audioClip) override;
 
+        // Spatial calculations
+        void UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) override;
+        void CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) override;
     private:
         void SetupXA2Debugging();
     private:
+        X3DAUDIO_LISTENER m_AudioListener;
+
         std::unordered_map<AudioClip*, AudioSourceData> m_AudioSources;
 
-        XAUDIO2_VOICE_DETAILS m_MasteringVoiceDetails;
-        DWORD m_ChannelMask;
         IXAudio2* m_XInstance = nullptr;
+        DWORD m_ChannelMask;
+        XAUDIO2_VOICE_DETAILS m_MasteringVoiceDetails;
         IXAudio2MasteringVoice* m_XMasterVoice = nullptr;
+        XAUDIO2_VOICE_DETAILS m_Details;
+
+        X3DAUDIO_HANDLE m_X3DInstance;
+
         XAudio2Debugger m_Debugger;
     };
 }

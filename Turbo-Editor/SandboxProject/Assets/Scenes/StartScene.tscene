@@ -1,5 +1,12 @@
 Scene: StartScene
 Entities:
+  - Entity: 2109633699458506507
+    TagComponent:
+      Tag: AudioListener
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 17489375651344337891
     TagComponent:
       Tag: Text
@@ -140,10 +147,3 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 88873582718550028
-    TagComponent:
-      Tag: Audio
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]

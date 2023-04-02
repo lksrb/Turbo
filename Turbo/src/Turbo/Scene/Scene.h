@@ -72,7 +72,8 @@ namespace Turbo
     private:
         entt::registry m_Registry;
 
-        entt::entity m_CameraEntity = entt::null;
+        entt::entity m_PrimaryAudioListenerEntity = entt::null;
+        entt::entity m_PrimaryCameraEntity = entt::null;
 
         bool m_Running = false;
 

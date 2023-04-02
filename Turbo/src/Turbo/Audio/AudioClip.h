@@ -10,13 +10,15 @@ namespace Turbo
     class AudioClip
     {
     public:
-        AudioClip(const std::string& filepath);
+        AudioClip(const std::string& filepath, bool playOnStart = true);
         ~AudioClip();
         
-        static Ref<AudioClip> Create(const std::string& filepath);
+        static Ref<AudioClip> Create(const std::string& filepath, bool playOnStart = true);
     private:
-        AudioFile m_AudioFile;
         std::string m_Filepath;
+
+        bool m_PlayOnStart;
+        AudioFile m_AudioFile;
         f32 m_AudioLength = 0;
 
         friend class XAudio2AudioBackend; // NOTE: Maybe not ideal

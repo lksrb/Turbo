@@ -4,6 +4,7 @@
 #include "Turbo/Audio/AudioFile.h"
 
 #define TBO_XA2_CHECK(x) do { HRESULT hr = (x); TBO_ENGINE_ASSERT(hr == S_OK);  } while(0)
+#define CEAL_MAX_CHANNELS 8
 
 namespace Turbo
 {
@@ -23,46 +24,10 @@ namespace Turbo
 
         // Query details about audio device
         m_XMasterVoice->GetVoiceDetails(&m_MasteringVoiceDetails);
-        m_XMasterVoice->GetChannelMask(&m_ChannelMask);
+        TBO_XA2_CHECK(m_XMasterVoice->GetChannelMask(&m_ChannelMask));
 
         // 3D audio 
-
-     /*   {
-            static AudioFile audioFile("Assets/Audio/example_song_mono.wav");
-
-            TBO_ENGINE_ASSERT(audioFile);
-
-            // Populating WAVEFORMATEX structure
-            WAVEFORMATEX wfx = { 0 };
-            wfx.wFormatTag = WAVE_FORMAT_PCM;
-            wfx.nChannels = audioFile.NumChannels;
-            wfx.nSamplesPerSec = audioFile.SampleRate;
-            wfx.wBitsPerSample = audioFile.BitsPerSample;
-            wfx.cbSize = audioFile.ExtraParamSize;
-            wfx.nBlockAlign = audioFile.BlockAlign;
-            wfx.nAvgBytesPerSec = audioFile.ByteRate;
-
-            //SourceVoiceCallback* callback = new SourceVoiceCallback;
-            IXAudio2SourceVoice* testVoice;
-            TBO_XA2_CHECK(m_XInstance->CreateSourceVoice(&testVoice, &wfx, NULL, XAUDIO2_DEFAULT_FREQ_RATIO, NULL, NULL, NULL));
-
-            // Create buffer
-            static XAUDIO2_BUFFER buffer = {};
-            buffer.AudioBytes = static_cast<u32>(audioFile.AudioData.Size);	// Size of the audio buffer in bytes
-            buffer.pAudioData = audioFile.AudioData.Data;		// Buffer containing audio data
-            buffer.Flags = XAUDIO2_END_OF_STREAM;      // Tell the source voice not to expect any data after this buffer
-
-            // Submit buffer to source
-            TBO_XA2_CHECK(testVoice->SubmitSourceBuffer(&buffer));
-
-            // Play audio buffer
-            TBO_XA2_CHECK(testVoice->Start(0, XAUDIO2_COMMIT_NOW));
-
-        / *    XAUDIO2_VOICE_STATE state;
-            while (testVoice->GetState(&state), state.BuffersQueued > 0)
-            {
-            }* /
-        }*/
+        TBO_XA2_CHECK(X3DAudioInitialize(m_ChannelMask, X3DAUDIO_SPEED_OF_SOUND, m_X3DInstance));
 
         TBO_ENGINE_INFO("XAudio2 backend successfully initialized!");
     }
@@ -89,7 +54,11 @@ namespace Turbo
         m_XMasterVoice = nullptr;
 
         m_XInstance->Release();
-        m_XInstance = nullptr; 
+        m_XInstance = nullptr;
+
+        // Uninialize COM a.k.a m_X3DInstance TODO: Investigate
+        CoUninitialize();
+        ZeroMemory(m_X3DInstance, sizeof(m_X3DInstance));
 
         TBO_ENGINE_INFO("XAudio2 backend successfully shutdown!");
     }
@@ -123,12 +92,117 @@ namespace Turbo
         buffer.pAudioData = audioFile.AudioData.Data;		// Buffer containing audio data
         buffer.Flags = XAUDIO2_END_OF_STREAM;      // Tell the source voice not to expect any data after this buffer
 
-        // Submit buffer to source
-        TBO_XA2_CHECK(sourceVoice->SubmitSourceBuffer(&buffer));
-
         m_AudioSources[audioClip.Get()] = { sourceVoice, buffer };
+    }
 
-        //TBO_XA2_CHECK(sourceVoice->Start(0, XAUDIO2_COMMIT_NOW));
+    void XAudio2AudioBackend::PlayAudioClip(Ref<AudioClip> audioClip)
+    {
+        auto& [sourceVoice, audioBuffer] = m_AudioSources.at(audioClip.Get());
+
+        // Submit buffer to source
+        TBO_XA2_CHECK(sourceVoice->SubmitSourceBuffer(&audioBuffer));
+
+        // Start
+        TBO_XA2_CHECK(sourceVoice->Start(0, XAUDIO2_COMMIT_NOW));
+    }
+
+    void XAudio2AudioBackend::UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
+    {
+        // Set position
+        m_AudioListener.Position.x = position.x;
+        m_AudioListener.Position.y = position.y;
+        m_AudioListener.Position.z = position.z;
+
+        // Set velocity
+        m_AudioListener.Velocity.x = velocity.x;
+        m_AudioListener.Velocity.y = velocity.y;
+        m_AudioListener.Velocity.z = velocity.z;
+
+        // Set orientation
+        m_AudioListener.OrientTop.x = {};
+        m_AudioListener.OrientTop.y = {};
+        m_AudioListener.OrientTop.z = {};
+        m_AudioListener.OrientFront.x = {};
+        m_AudioListener.OrientFront.y = {};
+        m_AudioListener.OrientFront.z = {};
+
+        TBO_ENGINE_TRACE("Camera position {}", position);
+        TBO_ENGINE_TRACE("Camera rotation {}", rotation);
+
+        // Omnidirectionality - TODO: Cone support for more detailed 3D sounds
+        m_AudioListener.pCone = NULL;
+    }
+
+    void XAudio2AudioBackend::CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
+    {
+        f32 outputMatrix[CEAL_MAX_CHANNELS * CEAL_MAX_CHANNELS]{ 1.0f };
+
+        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
+
+        XAUDIO2_VOICE_DETAILS details;
+        sourceVoice->GetVoiceDetails(&details);
+        uint32_t sourceInputChannels = details.InputChannels;
+        uint32_t masterInputChannels = m_Details.InputChannels;
+
+        X3DAUDIO_EMITTER sourceEmitter;
+        sourceEmitter.pCone = (X3DAUDIO_CONE*)&X3DAudioDefault_DirectionalCone; // Default cone 
+        sourceEmitter.pCone = nullptr;
+
+        // Set position
+        sourceEmitter.Position.x = position.x;
+        sourceEmitter.Position.y = position.y;
+        sourceEmitter.Position.z = position.z;
+
+        // Set velocity
+        sourceEmitter.Velocity.x = velocity.x;
+        sourceEmitter.Velocity.y = velocity.y;
+        sourceEmitter.Velocity.z = velocity.z;
+
+        // Set orientation
+        sourceEmitter.OrientTop.x = {};
+        sourceEmitter.OrientTop.y = {};
+        sourceEmitter.OrientTop.z = {};
+        sourceEmitter.OrientFront.x = {};
+        sourceEmitter.OrientFront.y = {};
+        sourceEmitter.OrientFront.z = {};
+
+        // Other parameters
+        sourceEmitter.InnerRadius = 1.0f;
+        sourceEmitter.InnerRadiusAngle = X3DAUDIO_PI / 4.0f;
+        sourceEmitter.ChannelCount = sourceInputChannels;
+        sourceEmitter.ChannelRadius = 1.0f;
+        sourceEmitter.pVolumeCurve = NULL;
+        sourceEmitter.pLFECurve = NULL;
+        sourceEmitter.pLPFDirectCurve = NULL;
+        sourceEmitter.pLPFReverbCurve = NULL;
+        sourceEmitter.pReverbCurve = NULL;
+        sourceEmitter.CurveDistanceScaler = 1.0f;
+        sourceEmitter.DopplerScaler = 0.0f;
+
+        // DSP Settings
+        X3DAUDIO_DSP_SETTINGS dspSettings{};
+        dspSettings.SrcChannelCount = sourceInputChannels;
+        dspSettings.DstChannelCount = masterInputChannels;
+        dspSettings.pMatrixCoefficients = outputMatrix;
+
+        // Actual calculation
+        X3DAudioCalculate(m_X3DInstance, &m_AudioListener, &sourceEmitter,
+            X3DAUDIO_CALCULATE_MATRIX | X3DAUDIO_CALCULATE_DOPPLER |
+            X3DAUDIO_CALCULATE_LPF_DIRECT | X3DAUDIO_CALCULATE_REVERB,
+            &dspSettings);
+
+        // Pitch = dspSettings.DopplerFactor;
+        
+        // Filter settings
+        // TODO: Figure out what filtering actually means
+        XAUDIO2_FILTER_PARAMETERS filterParameters = {};
+        filterParameters.Type = LowPassFilter;
+        filterParameters.Frequency = dspSettings.LPFDirectCoefficient ? 2.0f * sinf(X3DAUDIO_PI / 6.0f * dspSettings.LPFDirectCoefficient) : 1.0f;
+        filterParameters.OneOverQ = 1.0f;
+
+        //TBO_XA2_CHECK(sourceVoice->SetVolume(1.0f));
+        //TBO_XA2_CHECK(sourceVoice->SetFrequencyRatio(1.0f));
+        //TBO_XA2_CHECK(sourceVoice->SetOutputMatrix(NULL, sourceInputChannels, m_Details.InputChannels, outputMatrix));
     }
 
     void XAudio2AudioBackend::SetupXA2Debugging()

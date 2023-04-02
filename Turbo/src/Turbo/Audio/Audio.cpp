@@ -3,6 +3,7 @@
 
 #include "AudioBackend.h"
 
+#include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"
 
 namespace Turbo
@@ -12,41 +13,50 @@ namespace Turbo
     {
         BackendType AudioBackendType = BackendType::XAudio2;
         Ref<AudioBackend> CurrentAudioBackend;
+
+        Scene* Context = nullptr;
     };
 
-    static Audio::Data* s_Data = nullptr;
+    static Audio::Data s_Data;
 
     void Audio::Init()
     {
-        s_Data = new Audio::Data;
-        s_Data->CurrentAudioBackend = AudioBackend::Create();
+        s_Data.CurrentAudioBackend = AudioBackend::Create();
     }
 
     void Audio::Shutdown()
     {
-        delete s_Data;
-        s_Data = nullptr;
+        s_Data.CurrentAudioBackend.Reset();
+        s_Data.Context = nullptr;
+    }
+
+    void Audio::OnRuntimeStart(Scene* context)
+    {
+
+    }
+
+    void Audio::OnRuntimeStop()
+    {
+
+    }
+
+    void Audio::UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
+    {
+        s_Data.CurrentAudioBackend->UpdateAudioListener(position, rotation, velocity);
+    }
+
+    void Audio::CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
+    {
+        s_Data.CurrentAudioBackend->CalculateSpatial(audioClip, position, rotation, velocity);
     }
 
     void Audio::RegisterAudioClip(Ref<AudioClip> audioClip)
     {
-        s_Data->CurrentAudioBackend->RegisterAudioClip(audioClip);
+        s_Data.CurrentAudioBackend->RegisterAudioClip(audioClip);
     }
 
     Audio::BackendType Audio::GetAudioBackend()
     {
-        return GetAudioContext()->AudioBackendType;
+        return s_Data.AudioBackendType;
     }
-
-    void Audio::PlayClip(Entity entity)
-    {
-
-    }
-
-    Audio::Data* Audio::GetAudioContext()
-    {
-        TBO_ENGINE_ASSERT(s_Data, "AudioEngine has not been initialized!");
-        return s_Data;
-    }
-
 }

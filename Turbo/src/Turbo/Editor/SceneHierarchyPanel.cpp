@@ -510,7 +510,7 @@ namespace Turbo
             static char s_AudioSourcePath[128];
 
             ImGui::DragFloat("Volume", &component.Volume, 0.05f, 0.0f, 1.0f);
-            ImGui::Checkbox("Spacial", &component.Spacial);
+            ImGui::Checkbox("Spatial", &component.Spatial);
             
             bool isValidAudioFile = std::filesystem::exists(s_AudioSourcePath) && std::filesystem::path(s_AudioSourcePath).extension() == ".wav";
 

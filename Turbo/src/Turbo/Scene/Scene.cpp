@@ -170,6 +170,8 @@ namespace Turbo
     {
         CreatePhysicsWorld2D();
 
+        Audio::OnRuntimeStart(this);
+
         Script::OnRuntimeStart(this);
 
         // Call OnStart function in each script
@@ -180,12 +182,7 @@ namespace Turbo
             Script::InvokeEntityOnStart(entity);
         }
 
-        auto& audioClips = GetAllEntitiesWith<AudioSourceComponent>();
-        for (auto& e : audioClips)
-        {
-            Entity entity = { e, this };
-            //Audio::PlayClip(entity);
-        }
+        // Process each audio source component
 
         m_Running = true;
     }
@@ -223,6 +220,57 @@ namespace Turbo
                 transform.Rotation.z = body->GetAngle();
         }
 
+
+        // Find primary audio listener
+        Entity audioListenerEntity;
+        {
+            auto& view = GetAllEntitiesWith<AudioListenerComponent>();
+            for (auto entity : view)
+            {
+                auto& audioListenerComponent = view.get<AudioListenerComponent>(entity);
+
+                if (audioListenerComponent.Primary)
+                {
+                    audioListenerEntity = { entity, this };
+                    m_PrimaryAudioListenerEntity = entity;
+                    break; // First audio listener wins
+                }
+            }
+        }
+
+        // Audio listener exists
+        if (audioListenerEntity)
+        {
+            // Updates audio listener positions for 3D spacial calculation
+
+            auto& transform = audioListenerEntity.Transform();
+            Audio::UpdateAudioListener(transform.Translation, transform.Rotation, transform.Scale);
+
+            auto& view = GetAllEntitiesWith<TransformComponent, AudioSourceComponent>();
+
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+
+                auto& [transform, audioSourceComponent] = entity.GetComponents<TransformComponent, AudioSourceComponent>();
+                if (audioSourceComponent.Spatial)
+                {
+                    glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
+                    if (entity.HasComponent<Rigidbody2DComponent>())
+                    {
+                        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+                        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+                        const auto& linearVelocity = body->GetLinearVelocity();
+
+                        // 2D velocity
+                        velocity = { linearVelocity.x, linearVelocity.x, 0.0f };
+                    }
+
+                    Audio::CalculateSpatial(audioSourceComponent.Clip, transform.Translation, transform.Rotation, velocity);
+                }
+            }
+        }
+
         // Call OnUpdate function in each script 
         auto& view = GetAllEntitiesWith<ScriptComponent>();
         for (auto& e : view)
@@ -236,23 +284,24 @@ namespace Turbo
     {
         renderer->BeginRender();
 
+        // Find entity with camera component
+        Entity cameraEntity;
+        auto& cameraComponentView = GetAllEntitiesWith<CameraComponent>();
+        for (auto entity : cameraComponentView)
+        {
+            auto& camera = cameraComponentView.get<CameraComponent>(entity);
+
+            if (camera.Primary)
+            {
+                cameraEntity = { entity, this };
+                m_PrimaryCameraEntity = entity;
+                break; // First primary camera wins
+            }
+        }
+
         // 2D Rendering
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
-
-            // Find entity with camera component
-            Entity cameraEntity;
-            auto& view = GetAllEntitiesWith<CameraComponent>();
-            for (auto entity : view)
-            {
-                auto& camera = view.get<CameraComponent>(entity);
-
-                if (camera.Primary)
-                {
-                    cameraEntity = { entity, this };
-                    m_CameraEntity = entity;
-                }
-            }
 
             // Camera does exists
             if (cameraEntity)
@@ -268,6 +317,21 @@ namespace Turbo
                     for (auto& entity : view)
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                        auto& tag = m_Registry.get<TagComponent>(entity).Tag;
+                        if (tag == "Sprite")
+                        {
+                            glm::mat4 rotation = glm::toMat4(glm::quat(transform.Rotation));
+
+                            glm::vec3 orientFront;
+                            orientFront.x = cos(transform.Rotation.x) * sin(transform.Rotation.y);
+                            orientFront.y = -sin(transform.Rotation.x);
+                            orientFront.z = cos(transform.Rotation.x) * cos(transform.Rotation.y);
+
+                            // TODO: Orientation
+
+                            TBO_ENGINE_TRACE(orientFront);
+                        }
 
                         if (src.SubTexture)
                             renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
@@ -506,7 +570,7 @@ namespace Turbo
 
     Entity Scene::GetCameraEntity()
     {
-        return Entity{ m_CameraEntity, this };
+        return Entity{ m_PrimaryCameraEntity, this };
     }
 
     // Events ------------------------------------------------------------------------------------
