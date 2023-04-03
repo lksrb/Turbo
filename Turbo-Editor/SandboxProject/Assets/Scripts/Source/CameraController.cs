@@ -4,7 +4,6 @@ namespace Sandbox
 {
 	public class CameraController : Entity
 	{
-		private Vector3 m_LastPosition = new Vector3(0.0f);
 		private TransformComponent m_Transform;
 
 		void OnStart()
@@ -15,16 +14,22 @@ namespace Sandbox
 
 		void OnUpdate(float ts)
 		{
-			Vector3 velocity = m_LastPosition - m_Transform.Translation;
-
-			if(Input.IsKeyPressed(KeyCode.Left))
+			/*if (Input.IsKeyPressed(KeyCode.W))
 			{
-				//m_Transform.Translation = new Vector3(m_Transform.Translation);
+				m_Transform.Translation
 			}
 
-			Log.Info(velocity.ToString());
+			if (Input.IsKeyPressed(KeyCode.S))
+			{
+			}
 
-			m_LastPosition = transform.Translation;
+			if (Input.IsKeyPressed(KeyCode.A))
+			{
+			}
+
+			if (Input.IsKeyPressed(KeyCode.D))
+			{
+			}*/
 		}
 	}
 }

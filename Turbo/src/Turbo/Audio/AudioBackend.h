@@ -11,6 +11,9 @@ namespace Turbo
         AudioBackend();
         virtual ~AudioBackend();
 
+        virtual void OnRuntimeStart() = 0;
+        virtual void OnRuntimeStop() = 0;
+
         virtual void RegisterAudioClip(Ref<AudioClip> audioClip) = 0;
         virtual void PlayAudioClip(Ref<AudioClip> audioClip) = 0;
         virtual void UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) = 0;

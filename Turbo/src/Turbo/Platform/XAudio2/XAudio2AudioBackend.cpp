@@ -3,7 +3,7 @@
 
 #include "Turbo/Audio/AudioFile.h"
 
-#define TBO_XA2_CHECK(x) do { HRESULT hr = (x); TBO_ENGINE_ASSERT(hr == S_OK);  } while(0)
+#define TBO_XA2_CHECK(x) do { HRESULT hr = (x); TBO_ENGINE_ASSERT(hr == S_OK, hr);  } while(0)
 
 #define LEFT_AZIMUTH            3 * X3DAUDIO_PI / 2
 #define RIGHT_AZIMUTH           X3DAUDIO_PI / 2
@@ -73,6 +73,7 @@ namespace Turbo
             CEAL_DELETE(SourceVoiceCallback, callback);
 #endif
             TBO_XA2_CHECK(source.SourceVoice->Stop());
+            TBO_XA2_CHECK(source.SourceVoice->FlushSourceBuffers());
             source.SourceVoice->DestroyVoice();
         }
 
@@ -88,6 +89,20 @@ namespace Turbo
 
         TBO_ENGINE_INFO("XAudio2 backend successfully shutdown!");
     }
+
+    void XAudio2AudioBackend::OnRuntimeStart()
+    {
+        // Stop all running voices
+        // For example if we try to listen to clip and suddenly play a scene, ofc. stop everything 
+        StopAndClear();
+    }
+
+    void XAudio2AudioBackend::OnRuntimeStop()
+    {
+        // Stop all running voices
+        StopAndClear();
+    }
+
 
     void XAudio2AudioBackend::RegisterAudioClip(Ref<AudioClip> audioClip)
     {
@@ -131,66 +146,80 @@ namespace Turbo
         // Start
         TBO_XA2_CHECK(sourceVoice->Start(0, XAUDIO2_COMMIT_NOW));
     }
+    static const bool s_2D = false; // TODO: Figure out where this belongs
 
     void XAudio2AudioBackend::UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
     {
-        // Set position
-        m_AudioListener.Position.x = position.x;
-        m_AudioListener.Position.y = position.y;
-        m_AudioListener.Position.z = position.z;
-
-        // Set velocity
-        m_AudioListener.Velocity.x = velocity.x;
-        m_AudioListener.Velocity.y = velocity.y;
-        m_AudioListener.Velocity.z = velocity.z;
-
-        // Set orientation
-        m_AudioListener.OrientTop.x = {};
-        m_AudioListener.OrientTop.y = {};
-        m_AudioListener.OrientTop.z = {};
-        m_AudioListener.OrientFront.x = {};
-        m_AudioListener.OrientFront.y = {};
-        m_AudioListener.OrientFront.z = {};
-
-        TBO_ENGINE_TRACE("Camera position {}", position);
-        TBO_ENGINE_TRACE("Camera rotation {}", rotation);
+        m_AudioListener.Position = { position.x, position.y, position.z };
+        m_AudioListener.Velocity = { velocity.x, velocity.y, velocity.z };
 
         // Omnidirectionality - TODO: Cone support for more detailed 3D sounds
         m_AudioListener.pCone = NULL;
+
+        // NOTE: For now, orientation is not strictly necessary
+        if (s_2D)
+        {
+#if 0
+            glm::vec3 orientRight = {};
+            orientRight.x = cos(rotation.y);
+            orientRight.y = 0;
+            orientRight.z = -sin(rotation.y);
+
+            m_AudioListener.OrientFront = { orientFront.x, orientFront.y, orientFront.z };
+            m_AudioListener.OrientTop = { orientTop.x, orientTop.y, orientTop.z };
+            TBO_ENGINE_TRACE("OrientRight: {}; ", orientRight);
+#endif
+            m_AudioListener.OrientFront = { 0.0f, 0.0f, 0.0f };
+            m_AudioListener.OrientTop = { 0.0f, 0.0f, 0.0f };
+
+            return;
+        }
+
+        glm::vec3 orientFront = {};
+        orientFront.x = cosf(rotation.x) * sinf(rotation.y);
+        orientFront.y = -sinf(rotation.x);
+        orientFront.z = cosf(rotation.x) * cosf(rotation.y);
+
+        glm::vec3 orientTop = {};
+        orientTop.x = sinf(rotation.x) * sinf(rotation.y);
+        orientTop.x = cosf(rotation.x);
+        orientTop.x = sinf(rotation.x) * cosf(rotation.y);
+
+        m_AudioListener.OrientFront = { orientFront.x, orientFront.y, orientFront.z };
+        m_AudioListener.OrientTop = { orientTop.x, orientTop.y, orientTop.z };   
     }
 
     void XAudio2AudioBackend::CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
     {
         f32 outputMatrix[TBO_MAX_CHANNELS * TBO_MAX_CHANNELS]{ 1.0f };
 
-      /*  auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
+        glm::vec3 orientFront = {};
+        orientFront.x = cosf(rotation.x) * sinf(rotation.y);
+        orientFront.y = -sinf(rotation.x);
+        orientFront.z = cosf(rotation.x) * cosf(rotation.y);
+
+        glm::vec3 orientTop = {};
+        orientTop.x = sinf(rotation.x) * sinf(rotation.y);
+        orientTop.x = cosf(rotation.x);
+        orientTop.x = sinf(rotation.x) * cosf(rotation.y);
+
+        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
 
         XAUDIO2_VOICE_DETAILS details;
-        sourceVoice->GetVoiceDetails(&details);*/
-        uint32_t sourceInputChannels = 2;
-        uint32_t masterInputChannels = m_MasteringVoiceDetails.InputChannels;
+        sourceVoice->GetVoiceDetails(&details);
+        u32 sourceInputChannels = details.InputChannels;
+        u32 masterInputChannels = m_MasteringVoiceDetails.InputChannels;
 
         X3DAUDIO_EMITTER sourceEmitter;
-        sourceEmitter.pCone = (X3DAUDIO_CONE*)&X3DAudioDefault_DirectionalCone; // Default cone 
-        sourceEmitter.pCone = nullptr;
+        
+        // Omnidirectionality - TODO: Cone support for more detailed 3D sounds
+        sourceEmitter.pCone = NULL;
+        //sourceEmitter.pCone = (X3DAUDIO_CONE*)&X3DAudioDefault_DirectionalCone;
 
-        // Set position
-        sourceEmitter.Position.x = position.x;
-        sourceEmitter.Position.y = position.y;
-        sourceEmitter.Position.z = position.z;
-
-        // Set velocity
-        sourceEmitter.Velocity.x = velocity.x;
-        sourceEmitter.Velocity.y = velocity.y;
-        sourceEmitter.Velocity.z = velocity.z;
-
-        // Set orientation
-        sourceEmitter.OrientTop.x = 0;
-        sourceEmitter.OrientTop.y = 1;
-        sourceEmitter.OrientTop.z = 0;
-        sourceEmitter.OrientFront.x = 1;
-        sourceEmitter.OrientFront.y = 0;
-        sourceEmitter.OrientFront.z = 0;
+        sourceEmitter.Position = { position.x, position.y, position.z };
+        sourceEmitter.Velocity = { velocity.x, velocity.y, velocity.z };
+        sourceEmitter.OrientTop = { orientTop.x, orientTop.y, orientTop.z };
+        sourceEmitter.OrientFront = { orientFront.x, orientFront.y, orientFront.z };
 
         // Other parameters
         sourceEmitter.InnerRadius = 1.0f;
@@ -218,18 +247,30 @@ namespace Turbo
             X3DAUDIO_CALCULATE_LPF_DIRECT | X3DAUDIO_CALCULATE_REVERB,
             &dspSettings);
 
-        // Pitch = dspSettings.DopplerFactor;
-        
-        // Filter settings
-        // TODO: Figure out what filtering actually means
+#if 0
+        // TODO: Figure out what are filter parameters
+        // And why 'SetFilterParameters' throws XAUDIO2_E_INVALID_CALL
         XAUDIO2_FILTER_PARAMETERS filterParameters = {};
         filterParameters.Type = LowPassFilter;
-        filterParameters.Frequency = dspSettings.LPFDirectCoefficient ? 2.0f * sinf(X3DAUDIO_PI / 6.0f * dspSettings.LPFDirectCoefficient) : 1.0f;
+        filterParameters.Frequency = 1.0f; // dspSettings.LPFDirectCoefficient ? 2.0f * sinf(X3DAUDIO_PI / 6.0f * dspSettings.LPFDirectCoefficient) : 1.0f;
         filterParameters.OneOverQ = 1.0f;
+        TBO_XA2_CHECK(sourceVoice->SetFilterParameters(&filterParameters, XAUDIO2_COMMIT_NOW));
+        // Pitch
+        f32 frequency = dspSettings.LPFDirectCoefficient ? 2.0f * sinf(X3DAUDIO_PI / 6.0f * dspSettings.LPFDirectCoefficient) : 1.0f;
+        TBO_XA2_CHECK(sourceVoice->SetFrequencyRatio(1.0f));
+#endif
 
-        //TBO_XA2_CHECK(sourceVoice->SetVolume(1.0f));
-        //TBO_XA2_CHECK(sourceVoice->SetFrequencyRatio(1.0f));
-        //TBO_XA2_CHECK(sourceVoice->SetOutputMatrix(NULL, sourceInputChannels, m_Details.InputChannels, outputMatrix));
+        // TBO_XA2_CHECK(sourceVoice->SetVolume(1.0f)); 
+        TBO_XA2_CHECK(sourceVoice->SetOutputMatrix(NULL, sourceInputChannels, m_MasteringVoiceDetails.InputChannels, outputMatrix));
+    }
+
+    void XAudio2AudioBackend::StopAndClear()
+    {
+        for (auto& [_, source] : m_AudioSources)
+        {
+            TBO_XA2_CHECK(source.SourceVoice->Stop());
+            TBO_XA2_CHECK(source.SourceVoice->FlushSourceBuffers());
+        }
     }
 
     void XAudio2AudioBackend::SetupXA2Debugging()

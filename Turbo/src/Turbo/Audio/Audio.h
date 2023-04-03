@@ -27,12 +27,15 @@ namespace Turbo
         static void OnRuntimeStart(Scene* context);
         static void OnRuntimeStop();
 
-        static void UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity);
-        static void CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity);
+        static void PlayAudioClip(const Ref<AudioClip>& audioClip);
 
-        static void RegisterAudioClip(Ref<AudioClip> audioClip);
+        static Ref<AudioClip> CreateAndRegisterClip(const std::string& filepath);
+
+        static void UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity);
+        static void CalculateSpatial(const Ref<AudioClip>& audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity);
 
         static BackendType GetAudioBackend();
     private:
+        static void RegisterAudioClip(const Ref<AudioClip>& audioClip);
     };
 }

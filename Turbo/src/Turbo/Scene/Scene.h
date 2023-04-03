@@ -68,6 +68,8 @@ namespace Turbo
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:
+        Entity FindPrimaryCameraEntity();
+        Entity FindPrimaryAudioListenerEntity();
         void CreatePhysicsWorld2D();
     private:
         entt::registry m_Registry;

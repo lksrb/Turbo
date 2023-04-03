@@ -5,8 +5,8 @@
 
 namespace Turbo
 {
-    AudioClip::AudioClip(const std::string& filepath, bool playOnStart)
-        : m_Filepath(filepath), m_PlayOnStart(playOnStart)
+    AudioClip::AudioClip(const std::string& filepath)
+        : m_Filepath(filepath)
     {
         m_AudioFile.Load(filepath);
         if (!m_AudioFile)
@@ -15,14 +15,6 @@ namespace Turbo
 
     AudioClip::~AudioClip()
     {
-    }
-
-    Ref<AudioClip> AudioClip::Create(const std::string& filepath, bool playOnStart)
-    {
-        Ref<AudioClip> audioClip = Ref<AudioClip>::Create(filepath, playOnStart);
-        if (audioClip->m_AudioFile)
-            Audio::RegisterAudioClip(audioClip);
-        return audioClip;
     }
 
 }

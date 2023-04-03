@@ -1,12 +1,5 @@
 Scene: StartScene
 Entities:
-  - Entity: 2109633699458506507
-    TagComponent:
-      Tag: AudioListener
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
   - Entity: 17489375651344337891
     TagComponent:
       Tag: Text
@@ -99,6 +92,10 @@ Entities:
         - Name: m_Vector4
           Type: Vector4
           Data: [7.4000001, 4.5999999, 12.5, 5.4000001]
+    AudioSourceComponent:
+      AudioClipPath: Assets/Audio/example_song_mono.wav
+      Gain: 1
+      Spatial: true
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false
@@ -147,3 +144,7 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
+    ScriptComponent:
+      ClassName: Sandbox.CameraController
+    AudioListenerComponent:
+      Primary: true

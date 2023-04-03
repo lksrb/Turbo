@@ -4,6 +4,7 @@
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
 
+#include <Turbo/Audio/Audio.h>
 #include <Turbo/Debug/ScopeTimer.h>
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
@@ -330,54 +331,63 @@ namespace Turbo::Ed
             ImGui::PopStyleVar();
         }
 
+        static bool s_ShowDemoWindow = false;
+
         // Menu
+        if (ImGui::BeginMenuBar())
         {
-            if (ImGui::BeginMenuBar())
+            if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::BeginMenu("File"))
+                if (ImGui::MenuItem("New Project..."))
                 {
-                    if (ImGui::MenuItem("New Project..."))
-                    {
-                        m_PanelManager->GetPanel<CreateProjectPopupPanel>()->Open();
-                    }
-                    if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
-                    {
-                        OpenProject();
-                    }
-                    if (ImGui::MenuItem("Save Project", "Ctrl+S"))
-                    {
-                        SaveProject();
-                    }
-                    ImGui::Separator();
-
-                    if (ImGui::MenuItem("Save Scene"))
-                    {
-                        SaveScene();
-                    }
-                    if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-                    {
-                        SaveSceneAs();
-                    }
-                    ImGui::Separator();
-                    if (ImGui::MenuItem("Exit", "Alt+F4"))
-                    {
-                        Close();
-                    }
-                    ImGui::EndMenu();
+                    m_PanelManager->GetPanel<CreateProjectPopupPanel>()->Open();
                 }
-
-                if (ImGui::BeginMenu("Project"))
+                if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
                 {
-                    if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::Edit))
-                    {
-                        Script::ReloadAssemblies();
-                    }
-                    ImGui::EndMenu();
+                    OpenProject();
                 }
+                if (ImGui::MenuItem("Save Project", "Ctrl+S"))
+                {
+                    SaveProject();
+                }
+                ImGui::Separator();
 
-                ImGui::EndMenuBar();
+                if (ImGui::MenuItem("Save Scene"))
+                {
+                    SaveScene();
+                }
+                if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
+                {
+                    SaveSceneAs();
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit", "Alt+F4"))
+                {
+                    Close();
+                }
+                ImGui::EndMenu();
             }
+
+            if (ImGui::BeginMenu("Project"))
+            {
+                if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::Edit))
+                {
+                    Script::ReloadAssemblies();
+                }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("View"))
+            {
+                ImGui::MenuItem("ImGui demo window", nullptr, &s_ShowDemoWindow);
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenuBar();
         }
+
+        if (s_ShowDemoWindow)
+            ImGui::ShowDemoWindow();
 
         {
             static ImVec2 uv0 = { 0, 1 };
@@ -403,6 +413,21 @@ namespace Turbo::Ed
         // Audio clip configuration
         {
             ImGui::Begin("Audio Clip");
+
+            auto& view = m_CurrentScene->GetAllEntitiesWith<AudioSourceComponent>();
+
+            for (auto& e : view)
+            {
+                auto& audioSource = view.get<AudioSourceComponent>(e);
+
+                if (audioSource.Clip && audioSource.Clip->PlayOnStart())
+                {
+                    if (ImGui::Button("Play"))
+                        Audio::PlayAudioClip(audioSource.Clip);
+                    ImGui::NewLine();
+                }
+            }
+
             ImGui::End();
         }
 

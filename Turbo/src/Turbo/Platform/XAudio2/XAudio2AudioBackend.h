@@ -56,7 +56,6 @@ namespace Turbo
     };
 #endif
 
-
     struct AudioSourceData
     {
         IXAudio2SourceVoice* SourceVoice;
@@ -69,6 +68,9 @@ namespace Turbo
         XAudio2AudioBackend();
         ~XAudio2AudioBackend();
 
+        void OnRuntimeStart() override;
+        void OnRuntimeStop() override;
+
         void RegisterAudioClip(Ref<AudioClip> audioClip) override;
         void PlayAudioClip(Ref<AudioClip> audioClip) override;
 
@@ -76,6 +78,7 @@ namespace Turbo
         void UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) override;
         void CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) override;
     private:
+        void StopAndClear();
         void SetupXA2Debugging();
     private:
         X3DAUDIO_LISTENER m_AudioListener;

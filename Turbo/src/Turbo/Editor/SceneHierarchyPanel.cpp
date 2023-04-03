@@ -1,6 +1,7 @@
 #include "tbopch.h"
 #include "SceneHierarchyPanel.h"
 
+#include "Turbo/Audio/Audio.h"
 #include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Script/Script.h"
 #include "Turbo/UI/UI.h"
@@ -195,10 +196,10 @@ namespace Turbo
 
             u32 type = static_cast<u32>(field_type);
 
-            TBO_ENGINE_ASSERT(type < s_TypeFunctionsNSR.size());
-
             // Call type specific function
-            s_TypeFunctionsNSR[type](name, instance);
+            if (type < s_TypeFunctionsNSR.size())
+                s_TypeFunctionsNSR[type](name, instance);
+
         }
         static void CallTypeSpecificFunctionSceneRunning(ScriptFieldType field_type, const std::string& name, Ref<ScriptInstance> instance)
         {
@@ -226,7 +227,9 @@ namespace Turbo
             TBO_ENGINE_ASSERT(type < s_TypeFunctionsSR.size());
 
             // Call type specific function
-            s_TypeFunctionsSR[type](name, instance);
+            if(type < s_TypeFunctionsSR.size())
+                s_TypeFunctionsSR[type](name, instance);
+
         }
     }
 
@@ -366,7 +369,7 @@ namespace Turbo
             const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
             if (ImGui::BeginCombo("Projection", currentProjectionTypeString))
             {
-                for (int i = 0; i < 2; i++)
+                for (i32 i = 0; i < 2; ++i)
                 {
                     bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
                     if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
@@ -507,25 +510,42 @@ namespace Turbo
         });
         Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [](auto& component)
         {
-            static char s_AudioSourcePath[128];
+            static bool s_IsValidAudioFile = true; // FIXME: static in class is not ideal
 
-            ImGui::DragFloat("Volume", &component.Volume, 0.05f, 0.0f, 1.0f);
+            ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 1.0f);
             ImGui::Checkbox("Spatial", &component.Spatial);
             
-            bool isValidAudioFile = std::filesystem::exists(s_AudioSourcePath) && std::filesystem::path(s_AudioSourcePath).extension() == ".wav";
+            // Audio clip
+            char s_AudioSourcePath[128];
+            bool changed = false;
+            memset(s_AudioSourcePath, 0, sizeof(s_AudioSourcePath));
 
-            UI::ScopedStyleColor text_color(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !isValidAudioFile);
-            ImGui::InputText("Clip Path", s_AudioSourcePath, sizeof(s_AudioSourcePath));
-            if (isValidAudioFile && ImGui::Button("Load"))
+            const auto& clipPath = component.Clip->GetFilepath();
+            if (component.Clip && !changed && s_IsValidAudioFile)
             {
-                component.Clip = AudioClip::Create(s_AudioSourcePath);
+                strncpy_s(s_AudioSourcePath, sizeof(s_AudioSourcePath), clipPath.c_str(), sizeof(s_AudioSourcePath));
             }
 
+            UI::ScopedStyleColor textColor(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !s_IsValidAudioFile);
+            ImGui::InputText("Clip Path", s_AudioSourcePath, sizeof(s_AudioSourcePath));
+
+            changed = strcmp(s_AudioSourcePath, clipPath.c_str()) != 0;
+
+            s_IsValidAudioFile = std::filesystem::exists(s_AudioSourcePath)
+                && std::filesystem::path(s_AudioSourcePath).extension() == ".wav";
+
+            if (!changed)
+                return;
+
+            if (s_IsValidAudioFile && ImGui::Button("Load"))
+            {
+                component.Clip = Audio::CreateAndRegisterClip(s_AudioSourcePath);
+            }
         });
 
         Utils::DrawComponent<AudioListenerComponent>("Audio Listener Component", entity, [](auto& component)
         {
-
+            ImGui::Checkbox("Primary", &component.Primary);
         });
 
         Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)

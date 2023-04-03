@@ -1,10 +1,11 @@
 #include "tbopch.h"
 #include "SceneSerializer.h"
 
-#include "Turbo/Script/Script.h"
-
 #include "Scene.h"
 #include "Entity.h"
+
+#include "Turbo/Audio/Audio.h"
+#include "Turbo/Script/Script.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -379,6 +380,30 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<AudioSourceComponent>())
+        {
+            out << YAML::Key << "AudioSourceComponent";
+            out << YAML::BeginMap;
+
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            out << YAML::Key << "AudioClipPath" << YAML::Value << audioSourceComponent.Clip->GetFilepath();
+            out << YAML::Key << "Gain" << YAML::Value << audioSourceComponent.Gain;
+            out << YAML::Key << "Spatial" << YAML::Value << audioSourceComponent.Spatial;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<AudioListenerComponent>())
+        {
+            out << YAML::Key << "AudioListenerComponent";
+            out << YAML::BeginMap;
+
+            auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
+            out << YAML::Key << "Primary" << YAML::Value << audioListenerComponent.Primary;
+
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<Rigidbody2DComponent>())
         {
             out << YAML::Key << "Rigidbody2DComponent";
@@ -586,6 +611,24 @@ namespace Turbo
                             }
                         }
                     }
+                }
+
+                auto audioSourceComponent = entity["AudioSourceComponent"];
+                if (audioSourceComponent)
+                {
+                    auto& as = deserializedEntity.AddComponent<AudioSourceComponent>();
+
+                    const auto& audioClipFilepath = audioSourceComponent["AudioClipPath"].as<std::string>();
+                    as.Clip = Audio::CreateAndRegisterClip(audioClipFilepath);
+                    as.Gain = audioSourceComponent["Gain"].as<f32>();
+                    as.Spatial = audioSourceComponent["Spatial"].as<bool>();
+                }
+
+                auto audioListenerComponent = entity["AudioListenerComponent"];
+                if (audioListenerComponent)
+                {
+                    auto& al = deserializedEntity.AddComponent<AudioListenerComponent>();
+                    al.Primary = audioListenerComponent["Primary"].as<bool>();
                 }
 
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

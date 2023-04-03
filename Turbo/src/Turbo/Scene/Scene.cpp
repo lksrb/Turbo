@@ -76,8 +76,6 @@ namespace Turbo
     {
         renderer->BeginRender();
 
-        // Render entites
-
         // 2D Rendering
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
@@ -171,7 +169,6 @@ namespace Turbo
         CreatePhysicsWorld2D();
 
         Audio::OnRuntimeStart(this);
-
         Script::OnRuntimeStart(this);
 
         // Call OnStart function in each script
@@ -182,14 +179,31 @@ namespace Turbo
             Script::InvokeEntityOnStart(entity);
         }
 
-        // Process each audio source component
+        // Only play audio when listener is present (obviously)
+        Entity audioListener = FindPrimaryAudioListenerEntity();
+        if (audioListener)
+        {
+            // Send event to every audio source that scene has started
+            auto& audioSourcesView = GetAllEntitiesWith<AudioSourceComponent>();
+            for (auto& e : audioSourcesView)
+            {
+                auto& audioSource = audioSourcesView.get<AudioSourceComponent>(e);
 
+                const auto& audioClip = audioSource.Clip;
+
+                if (audioClip && audioClip->PlayOnStart())
+                {
+                    Audio::PlayAudioClip(audioClip);
+                }
+            }
+        }
         m_Running = true;
     }
 
     void Scene::OnRuntimeStop()
     {
         Script::OnRuntimeStop();
+        Audio::OnRuntimeStop();
 
         delete m_PhysicsWorld;
         m_PhysicsWorld = nullptr;
@@ -222,27 +236,28 @@ namespace Turbo
 
 
         // Find primary audio listener
-        Entity audioListenerEntity;
-        {
-            auto& view = GetAllEntitiesWith<AudioListenerComponent>();
-            for (auto entity : view)
-            {
-                auto& audioListenerComponent = view.get<AudioListenerComponent>(entity);
-
-                if (audioListenerComponent.Primary)
-                {
-                    audioListenerEntity = { entity, this };
-                    m_PrimaryAudioListenerEntity = entity;
-                    break; // First audio listener wins
-                }
-            }
-        }
+        Entity audioListenerEntity = FindPrimaryAudioListenerEntity();
 
         // Audio listener exists
         if (audioListenerEntity)
         {
             auto& transform = audioListenerEntity.Transform();
+
+            // Calculate velocity from last position
             glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
+            {
+                static glm::vec3 s_LastTranslation = {}; // FIXME: Not ideal
+                velocity = (transform.Translation - s_LastTranslation) / ts.s();
+                s_LastTranslation = transform.Translation;
+
+                if (audioListenerEntity.HasComponent<Rigidbody2DComponent>())
+                {
+                    auto& rb2d = audioListenerEntity.GetComponent<Rigidbody2DComponent>();
+                    b2Body* body = (b2Body*)rb2d.RuntimeBody;
+                    b2Vec2 b2Vel = body->GetLinearVelocity();
+                    velocity = { b2Vel.x, b2Vel.y, 0.0f };
+                }
+            }
 
             // Updates audio listener positions for 3D spacial calculation
             Audio::UpdateAudioListener(transform.Translation, transform.Rotation, velocity);
@@ -254,7 +269,7 @@ namespace Turbo
                 Entity entity = { e, this };
 
                 auto& [transform, audioSourceComponent] = entity.GetComponents<TransformComponent, AudioSourceComponent>();
-                if (audioSourceComponent.Spatial)
+                if (audioSourceComponent.Clip && audioSourceComponent.Spatial)
                 {
                     glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
                     if (entity.HasComponent<Rigidbody2DComponent>())
@@ -285,21 +300,7 @@ namespace Turbo
     {
         renderer->BeginRender();
 
-        // Find entity with camera component
-        Entity cameraEntity;
-        auto& cameraComponentView = GetAllEntitiesWith<CameraComponent>();
-        for (auto entity : cameraComponentView)
-        {
-            auto& camera = cameraComponentView.get<CameraComponent>(entity);
-
-            if (camera.Primary)
-            {
-                cameraEntity = { entity, this };
-                m_PrimaryCameraEntity = entity;
-                break; // First primary camera wins
-            }
-        }
-
+        Entity cameraEntity = FindPrimaryCameraEntity();
         // 2D Rendering
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
@@ -318,21 +319,6 @@ namespace Turbo
                     for (auto& entity : view)
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                        auto& tag = m_Registry.get<TagComponent>(entity).Tag;
-                        if (tag == "Sprite")
-                        {
-                            glm::mat4 rotation = glm::toMat4(glm::quat(transform.Rotation));
-
-                            glm::vec3 orientFront;
-                            orientFront.x = cos(transform.Rotation.x) * sin(transform.Rotation.y);
-                            orientFront.y = -sin(transform.Rotation.x);
-                            orientFront.z = cos(transform.Rotation.x) * cos(transform.Rotation.y);
-
-                            // TODO: Orientation
-
-                            TBO_ENGINE_TRACE(orientFront);
-                        }
 
                         if (src.SubTexture)
                             renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
@@ -473,6 +459,43 @@ namespace Turbo
             if (!cameraComponent.FixedAspectRatio)
                 cameraComponent.Camera.SetViewportSize(width, height);
         }
+    }
+
+    Entity Scene::FindPrimaryCameraEntity()
+    {
+        // Find entity with camera component
+        auto& cameraComponentView = GetAllEntitiesWith<CameraComponent>();
+        for (auto entity : cameraComponentView)
+        {
+            auto& camera = cameraComponentView.get<CameraComponent>(entity);
+
+            if (camera.Primary)
+            {
+                m_PrimaryCameraEntity = entity;
+
+                // First primary camera wins
+                return { entity, this };
+            }
+        }
+        return {};
+    }
+
+    Entity Scene::FindPrimaryAudioListenerEntity()
+    {
+        auto& view = GetAllEntitiesWith<AudioListenerComponent>();
+        for (auto entity : view)
+        {
+            auto& audioListenerComponent = view.get<AudioListenerComponent>(entity);
+
+            if (audioListenerComponent.Primary)
+            {
+                m_PrimaryAudioListenerEntity = entity;
+
+                // First audio listener wins
+                return { entity, this };
+            }
+        }
+        return {};
     }
 
     void Scene::CreatePhysicsWorld2D()

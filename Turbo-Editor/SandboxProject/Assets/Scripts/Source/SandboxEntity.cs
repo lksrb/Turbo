@@ -32,7 +32,7 @@ namespace Sandbox
 			m_Rigidbody.Gravity = false;
 			
 			m_SpriteRenderer = GetComponent<SpriteRendererComponent>();
-			m_SpriteRenderer.Color = new Vector4(1, 0, 1, 1);
+			m_SpriteRenderer.Color = new Vector4(1.0f, 0.0f, 1.0f, 1.0f);
 		}
 
 		void OnUpdate(float ts)
@@ -40,22 +40,22 @@ namespace Sandbox
 			if (!m_Bool)
 				return;
 
-			if (Input.IsKeyPressed(KeyCode.W))
+			if (Input.IsKeyPressed(KeyCode.Up))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Up * m_Float * ts);
 			}
 
-			if (Input.IsKeyPressed(KeyCode.S))
+			if (Input.IsKeyPressed(KeyCode.Down))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Up * -m_Float * ts);
 			}
 
-			if (Input.IsKeyPressed(KeyCode.A))
+			if (Input.IsKeyPressed(KeyCode.Left))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Right * -m_Float * ts);
 			}
 
-			if (Input.IsKeyPressed(KeyCode.D))
+			if (Input.IsKeyPressed(KeyCode.Right))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Right * m_Float * ts);
 			}

@@ -12,11 +12,6 @@ namespace Turbo
         f32 ms() const { return m_Time * 1000.0f; }
         f32 s() const { return m_Time; }
 
-        f32 operator()()
-        {
-            return m_Time;
-        }
-
         f32 operator+=(f32 value)
         {
             m_Time += value;
