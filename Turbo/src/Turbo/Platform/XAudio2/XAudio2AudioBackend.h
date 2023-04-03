@@ -72,13 +72,17 @@ namespace Turbo
         void OnRuntimeStop() override;
 
         void RegisterAudioClip(Ref<AudioClip> audioClip) override;
-        void PlayAudioClip(Ref<AudioClip> audioClip) override;
+
+        void Play(Ref<AudioClip> audioClip, bool loop) override;
+        void Pause(Ref<AudioClip> audioClip) override;
+        void StopAndClear(Ref<AudioClip> audioClip) override;
+        void SetGain(Ref<AudioClip> audioClip, f32 gain) override;
 
         // Spatial calculations
         void UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) override;
         void CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) override;
     private:
-        void StopAndClear();
+        void StopAndClearAll();
         void SetupXA2Debugging();
     private:
         X3DAUDIO_LISTENER m_AudioListener;

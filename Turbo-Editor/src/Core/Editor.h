@@ -9,8 +9,8 @@ namespace Turbo::Ed
     public:
         enum class Mode : u32
         {
-            Edit = 0,
-            Play = 1
+            SceneEdit = 0,
+            ScenePlay = 1
         };
 
         Editor(const Application::Config& config);
@@ -54,7 +54,7 @@ namespace Turbo::Ed
         bool m_ViewportHovered = false, m_ViewportFocused = false;
         Ref<Texture2D> m_PlayIcon, m_StopIcon;
         Ref<SceneRenderer> m_SceneRenderer;
-        Mode m_EditorMode = Mode::Edit;
+        Mode m_EditorMode = Mode::SceneEdit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
 
         std::filesystem::path m_EditorScenePath;

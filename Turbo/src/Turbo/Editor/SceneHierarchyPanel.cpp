@@ -511,9 +511,6 @@ namespace Turbo
         Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [](auto& component)
         {
             static bool s_IsValidAudioFile = true; // FIXME: static in class is not ideal
-
-            ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 1.0f);
-            ImGui::Checkbox("Spatial", &component.Spatial);
             
             // Audio clip
             char s_AudioSourcePath[128];
@@ -526,21 +523,25 @@ namespace Turbo
                 strncpy_s(s_AudioSourcePath, sizeof(s_AudioSourcePath), clipPath.c_str(), sizeof(s_AudioSourcePath));
             }
 
-            UI::ScopedStyleColor textColor(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !s_IsValidAudioFile);
-            ImGui::InputText("Clip Path", s_AudioSourcePath, sizeof(s_AudioSourcePath));
-
-            changed = strcmp(s_AudioSourcePath, clipPath.c_str()) != 0;
-
-            s_IsValidAudioFile = std::filesystem::exists(s_AudioSourcePath)
-                && std::filesystem::path(s_AudioSourcePath).extension() == ".wav";
-
-            if (!changed)
-                return;
-
-            if (s_IsValidAudioFile && ImGui::Button("Load"))
             {
-                component.Clip = Audio::CreateAndRegisterClip(s_AudioSourcePath);
+                UI::ScopedStyleColor textColor(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !s_IsValidAudioFile);
+                ImGui::InputText("Clip Path", s_AudioSourcePath, sizeof(s_AudioSourcePath));
+
+                changed = strcmp(s_AudioSourcePath, clipPath.c_str()) != 0;
+
+                s_IsValidAudioFile = std::filesystem::exists(s_AudioSourcePath)
+                    && std::filesystem::path(s_AudioSourcePath).extension() == ".wav";
+
+                if (changed && s_IsValidAudioFile && ImGui::Button("Load"))
+                {
+                    component.Clip = Audio::CreateAndRegisterClip(s_AudioSourcePath);
+                }
             }
+
+            ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 10.0f);
+            ImGui::Checkbox("Spatial", &component.Spatial);
+            ImGui::Checkbox("PlayOnStart", &component.PlayOnStart);
+            ImGui::Checkbox("Loop", &component.Loop);
         });
 
         Utils::DrawComponent<AudioListenerComponent>("Audio Listener Component", entity, [](auto& component)

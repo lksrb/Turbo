@@ -389,6 +389,8 @@ namespace Turbo
             out << YAML::Key << "AudioClipPath" << YAML::Value << audioSourceComponent.Clip->GetFilepath();
             out << YAML::Key << "Gain" << YAML::Value << audioSourceComponent.Gain;
             out << YAML::Key << "Spatial" << YAML::Value << audioSourceComponent.Spatial;
+            out << YAML::Key << "PlayOnStart" << YAML::Value << audioSourceComponent.PlayOnStart;
+            out << YAML::Key << "Loop" << YAML::Value << audioSourceComponent.Loop;
 
             out << YAML::EndMap;
         }
@@ -622,6 +624,8 @@ namespace Turbo
                     as.Clip = Audio::CreateAndRegisterClip(audioClipFilepath);
                     as.Gain = audioSourceComponent["Gain"].as<f32>();
                     as.Spatial = audioSourceComponent["Spatial"].as<bool>();
+                    as.PlayOnStart = audioSourceComponent["PlayOnStart"].as<bool>();
+                    as.Loop = audioSourceComponent["Loop"].as<bool>();
                 }
 
                 auto audioListenerComponent = entity["AudioListenerComponent"];

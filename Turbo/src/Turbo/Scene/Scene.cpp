@@ -191,9 +191,9 @@ namespace Turbo
 
                 const auto& audioClip = audioSource.Clip;
 
-                if (audioClip && audioClip->PlayOnStart())
+                if (audioClip && audioSource.PlayOnStart)
                 {
-                    Audio::PlayAudioClip(audioClip);
+                    Audio::Play(audioClip, audioSource.Loop);
                 }
             }
         }
@@ -262,28 +262,35 @@ namespace Turbo
             // Updates audio listener positions for 3D spacial calculation
             Audio::UpdateAudioListener(transform.Translation, transform.Rotation, velocity);
 
+            // Audio sources
             auto& view = GetAllEntitiesWith<TransformComponent, AudioSourceComponent>();
-
             for (auto e : view)
             {
                 Entity entity = { e, this };
 
                 auto& [transform, audioSourceComponent] = entity.GetComponents<TransformComponent, AudioSourceComponent>();
-                if (audioSourceComponent.Clip && audioSourceComponent.Spatial)
+                if (!audioSourceComponent.Clip)
+                    continue;
+
+                // Update volume/gain for each source
+                Audio::SetGain(audioSourceComponent.Clip, audioSourceComponent.Gain);
+
+                // If audio is not spatial, skip
+                if (!audioSourceComponent.Spatial)
+                    continue;
+
+                glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
+                if (entity.HasComponent<Rigidbody2DComponent>())
                 {
-                    glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
-                    if (entity.HasComponent<Rigidbody2DComponent>())
-                    {
-                        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-                        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-                        const auto& linearVelocity = body->GetLinearVelocity();
+                    auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+                    b2Body* body = (b2Body*)rb2d.RuntimeBody;
+                    const auto& linearVelocity = body->GetLinearVelocity();
 
-                        // 2D velocity
-                        velocity = { linearVelocity.x, linearVelocity.y, 0.0f };
-                    }
-
-                    Audio::CalculateSpatial(audioSourceComponent.Clip, transform.Translation, transform.Rotation, velocity);
+                    // 2D velocity
+                    velocity = { linearVelocity.x, linearVelocity.y, 0.0f };
                 }
+
+                Audio::CalculateSpatial(audioSourceComponent.Clip, transform.Translation, transform.Rotation, velocity);
             }
         }
 
@@ -301,6 +308,7 @@ namespace Turbo
         renderer->BeginRender();
 
         Entity cameraEntity = FindPrimaryCameraEntity();
+
         // 2D Rendering
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();

@@ -73,14 +73,14 @@ namespace Turbo::Ed
 
         switch (m_EditorMode)
         {
-            case Mode::Edit:
+            case Mode::SceneEdit:
             {
                 m_EditorCamera.OnUpdate(Time.DeltaTime);
 
                 m_EditorScene->OnEditorUpdate(Time.DeltaTime);
                 break;
             }
-            case Mode::Play:
+            case Mode::ScenePlay:
             {
                 m_RuntimeScene->OnRuntimeUpdate(Time.DeltaTime);
                 break;
@@ -95,12 +95,12 @@ namespace Turbo::Ed
 
         switch (m_EditorMode)
         {
-            case Mode::Edit:
+            case Mode::SceneEdit:
             {
                 m_EditorScene->OnEditorRender(m_SceneRenderer, m_EditorCamera);
                 break;
             }
-            case Mode::Play:
+            case Mode::ScenePlay:
             {
                 m_RuntimeScene->OnRuntimeRender(m_SceneRenderer);
                 break;
@@ -174,13 +174,13 @@ namespace Turbo::Ed
 
             ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
             f32 size = ImGui::GetWindowHeight() - 4.0f;
-            Ref<Texture2D> icon = m_EditorMode == Mode::Edit ? m_PlayIcon : m_StopIcon;
+            Ref<Texture2D> icon = m_EditorMode == Mode::SceneEdit ? m_PlayIcon : m_StopIcon;
             ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
             if (UI::ImageButton(icon, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
             {
-                if (m_EditorMode == Mode::Edit)
+                if (m_EditorMode == Mode::SceneEdit)
                     OnScenePlay();
-                else if (m_EditorMode == Mode::Play)
+                else if (m_EditorMode == Mode::ScenePlay)
                     OnSceneStop();
             }
             ImGui::PopStyleVar(2);
@@ -283,7 +283,7 @@ namespace Turbo::Ed
             {
                 glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
-                if (m_EditorMode == Mode::Play)
+                if (m_EditorMode == Mode::ScenePlay)
                 {
                     Entity cameraEntity = m_RuntimeScene->GetCameraEntity();
                     if (cameraEntity)
@@ -370,7 +370,7 @@ namespace Turbo::Ed
 
             if (ImGui::BeginMenu("Project"))
             {
-                if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::Edit))
+                if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::SceneEdit))
                 {
                     Script::ReloadAssemblies();
                 }
@@ -420,10 +420,10 @@ namespace Turbo::Ed
             {
                 auto& audioSource = view.get<AudioSourceComponent>(e);
 
-                if (audioSource.Clip && audioSource.Clip->PlayOnStart())
+                if (audioSource.Clip && audioSource.PlayOnStart)
                 {
                     if (ImGui::Button("Play"))
-                        Audio::PlayAudioClip(audioSource.Clip);
+                        Audio::Play(audioSource.Clip, audioSource.Loop);
                     ImGui::NewLine();
                 }
             }
@@ -453,7 +453,7 @@ namespace Turbo::Ed
     {
         m_PanelManager->OnEvent(e);
 
-        if (m_EditorMode == Mode::Edit)
+        if (m_EditorMode == Mode::SceneEdit)
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
@@ -744,7 +744,7 @@ namespace Turbo::Ed
         // Clear logs
         EditorConsolePanel::Clear();
 
-        m_EditorMode = Mode::Play;
+        m_EditorMode = Mode::ScenePlay;
 
         m_RuntimeScene = Scene::Copy(m_EditorScene);
         m_RuntimeScene->OnRuntimeStart();
@@ -769,7 +769,7 @@ namespace Turbo::Ed
 
     void Editor::OnSceneStop()
     {
-        m_EditorMode = Mode::Edit;
+        m_EditorMode = Mode::SceneEdit;
 
         m_RuntimeScene->OnRuntimeStop();
         m_RuntimeScene = m_EditorScene;

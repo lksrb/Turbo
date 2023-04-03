@@ -58,9 +58,11 @@ namespace Turbo
 
     struct AudioSourceComponent
     {
+        Ref<AudioClip> Clip;
         f32 Gain = 1.0f;
         bool Spatial = false;
-        Ref<AudioClip> Clip;
+        bool PlayOnStart = true;
+        bool Loop = false;
     };
 
     struct AudioListenerComponent

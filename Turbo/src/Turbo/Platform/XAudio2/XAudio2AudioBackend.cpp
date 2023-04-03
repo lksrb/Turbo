@@ -3,7 +3,7 @@
 
 #include "Turbo/Audio/AudioFile.h"
 
-#define TBO_XA2_CHECK(x) do { HRESULT hr = (x); TBO_ENGINE_ASSERT(hr == S_OK, hr);  } while(0)
+#define TBO_XA2_CHECK(x) do { HRESULT hr = (x); TBO_ENGINE_ASSERT(hr == S_OK, hr); } while(0)
 
 #define LEFT_AZIMUTH            3 * X3DAUDIO_PI / 2
 #define RIGHT_AZIMUTH           X3DAUDIO_PI / 2
@@ -94,13 +94,13 @@ namespace Turbo
     {
         // Stop all running voices
         // For example if we try to listen to clip and suddenly play a scene, ofc. stop everything 
-        StopAndClear();
+        StopAndClearAll();
     }
 
     void XAudio2AudioBackend::OnRuntimeStop()
     {
         // Stop all running voices
-        StopAndClear();
+        StopAndClearAll();
     }
 
 
@@ -132,13 +132,14 @@ namespace Turbo
         buffer.AudioBytes = static_cast<u32>(audioFile.AudioData.Size);	// Size of the audio buffer in bytes
         buffer.pAudioData = audioFile.AudioData.Data;		// Buffer containing audio data
         buffer.Flags = XAUDIO2_END_OF_STREAM;      // Tell the source voice not to expect any data after this buffer
-
         m_AudioSources[audioClip.Get()] = { sourceVoice, buffer };
     }
 
-    void XAudio2AudioBackend::PlayAudioClip(Ref<AudioClip> audioClip)
+    void XAudio2AudioBackend::Play(Ref<AudioClip> audioClip, bool loop)
     {
         auto& [sourceVoice, audioBuffer] = m_AudioSources.at(audioClip.Get());
+
+        audioBuffer.LoopCount = loop ? XAUDIO2_LOOP_INFINITE : 0;
 
         // Submit buffer to source
         TBO_XA2_CHECK(sourceVoice->SubmitSourceBuffer(&audioBuffer));
@@ -264,7 +265,29 @@ namespace Turbo
         TBO_XA2_CHECK(sourceVoice->SetOutputMatrix(NULL, sourceInputChannels, m_MasteringVoiceDetails.InputChannels, outputMatrix));
     }
 
-    void XAudio2AudioBackend::StopAndClear()
+    void XAudio2AudioBackend::SetGain(Ref<AudioClip> audioClip, f32 gain)
+    {
+        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
+
+        TBO_XA2_CHECK(sourceVoice->SetVolume(gain));
+    }
+
+    void XAudio2AudioBackend::Pause(Ref<AudioClip> audioClip)
+    {
+        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
+        
+        TBO_XA2_CHECK(sourceVoice->Stop());
+    }
+
+    void XAudio2AudioBackend::StopAndClear(Ref<AudioClip> audioClip)
+    {
+        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
+
+        TBO_XA2_CHECK(sourceVoice->Stop());
+        TBO_XA2_CHECK(sourceVoice->FlushSourceBuffers());
+    }
+
+    void XAudio2AudioBackend::StopAndClearAll()
     {
         for (auto& [_, source] : m_AudioSources)
         {
@@ -275,7 +298,7 @@ namespace Turbo
 
     void XAudio2AudioBackend::SetupXA2Debugging()
     {
-        XAUDIO2_DEBUG_CONFIGURATION debugConf{};
+        XAUDIO2_DEBUG_CONFIGURATION debugConf = {};
         debugConf.LogFunctionName = true;
 
         // XAUDIO2_LOG_WARNINGS also enables XAUDIO2_LOG_ERRORS

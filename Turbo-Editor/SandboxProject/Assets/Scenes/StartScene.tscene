@@ -94,8 +94,10 @@ Entities:
           Data: [7.4000001, 4.5999999, 12.5, 5.4000001]
     AudioSourceComponent:
       AudioClipPath: Assets/Audio/example_song_mono.wav
-      Gain: 1
+      Gain: 5.5
       Spatial: true
+      PlayOnStart: true
+      Loop: true
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false

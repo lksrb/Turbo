@@ -13,13 +13,10 @@ namespace Turbo
         AudioClip(const std::string& filepath);
         ~AudioClip();
 
-        std::string GetFilepath() const { return m_Filepath; }
-        bool PlayOnStart() const { return m_PlayOnStart; }
-        void SetPlayOnStart(bool playOnStart) { m_PlayOnStart = playOnStart; }
+        const auto& GetFilepath() const { return m_Filepath; }
     private:
         std::string m_Filepath;
 
-        bool m_PlayOnStart = true;
         AudioFile m_AudioFile;
         f32 m_AudioLength = 0;
 

@@ -44,9 +44,24 @@ namespace Turbo
         s_Data.Context = nullptr;
     }
 
-    void Audio::PlayAudioClip(const Ref<AudioClip>& audioClip)
+    void Audio::Play(const Ref<AudioClip>& audioClip, bool loop)
     {
-        s_Data.CurrentAudioBackend->PlayAudioClip(audioClip);
+        s_Data.CurrentAudioBackend->Play(audioClip, loop);
+    }
+
+    void Audio::Pause(const Ref<AudioClip>& audioClip)
+    {
+        s_Data.CurrentAudioBackend->Pause(audioClip);
+    }
+
+    void Audio::SetGain(const Ref<AudioClip>& audioClip, f32 gain)
+    {
+        s_Data.CurrentAudioBackend->SetGain(audioClip, gain);
+    }
+
+    void Audio::StopAndClear(const Ref<AudioClip>& audioClip)
+    {
+        s_Data.CurrentAudioBackend->StopAndClear(audioClip);
     }
 
     Ref<AudioClip> Audio::CreateAndRegisterClip(const std::string& filepath)

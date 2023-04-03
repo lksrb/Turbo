@@ -1,6 +1,9 @@
 ﻿#include "tbopch.h"
 #include "Font.h"
 
+#include "Turbo/Core/Buffer.h"
+#include "Turbo/Core/FileSystem.h"
+
 #include "Font-Internal.h"
 
 #define DEFAULT_ANGLE_THRESHOLD 3.0
@@ -10,6 +13,63 @@
 
 namespace Turbo
 {
+    static std::filesystem::path s_CacheDirectory = "Resources/Cache/FontAtlases";
+
+    struct AtlasHeader
+    {
+        u32 Type = 0;
+        u32 Width, Height;
+    };
+
+    static bool TryReadFontAtlasFromCache(const std::string& fontName, f32 fontSize, AtlasHeader& header, void*& pixels, Buffer& storageBuffer)
+    {
+        std::string filename = fmt::format("{0}-{1}.tfa", fontName, fontSize);
+        std::filesystem::path filepath = s_CacheDirectory / filename;
+
+        if (std::filesystem::exists(filepath))
+        {
+            storageBuffer = FileSystem::ReadBinary(filepath);
+            header = *storageBuffer.As<AtlasHeader>();
+            pixels = (u8*)storageBuffer.Data + sizeof(AtlasHeader);
+            return true;
+        }
+        return false;
+    }
+
+    static Ref<Texture2D> CreateCachedAtlas(AtlasHeader header, const void* pixels)
+    {
+        Texture2D::Config config = {};
+        config.Width = header.Width;
+        config.Height = header.Height;
+        config.Format = Image2D::Format_RGBA32F;
+
+        Ref<Texture2D> texture = Texture2D::Create(config);
+        texture->SetData(pixels);
+
+        return texture;
+    }
+
+    static void CacheFontAtlas(const std::string& fontName, f32 fontSize, AtlasHeader header, const void* pixels)
+    {
+        std::filesystem::path cacheDirectory = "Resources/Cache/FontAtlases";
+        if (!std::filesystem::exists(s_CacheDirectory))
+            std::filesystem::create_directories(s_CacheDirectory);
+
+        std::string filename = fmt::format("{0}-{1}.tfa", fontName, fontSize);
+        std::filesystem::path filepath = cacheDirectory / filename;
+
+        std::ofstream stream(filepath, std::ios::binary | std::ios::trunc);
+        if (!stream)
+        {
+            stream.close();
+            TBO_ENGINE_ERROR("Failed to cache font atlas to {0}", filepath.string());
+            return;
+        }
+
+        stream.write((char*)&header, sizeof(AtlasHeader));
+        stream.write((char*)pixels, header.Width * header.Height * sizeof(f32) * 4);
+    }
+
     template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
     static Ref<Texture2D> CreateAndCacheAtlas(const std::string& fontName, f32 fontSize, const std::vector<msdf_atlas::GlyphGeometry>& glyphs,
         const msdf_atlas::FontGeometry& fontGeometry, u32 width, u32 height)
@@ -24,11 +84,14 @@ namespace Turbo
         generator.generate(glyphs.data(), (int)glyphs.size());
 
         msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>)generator.atlasStorage();
+        AtlasHeader header;
+        header.Width = bitmap.width;
+        header.Height = bitmap.height;
+        CacheFontAtlas(fontName, fontSize, header, bitmap.pixels);
 
         Texture2D::Config config = {};
         config.Width = bitmap.width;
         config.Height = bitmap.height;
-        config.Format = Image2D::Format_RGBA_SRGB;
 
         Ref<Texture2D> texture = Texture2D::Create(config);
         texture->SetData(bitmap.pixels);
@@ -104,9 +167,25 @@ namespace Turbo
             }
         }
 
-        TBO_ENGINE_INFO("Generating texture font atlas...");
-        m_AtlasTexture = CreateAndCacheAtlas<u8, f32, 4, msdf_atlas::mtsdfGenerator>("Test", (f32)emSize, m_Data->Glyphs, m_Data->FontGeometry, width, height);
-        TBO_ENGINE_INFO("Generated texture font atlas!");
+        std::string fontName = filepath.filename().string();
+#if TODO_TEXTURES
+        Buffer storageBuffer;
+        AtlasHeader header;
+        void* pixels;
+        if (TryReadFontAtlasFromCache(fontName, (f32)emSize, header, pixels, storageBuffer))
+        {
+            m_AtlasTexture = CreateCachedAtlas(header, pixels);
+            storageBuffer.Release();
+
+            TBO_ENGINE_INFO("Successfully loaded texture atlas!");
+        }
+        else
+#endif
+        {
+            TBO_ENGINE_INFO("Generating texture font atlas...");
+            m_AtlasTexture = CreateAndCacheAtlas<u8, f32, 4, msdf_atlas::mtsdfGenerator>(fontName, (f32)emSize, m_Data->Glyphs, m_Data->FontGeometry, width, height);
+            TBO_ENGINE_INFO("Generated texture font atlas!");
+        }
 #if 0
         msdfgen::Shape shape;
         if (msdfgen::loadGlyph(shape, font, 'C'))
@@ -138,7 +217,7 @@ namespace Turbo
 
         if (!s_DefaultFont)
         {
-            s_DefaultFont = Ref<Font>::Create("Assets\\Fonts\\OpenSans\\OpenSans-Regular.ttf");
+            s_DefaultFont = Ref<Font>::Create("Assets/Fonts/OpenSans/OpenSans-Regular.ttf");
         }
 
         return s_DefaultFont;

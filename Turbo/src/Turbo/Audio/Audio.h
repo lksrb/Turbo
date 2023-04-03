@@ -27,7 +27,11 @@ namespace Turbo
         static void OnRuntimeStart(Scene* context);
         static void OnRuntimeStop();
 
-        static void PlayAudioClip(const Ref<AudioClip>& audioClip);
+        static void Play(const Ref<AudioClip>& audioClip, bool loop);
+        static void StopAndClear(const Ref<AudioClip>& audioClip);
+        static void Pause(const Ref<AudioClip>& audioClip);
+
+        static void SetGain(const Ref<AudioClip>& audioClip, f32 gain);
 
         static Ref<AudioClip> CreateAndRegisterClip(const std::string& filepath);
 
