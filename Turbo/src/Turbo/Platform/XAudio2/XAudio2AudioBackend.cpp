@@ -4,7 +4,33 @@
 #include "Turbo/Audio/AudioFile.h"
 
 #define TBO_XA2_CHECK(x) do { HRESULT hr = (x); TBO_ENGINE_ASSERT(hr == S_OK);  } while(0)
-#define CEAL_MAX_CHANNELS 8
+
+#define LEFT_AZIMUTH            3 * X3DAUDIO_PI / 2
+#define RIGHT_AZIMUTH           X3DAUDIO_PI / 2
+#define FRONT_LEFT_AZIMUTH      7 * X3DAUDIO_PI / 4
+#define FRONT_RIGHT_AZIMUTH     X3DAUDIO_PI / 4
+#define FRONT_CENTER_AZIMUTH    0.0f
+#define LOW_FREQUENCY_AZIMUTH   X3DAUDIO_2PI
+#define BACK_LEFT_AZIMUTH       5 * X3DAUDIO_PI / 4
+#define BACK_RIGHT_AZIMUTH      3 * X3DAUDIO_PI / 4
+#define BACK_CENTER_AZIMUTH     X3DAUDIO_PI
+
+static const float s_ChannelAzimuths[9][8] =
+{
+    /* 0 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+    /* 1 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+    /* 2 */   { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f },
+    /* 2.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, LOW_FREQUENCY_AZIMUTH, 0.f, 0.f, 0.f, 0.f, 0.f },
+    /* 4.0 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f, 0.f, 0.f },
+    /* 4.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f, 0.f },
+    /* 5.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f },
+    /* 6.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, BACK_CENTER_AZIMUTH, 0.f },
+    /* 7.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, LEFT_AZIMUTH, RIGHT_AZIMUTH }
+};
+
+
+#define TBO_CHOOSE_CHANNEL_AZIMUTHS(x) const_cast<f32*>(s_ChannelAzimuths[x])
+#define TBO_MAX_CHANNELS 8
 
 namespace Turbo
 {
@@ -135,14 +161,14 @@ namespace Turbo
 
     void XAudio2AudioBackend::CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
     {
-        f32 outputMatrix[CEAL_MAX_CHANNELS * CEAL_MAX_CHANNELS]{ 1.0f };
+        f32 outputMatrix[TBO_MAX_CHANNELS * TBO_MAX_CHANNELS]{ 1.0f };
 
-        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
+      /*  auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
 
         XAUDIO2_VOICE_DETAILS details;
-        sourceVoice->GetVoiceDetails(&details);
-        uint32_t sourceInputChannels = details.InputChannels;
-        uint32_t masterInputChannels = m_Details.InputChannels;
+        sourceVoice->GetVoiceDetails(&details);*/
+        uint32_t sourceInputChannels = 2;
+        uint32_t masterInputChannels = m_MasteringVoiceDetails.InputChannels;
 
         X3DAUDIO_EMITTER sourceEmitter;
         sourceEmitter.pCone = (X3DAUDIO_CONE*)&X3DAudioDefault_DirectionalCone; // Default cone 
@@ -159,12 +185,12 @@ namespace Turbo
         sourceEmitter.Velocity.z = velocity.z;
 
         // Set orientation
-        sourceEmitter.OrientTop.x = {};
-        sourceEmitter.OrientTop.y = {};
-        sourceEmitter.OrientTop.z = {};
-        sourceEmitter.OrientFront.x = {};
-        sourceEmitter.OrientFront.y = {};
-        sourceEmitter.OrientFront.z = {};
+        sourceEmitter.OrientTop.x = 0;
+        sourceEmitter.OrientTop.y = 1;
+        sourceEmitter.OrientTop.z = 0;
+        sourceEmitter.OrientFront.x = 1;
+        sourceEmitter.OrientFront.y = 0;
+        sourceEmitter.OrientFront.z = 0;
 
         // Other parameters
         sourceEmitter.InnerRadius = 1.0f;
@@ -178,9 +204,10 @@ namespace Turbo
         sourceEmitter.pReverbCurve = NULL;
         sourceEmitter.CurveDistanceScaler = 1.0f;
         sourceEmitter.DopplerScaler = 0.0f;
+        sourceEmitter.pChannelAzimuths = TBO_CHOOSE_CHANNEL_AZIMUTHS(sourceInputChannels);
 
         // DSP Settings
-        X3DAUDIO_DSP_SETTINGS dspSettings{};
+        X3DAUDIO_DSP_SETTINGS dspSettings = {};
         dspSettings.SrcChannelCount = sourceInputChannels;
         dspSettings.DstChannelCount = masterInputChannels;
         dspSettings.pMatrixCoefficients = outputMatrix;

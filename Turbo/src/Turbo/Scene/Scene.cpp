@@ -241,10 +241,11 @@ namespace Turbo
         // Audio listener exists
         if (audioListenerEntity)
         {
-            // Updates audio listener positions for 3D spacial calculation
-
             auto& transform = audioListenerEntity.Transform();
-            Audio::UpdateAudioListener(transform.Translation, transform.Rotation, transform.Scale);
+            glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
+
+            // Updates audio listener positions for 3D spacial calculation
+            Audio::UpdateAudioListener(transform.Translation, transform.Rotation, velocity);
 
             auto& view = GetAllEntitiesWith<TransformComponent, AudioSourceComponent>();
 
@@ -263,7 +264,7 @@ namespace Turbo
                         const auto& linearVelocity = body->GetLinearVelocity();
 
                         // 2D velocity
-                        velocity = { linearVelocity.x, linearVelocity.x, 0.0f };
+                        velocity = { linearVelocity.x, linearVelocity.y, 0.0f };
                     }
 
                     Audio::CalculateSpatial(audioSourceComponent.Clip, transform.Translation, transform.Rotation, velocity);

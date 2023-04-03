@@ -32,12 +32,12 @@ namespace Turbo
 
     void Audio::OnRuntimeStart(Scene* context)
     {
-
+        s_Data.Context = context;
     }
 
     void Audio::OnRuntimeStop()
     {
-
+        s_Data.Context = nullptr;
     }
 
     void Audio::UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)

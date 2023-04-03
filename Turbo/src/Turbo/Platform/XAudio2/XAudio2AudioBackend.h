@@ -86,7 +86,6 @@ namespace Turbo
         DWORD m_ChannelMask;
         XAUDIO2_VOICE_DETAILS m_MasteringVoiceDetails;
         IXAudio2MasteringVoice* m_XMasterVoice = nullptr;
-        XAUDIO2_VOICE_DETAILS m_Details;
 
         X3DAUDIO_HANDLE m_X3DInstance;
 

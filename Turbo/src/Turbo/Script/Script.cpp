@@ -156,28 +156,38 @@ namespace Turbo
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID uuid = id.ID;
 
-        Ref<ScriptClass> script_class = g_Data->ScriptClasses.at(script.ClassName);
+        bool isValidClassName = ScriptClassExists(script.ClassName);
 
-        Ref<ScriptInstance>& instance = g_Data->ScriptInstances[uuid];
-        instance = Ref<ScriptInstance>::Create(script_class, uuid);
-
-        // Copy fields
-        if (g_Data->EntityScriptFieldInstances.find(uuid) != g_Data->EntityScriptFieldInstances.end())
+        if (isValidClassName)
         {
-            const ScriptFieldInstanceMap& fieldMap = g_Data->EntityScriptFieldInstances.at(uuid);
-            for (const auto& [name, fieldInstance] : fieldMap)
-            {
-                instance->SetFieldValueInternal(name, fieldInstance.Buffer);
-            }
-        }
+            Ref<ScriptClass> script_class = g_Data->ScriptClasses.at(script.ClassName);
 
-        instance->InvokeOnStart();
+            Ref<ScriptInstance>& instance = g_Data->ScriptInstances[uuid];
+            instance = Ref<ScriptInstance>::Create(script_class, uuid);
+
+            // Copy fields
+            if (g_Data->EntityScriptFieldInstances.find(uuid) != g_Data->EntityScriptFieldInstances.end())
+            {
+                const ScriptFieldInstanceMap& fieldMap = g_Data->EntityScriptFieldInstances.at(uuid);
+                for (const auto& [name, fieldInstance] : fieldMap)
+                {
+                    instance->SetFieldValueInternal(name, fieldInstance.Buffer);
+                }
+            }
+
+            instance->InvokeOnStart();
+        }
     }
 
     void Script::InvokeEntityOnUpdate(Entity entity, FTime ts)
     {
-        auto& id = entity.GetComponents<IDComponent>();
-        g_Data->ScriptInstances.at(id.ID)->InvokeOnUpdate(ts);
+        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        bool isValidClassName = ScriptClassExists(script.ClassName);
+
+        if (isValidClassName)
+        {
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnUpdate(ts);
+        }
     }
 
     Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)
