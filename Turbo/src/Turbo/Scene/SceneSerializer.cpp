@@ -326,55 +326,58 @@ namespace Turbo
             auto& script_component = entity.GetComponent<ScriptComponent>();
             out << YAML::Key << "ClassName" << YAML::Value << script_component.ClassName;
 
-            Ref<ScriptClass> script_class = Script::FindEntityClass(script_component.ClassName);
-            const auto& fields = script_class->GetFields();
-            if (fields.size() > 0)
+            Ref<ScriptClass> scriptClass = Script::FindEntityClass(script_component.ClassName);
+            if (scriptClass)
             {
-                // Fields
-                out << YAML::Key << "Fields" << YAML::Value;
-                out << YAML::BeginSeq;
-
-                // Cached fields values
-                auto& cached_fields = Script::GetEntityFieldMap(uuid);
-
-                for (const auto& [name, field] : fields)
+                const auto& fields = scriptClass->GetFields();
+                if (fields.size() > 0)
                 {
-                    if (cached_fields.find(name) == cached_fields.end())
-                        continue;
+                    // Fields
+                    out << YAML::Key << "Fields" << YAML::Value;
+                    out << YAML::BeginSeq;
 
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "Name" << YAML::Value << name;
-                    out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(field.Type);
+                    // Cached fields values
+                    auto& cached_fields = Script::GetEntityFieldMap(uuid);
 
-                    out << YAML::Key << "Data" << YAML::Value;
-                    const ScriptFieldInstance& scriptField = cached_fields.at(name);
-
-                    switch (field.Type)
+                    for (const auto& [name, field] : fields)
                     {
-                        WRITE_SCRIPT_FIELD(Float, f32);
-                        WRITE_SCRIPT_FIELD(Double, f64);
-                        WRITE_SCRIPT_FIELD(Bool, bool);
-                        WRITE_SCRIPT_FIELD(Char, char);
-                        WRITE_SCRIPT_FIELD(Byte, i8);
-                        WRITE_SCRIPT_FIELD(Short, i16);
-                        WRITE_SCRIPT_FIELD(Int, i32);
-                        WRITE_SCRIPT_FIELD(Long, i64);
-                        WRITE_SCRIPT_FIELD(UByte, u32); // NOTE: Encoding as unsigned integer cause YAML's weird formatting for unsigned chars
-                        WRITE_SCRIPT_FIELD(UShort, u16);
-                        WRITE_SCRIPT_FIELD(UInt, u32);
-                        WRITE_SCRIPT_FIELD(ULong, u64);
-                        WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
-                        WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
-                        WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
-                        WRITE_SCRIPT_FIELD(Entity, UUID);
+                        if (cached_fields.find(name) == cached_fields.end())
+                            continue;
+
+                        out << YAML::BeginMap;
+                        out << YAML::Key << "Name" << YAML::Value << name;
+                        out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(field.Type);
+
+                        out << YAML::Key << "Data" << YAML::Value;
+                        const ScriptFieldInstance& scriptField = cached_fields.at(name);
+
+                        switch (field.Type)
+                        {
+                            WRITE_SCRIPT_FIELD(Float, f32);
+                            WRITE_SCRIPT_FIELD(Double, f64);
+                            WRITE_SCRIPT_FIELD(Bool, bool);
+                            WRITE_SCRIPT_FIELD(Char, char);
+                            WRITE_SCRIPT_FIELD(Byte, i8);
+                            WRITE_SCRIPT_FIELD(Short, i16);
+                            WRITE_SCRIPT_FIELD(Int, i32);
+                            WRITE_SCRIPT_FIELD(Long, i64);
+                            WRITE_SCRIPT_FIELD(UByte, u32); // NOTE: Encoding as unsigned integer cause YAML's weird formatting for unsigned chars
+                            WRITE_SCRIPT_FIELD(UShort, u16);
+                            WRITE_SCRIPT_FIELD(UInt, u32);
+                            WRITE_SCRIPT_FIELD(ULong, u64);
+                            WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
+                            WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
+                            WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
+                            WRITE_SCRIPT_FIELD(Entity, UUID);
+                        }
+
+                        out << YAML::EndMap;
+
                     }
 
-                    out << YAML::EndMap;
-
+                    // Field
+                    out << YAML::EndSeq;
                 }
-
-                // Field
-                out << YAML::EndSeq;
             }
             // ScriptComponent
             out << YAML::EndMap;

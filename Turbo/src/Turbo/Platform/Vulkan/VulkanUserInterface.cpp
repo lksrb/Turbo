@@ -227,7 +227,7 @@ namespace Turbo
 #pragma endregion
 
 #ifdef TBO_PLATFORM_WIN32
-    static int ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface)
+    static int ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewport, ImU64 vkInstance, const void* vk_allocator, ImU64* out_vk_surface)
     {
         ImGuiIO& io = ImGui::GetIO();
         VkWin32SurfaceCreateInfoKHR createInfo{};
@@ -235,7 +235,7 @@ namespace Turbo
         createInfo.hinstance = ::GetModuleHandle(NULL);
         createInfo.hwnd = (HWND)viewport->PlatformHandleRaw;
 
-        VkResult err = vkCreateWin32SurfaceKHR((VkInstance)vk_instance, &createInfo, (const VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
+        VkResult err = vkCreateWin32SurfaceKHR((VkInstance)vkInstance, &createInfo, (const VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
         return err;
         return -1;
     }
@@ -296,7 +296,7 @@ namespace Turbo
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
         // Allocate descriptor pool
-        VkDescriptorPoolSize pool_sizes[] =
+        VkDescriptorPoolSize poolSizes[] =
         {
             { VK_DESCRIPTOR_TYPE_SAMPLER, 100 },
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100 },
@@ -314,9 +314,9 @@ namespace Turbo
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-        pool_info.maxSets = 100 * IM_ARRAYSIZE(pool_sizes);
-        pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
-        pool_info.pPoolSizes = pool_sizes;
+        pool_info.maxSets = 100 * IM_ARRAYSIZE(poolSizes);
+        pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(poolSizes);
+        pool_info.pPoolSizes = poolSizes;
         TBO_VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool));
 #ifdef TBO_PLATFORM_WIN32
         Win32_Window* window = dynamic_cast<Win32_Window*>(viewport_window);
@@ -326,24 +326,24 @@ namespace Turbo
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
         platform_io.Platform_CreateVkSurface = ImGui_ImplWin32_CreateVkSurface;
 
-        ImGui_ImplVulkan_InitInfo init_info = {};
-        init_info.Instance = RendererContext::GetInstance();
-        init_info.PhysicalDevice = RendererContext::GetPhysicalDevice();
-        init_info.Device = RendererContext::GetDevice();
-        init_info.QueueFamily = RendererContext::GetQueueFamilyIndices().GraphicsFamily.value();
-        init_info.Queue = RendererContext::GetGraphicsQueue();
-        init_info.PipelineCache = nullptr;
-        init_info.DescriptorPool = m_DescriptorPool;
-        init_info.Subpass = 0;
-        init_info.MinImageCount = framesInFlight; // Swapchain image count
-        init_info.ImageCount = framesInFlight; // Swapchain image count
-        init_info.Allocator = nullptr;
-        init_info.CheckVkResultFn = CheckVkResult;
+        ImGui_ImplVulkan_InitInfo initInfo = {};
+        initInfo.Instance = RendererContext::GetInstance();
+        initInfo.PhysicalDevice = RendererContext::GetPhysicalDevice();
+        initInfo.Device = RendererContext::GetDevice();
+        initInfo.QueueFamily = RendererContext::GetQueueFamilyIndices().GraphicsFamily.value();
+        initInfo.Queue = RendererContext::GetGraphicsQueue();
+        initInfo.PipelineCache = nullptr;
+        initInfo.DescriptorPool = m_DescriptorPool;
+        initInfo.Subpass = 0;
+        initInfo.MinImageCount = framesInFlight; // Swapchain image count
+        initInfo.ImageCount = framesInFlight; // Swapchain image count
+        initInfo.Allocator = nullptr;
+        initInfo.CheckVkResultFn = CheckVkResult;
 
         Ref<VulkanSwapChain> swapchain = viewport_window->GetSwapchain().As<VulkanSwapChain>();
         VkRenderPass renderPass = swapchain->GetRenderPass();
 
-        ImGui_ImplVulkan_Init(&init_info, renderPass);
+        ImGui_ImplVulkan_Init(&initInfo, renderPass);
 
         // Submits and wait till the command buffer is finished
         RendererContext::ImmediateSubmit([](VkCommandBuffer commandBuffer)
@@ -419,8 +419,8 @@ namespace Turbo
                     VkViewport viewport = {};
                     viewport.x = 0.0f;
                     viewport.y = 0.0f;
-                    viewport.width = (float)width;
-                    viewport.height = -(float)height;
+                    viewport.width = (f32)width;
+                    viewport.height = -(f32)height;
                     viewport.minDepth = 0.0f;
                     viewport.maxDepth = 1.0f;
                     vkCmdSetViewport(m_SecondaryBuffers[current_frame], 0, 1, &viewport);

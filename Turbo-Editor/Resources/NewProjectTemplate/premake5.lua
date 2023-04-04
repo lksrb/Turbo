@@ -1,8 +1,6 @@
 
-local TurboRootDirectory = "../../"
-
-workspace "SandboxProject"
-    startproject "SandboxProject"
+workspace "%PROJECT_NAME%"
+    startproject "%PROJECT_NAME%"
 	configurations {
 	    "Debug",
 		"Release",
@@ -10,16 +8,16 @@ workspace "SandboxProject"
 
 group "Turbo"
 project "Turbo-ScriptCore"
-    location "../../Turbo-ScriptCore"
+    location "%TURBO_PATH%/Turbo-ScriptCore"
     language "C#"
 	kind "SharedLib"
 	dotnetframework "4.7.2"
 
-	targetdir ("../../Turbo-Editor/Resources/Scripts")
-	objdir ("../../Turbo-Editor/Resources/Scripts/Intermediates")
+	targetdir ("%TURBO_PATH%/Turbo-Editor/Resources/Scripts")
+	objdir ("%TURBO_PATH%/Turbo-Editor/Resources/Scripts/Intermediates")
 
     files {
-        "../../Turbo-ScriptCore/Source/**.cs"
+        "%TURBO_PATH%/Turbo-ScriptCore/Source/**.cs"
     }
 
     filter "system:windows"
@@ -34,7 +32,7 @@ project "Turbo-ScriptCore"
         symbols "Default"
 
 group ""
-project "SandboxProject"
+project "%PROJECT_NAME%"
     location "Assets/Scripts"
     language "C#"
 	kind "SharedLib"
@@ -43,13 +41,10 @@ project "SandboxProject"
 	targetdir ("%{wks.location}/Binaries")
 	objdir ("%{wks.location}/Binaries/Intermediates")
 
-    -- FIXME: For some reason this does not work
-    vpaths { ["Source"] = "Assets/Scripts/**.cs" }
-    
     files {
         "Assets/Scripts/**.cs"
     }
-    
+
     links {
         "Turbo-ScriptCore"
     }

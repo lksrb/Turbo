@@ -32,13 +32,13 @@ namespace Turbo
         }
     }
 
-    void FileWatcher::Watch(const std::filesystem::path& watch_path)
+    void FileWatcher::Watch(const std::filesystem::path& watchPath)
     {
         TBO_ENGINE_ASSERT(!m_IsWatching, "FileWatcher is already watching!");
         TBO_ENGINE_ASSERT(m_OnDirChangedCallback, "Callback is not set!");
 
         // Set watch path
-        m_WatchPath = watch_path;
+        m_WatchPath = watchPath;
 
         // Get file handle
         m_FileHandle = ::CreateFile(m_WatchPath.wstring().c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, NULL);

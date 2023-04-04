@@ -21,6 +21,7 @@ namespace Sandbox
 		public Vector3 m_Vector3;
 		public Vector4 m_Vector4;
 
+		// TODO: Virtual paths for Visual Studio
 		void OnStart()
 		{
 			Log.Info($"Entity ID: {ID}!");
@@ -44,22 +45,22 @@ namespace Sandbox
 			if (!m_Bool)
 				return;
 
-			if (Input.IsKeyPressed(KeyCode.Up))
+			if (Input.IsKeyPressed(KeyCode.W))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Up * m_Float * ts);
 			}
 
-			if (Input.IsKeyPressed(KeyCode.Down))
+			if (Input.IsKeyPressed(KeyCode.S))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Up * -m_Float * ts);
 			}
 
-			if (Input.IsKeyPressed(KeyCode.Left))
+			if (Input.IsKeyPressed(KeyCode.A))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Right * -m_Float * ts);
 			}
 
-			if (Input.IsKeyPressed(KeyCode.Right))
+			if (Input.IsKeyPressed(KeyCode.D))
 			{
 				m_Rigidbody.ApplyLinearImpulse(Vector2.Right * m_Float * ts);
 			}

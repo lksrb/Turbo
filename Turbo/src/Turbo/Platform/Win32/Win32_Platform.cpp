@@ -165,15 +165,20 @@ namespace Turbo
         return selected_path;
     }
 
-    bool Platform::Execute(const std::string& app_name, const std::string& args)
+    bool Platform::Execute(const std::string& appName, const std::string& args, const std::string& currentPath, bool wait)
     {
         STARTUPINFOA si = {};
         si.cb = sizeof(si);
+
+        LPCSTR currentDirectory = NULL;
+        if(!currentPath.empty())
+            currentDirectory = currentPath.c_str();
+
         PROCESS_INFORMATION pi = {};
 
         CHAR szCmd[MAX_PATH] = { 0 };
-        strcat_s(szCmd, "cmd.exe /C start ");
-        strcat_s(szCmd, app_name.c_str());
+        //strcat_s(szCmd, "cmd.exe /C start ");
+        strcat_s(szCmd, appName.c_str());
         strcat_s(szCmd, " ");
         strcat_s(szCmd, args.c_str());
         // Start the child process. 
@@ -184,7 +189,7 @@ namespace Turbo
             FALSE,          // Set handle inheritance to FALSE
             0,              // No creation flags
             NULL,           // Use parent's environment block
-            NULL,           // Use parent's starting directory 
+            currentDirectory,           // Use parent's starting directory 
             &si,            // Pointer to STARTUPINFO structure
             &pi)           // Pointer to PROCESS_INFORMATION structure
             )
@@ -194,7 +199,8 @@ namespace Turbo
         }
 
         // Wait until child process exits.
-        WaitForSingleObject(pi.hProcess, INFINITE);
+        if(wait)
+            WaitForSingleObject(pi.hProcess, INFINITE); // Infinite is too much
 
         // Close process and thread handles. 
         CloseHandle(pi.hProcess);
@@ -202,5 +208,4 @@ namespace Turbo
 
         return true;
     }
-
 }

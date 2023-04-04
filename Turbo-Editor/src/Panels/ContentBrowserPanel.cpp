@@ -45,6 +45,10 @@ namespace Turbo::Ed
         {
             const auto& path = directoryEntry.path();
 
+            // Filter
+            if(path.extension() == ".csproj") 
+                continue;
+
             const auto& relativePath = std::filesystem::relative(path, m_BasePath.c_str());
             const std::string& filenameString = relativePath.filename().string();
 

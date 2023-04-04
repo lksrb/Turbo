@@ -2,3 +2,4 @@ Project: SandboxProject
 AssetsDirectory: Assets
 StartScene: Scenes\StartScene.tscene
 ScriptModulePath: Binaries\SandboxProject.dll
+OpenSolutionOnStart: false

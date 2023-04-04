@@ -20,9 +20,29 @@
 #include <ImGuizmo.h>
 
 #include <filesystem>
+#include <sstream>
 
 namespace Turbo::Ed
 {
+    namespace Utils
+    {
+        static void FindAndReplace(std::string& content, const char* oldText, std::string newText)
+        {
+            std::replace(newText.begin(), newText.end(), '\\', '/');
+            size_t pos = 0;
+            while ((pos = content.find(oldText, pos)) != std::string::npos)
+            {
+                content.replace(pos, strlen(oldText), newText);
+                pos += strlen(oldText);
+            }
+        }
+
+        static void FindAndReplace(std::string& content, const char* oldText, const std::filesystem::path& newText)
+        {
+            FindAndReplace(content, oldText, newText.string());
+        }
+    }
+    
     Editor::Editor(const Application::Config& config)
         : Application(config), m_ViewportWidth(config.Width), m_ViewportHeight(config.Height)
     {
@@ -370,10 +390,18 @@ namespace Turbo::Ed
 
             if (ImGui::BeginMenu("Project"))
             {
+                auto& config = Project::GetActive()->GetConfig();
+
                 if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::SceneEdit))
                 {
                     Script::ReloadAssemblies();
                 }
+
+                if (ImGui::MenuItem("Open solution on start", nullptr, config.OpenSolutionOnStart))
+                {
+                    Project::SetOpenSolutionOnStart(!config.OpenSolutionOnStart);
+                }
+
                 ImGui::EndMenu();
             }
 
@@ -537,68 +565,82 @@ namespace Turbo::Ed
         return false;
     }
 
-    void Editor::CreateProject(const std::filesystem::path& project_path)
+    void Editor::CreateProject(std::filesystem::path projectPath)
     {
-        // Create project config
-        Project::Config config;
-        config.AssetsDirectory = "Assets";
-        config.Name = project_path.stem().string();
-        config.ProjectDirectory = project_path;
-        config.StartScenePath = "Scenes\\StartScene.tscene";
+        // Create and recursively copy template project
+        std::filesystem::copy("Resources/NewProjectTemplate", projectPath, std::filesystem::copy_options::recursive);
 
-        // Set scene path
-        m_EditorScenePath = config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath;
+        std::filesystem::path turboWorkspace = m_CurrentPath.parent_path();
+        std::filesystem::path configFile = projectPath / projectPath.stem().concat(".tproject");
 
-        // Create directories
-        std::filesystem::create_directory(project_path);
-        std::filesystem::create_directory(project_path / config.AssetsDirectory);
-        std::filesystem::create_directory(project_path / config.AssetsDirectory / "Scenes");
+        // TODO: Make this more dynamic
 
-        // TODO: Templates
-        Ref<Project> project = Ref<Project>::Create(config);
-        Project::SetActive(project);
-
+        // Format Premake5 
         {
-            ProjectSerializer serializer(project);
-            TBO_ASSERT(serializer.Serialize(Project::GetProjectConfigPath()));
+            std::ifstream inStream(projectPath / "premake5.lua");
+            TBO_ENGINE_ASSERT(inStream);
+            std::stringstream ss;
+            ss << inStream.rdbuf();
+            inStream.close();
+
+            std::string content = ss.str();
+            Utils::FindAndReplace(content, "%PROJECT_NAME%", projectPath.stem());
+            Utils::FindAndReplace(content, "%TURBO_PATH%", turboWorkspace);
+            
+            std::ofstream outStream(projectPath / "premake5.lua");
+            TBO_ENGINE_ASSERT(outStream);
+            outStream << content;
+            outStream.close();
         }
 
-        Ref<Scene> scene = Ref<Scene>::Create();
+        // Format .tproject file
         {
-            Entity sprite = scene->CreateEntity("Sprite");
-            sprite.AddComponent<SpriteRendererComponent>().Color = { 0.8f, 0.1f, 0.2f, 1.0 };
-            sprite.AddComponent<Rigidbody2DComponent>();
-            sprite.AddComponent<BoxCollider2DComponent>();
+            std::ifstream inStream(projectPath / "NewProjectTemplate.tproject");
+            TBO_ENGINE_ASSERT(inStream);
+            std::stringstream ss;
+            ss << inStream.rdbuf();
+            inStream.close();
+
+            std::filesystem::remove(projectPath / "NewProjectTemplate.tproject");
+
+            std::string content = ss.str();
+            Utils::FindAndReplace(content, "%PROJECT_NAME%", projectPath.stem());
+
+            std::ofstream outStream(configFile);
+            TBO_ENGINE_ASSERT(outStream);
+            outStream << content;
+            outStream.close();
         }
 
+        // Format StartScript.cs file
         {
-            Entity ground = scene->CreateEntity("Ground");
-            ground.Transform().Translation.y = -2.0f;
-            ground.Transform().Scale.y = 0.5f;
-            ground.Transform().Scale.x = 5.0f;
-            ground.AddComponent<SpriteRendererComponent>().Color = { 0.2f, 0.8f, 0.1f, 1.0 };
-            ground.AddComponent<Rigidbody2DComponent>();
-            ground.AddComponent<BoxCollider2DComponent>();
-        }
-        {
-            Entity camera = scene->CreateEntity("Camera");
-            camera.AddComponent<CameraComponent>();
-        }
-        SceneSerializer serializer(scene);
-        TBO_ASSERT(serializer.Serialize(m_EditorScenePath))
+            std::ifstream inStream(projectPath / "Assets/Scripts/ExampleEntity.cs");
+            TBO_ENGINE_ASSERT(inStream);
+            std::stringstream ss;
+            ss << inStream.rdbuf();
+            inStream.close();
 
-            // ... and open project
-            OpenProject(Project::GetProjectConfigPath());
+            std::string content = ss.str();
+            Utils::FindAndReplace(content, "%PROJECT_NAME%", projectPath.stem());
+
+            std::ofstream outStream(projectPath / "Assets/Scripts/ExampleEntity.cs");
+            TBO_ENGINE_ASSERT(outStream);
+            outStream << content;
+            outStream.close();
+        }
+
+        // Open copied template project
+        OpenProject(configFile);
     }
 
-    void Editor::OpenProject(std::filesystem::path project_path)
+    void Editor::OpenProject(std::filesystem::path configFilePath)
     {
         // Opens platform specific 
-        if (project_path.empty())
+        if (configFilePath.empty())
         {
-            project_path = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
+            configFilePath = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
 
-            if (project_path.empty())
+            if (configFilePath.empty())
                 return;
         }
 
@@ -606,21 +648,45 @@ namespace Turbo::Ed
         Ref<Project> project = Ref<Project>::Create();
         {
             ProjectSerializer serializer(project);
-            TBO_ASSERT(serializer.Deserialize(project_path));
+            TBO_ASSERT(serializer.Deserialize(configFilePath));
             TBO_INFO("Project loaded successfully!"); // TODO: TBO_VERIFY -> Prints when it successeds
 
             // Set it as new active project
             Project::SetActive(project);
 
         }
+        std::filesystem::path projectPath = configFilePath.parent_path();
 
         const auto& config = project->GetConfig();
+        std::filesystem::path pathToBatchFile = projectPath / "Win32-GenerateSolution.bat";
+
+        std::string solutionFile = configFilePath.stem().string();
+
+        // Auto-open solution when 
+        std::string args = config.OpenSolutionOnStart ? fmt::format("{}.sln {}", solutionFile, "Debug") : "";
+
+        // TODO: Whole loading situation
+
+        // Open Visual Studio
+        Platform::Execute(pathToBatchFile.string(), args, projectPath.string());
 
         // All panels receive this event
         m_PanelManager->OnProjectChanged(project);
 
+        //Script::OnProjectChanged();
+
+        auto& assemblyPath = projectPath / project->GetConfig().ScriptModulePath;
+
+        TBO_ENGINE_WARN("Building assemblies...");
+
+        // FIXME: Not ideal, maybe implement loader thread?
+        while (!std::filesystem::exists(assemblyPath))
+        {
+            // Wait for it to build...
+        }
+
         // Load project assembly
-        Script::LoadProjectAssembly(project_path.parent_path() / project->GetConfig().ScriptModulePath);
+        Script::LoadProjectAssembly(assemblyPath);
 
         // Open scene
         OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
@@ -653,7 +719,12 @@ namespace Turbo::Ed
     void Editor::SaveProject()
     {
         SaveScene();
-        // TODO: Save project's configuration
+
+        // Save project
+        auto& active = Project::GetActive();
+        ProjectSerializer serializer(active);
+        TBO_ASSERT(serializer.Serialize(Project::GetProjectConfigPath()));
+        TBO_INFO("Project saved successfully!"); // TODO: TBO_VERIFY -> Prints when it successeds
     }
 
 
@@ -677,12 +748,12 @@ namespace Turbo::Ed
 
     void Editor::OpenScene(const std::filesystem::path& filepath /*= {}*/)
     {
-        std::filesystem::path scene_path = filepath;
+        std::filesystem::path scenePath = filepath;
 
-        if (scene_path.empty())
+        if (scenePath.empty())
         {
-            scene_path = Platform::OpenFileDialog("Open Scene", "Turbo Scene(*.tscene)\0 * .tscene\0");
-            if (scene_path.empty())
+            scenePath = Platform::OpenFileDialog("Open Scene", "Turbo Scene(*.tscene)\0 * .tscene\0");
+            if (scenePath.empty())
                 return; // No scene selected
 
         }
@@ -693,13 +764,13 @@ namespace Turbo::Ed
         m_CurrentScene = m_EditorScene;
 
         SceneSerializer serializer(m_EditorScene);
-        TBO_ASSERT(serializer.Deserialize(scene_path.string()), "Could not deserialize scene!");
+        TBO_ASSERT(serializer.Deserialize(scenePath.string()), "Could not deserialize scene!");
 
         m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         m_PanelManager->SetSceneContext(m_EditorScene);
 
-        m_EditorScenePath = scene_path;
+        m_EditorScenePath = scenePath;
 
         UpdateWindowTitle();
     }
