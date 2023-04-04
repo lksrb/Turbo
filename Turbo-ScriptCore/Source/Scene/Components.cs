@@ -63,6 +63,38 @@ namespace Turbo
 		}
 	}
 
+	// Audio
+	public class AudioSourceComponent : Component
+	{
+		public float Gain
+		{
+			get => InternalCalls.Component_AudioSource_Get_Gain(Entity.ID);
+			set => InternalCalls.Component_AudioSource_Set_Gain(Entity.ID, value);
+		}
+
+		public bool PlayOnStart
+		{
+			get => InternalCalls.Component_AudioSource_Get_PlayOnStart(Entity.ID);
+			set => InternalCalls.Component_AudioSource_Set_PlayOnStart(Entity.ID, value);
+		}
+
+		// Can onlybe changed in OnStart
+		public bool Loop
+		{
+			get => InternalCalls.Component_AudioSource_Get_Loop(Entity.ID);
+			set => InternalCalls.Component_AudioSource_Set_Loop(Entity.ID, value);
+		}
+	}
+
+	public class AudioListenerComponent : Component
+	{
+		public bool IsPrimary
+		{
+			get => InternalCalls.Component_AudioListener_Get_IsPrimary(Entity.ID);
+			set => InternalCalls.Component_AudioListener_Set_IsPrimary(Entity.ID, value);
+		}
+	}
+
 	// Physics
 	public class Rigidbody2DComponent : Component
 	{

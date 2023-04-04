@@ -67,13 +67,13 @@ namespace Turbo
 
     struct AudioListenerComponent
     {
-        bool Primary = true;
+        bool IsPrimary = true;
     };
 
     struct CameraComponent
     {
         SceneCamera Camera;
-        bool Primary = true;
+        bool IsPrimary = true;
         bool FixedAspectRatio = false;
     };
 

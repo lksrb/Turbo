@@ -6,6 +6,7 @@ namespace Sandbox
 	{
 		private Rigidbody2DComponent m_Rigidbody;
 		private SpriteRendererComponent m_SpriteRenderer;
+		private AudioSourceComponent m_AudioSource;
 
 		public float m_Float;
 		public double m_Double;
@@ -33,6 +34,9 @@ namespace Sandbox
 			
 			m_SpriteRenderer = GetComponent<SpriteRendererComponent>();
 			m_SpriteRenderer.Color = new Vector4(1.0f, 0.0f, 1.0f, 1.0f);
+
+			m_AudioSource = GetComponent<AudioSourceComponent>();
+			m_AudioSource.PlayOnStart = true;
 		}
 
 		void OnUpdate(float ts)

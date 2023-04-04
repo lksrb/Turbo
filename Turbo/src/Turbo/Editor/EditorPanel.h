@@ -5,12 +5,9 @@
 
 namespace Turbo
 {
-    class EditorPanel
+    class TBO_NOVTABLE EditorPanel
     {
     public:
-        EditorPanel() = default;
-        virtual ~EditorPanel() = default;
-
         virtual void OnDrawUI() = 0;
         virtual void OnEvent(Event& e) {}
         virtual void OnProjectChanged(const Ref<Project>& project) {}

@@ -363,7 +363,7 @@ namespace Turbo
         {
             auto& camera = component.Camera;
 
-            ImGui::Checkbox("Primary", &component.Primary);
+            ImGui::Checkbox("Primary", &component.IsPrimary);
 
             const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
             const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
@@ -546,7 +546,7 @@ namespace Turbo
 
         Utils::DrawComponent<AudioListenerComponent>("Audio Listener Component", entity, [](auto& component)
         {
-            ImGui::Checkbox("Primary", &component.Primary);
+            ImGui::Checkbox("Primary", &component.IsPrimary);
         });
 
         Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)

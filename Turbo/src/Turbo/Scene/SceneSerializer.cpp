@@ -268,7 +268,7 @@ namespace Turbo
             out << YAML::Key << "OrthographicFar" << YAML::Value << camera.GetOrthographicFarClip();
             out << YAML::EndMap;
 
-            out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
+            out << YAML::Key << "Primary" << YAML::Value << cameraComponent.IsPrimary;
             out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComponent.FixedAspectRatio;
 
             out << YAML::EndMap;
@@ -401,7 +401,7 @@ namespace Turbo
             out << YAML::BeginMap;
 
             auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
-            out << YAML::Key << "Primary" << YAML::Value << audioListenerComponent.Primary;
+            out << YAML::Key << "Primary" << YAML::Value << audioListenerComponent.IsPrimary;
 
             out << YAML::EndMap;
         }
@@ -522,7 +522,7 @@ namespace Turbo
                     cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<f32>());
                     cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<f32>());
 
-                    cc.Primary = cameraComponent["Primary"].as<bool>();
+                    cc.IsPrimary = cameraComponent["Primary"].as<bool>();
                     cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
                 }
 
@@ -632,7 +632,7 @@ namespace Turbo
                 if (audioListenerComponent)
                 {
                     auto& al = deserializedEntity.AddComponent<AudioListenerComponent>();
-                    al.Primary = audioListenerComponent["Primary"].as<bool>();
+                    al.IsPrimary = audioListenerComponent["Primary"].as<bool>();
                 }
 
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

@@ -78,10 +78,42 @@ namespace Turbo
 		#region TextComponent
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_Text_Set_Text(ulong uuid, string text);
+		internal extern static string Component_Text_Get_Text(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static string Component_Text_Get_Text(ulong uuid);
+		internal extern static void Component_Text_Set_Text(ulong uuid, string text);
+
+		#endregion
+
+		#region AudioSourceComponent
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static float Component_AudioSource_Get_Gain(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Component_AudioSource_Set_Gain(ulong uuid, float gain);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_AudioSource_Get_PlayOnStart(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Component_AudioSource_Set_PlayOnStart(ulong uuid, bool playOnStart);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_AudioSource_Get_Loop(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Component_AudioSource_Set_Loop(ulong uuid, bool loop);
+
+		#endregion
+
+		#region AudioListenerComponent
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_AudioListener_Get_IsPrimary(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Component_AudioListener_Set_IsPrimary(ulong uuid, bool isPrimary);
 
 		#endregion
 

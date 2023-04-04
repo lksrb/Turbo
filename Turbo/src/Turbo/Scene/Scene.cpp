@@ -477,7 +477,7 @@ namespace Turbo
         {
             auto& camera = cameraComponentView.get<CameraComponent>(entity);
 
-            if (camera.Primary)
+            if (camera.IsPrimary)
             {
                 m_PrimaryCameraEntity = entity;
 
@@ -495,7 +495,7 @@ namespace Turbo
         {
             auto& audioListenerComponent = view.get<AudioListenerComponent>(entity);
 
-            if (audioListenerComponent.Primary)
+            if (audioListenerComponent.IsPrimary)
             {
                 m_PrimaryAudioListenerEntity = entity;
 

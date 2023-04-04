@@ -17,9 +17,9 @@ namespace Turbo
 {
     extern Script::Data* g_Data;
 
-// =============================================================================
-//                                  Logging                                   
-// =============================================================================
+    // =============================================================================
+    //                                  Logging                                   
+    // =============================================================================
 
     static void Log_String(u32 level, MonoString* string)
     {
@@ -57,9 +57,9 @@ namespace Turbo
         }
     }
 
-// =============================================================================
-//                                  Input                                   
-// =============================================================================
+    // =============================================================================
+    //                                  Input                                   
+    // =============================================================================
 
     static inline bool Input_IsKeyPressed(uint32_t key)
     {
@@ -78,10 +78,10 @@ namespace Turbo
         return Input::IsMouseButtonReleased(key);
     }
 
-// =============================================================================
-//                                  Entity                                   
-// =============================================================================
-    
+    // =============================================================================
+    //                                  Entity                                   
+    // =============================================================================
+
     static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
 
     static u64 Entity_FindEntityByName(MonoString* name)
@@ -115,14 +115,14 @@ namespace Turbo
         return s_EntityHasComponentFuncs.at(component_type)(entity);
     }
 
-// =============================================================================
-//                                  Components                                   
-// =============================================================================
-    #pragma region TransformComponent
+    // =============================================================================
+    //                                  Components                                   
+    // =============================================================================
+#pragma region TransformComponent
 
-    // Translation
-    // Translation
-    // Translation
+// Translation
+// Translation
+// Translation
     static void Component_Transform_Get_Translation(UUID uuid, glm::vec3* outTranslation)
     {
         Scene* context = Script::GetCurrentScene();
@@ -187,9 +187,9 @@ namespace Turbo
         entity.GetComponent<TransformComponent>().Scale = *scale;
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region SpriteRendererComponent
+#pragma region SpriteRendererComponent
 
     static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* out_color)
     {
@@ -210,12 +210,12 @@ namespace Turbo
         entity.GetComponent<SpriteRendererComponent>().Color = *color;
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region CircleRendererComponent_TODO
-    #pragma endregion   
+#pragma region CircleRendererComponent_TODO
+#pragma endregion   
 
-    #pragma region TextComponent
+#pragma region TextComponent
 
     static void Component_Text_Set_Text(u64 uuid, MonoString* monoString)
     {
@@ -242,9 +242,99 @@ namespace Turbo
         MonoString* monoString = mono_string_new(g_Data->AppDomain, text.c_str());
         return monoString;
     }
-    #pragma endregion
+#pragma endregion
 
-    #pragma region RigidBody2DComponent
+#pragma region AudioSourceComponent
+
+    static f32 Component_AudioSource_Get_Gain(u64 uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+        return audioSourceComponent.Gain;
+    }
+
+    static void Component_AudioSource_Set_Gain(u64 uuid, f32 gain)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+        audioSourceComponent.Gain = gain;
+    }
+
+    static bool Component_AudioSource_Get_PlayOnStart(u64 uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+        return audioSourceComponent.PlayOnStart;
+    }
+
+    static void Component_AudioSource_Set_PlayOnStart(u64 uuid, bool playOnStart)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+        audioSourceComponent.PlayOnStart = playOnStart;
+    }
+
+    static bool Component_AudioSource_Get_Loop(u64 uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+        return audioSourceComponent.Loop;
+    }
+
+    static void Component_AudioSource_Set_Loop(u64 uuid, bool loop)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+        audioSourceComponent.Loop = loop;
+    }
+
+#pragma endregion
+
+#pragma region AudioListenerComponent
+
+    static bool Component_AudioListener_Get_IsPrimary(u64 uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
+
+        return audioListenerComponent.IsPrimary;
+    }
+
+    static void Component_AudioListener_Set_IsPrimary(u64 uuid, bool isPrimary)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
+
+        audioListenerComponent.IsPrimary = isPrimary;
+    }
+
+#pragma endregion
+
+#pragma region RigidBody2DComponent
 
     static void Component_Rigidbody2D_ApplyLinearImpulse(UUID uuid, glm::vec2* impulse, glm::vec2* worldPosition, bool wake)
     {
@@ -320,9 +410,9 @@ namespace Turbo
         body->SetType(Utils::Rigidbody2DTypeToBox2DBody(type));
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region BoxCollider2DComponent
+#pragma region BoxCollider2DComponent
 
     // Offset
     static void Component_BoxCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
@@ -375,9 +465,9 @@ namespace Turbo
         return entity.GetComponent<BoxCollider2DComponent>().IsSensor;
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region CircleCollider2DComponent
+#pragma region CircleCollider2DComponent
 
     // Offset
     static void Component_CircleCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
@@ -418,7 +508,7 @@ namespace Turbo
 
         entity.GetComponent<CircleCollider2DComponent>().Radius = *radius;
     }
-    #pragma endregion
+#pragma endregion
 
     void InternalCalls::Init()
     {
@@ -452,6 +542,18 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Text_Set_Text);
         TBO_REGISTER_FUNCTION(Component_Text_Get_Text);
 
+        // Audio Source
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Get_Gain);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Set_Gain);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Get_PlayOnStart);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Set_PlayOnStart);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Set_Loop);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Get_Loop);
+
+        // Audio Listener
+        TBO_REGISTER_FUNCTION(Component_AudioListener_Get_IsPrimary);
+        TBO_REGISTER_FUNCTION(Component_AudioListener_Set_IsPrimary);
+
         // RigidBody2D
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulse);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulseToCenter);
@@ -460,7 +562,7 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_Gravity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_BodyType);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_BodyType);
-        
+
         // BoxCollider2D
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Offset);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Offset);
@@ -477,7 +579,7 @@ namespace Turbo
         // Register components in AllComponents struct
         RegisterComponents();
     }
-    
+
     template<typename... Component>
     static void RegisterComponent(ComponentGroup<Component...>)
     {
