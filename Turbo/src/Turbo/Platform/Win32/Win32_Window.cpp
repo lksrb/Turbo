@@ -90,7 +90,7 @@ namespace Turbo
         size_t title_size = m_Config.Title.size() + 1;
         WCHAR ws[MAX_PATH] = {};
         mbstowcs_s(NULL, &ws[0], title_size, m_Config.Title.c_str(), title_size - 1);
-        
+
         m_Handle = CreateWindowEx(
             0,
             s_ClassName,
@@ -233,22 +233,22 @@ namespace Turbo
             {
                 if (wParam < 256) // [?] UTF-8
                 {
-                    bool is_key_down = WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
+                    bool isKeyDown = WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
                     int key = (int)wParam;
 
-                    static int last_key = -1;
+                    static int s_LastKey = -1;
 
-                    bool repeat = last_key == key;
-                    last_key = key;
+                    bool repeat = s_LastKey == key;
+                    s_LastKey = key;
 
-                    if (is_key_down)
+                    if (isKeyDown)
                     {
                         KeyPressedEvent e(static_cast<KeyCode>(key), repeat);
                         m_Callback(e);
                     }
                     else
                     {
-                        last_key = -1;
+                        s_LastKey = -1;
                         KeyReleasedEvent e(static_cast<KeyCode>(key));
                         m_Callback(e);
                     }
@@ -258,7 +258,7 @@ namespace Turbo
             case WM_MENUCHAR:
             case WM_SYSCHAR:
             {
-                // Annoying beeping sound disable
+                // Disable beeping sound
                 return 0;
             }
         }
@@ -315,4 +315,4 @@ namespace Turbo
         m_Swapchain->SwapFrame();
     }
 
-}
+    }

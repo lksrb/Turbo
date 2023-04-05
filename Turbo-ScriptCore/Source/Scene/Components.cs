@@ -126,6 +126,11 @@ namespace Turbo
 		{
 			InternalCalls.Component_Rigidbody2D_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
 		}
+
+		public void ApplyForceToCenter(Vector2 force, bool wake = true)
+		{
+			InternalCalls.Component_Rigidbody2D_ApplyLinearImpulseToCenter(Entity.ID, ref force, wake);
+		}
 	}
 
 	public class BoxCollider2DComponent : Component

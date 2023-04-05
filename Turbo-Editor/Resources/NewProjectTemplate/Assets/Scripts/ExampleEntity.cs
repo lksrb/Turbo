@@ -1,6 +1,6 @@
 using Turbo;
 
-namespace %PROJECT_NAME%
+namespace ExampleNamespace
 {
 	public class ExampleEntity : Entity
     {

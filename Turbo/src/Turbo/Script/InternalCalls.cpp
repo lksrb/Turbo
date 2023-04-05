@@ -356,6 +356,16 @@ namespace Turbo
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
         body->ApplyLinearImpulseToCenter(b2Vec2(impulse->x, impulse->y), wake);
     }
+    static void Component_Rigidbody2D_ApplyForceToCenter(UUID uuid, glm::vec2* force, bool wake)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        body->ApplyForceToCenter(b2Vec2(force->x, force->y), wake);
+    }
     static void Component_Rigidbody2D_ApplyTorque(UUID uuid, float torque, bool wake)
     {
         Scene* scene = Script::GetCurrentScene();
@@ -557,6 +567,7 @@ namespace Turbo
         // RigidBody2D
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulse);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulseToCenter);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyForceToCenter);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyTorque);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_Gravity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_Gravity);

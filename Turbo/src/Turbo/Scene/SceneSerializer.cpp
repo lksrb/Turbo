@@ -474,6 +474,7 @@ namespace Turbo
         }
         catch (YAML::ParserException e)
         {
+            TBO_ENGINE_ERROR(e.what());
             return false;
         }
 

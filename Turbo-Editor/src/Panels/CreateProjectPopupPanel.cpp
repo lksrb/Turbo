@@ -67,15 +67,15 @@ namespace Turbo::Ed
             if (locationError)
                 ImGui::PopStyleColor();
 
-            ImGui::SameLine();
-
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.1f, 0.1f, 0.1f });
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
+#if 0
+            ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 2.0f);
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2.0f);
-            if (ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f }))
+            if(ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f })) // OpenBrowseFolderDialog just freeze entire application and does not load
             {
                 const std::filesystem::path& filepath = Platform::OpenBrowseFolderDialog("Select Location", s_ProjectDirectoryPath);
 
@@ -84,6 +84,7 @@ namespace Turbo::Ed
                     strcpy_s(s_ProjectDirectoryPath, filepath.string().c_str());
                 }
             }
+#endif
 
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 110.0f);
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImGui::GetContentRegionAvail().y - 25.0f);

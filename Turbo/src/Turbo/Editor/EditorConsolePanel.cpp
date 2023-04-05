@@ -21,7 +21,7 @@ namespace Turbo
 
     void EditorConsolePanel::OnDrawUI()
     {
-        ImGui::Begin("Editor Console");
+        ImGui::Begin("Editor Console", nullptr, ImGuiWindowFlags_NoNavFocus);
 
         if (ImGui::Button("Clear"))
             m_MessageBufferCount = 0;

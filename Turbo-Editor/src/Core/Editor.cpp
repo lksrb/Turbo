@@ -612,29 +612,14 @@ namespace Turbo::Ed
             outStream.close();
         }
 
-        // Format StartScript.cs file
-        {
-            std::ifstream inStream(projectPath / "Assets/Scripts/ExampleEntity.cs");
-            TBO_ENGINE_ASSERT(inStream);
-            std::stringstream ss;
-            ss << inStream.rdbuf();
-            inStream.close();
-
-            std::string content = ss.str();
-            Utils::FindAndReplace(content, "%PROJECT_NAME%", projectPath.stem());
-
-            std::ofstream outStream(projectPath / "Assets/Scripts/ExampleEntity.cs");
-            TBO_ENGINE_ASSERT(outStream);
-            outStream << content;
-            outStream.close();
-        }
-
         // Open copied template project
         OpenProject(configFile);
     }
 
     void Editor::OpenProject(std::filesystem::path configFilePath)
     {
+        using namespace std::chrono_literals;
+
         // Opens platform specific 
         if (configFilePath.empty())
         {
@@ -683,7 +668,10 @@ namespace Turbo::Ed
         while (!std::filesystem::exists(assemblyPath))
         {
             // Wait for it to build...
+            std::this_thread::sleep_for(1s);
         }
+        
+
 
         // Load project assembly
         Script::LoadProjectAssembly(assemblyPath);

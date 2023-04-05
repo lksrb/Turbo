@@ -126,6 +126,9 @@ namespace Turbo
 		internal extern static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(ulong uuid, ref Vector2 impulse, bool wake);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_ApplyForceToCenter(ulong uuid, ref Vector2 force, bool wake);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody2D_ApplyTorque(ulong uuid, float torque, bool wake);
 
 		// Gravity
