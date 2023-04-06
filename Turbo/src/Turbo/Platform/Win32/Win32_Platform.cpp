@@ -8,8 +8,10 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <commdlg.h>
-#include <stdio.h>
-#include <tchar.h>
+//#include <stdio.h>
+//#include <tchar.h>
+#include <shellapi.h>
+#include <cwchar>
 
 #define CheckPLATFORMError CheckError()
 
@@ -165,6 +167,27 @@ namespace Turbo
         return selected_path;
     }
 
+    bool Platform::OpenFileExplorer(const std::filesystem::path& directory)
+    {
+        // Construct argument list
+        WCHAR args[MAX_PATH] = {};
+        //wcscat_s(args, L"/select,");
+        wcscat_s(args, directory.wstring().c_str());
+
+        // Execute Windows Explorer
+        HINSTANCE result = ShellExecute(NULL, L"open", L"explorer", args, NULL, SW_SHOWNORMAL);
+        if ((intptr_t)(result) <= HINSTANCE_ERROR)
+        {
+            DWORD errorCode = GetLastError();
+            TBO_ENGINE_ERROR("Could not open the file explorer! ErrorCode: {}", errorCode);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    // TODO: Rework this
     bool Platform::Execute(const std::string& appName, const std::string& args, const std::string& currentPath, bool wait)
     {
         STARTUPINFOA si = {};

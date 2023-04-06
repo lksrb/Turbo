@@ -114,6 +114,17 @@ namespace Turbo::Ed
         ImGui::SliderFloat("Thumbnail Size", &thumbnail_size, 16, 512);
         ImGui::SliderFloat("Thumbnail Padding", &padding, 0, 32);
 
+        if (ImGui::BeginPopupContextWindow("##ContentBrowserPanel"))
+        {
+            static const char* s_PlatformFileExplorerName = "Open in Explorer";
+
+            if (ImGui::MenuItem(s_PlatformFileExplorerName))
+            {
+                Platform::OpenFileExplorer(m_CurrentDirectory);
+            }
+            ImGui::EndPopup();
+        }
+
         ImGui::End();
     }
 
