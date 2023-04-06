@@ -10,11 +10,6 @@
 	}
 	public static class Log
 	{
-		public static void Trace(string message)
-		{
-			InternalCalls.Log_String(LogLevel.Trace, message);
-		}
-
 		public static void Info(string message)
 		{
 			InternalCalls.Log_String(LogLevel.Info, message);
