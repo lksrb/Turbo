@@ -1,7 +1,7 @@
 @echo off
 premake5 vs2022
 
-if %1 == "" (
+IF %1 == "" (
 pause
 exit /b 1
 )
