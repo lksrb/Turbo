@@ -8,6 +8,18 @@
 
 namespace Turbo::Ed
 {
+    static void OpenVisualStudio(const std::filesystem::path& basePath)
+    {
+        std::filesystem::path pathToSolution = basePath.parent_path() / Project::GetProjectName();
+        pathToSolution.concat(".sln");
+
+        // Currently opening specific files is not supported due to Visual Studio being Visual Studio
+        if (!Platform::Execute(L"cmd /C start devenv.exe", pathToSolution))
+        {
+            TBO_ERROR("Failed to open visual studio!");
+        }
+    }
+
     ContentBrowserPanel::ContentBrowserPanel()
     {
         m_DirectoryIcon = Texture2D::Create("Resources/Icons/DirectoryIcon.png");
@@ -46,7 +58,7 @@ namespace Turbo::Ed
             const auto& path = directoryEntry.path();
 
             // Filter
-            if(path.extension() == ".csproj") 
+            if (path.extension() == ".csproj")
                 continue;
 
             const auto& relativePath = std::filesystem::relative(path, m_BasePath.c_str());
@@ -79,27 +91,12 @@ namespace Turbo::Ed
                 if (directoryEntry.is_directory())
                 {
                     m_CurrentDirectory /= path.filename().string().c_str();
-                } 
+                }
                 else
                 {
-                    if (path.extension() == ".cs")
+                    if (path.extension() == ".cs" || path.extension() == ".sln")
                     {
-                        std::filesystem::path pathToSolution = m_BasePath.parent_path() / Project::GetProjectName();
-                        pathToSolution.concat(".sln");
-                        
-                        // Currently opening specific files is not supported due to Visual Studio being Visual Studio
-                        if (!Platform::Execute(L"start devenv.exe", pathToSolution))
-                        {
-                            TBO_ERROR("Failed to open visual studio!");
-                        }
-                    } else if(path.extension() == ".sln")
-                    {
-                        // Opens Visual Studio, whatever version is registered first 
-                        // TODO: Client should have an option which visual studio to open
-                        if (!Platform::Execute(L"start devenv.exe", path))
-                        {
-                            TBO_ERROR("Failed to open visual studio!");
-                        }
+                        OpenVisualStudio(m_BasePath);
                     }
                 }
             }
@@ -118,6 +115,11 @@ namespace Turbo::Ed
         {
             static const char* s_PlatformFileExplorerName = "Open in Explorer";
 
+            if (ImGui::MenuItem("Open solution"))
+            {
+                OpenVisualStudio(m_BasePath);
+            }
+            ImGui::Separator();
             if (ImGui::MenuItem(s_PlatformFileExplorerName))
             {
                 Platform::OpenFileExplorer(m_CurrentDirectory);

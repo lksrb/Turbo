@@ -664,7 +664,7 @@ namespace Turbo::Ed
             solutionFile.append(L".sln");
             bool assembliesExists = std::filesystem::exists(assemblyPath);
             if (config.OpenSolutionOnStart)
-                Platform::Execute(L"Win32-GenerateSolution.bat", solutionFile, projectPath);
+                Platform::Execute(projectPath / L"Win32-GenerateSolution.bat", solutionFile, projectPath);
             else if (assembliesExists)
                 Platform::Execute(projectPath / "Win32-GenerateSolution.bat", solutionFile.append(L" Debug"), projectPath);
 
