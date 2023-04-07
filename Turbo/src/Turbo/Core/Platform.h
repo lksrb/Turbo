@@ -19,6 +19,6 @@ namespace Turbo
 
         static bool OpenFileExplorer(const std::filesystem::path& directory);
 
-        static bool Execute(const std::string& appName, const std::string& args = "", const std::string& currentPath = "", bool wait = false);
+        static bool Execute(const std::filesystem::path& appName, const std::wstring& args = L"", const std::filesystem::path& currentPath = "", bool wait = false);
     };
 }

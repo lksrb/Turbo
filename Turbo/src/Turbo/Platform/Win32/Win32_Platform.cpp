@@ -188,24 +188,23 @@ namespace Turbo
     }
 
     // TODO: Rework this
-    bool Platform::Execute(const std::string& appName, const std::string& args, const std::string& currentPath, bool wait)
+    bool Platform::Execute(const std::filesystem::path& appName, const std::wstring& args, const std::filesystem::path& currentPath, bool wait)
     {
-        STARTUPINFOA si = {};
+        STARTUPINFO si = {};
         si.cb = sizeof(si);
 
-        LPCSTR currentDirectory = NULL;
-        if(!currentPath.empty())
-            currentDirectory = currentPath.c_str();
+        auto& wCurrentPath = currentPath.wstring();
+        LPWSTR currentDirectory = currentPath.empty() ? NULL : wCurrentPath.data();
 
         PROCESS_INFORMATION pi = {};
 
-        CHAR szCmd[MAX_PATH] = { 0 };
+        WCHAR szCmd[MAX_PATH] = { 0 };
         //strcat_s(szCmd, "cmd.exe /C start ");
-        strcat_s(szCmd, appName.c_str());
-        strcat_s(szCmd, " ");
-        strcat_s(szCmd, args.c_str());
+        wcscat_s(szCmd, appName.wstring().c_str());
+        wcscat_s(szCmd, L" ");
+        wcscat_s(szCmd, args.c_str());
         // Start the child process. 
-        if (!CreateProcessA(NULL,   // No module name (use command line)
+        if (!CreateProcess(NULL,   // No module name (use command line)
             szCmd,        // Command line
             NULL,           // Process handle not inheritable
             NULL,           // Thread handle not inheritable

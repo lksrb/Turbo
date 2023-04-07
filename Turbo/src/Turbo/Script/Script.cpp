@@ -58,12 +58,12 @@ namespace Turbo
 
         }
 
-        static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assembly_path, bool load_pdb = false)
+        static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath, bool loadPdb = false)
         {
-            ScopedBuffer assembly_data = FileSystem::ReadBinary(assembly_path);
+            ScopedBuffer assemblyData = FileSystem::ReadBinary(assemblyPath);
 
             MonoImageOpenStatus status;
-            MonoImage* image = mono_image_open_from_data_full(assembly_data.As<char>(), static_cast<u32>(assembly_data.Size()), true, &status, false);
+            MonoImage* image = mono_image_open_from_data_full(assemblyData.As<char>(), static_cast<u32>(assemblyData.Size()), true, &status, false);
 
             if (status != MONO_IMAGE_OK)
             {
@@ -72,20 +72,19 @@ namespace Turbo
                 return nullptr;
             }
 
-            if (load_pdb)
+            if (loadPdb)
             {
-                std::filesystem::path pdb_path = assembly_path;
-                pdb_path.replace_extension(".pdb");
+                std::filesystem::path pdbPath = assemblyPath;
+                pdbPath.replace_extension(".pdb");
 
-                if (std::filesystem::exists(pdb_path))
+                if (std::filesystem::exists(pdbPath))
                 {
-                    ScopedBuffer pdb_data = FileSystem::ReadBinary(pdb_path);
-                    mono_debug_open_image_from_memory(image, pdb_data.As<const mono_byte>(), static_cast<u32>(pdb_data.Size()));
-                    TBO_ENGINE_INFO("Loaded PDB File! ({})", pdb_path);
+                    ScopedBuffer pdbData = FileSystem::ReadBinary(pdbPath);
+                    mono_debug_open_image_from_memory(image, pdbData.As<const mono_byte>(), static_cast<u32>(pdbData.Size()));
+                    TBO_ENGINE_INFO("Loaded PDB File! ({})", pdbPath);
                 }
             }
-
-            MonoAssembly* assembly = mono_assembly_load_from_full(image, assembly_path.string().c_str(), &status, false);
+            MonoAssembly* assembly = mono_assembly_load_from_full(image, assemblyPath.string().c_str(), &status, false);
             mono_image_close(image);
 
             return assembly;

@@ -84,11 +84,11 @@ namespace Turbo::Ed
                 {
                     if (path.extension() == ".cs")
                     {
-                        std::filesystem::path path_to_solution = m_BasePath.parent_path() / Project::GetProjectName();
-                        path_to_solution.concat(".sln");
+                        std::filesystem::path pathToSolution = m_BasePath.parent_path() / Project::GetProjectName();
+                        pathToSolution.concat(".sln");
                         
                         // Currently opening specific files is not supported due to Visual Studio being Visual Studio
-                        if (!Platform::Execute("devenv.exe", path_to_solution.string()))
+                        if (!Platform::Execute(L"start devenv.exe", pathToSolution))
                         {
                             TBO_ERROR("Failed to open visual studio!");
                         }
@@ -96,7 +96,7 @@ namespace Turbo::Ed
                     {
                         // Opens Visual Studio, whatever version is registered first 
                         // TODO: Client should have an option which visual studio to open
-                        if (!Platform::Execute("devenv.exe", path.string()))
+                        if (!Platform::Execute(L"start devenv.exe", path))
                         {
                             TBO_ERROR("Failed to open visual studio!");
                         }

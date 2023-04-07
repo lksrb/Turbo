@@ -406,6 +406,5 @@ Turbo-Editor/assets/Shaders/cached/
 *.frag
 *.vert
 Turbo-Editor/memoryleaks.txt
-
-!Turbo-Editor/SandboxProject/Binaries
+Turbo-Editor/SandboxProject/Binaries/
 

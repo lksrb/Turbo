@@ -42,7 +42,7 @@ namespace Turbo::Ed
             FindAndReplace(content, oldText, newText.string());
         }
     }
-    
+
     Editor::Editor(const Application::Config& config)
         : Application(config), m_ViewportWidth(config.Width), m_ViewportHeight(config.Height)
     {
@@ -217,9 +217,9 @@ namespace Turbo::Ed
             ImGuiWindowClass window_class;
             window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-            //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
             ImGui::SetNextWindowClass(&window_class);
             ImGui::Begin("Viewport");
+            ImGui::PopStyleVar();
 
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
@@ -264,6 +264,7 @@ namespace Turbo::Ed
             if (!m_EditorCamera.IsControlling())
             {
                 ImGui::SetNextWindowSize({ 200.0f, 400.0f });
+
                 if (ImGui::BeginPopupContextWindow("##ViewportContextMenu"))
                 {
                     ImGui::MenuItem("Scene", nullptr, false, false);
@@ -348,7 +349,6 @@ namespace Turbo::Ed
             }
 
             ImGui::End();
-            ImGui::PopStyleVar();
         }
 
         static bool s_ShowDemoWindow = false;
@@ -433,7 +433,8 @@ namespace Turbo::Ed
         // Scene settings
         {
             ImGui::Begin("Scene settings");
-            ImGui::Checkbox("Physics Colliders", &m_CurrentScene->ShowPhysics2DColliders);
+            if (m_CurrentScene)
+                ImGui::Checkbox("Physics Colliders", &m_CurrentScene->ShowPhysics2DColliders);
 
             ImGui::End();
         }
@@ -442,17 +443,20 @@ namespace Turbo::Ed
         {
             ImGui::Begin("Audio Clip");
 
-            auto& view = m_CurrentScene->GetAllEntitiesWith<AudioSourceComponent>();
-
-            for (auto& e : view)
+            if (m_CurrentScene)
             {
-                auto& audioSource = view.get<AudioSourceComponent>(e);
+                auto& view = m_CurrentScene->GetAllEntitiesWith<AudioSourceComponent>();
 
-                if (audioSource.Clip && audioSource.PlayOnStart)
+                for (auto& e : view)
                 {
-                    if (ImGui::Button("Play"))
-                        Audio::Play(audioSource.Clip, audioSource.Loop);
-                    ImGui::NewLine();
+                    auto& audioSource = view.get<AudioSourceComponent>(e);
+
+                    if (audioSource.Clip && audioSource.PlayOnStart)
+                    {
+                        if (ImGui::Button("Play"))
+                            Audio::Play(audioSource.Clip, audioSource.Loop);
+                        ImGui::NewLine();
+                    }
                 }
             }
 
@@ -586,7 +590,7 @@ namespace Turbo::Ed
             std::string content = ss.str();
             Utils::FindAndReplace(content, "%PROJECT_NAME%", projectPath.stem());
             Utils::FindAndReplace(content, "%TURBO_PATH%", turboWorkspace);
-            
+
             std::ofstream outStream(projectPath / "premake5.lua");
             TBO_ENGINE_ASSERT(outStream);
             outStream << content;
@@ -640,44 +644,44 @@ namespace Turbo::Ed
             Project::SetActive(project);
 
         }
-        std::filesystem::path projectPath = configFilePath.parent_path();
 
-        const auto& config = project->GetConfig();
-        std::filesystem::path pathToBatchFile = projectPath / "Win32-GenerateSolution.bat";
-
-        std::string solutionFile = configFilePath.stem().string();
-
-        // Auto-open solution when 
-        std::string args = config.OpenSolutionOnStart ? fmt::format("{}.sln {}", solutionFile, "Debug") : "";
-
-        // TODO: Whole loading situation
-
-        // Open Visual Studio
-        Platform::Execute(pathToBatchFile.string(), args, projectPath.string());
-
-        // All panels receive this event
+        // All panels receive that project has been sent
         m_PanelManager->OnProjectChanged(project);
 
-        //Script::OnProjectChanged();
+        // Building assemblies
+        const auto& projectPath = configFilePath.parent_path();
+        const auto& config = project->GetConfig();
+        const auto& assemblyPath = projectPath / config.ScriptModulePath;
 
-        auto& assemblyPath = projectPath / project->GetConfig().ScriptModulePath;
+        // Check if client configured project to open IDE on start:
+        // If yes => open solution and run build solution on that project
+        // If no => run build option to compile it anyway
+        // NOTE: Best solution would be to create some mini builder module that would take care of building a solution when needed
 
-        TBO_ENGINE_WARN("Building assemblies...");
-
-        // FIXME: Not ideal, maybe implement loader thread?
-        while (!std::filesystem::exists(assemblyPath))
+        //std::thread loaderThread = std::thread([=]() 
         {
-            // Wait for it to build...
-            std::this_thread::sleep_for(1s);
-        }
-        
+            std::wstring solutionFile = configFilePath.stem().wstring();
+            solutionFile.append(L".sln");
+            bool assembliesExists = std::filesystem::exists(assemblyPath);
+            if (config.OpenSolutionOnStart)
+                Platform::Execute(L"Win32-GenerateSolution.bat", solutionFile, projectPath);
+            else if (assembliesExists)
+                Platform::Execute(projectPath / "Win32-GenerateSolution.bat", solutionFile.append(L" Debug"), projectPath);
 
+            // FIXME: Not ideal, maybe implement loader thread?
+            while (!assembliesExists)
+            {
+                // Wait for it to build...
+                std::this_thread::sleep_for(1s);
+                // Check if it exists
+                assembliesExists = std::filesystem::exists(assemblyPath);
+            }
+            // Load project assembly
+            Script::LoadProjectAssembly(assemblyPath);
 
-        // Load project assembly
-        Script::LoadProjectAssembly(assemblyPath);
-
-        // Open scene
-        OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
+            // Open scene
+            OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
+        };
     }
 
     void Editor::UpdateWindowTitle()
