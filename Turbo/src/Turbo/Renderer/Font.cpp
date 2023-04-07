@@ -1,10 +1,10 @@
 ﻿#include "tbopch.h"
 #include "Font.h"
 
+#include "Font-Internal.h"
+
 #include "Turbo/Core/Buffer.h"
 #include "Turbo/Core/FileSystem.h"
-
-#include "Font-Internal.h"
 
 #define DEFAULT_ANGLE_THRESHOLD 3.0
 #define LCG_MULTIPLIER 6364136223846793005ull
