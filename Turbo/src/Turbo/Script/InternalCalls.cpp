@@ -366,7 +366,30 @@ namespace Turbo
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
         body->ApplyForceToCenter(b2Vec2(force->x, force->y), wake);
     }
-    static void Component_Rigidbody2D_ApplyTorque(UUID uuid, float torque, bool wake)
+    static void Component_Rigidbody2D_Set_LinearVelocity(UUID uuid, glm::vec2* velocity)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        body->SetLinearVelocity(b2Vec2(velocity->x, velocity->y));
+    }
+    static void Component_Rigidbody2D_Get_LinearVelocity(UUID uuid, glm::vec2* velocity)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        b2Vec2 b2Velocity = body->GetLinearVelocity();
+
+        velocity->x = b2Velocity.x;
+        velocity->y = b2Velocity.y;
+    }
+    static void Component_Rigidbody2D_ApplyTorque(UUID uuid, f32 torque, bool wake)
     {
         Scene* scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
@@ -377,7 +400,7 @@ namespace Turbo
         body->ApplyTorque(torque, wake);
     }
 
-    static bool Component_Rigidbody2D_Get_Gravity(UUID uuid)
+    static f32 Component_Rigidbody2D_Get_GravityScale(UUID uuid)
     {
         Scene* scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
@@ -385,9 +408,9 @@ namespace Turbo
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = reinterpret_cast<b2Body*>(rb2d.RuntimeBody);
-        return body->GetGravityScale() != 0.0f;
+        return body->GetGravityScale();
     }
-    static void Component_Rigidbody2D_Set_Gravity(UUID uuid, bool gravity)
+    static void Component_Rigidbody2D_Set_GravityScale(UUID uuid, f32 gravityScale)
     {
         Scene* scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
@@ -395,7 +418,7 @@ namespace Turbo
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        body->SetGravityScale(gravity ? 1.0f : 0.0f);
+        body->SetGravityScale(gravityScale);
     }
 
     static Rigidbody2DComponent::BodyType Component_Rigidbody2D_Get_BodyType(UUID uuid)
@@ -569,10 +592,12 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulseToCenter);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyForceToCenter);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyTorque);
-        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_Gravity);
-        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_Gravity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_GravityScale);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_GravityScale);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_BodyType);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_BodyType);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_LinearVelocity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_LinearVelocity);
 
         // BoxCollider2D
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Offset);

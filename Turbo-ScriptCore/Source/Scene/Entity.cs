@@ -5,7 +5,7 @@ namespace Turbo
 	public class Entity
 	{
 		public readonly ulong ID;
-		public TransformComponent transform;
+		public TransformComponent Transform;
 		
 		protected Entity() { ID = 0; }
 
@@ -13,7 +13,7 @@ namespace Turbo
 		{ 
 			ID = id;
 
-			transform = GetComponent<TransformComponent>();
+			Transform = GetComponent<TransformComponent>();
 		}
 
 		public bool HasComponent<T>() where T : Component, new()

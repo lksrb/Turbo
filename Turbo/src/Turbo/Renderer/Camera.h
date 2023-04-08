@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Turbo/Core/PrimitiveTypes.h"
+
 #include <glm/glm.hpp>
 
 namespace Turbo
@@ -7,6 +9,8 @@ namespace Turbo
     class Camera
     {
     public:
+        enum class ProjectionType : u32 { Perspective = 0, Orthographic = 1 };
+
         Camera() = default;
         virtual ~Camera() = default;
 

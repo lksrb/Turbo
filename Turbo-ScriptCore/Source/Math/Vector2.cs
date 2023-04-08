@@ -12,6 +12,11 @@
 		}
 		public Vector2(float xy) : this(xy, xy) { }
 
+		public float Length
+		{
+			get => Mathf.Sqrt(Mathf.Dot(this, this));
+		}
+
 		public override string ToString()
 		{
 			return $"(x: {x}, y: {y})";

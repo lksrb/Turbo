@@ -361,6 +361,8 @@ namespace Turbo
                 // Debug lines
                 if (ShowPhysics2DColliders)
                 {
+                    f32 zOffset = camera.GetProjectionType() == Camera::ProjectionType::Perspective ? 0.001f : 0.0f; // TODO: Think about this
+
                     // Box collider
                     auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
                     for (auto& entity : bview)
@@ -371,7 +373,7 @@ namespace Turbo
 
                         glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), transform.Translation)
                             * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
-                            * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, 0.001f))
+                            * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, zOffset))
                             * glm::scale(glm::mat4(1.0f), scale);
 
                         renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
@@ -383,7 +385,7 @@ namespace Turbo
                     {
                         auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
 
-                        const glm::vec3& translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
+                        const glm::vec3& translation = transform.Translation + glm::vec3(cc2d.Offset, zOffset);
                         const glm::vec3& scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
 
                         const glm::mat4& offsetTransform =
@@ -528,8 +530,7 @@ namespace Turbo
             b2Body* body = m_PhysicsWorld->CreateBody(&bodyDef);
             body->SetFixedRotation(rb2d.FixedRotation);
             body->SetEnabled(rb2d.Enabled);
-            if (!rb2d.Gravity)
-                body->SetGravityScale(0.0f);
+            body->SetGravityScale(rb2d.GravityScale);
             rb2d.RuntimeBody = body;
 
             if (entity.HasComponent<BoxCollider2DComponent>())

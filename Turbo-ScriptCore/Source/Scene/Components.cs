@@ -100,16 +100,29 @@ namespace Turbo
 	{
 		public enum BodyType : uint { Static = 0, Dynamic, Kinematic };
 
-		public bool Gravity
+		public float GravityScale
 		{
-			get => InternalCalls.Component_Rigidbody2D_Get_Gravity(Entity.ID);
-			set => InternalCalls.Component_Rigidbody2D_Set_Gravity(Entity.ID, value);
+			get => InternalCalls.Component_Rigidbody2D_Get_GravityScale(Entity.ID);
+			set => InternalCalls.Component_Rigidbody2D_Set_GravityScale(Entity.ID, value);
 		}
 
 		public BodyType Type
 		{
 			get => InternalCalls.Component_Rigidbody2D_Get_BodyType(Entity.ID);
 			set => InternalCalls.Component_Rigidbody2D_Set_BodyType(Entity.ID, value);
+		}
+
+		public Vector2 Velocity
+		{
+			get
+			{
+				InternalCalls.Component_Rigidbody2D_Get_LinearVelocity(Entity.ID, out Vector2 velocity);
+				return velocity;
+			}
+			set
+			{
+				InternalCalls.Component_Rigidbody2D_Set_LinearVelocity(Entity.ID, ref value);
+			}
 		}
 
 		public void ApplyTorque(float torque, bool wake = true)

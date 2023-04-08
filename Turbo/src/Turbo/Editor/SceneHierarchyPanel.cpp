@@ -507,6 +507,7 @@ namespace Turbo
                 ImGui::EndCombo();
             }
             ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+            ImGui::DragFloat("Gravity Scale", &component.GravityScale, 0.1f);
         });
         Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [](auto& component)
         {
@@ -606,14 +607,14 @@ namespace Turbo
                 {
                     Ref<ScriptClass> entityClass = Script::FindEntityClass(component.ClassName);
 
-                    const auto& fields = entityClass->GetFields();
+                    const auto& classFields = entityClass->GetFields();
 
-                    auto& entity_fields = Script::GetEntityFieldMap(entityUUID);
+                    auto& entityFields = Script::GetEntityFieldMap(entityUUID);
 
-                    for (auto& [name, field] : fields)
+                    for (auto& [name, field] : classFields)
                     {
-                        ScriptFieldInstance& field_instance = entity_fields[name];
-                        Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, field_instance);
+                        ScriptFieldInstance& fieldInstance = entityFields[name];
+                        Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, fieldInstance);
                     }
                 }
             }

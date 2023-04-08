@@ -6,9 +6,6 @@ namespace Turbo
 {
     class SceneCamera : public Camera
     {
-
-    public:
-        enum class ProjectionType : u32 { Perspective = 0, Orthographic = 1 };
     public:
         SceneCamera();
         ~SceneCamera();

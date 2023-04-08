@@ -24,6 +24,15 @@ namespace Turbo
 		}
 		public Vector4(float xyzw) : this(xyzw, xyzw, xyzw, xyzw) { }
 
+		public float Length
+		{
+			get => Mathf.Sqrt(Mathf.Dot(this, this));
+		}
+		public override string ToString()
+		{
+			return $"(x: {x}, y: {y}, z: {z}, w: {w})";
+		}
+
 		public static Vector4 operator +(Vector4 u, Vector4 v)
 		{
 			return new Vector4(u.x + v.x, u.y + v.y, u.z + v.z, u.w + v.w);
@@ -37,11 +46,6 @@ namespace Turbo
 		public static Vector4 operator *(Vector4 u, float v)
 		{
 			return new Vector4(u.x * v, u.y * v, u.z * v, u.w * v);
-		}
-
-		public override string ToString()
-		{
-			return $"(x: {x}, y: {y}, z: {z}, w: {w})";
 		}
 	}
 }

@@ -131,12 +131,18 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody2D_ApplyTorque(ulong uuid, float torque, bool wake);
 
-		// Gravity
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Component_Rigidbody2D_Get_Gravity(ulong uuid);
+		internal extern static void Component_Rigidbody2D_Set_LinearVelocity(ulong uuid, ref Vector2 velocity);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_Rigidbody2D_Set_Gravity(ulong uuid, bool gravity);
+		internal extern static void Component_Rigidbody2D_Get_LinearVelocity(ulong uuid, out Vector2 velocity);
+
+		// Gravity
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static float Component_Rigidbody2D_Get_GravityScale(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_Set_GravityScale(ulong uuid, float gravityScale);
 
 		// BodyType
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]

@@ -159,10 +159,10 @@ namespace Turbo
 
         if (isValidClassName)
         {
-            Ref<ScriptClass> script_class = g_Data->ScriptClasses.at(script.ClassName);
+            Ref<ScriptClass> scriptClass = g_Data->ScriptClasses.at(script.ClassName);
 
             Ref<ScriptInstance>& instance = g_Data->ScriptInstances[uuid];
-            instance = Ref<ScriptInstance>::Create(script_class, uuid);
+            instance = Ref<ScriptInstance>::Create(scriptClass, uuid);
 
             // Copy fields
             if (g_Data->EntityScriptFieldInstances.find(uuid) != g_Data->EntityScriptFieldInstances.end())

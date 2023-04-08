@@ -112,7 +112,7 @@ namespace Turbo
         enum class BodyType : u32 { Static = 0, Dynamic, Kinematic };
         BodyType Type = BodyType::Dynamic;
         bool FixedRotation = false;
-        bool Gravity = true;
+        f32 GravityScale = 1.0f;
         bool Enabled = true;
 
         // Storage for runtime

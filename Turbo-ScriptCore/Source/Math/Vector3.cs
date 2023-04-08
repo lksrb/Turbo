@@ -17,6 +17,16 @@
 
 		public Vector3(float xyz) : this(xyz, xyz, xyz) { }
 
+		public float Length
+		{
+			get => Mathf.Sqrt(Mathf.Dot(this, this));
+		}
+
+		public override string ToString()
+		{
+			return $"(x: {x}, y: {y}, z: {z})";
+		}
+
 		public static Vector3 Zero => new Vector3(0.0f, 0.0f, 0.0f);
 		public static Vector3 Up => new Vector3(0.0f, 1.0f, 0.0f);
 		public static Vector3 Right => new Vector3(1.0f, 0.0f, 0.0f);
@@ -35,11 +45,6 @@
 		public static Vector3 operator *(Vector3 u, float v)
 		{
 			return new Vector3(u.x * v, u.y * v, u.z * v);
-		}
-
-		public override string ToString()
-		{
-			return $"(x: {x}, y: {y}, z: {z})";
 		}
 	}
 }
