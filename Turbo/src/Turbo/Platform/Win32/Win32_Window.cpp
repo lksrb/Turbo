@@ -236,14 +236,15 @@ namespace Turbo
                     bool isKeyDown = WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
                     int key = (int)wParam;
 
-                    static int s_LastKey = -1;
+                    static i32 s_LastKey = -1;
+                    static i32 s_RepeatCounter = 1;
 
-                    bool repeat = s_LastKey == key;
+                    s_RepeatCounter = s_LastKey == key ? s_RepeatCounter + 1 : 1;
                     s_LastKey = key;
 
                     if (isKeyDown)
                     {
-                        KeyPressedEvent e(static_cast<KeyCode>(key), repeat);
+                        KeyPressedEvent e(static_cast<KeyCode>(key), s_RepeatCounter); // TODO: Repeat counter
                         m_Callback(e);
                     }
                     else

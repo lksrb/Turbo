@@ -34,7 +34,7 @@ namespace Turbo
         }
 
         template<typename... Components>
-        static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap, const Ref<Scene>& scene)
+        static void CopyComponent(entt::registry& dst, entt::registry& src, const EntityMap& enttMap)
         {
             ([&]()
             {
@@ -52,9 +52,25 @@ namespace Turbo
         }
 
         template<typename... Components>
-        static void CopyComponents(ComponentGroup<Components...>, entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap, const Ref<Scene>& scene)
+        static void CopyComponents(ComponentGroup<Components...>, entt::registry& dst, entt::registry& src, const EntityMap& enttMap)
         {
-            CopyComponent<Components...>(dst, src, enttMap, scene);
+            CopyComponent<Components...>(dst, src, enttMap);
+        }
+
+        template<typename... Component>
+        static void CopyComponentIfExists(Entity dst, Entity src)
+        {
+            ([&]()
+            {
+                if (src.HasComponent<Component>())
+                    dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
+            }(), ...);
+        }
+
+        template<typename... Component>
+        static void CopyComponentIfExists(ComponentGroup<Component...>, Entity dst, Entity src)
+        {
+            CopyComponentIfExists<Component...>(dst, src);
         }
 
     }
@@ -410,23 +426,17 @@ namespace Turbo
         newScene->m_ViewportWidth = other->m_ViewportWidth;
         newScene->m_ViewportHeight = other->m_ViewportHeight;
 
-        std::unordered_map<UUID, entt::entity> entityMap;
-
         auto& view = other->m_Registry.view<IDComponent>();
 
         for (auto& it = view.rbegin(); it != view.rend(); ++it)
         {
-            UUID uuid = other->m_Registry.get<IDComponent>(*it).ID;
-
-            //TBO_CORE_ASSERT(entityMap.find(uuid) != entityMap.end());
-
+            const auto& id = other->m_Registry.get<IDComponent>(*it).ID;
             const auto& name = other->m_Registry.get<TagComponent>(*it).Tag;
-
-            entityMap[uuid] = (entt::entity)newScene->CreateEntityWithUUID(uuid, name);
+            newScene->m_EntityIDMap[id] = (entt::entity)newScene->CreateEntityWithUUID(id, name);
         }
 
         // Copy components (except IDComponent and TagComponent)
-        Utils::CopyComponents(AllComponents{}, newScene->m_Registry, other->m_Registry, entityMap, newScene);
+        Utils::CopyComponents(AllComponents{}, newScene->m_Registry, other->m_Registry, newScene->m_EntityIDMap);
 
         // Copy settings
         newScene->ShowPhysics2DColliders = other->ShowPhysics2DColliders;
@@ -448,15 +458,26 @@ namespace Turbo
         auto& tagComponent = entity.AddComponent<TagComponent>();
         tagComponent.Tag = tag.empty() ? "Entity" : tag;
 
+        m_EntityIDMap[uuid] = (entt::entity)entity;
+
         return entity;
     }
 
     void Scene::DestroyEntity(Entity entity)
     {
+        m_EntityIDMap.erase(entity.GetUUID());
         m_Registry.destroy(entity);
     }
 
-    void Scene::SetViewportSize(u32 width, u32 height)
+	Entity Scene::DuplicateEntity(Entity entity)
+	{
+        Entity duplicated = CreateEntity(entity.GetName());
+        // Copy components
+        Utils::CopyComponentIfExists(AllComponents{}, duplicated, entity);
+        return duplicated;
+	}
+
+	void Scene::SetViewportSize(u32 width, u32 height)
     {
         m_ViewportWidth = width;
         m_ViewportHeight = height;
@@ -575,15 +596,11 @@ namespace Turbo
 
     Entity Scene::FindEntityByUUID(UUID uuid)
     {
-        auto& view = GetAllEntitiesWith<IDComponent>(); // TODO: Maybe not necessary
-        for (auto e : view)
-        {
-            auto& id = m_Registry.get<IDComponent>(e).ID;
+        auto& it = m_EntityIDMap.find(uuid);
 
-            if (id == uuid)
-                return Entity{ e, this };
-        }
-
+        if (it != m_EntityIDMap.end())
+            return Entity{ m_EntityIDMap.at(uuid), this};
+        
         return Entity{};
     }
 

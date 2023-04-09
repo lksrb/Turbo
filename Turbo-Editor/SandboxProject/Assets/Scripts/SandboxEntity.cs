@@ -28,10 +28,10 @@ namespace Sandbox
 			Log.Warn("Hello from C#!");
 			Log.Error("Hello from C#!");
 			
-			Log.Info($"Entity transform: {transform.Translation.y}");
+			Log.Info($"Entity transform: {Transform.Translation.y}");
 			
 			m_Rigidbody = GetComponent<Rigidbody2DComponent>();
-			m_Rigidbody.Gravity = false;
+			m_Rigidbody.GravityScale = 0.0f;
 			
 			m_SpriteRenderer = GetComponent<SpriteRendererComponent>();
 			m_SpriteRenderer.Color = new Vector4(1.0f, 0.0f, 1.0f, 1.0f);

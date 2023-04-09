@@ -17,6 +17,7 @@ namespace Turbo
     class SceneRenderer;
     class Renderer2D;
 
+    using EntityMap = std::unordered_map<UUID, entt::entity>;
     class Scene
     {
     public:
@@ -39,6 +40,7 @@ namespace Turbo
         Entity CreateEntity(const std::string& tag = "");
         Entity CreateEntityWithUUID(UUID uuid, const  std::string& tag = "");
         void DestroyEntity(Entity entity);
+        Entity DuplicateEntity(Entity entity);
 
         void SetViewportSize(u32 width, u32 height);
 
@@ -76,6 +78,8 @@ namespace Turbo
 
         entt::entity m_PrimaryAudioListenerEntity = entt::null;
         entt::entity m_PrimaryCameraEntity = entt::null;
+
+        EntityMap m_EntityIDMap;
 
         bool m_Running = false;
 

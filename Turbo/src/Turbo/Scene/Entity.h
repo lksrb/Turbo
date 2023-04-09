@@ -46,6 +46,14 @@ namespace Turbo
             return component;
         }
 
+        template<typename Component, typename... Args>
+        Component& AddOrReplaceComponent(Args&&... args)
+        {
+            Component& component = m_Scene->m_Registry.emplace_or_replace<Component>(m_Handle, std::forward<Args>(args)...);
+            m_Scene->OnComponentAdded<Component>(*this, component);
+            return component;
+        }
+
         template<typename Component>
         Component& GetComponent()
         {

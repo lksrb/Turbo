@@ -23,8 +23,8 @@ namespace Turbo
     class KeyPressedEvent : public KeyEvent 
     {
     public:
-        KeyPressedEvent(KeyCode code, u16 repeat_count)
-            : KeyEvent(code), m_RepeatCount(repeat_count)
+        KeyPressedEvent(KeyCode code, u16 repeatCount)
+            : KeyEvent(code), m_RepeatCount(repeatCount)
         {
         }
 

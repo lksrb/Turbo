@@ -531,6 +531,18 @@ namespace Turbo::Ed
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
             }
+            case Key::D:
+            {
+                if (control)
+                {
+                    m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
+                    if (m_SelectedEntity)
+                    {
+                        m_SelectedEntity = m_CurrentScene->DuplicateEntity(m_SelectedEntity);
+                        break;
+                    }
+                }
+            }
 
             // Menu
             case Key::S:
@@ -842,13 +854,13 @@ namespace Turbo::Ed
 
         // Select the same entity in editor scene
         {
-            UUID selected_entity_uuid = 0;
+            UUID selectedEntityUUID = 0;
             m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
 
             if (m_SelectedEntity)
-                selected_entity_uuid = m_SelectedEntity.GetUUID();
+                selectedEntityUUID = m_SelectedEntity.GetUUID();
 
-            m_SelectedEntity = m_EditorScene->FindEntityByUUID(selected_entity_uuid);
+            m_SelectedEntity = m_EditorScene->FindEntityByUUID(selectedEntityUUID);
         }
 
         m_PanelManager->SetSceneContext(m_RuntimeScene);
