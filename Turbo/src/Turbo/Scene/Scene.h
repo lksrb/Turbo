@@ -9,14 +9,12 @@
 
 #include <entt.hpp>
 
-class b2World;
-
 namespace Turbo
 {
     class Entity;
     class SceneRenderer;
+    class PhysicsScene2D;
     class Renderer2D;
-
     using EntityMap = std::unordered_map<UUID, entt::entity>;
     class Scene
     {
@@ -72,7 +70,6 @@ namespace Turbo
     private:
         Entity FindPrimaryCameraEntity();
         Entity FindPrimaryAudioListenerEntity();
-        void CreatePhysicsWorld2D();
     private:
         entt::registry m_Registry;
 
@@ -85,10 +82,11 @@ namespace Turbo
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
 
-        b2World* m_PhysicsWorld = nullptr;
+        PhysicsScene2D* m_PhysicsScene2D = nullptr;
 
         friend class Entity;
         friend class SceneSerializer;
+        friend class PhysicScene2D;
         friend class Project;
         friend class ProjectSerializer;
     };

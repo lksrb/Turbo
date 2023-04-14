@@ -55,7 +55,42 @@ Entities:
     ScriptComponent:
       ClassName: Sandbox.SandboxEntity
       Fields:
-        []
+        - Name: m_Bool
+          Type: Bool
+          Data: false
+        - Name: m_Float
+          Type: Float
+          Data: 0
+        - Name: m_UnsignedLong
+          Type: ULong
+          Data: 0
+        - Name: m_Double
+          Type: Double
+          Data: 0
+        - Name: m_Int
+          Type: Int
+          Data: 0
+        - Name: m_Byte
+          Type: Byte
+          Data: 0
+        - Name: m_UnsignedInt
+          Type: UInt
+          Data: 0
+        - Name: m_Long
+          Type: Long
+          Data: 0
+        - Name: m_UnsignedByte
+          Type: UByte
+          Data: 0
+        - Name: m_Vector2
+          Type: Vector2
+          Data: [0, 0]
+        - Name: m_Vector3
+          Type: Vector3
+          Data: [0, 0, 0]
+        - Name: m_Vector4
+          Type: Vector4
+          Data: [0, 0, 0, 0]
     AudioSourceComponent:
       AudioClipPath: Assets/Audio/example_song_mono.wav
       Gain: 5.5
