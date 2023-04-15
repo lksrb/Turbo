@@ -11,11 +11,11 @@ namespace Turbo
     public:
         using ScriptFields = std::unordered_map<std::string, ScriptField>;
 
-        ScriptClass(MonoClass* klass, Ref<ScriptClass> base_class = nullptr);
-        ScriptClass(const std::string& namespace_name, const std::string& class_name, Ref<ScriptClass> base_class = nullptr);
+        ScriptClass(MonoClass* klass, Ref<ScriptClass> baseClass = nullptr);
+        ScriptClass(const std::string& nameSpace, const std::string& className, Ref<ScriptClass> baseClass = nullptr);
         ~ScriptClass();
 
-        MonoMethod* GetMethod(const std::string& method_name, u32 param_count);
+        MonoMethod* GetMethod(const std::string& methodName, u32 paramCount);
         void InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
 
         MonoClass* GetMonoClass() const { return m_MonoClass; }

@@ -95,7 +95,7 @@ namespace Turbo
 
         return entity.GetUUID();
     }
-    static MonoObject* Entity_Instance_Get(UUID uuid)
+    static MonoObject* Entity_Get_Instance(UUID uuid)
     {
         Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
         TBO_ENGINE_ASSERT(instance);
@@ -113,6 +113,18 @@ namespace Turbo
         TBO_ENGINE_ASSERT(s_EntityHasComponentFuncs.find(component_type) != s_EntityHasComponentFuncs.end());
 
         return s_EntityHasComponentFuncs.at(component_type)(entity);
+    }
+
+    static MonoString* Entity_Get_Name(UUID uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        MonoString* monoString = mono_string_new(g_Data->AppDomain, entity.GetName().c_str());
+        TBO_ENGINE_ASSERT(monoString);
+        return monoString;
     }
 
     // =============================================================================
@@ -548,7 +560,8 @@ namespace Turbo
         // General
         TBO_REGISTER_FUNCTION(Log_String);
         TBO_REGISTER_FUNCTION(Entity_FindEntityByName);
-        TBO_REGISTER_FUNCTION(Entity_Instance_Get);
+        TBO_REGISTER_FUNCTION(Entity_Get_Instance);
+        TBO_REGISTER_FUNCTION(Entity_Get_Name);
         TBO_REGISTER_FUNCTION(Entity_Has_Component);
 
         // Input

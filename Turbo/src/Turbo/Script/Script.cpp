@@ -174,7 +174,7 @@ namespace Turbo
                 }
             }
 
-            instance->InvokeOnStart();
+            instance->InvokeOnCreate();
         }
     }
 
@@ -184,9 +184,40 @@ namespace Turbo
         bool isValidClassName = ScriptClassExists(script.ClassName);
 
         if (isValidClassName)
-        {
             g_Data->ScriptInstances.at(id.ID)->InvokeOnUpdate(ts);
-        }
+    }
+
+    void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor)
+    {
+        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        auto& otherID = other.GetUUID();
+        bool isValidClassName = ScriptClassExists(script.ClassName);
+
+        // Invoke only when C# script class exists
+        if (!isValidClassName)
+            return;
+
+        if (isSensor)
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerBegin2D(otherID);
+        else
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionBegin2D(otherID);
+
+    }
+
+    void Script::InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor)
+    {
+        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        auto& otherID = other.GetUUID();
+        bool isValidClassName = ScriptClassExists(script.ClassName);
+
+        // Invoke only when C# script class exists
+        if (!isValidClassName)
+            return;
+
+        if (isSensor)
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerEnd2D(otherID);
+        else
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionEnd2D(otherID);
     }
 
     Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)
@@ -218,14 +249,14 @@ namespace Turbo
 
         // Reflection
         {
-            const MonoTableInfo* typedef_table = mono_image_get_table_info(g_Data->ProjectAssemblyImage, MONO_TABLE_TYPEDEF);
-            i32 num_types = mono_table_info_get_rows(typedef_table);
+            const MonoTableInfo* typedefTable = mono_image_get_table_info(g_Data->ProjectAssemblyImage, MONO_TABLE_TYPEDEF);
+            i32 numTypes = mono_table_info_get_rows(typedefTable);
 
             // Iterate through all classes
-            for (i32 i = 0; i < num_types; ++i)
+            for (i32 i = 0; i < numTypes; ++i)
             {
                 u32 cols[MONO_TYPEDEF_SIZE];
-                mono_metadata_decode_row(typedef_table, i, cols, MONO_TYPEDEF_SIZE);
+                mono_metadata_decode_row(typedefTable, i, cols, MONO_TYPEDEF_SIZE);
 
                 const char* class_name = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAME]);
                 const char* namespace_name = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
@@ -262,9 +293,9 @@ namespace Turbo
                 while (MonoClassField* mono_field = mono_class_get_fields(klass, &iter))
                 {
                     const char* field_name = mono_field_get_name(mono_field);
-                    u32 access_flags = mono_field_get_flags(mono_field);
+                    u32 accessFlags = mono_field_get_flags(mono_field);
 
-                    if (access_flags & MONO_FIELD_ATTR_PUBLIC)
+                    if (accessFlags & MONO_FIELD_ATTR_PUBLIC)
                     {
                         ScriptField& field = script_class->m_ScriptFields[field_name];
                         field.MonoField = mono_field;
@@ -345,7 +376,7 @@ namespace Turbo
             // Project assembly reloaded
             g_Data->AssemblyReloadPending = true;
 
-            Engine::Get().SubmitToMainThread([e, &path]() 
+            Engine::Get().SubmitToMainThread([e, &path]()
             {
                 g_Data->ProjectPathWatcher.reset();
 

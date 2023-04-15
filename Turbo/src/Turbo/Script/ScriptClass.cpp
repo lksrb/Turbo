@@ -16,19 +16,19 @@ namespace Turbo
     {
     }
 
-    ScriptClass::ScriptClass(const std::string& namespace_name, const std::string& class_name, Ref<ScriptClass> base_class)
-        : m_BaseClass(base_class)
+    ScriptClass::ScriptClass(const std::string& nameSpace, const std::string& className, Ref<ScriptClass> baseClas)
+        : m_BaseClass(baseClas)
     {
-        m_MonoClass = mono_class_from_name(g_Data->ScriptCoreAssemblyImage, namespace_name.c_str(), class_name.c_str());
+        m_MonoClass = mono_class_from_name(g_Data->ScriptCoreAssemblyImage, nameSpace.c_str(), className.c_str());
     }
 
 	ScriptClass::~ScriptClass()
     {
     }
 
-    MonoMethod* ScriptClass::GetMethod(const std::string& method_name, u32 param_count)
+    MonoMethod* ScriptClass::GetMethod(const std::string& methodName, u32 paramCount)
     {
-        MonoMethod* method = mono_class_get_method_from_name(m_MonoClass, method_name.c_str(), param_count);
+        MonoMethod* method = mono_class_get_method_from_name(m_MonoClass, methodName.c_str(), paramCount);
         TBO_ENGINE_ASSERT(method);
         return method;
     }

@@ -9,14 +9,22 @@ namespace Turbo
     class ScriptInstance
     {
     private:
-        using OnUpdateMethod = void(__stdcall*)(MonoObject*, f32, MonoObject**);
         static inline u8 s_FieldValueBuffer[16];
+
+        using OnUpdateMethodFP = void(__stdcall*)(MonoObject*, f32, MonoObject**);
+
+        using OnCollision2DFP = void(__stdcall*)(MonoObject*, u64, MonoObject**);
     public:
-        ScriptInstance(Ref<ScriptClass> script_class, u64 entity);
+        ScriptInstance(Ref<ScriptClass> scriptClass, u64 entity);
         ~ScriptInstance();
 
-        void InvokeOnStart();
+        void InvokeOnCreate();
         void InvokeOnUpdate(FTime ts);
+
+        void InvokeOnCollisionBegin2D(u64 otherEntity);
+        void InvokeOnCollisionEnd2D(u64 otherEntity);
+        void InvokeOnTriggerBegin2D(u64 otherEntity);
+        void InvokeOnTriggerEnd2D(u64 otherEntity);
 
         template<typename T>
         T GetFieldValue(const std::string& name)
@@ -39,7 +47,6 @@ namespace Turbo
             SetFieldValueInternal(name, value);
         }
 
-
         MonoObject* GetInstance() const { return m_Instance; }
 
         Ref<ScriptClass> GetScriptClass() const { return m_ScriptClass; }
@@ -47,10 +54,22 @@ namespace Turbo
         bool GetFieldValueInternal(const std::string& name, void* buffer);
         bool SetFieldValueInternal(const std::string& name, const void* value);
     private:
-        MonoMethod* m_OnStartMethod = nullptr;
-        OnUpdateMethod m_OnUpdateMethodFP = nullptr; // Managed thunks
+        MonoMethod* m_OnCreateMethod = nullptr;
         MonoMethod* m_OnUpdateMethod = nullptr;
-        MonoMethod* m_Constructor = nullptr;;
+        MonoMethod* m_OnCollision2DBeginMethod = nullptr;
+        MonoMethod* m_OnCollision2DEndMethod = nullptr;
+        MonoMethod* m_OnTriggerBegin2DMethod = nullptr;
+        MonoMethod* m_OnTriggerEnd2DMethod = nullptr;
+
+        MonoMethod* m_Constructor = nullptr;
+
+        // Managed thunks FPs
+        OnCollision2DFP m_OnCollisionBegin2DFP = nullptr;
+        OnCollision2DFP m_OnCollisionEnd2DFP = nullptr;
+        OnCollision2DFP m_OnTriggerBegin2DFP = nullptr;
+        OnCollision2DFP m_OnTriggerEnd2DFP = nullptr;
+        
+        OnUpdateMethodFP m_OnUpdateMethodFP = nullptr;
 
         MonoObject* m_Instance = nullptr;
 

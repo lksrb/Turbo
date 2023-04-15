@@ -33,13 +33,16 @@ namespace Turbo
 		// =============================================================================
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Entity_Has_Component(ulong id, Type componentType);
+		internal extern static bool Entity_Has_Component(ulong uuid, Type componentType);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_FindEntityByName(string name);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static object Entity_Instance_Get(ulong id);
+		internal extern static object Entity_Instance_Get(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Entity_Get_Name(ulong uuid);
 
 		// =============================================================================
 		//                                  Components                                   

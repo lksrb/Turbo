@@ -497,7 +497,7 @@ namespace Turbo
         auto& it = m_EntityIDMap.find(uuid);
 
         if (it != m_EntityIDMap.end())
-            return Entity{ m_EntityIDMap.at(uuid), this};
+            return Entity{ m_EntityIDMap.at(uuid), this };
         
         return Entity{};
     }

@@ -6,17 +6,17 @@ namespace Sandbox
 	{
 		private TransformComponent m_Transform;
 
-		void OnStart()
+		/*
+		protected override void OnCreate()
 		{
 			Log.Info("Hello from CameraController");
 			m_Transform = GetComponent<TransformComponent>();
 		}
 
-		void OnUpdate(float ts)
+		protected override void OnUpdate(float ts)
 		{
-			/*if (Input.IsKeyPressed(KeyCode.W))
+			if (Input.IsKeyPressed(KeyCode.W))
 			{
-				m_Transform.Translation
 			}
 
 			if (Input.IsKeyPressed(KeyCode.S))
@@ -29,7 +29,7 @@ namespace Sandbox
 
 			if (Input.IsKeyPressed(KeyCode.D))
 			{
-			}*/
-		}
+			}
+		}*/
 	}
 }

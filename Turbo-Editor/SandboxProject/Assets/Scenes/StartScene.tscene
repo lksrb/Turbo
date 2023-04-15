@@ -57,10 +57,10 @@ Entities:
       Fields:
         - Name: m_Bool
           Type: Bool
-          Data: false
+          Data: true
         - Name: m_Float
           Type: Float
-          Data: 0
+          Data: 6.30999994
         - Name: m_UnsignedLong
           Type: ULong
           Data: 0

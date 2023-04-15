@@ -4,12 +4,12 @@ namespace ExampleNamespace
 {
 	public class ExampleEntity : Entity
     {
-        void OnStart()
+        protected override void OnCreate()
         {
             Log.Info("Hello entity!");
         }
 
-        void OnUpdate(float ts)
+        protected override void OnUpdate(float ts)
         {
 
         }

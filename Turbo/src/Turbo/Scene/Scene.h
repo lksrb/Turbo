@@ -15,6 +15,7 @@ namespace Turbo
     class SceneRenderer;
     class PhysicsScene2D;
     class Renderer2D;
+
     using EntityMap = std::unordered_map<UUID, entt::entity>;
     class Scene
     {
@@ -86,7 +87,7 @@ namespace Turbo
 
         friend class Entity;
         friend class SceneSerializer;
-        friend class PhysicScene2D;
+        friend class PhysicsScene2D;
         friend class Project;
         friend class ProjectSerializer;
     };

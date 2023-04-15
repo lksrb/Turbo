@@ -4,9 +4,10 @@
 #include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Scene.h"
 
+#include "Turbo/Script/Script.h"
+
 namespace Turbo
 {
-
     PhysicsScene2D::PhysicsScene2D(Scene* context)
         : m_Context(context)
     {
@@ -57,7 +58,7 @@ namespace Turbo
                 fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
                 fixtureDef.isSensor = bc2d.IsSensor;
                 b2FixtureUserData data;
-                data.pointer = (uintptr_t)e; // Just give it entity id
+                data.pointer = (u64)entity.GetUUID();
                 fixtureDef.userData = data;
                 //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
                 //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
@@ -78,6 +79,9 @@ namespace Turbo
                 fixtureDef.restitution = cc2d.Restitution;
                 fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
                 fixtureDef.isSensor = cc2d.IsSensor;
+                b2FixtureUserData data;
+                data.pointer = (u64)entity.GetUUID();
+                fixtureDef.userData = data;
                 //fixtureDef.filter.categoryBits = cc2d.CategoryBits; // <- Is that category
                 //fixtureDef.filter.maskBits = cc2d.MaskBits;		// <- Collides with other categories
                 body->CreateFixture(&fixtureDef);
@@ -109,18 +113,32 @@ namespace Turbo
         }
     }
 
-
     void PhysicsScene2D::BeginContact(b2Contact* contact)
     {
         b2Fixture* fixtureA = contact->GetFixtureA();
-        b2Fixture* fixtureB = contact->GetFixtureA();
+        b2Fixture* fixtureB = contact->GetFixtureB();
+        
+        Entity entityA = m_Context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
+        Entity entityB = m_Context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
 
-        Entity entityA = { (entt::entity)fixtureA->GetUserData().pointer, m_Context };
-        Entity entityB = { (entt::entity)fixtureB->GetUserData().pointer, m_Context };
+        if (entityA && entityA.HasComponent<ScriptComponent>())
+            Script::InvokeEntityOnBeginCollision2D(entityA, entityB, fixtureA->IsSensor());
+        if (entityB && entityB.HasComponent<ScriptComponent>())
+            Script::InvokeEntityOnBeginCollision2D(entityB, entityA, fixtureB->IsSensor());
     }
 
     void PhysicsScene2D::EndContact(b2Contact* contact)
     {
+        b2Fixture* fixtureA = contact->GetFixtureA();
+        b2Fixture* fixtureB = contact->GetFixtureB();
+
+        Entity entityA = m_Context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
+        Entity entityB = m_Context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
+
+        if (entityA && entityA.HasComponent<ScriptComponent>())
+            Script::InvokeEntityOnEndCollision2D(entityA, entityB, fixtureA->IsSensor());
+        if (entityB && entityB.HasComponent<ScriptComponent>())
+            Script::InvokeEntityOnEndCollision2D(entityB, entityA, fixtureB->IsSensor());
     }
 
     void PhysicsScene2D::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
