@@ -91,7 +91,7 @@ namespace Turbo::Ed
         if (!m_EditorScene)
             return;
 
-        switch (m_EditorMode)
+        switch (m_SceneMode)
         {
             case Mode::SceneEdit:
             {
@@ -113,7 +113,7 @@ namespace Turbo::Ed
         if (!m_EditorScene)
             return;
 
-        switch (m_EditorMode)
+        switch (m_SceneMode)
         {
             case Mode::SceneEdit:
             {
@@ -194,13 +194,13 @@ namespace Turbo::Ed
 
             ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
             f32 size = ImGui::GetWindowHeight() - 4.0f;
-            Ref<Texture2D> icon = m_EditorMode == Mode::SceneEdit ? m_PlayIcon : m_StopIcon;
+            Ref<Texture2D> icon = m_SceneMode == Mode::SceneEdit ? m_PlayIcon : m_StopIcon;
             ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
             if (UI::ImageButton(icon, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
             {
-                if (m_EditorMode == Mode::SceneEdit)
+                if (m_SceneMode == Mode::SceneEdit)
                     OnScenePlay();
-                else if (m_EditorMode == Mode::ScenePlay)
+                else if (m_SceneMode == Mode::ScenePlay)
                     OnSceneStop();
             }
             ImGui::PopStyleVar(2);
@@ -304,7 +304,7 @@ namespace Turbo::Ed
             {
                 glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
-                if (m_EditorMode == Mode::ScenePlay)
+                if (m_SceneMode == Mode::ScenePlay)
                 {
                     Entity cameraEntity = m_RuntimeScene->GetCameraEntity();
                     if (cameraEntity)
@@ -392,7 +392,7 @@ namespace Turbo::Ed
             {
                 auto& config = Project::GetActive()->GetConfig();
 
-                if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_EditorMode == Mode::SceneEdit))
+                if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_SceneMode == Mode::SceneEdit))
                 {
                     Script::ReloadAssemblies();
                 }
@@ -485,7 +485,7 @@ namespace Turbo::Ed
     {
         m_PanelManager->OnEvent(e);
 
-        if (m_EditorMode == Mode::SceneEdit)
+        if (m_SceneMode == Mode::SceneEdit)
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
@@ -504,30 +504,33 @@ namespace Turbo::Ed
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
         bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
 
+        bool sceneHierarchyPanelFocused = m_PanelManager->GetPanel<SceneHierarchyPanel>()->IsFocused();
+        bool isPlayMode = m_SceneMode == Mode::ScenePlay;
+
         switch (e.GetKeyCode())
         {
             // Gizmos
             case Key::Q:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
                     m_GizmoType = -1;
                 break;
             }
             case Key::W:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                 break;
             }
             case Key::E:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                 break;
             }
             case Key::R:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
             }
@@ -542,6 +545,7 @@ namespace Turbo::Ed
                         break;
                     }
                 }
+                break;
             }
 
             // Menu
@@ -819,7 +823,7 @@ namespace Turbo::Ed
         // Clear logs
         EditorConsolePanel::Clear();
 
-        m_EditorMode = Mode::ScenePlay;
+        m_SceneMode = Mode::ScenePlay;
 
         m_RuntimeScene = Scene::Copy(m_EditorScene);
         m_RuntimeScene->OnRuntimeStart();
@@ -844,7 +848,7 @@ namespace Turbo::Ed
 
     void Editor::OnSceneStop()
     {
-        m_EditorMode = Mode::SceneEdit;
+        m_SceneMode = Mode::SceneEdit;
 
         m_RuntimeScene->OnRuntimeStop();
         m_RuntimeScene = m_EditorScene;

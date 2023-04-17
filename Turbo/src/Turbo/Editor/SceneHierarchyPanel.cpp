@@ -201,7 +201,7 @@ namespace Turbo
                 s_TypeFunctionsNSR[type](name, instance);
 
         }
-        static void CallTypeSpecificFunctionSceneRunning(ScriptFieldType field_type, const std::string& name, Ref<ScriptInstance> instance)
+        static void CallTypeSpecificFunctionSceneRunning(ScriptFieldType fieldType, const std::string& name, Ref<ScriptInstance> instance)
         {
             static std::array<std::function<void(const std::string& name, Ref<ScriptInstance>& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsSR =
             {
@@ -222,7 +222,7 @@ namespace Turbo
                 TBO_TYPEFUNC2_COMPLEX("Vector4", glm::vec4, ImGui::DragFloat4, 0.1f),
             };
 
-            u32 type = static_cast<u32>(field_type);
+            u32 type = static_cast<u32>(fieldType);
 
             TBO_ENGINE_ASSERT(type < s_TypeFunctionsSR.size());
 
@@ -311,6 +311,10 @@ namespace Turbo
         m_AssetsPath = Project::GetAssetsPath();
     }
 
+    void SceneHierarchyPanel::OnEvent(Event& e)
+    {
+    }
+
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
         if (entity.HasComponent<TagComponent>())
@@ -324,6 +328,7 @@ namespace Turbo
             {
                 tag = buffer;
             }
+            m_IsFocused = ImGui::IsItemActive();
         }
 
         ImGui::SameLine();

@@ -54,7 +54,7 @@ namespace Turbo::Ed
         bool m_ViewportHovered = false, m_ViewportFocused = false;
         Ref<Texture2D> m_PlayIcon, m_StopIcon;
         Ref<SceneRenderer> m_SceneRenderer;
-        Mode m_EditorMode = Mode::SceneEdit;
+        Mode m_SceneMode = Mode::SceneEdit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
 
         std::filesystem::path m_EditorScenePath;
