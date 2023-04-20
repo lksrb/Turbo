@@ -52,7 +52,7 @@ namespace Turbo
         void PushMessageInternal(const ConsoleMessage& message);
 
         u32 m_MessageFilter = ConsoleMessage::Category::Info | ConsoleMessage::Category::Warn | ConsoleMessage::Category::Error;
-
+        bool m_AutoScroll = true; // TODO: Option in project/editor
         std::array<ConsoleMessage, 256> m_MessageBuffer;
         u32 m_MessageBufferCount = 0;
     };

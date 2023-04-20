@@ -150,7 +150,6 @@ namespace Turbo
         Scene* context = Script::GetCurrentScene();
         Entity entity = context->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
-
         entity.GetComponent<TransformComponent>().Translation = *translation;
     }
 

@@ -50,7 +50,7 @@ namespace Turbo
         }
 
         template<typename Func>
-        void EachEntity(Func&& func)
+        inline void EachEntity(Func&& func)
         {
             m_Registry.each([&](auto id)
             {

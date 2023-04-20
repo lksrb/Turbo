@@ -28,9 +28,11 @@ namespace Turbo
 
         ImGui::SameLine();
 
-        // TODO: ImageButtons
+        ImGui::Checkbox("Auto scrolling", &m_AutoScroll);
 
-        static bool info = true, warn = true, error = true; 
+        ImGui::SameLine();
+        // TODO: ImageButtons
+        static bool info = true, warn = true, error = true;
         if (ImGui::Checkbox("Info", &info))
         {
             m_MessageFilter ^= ConsoleMessage::Category::Info;
@@ -49,7 +51,8 @@ namespace Turbo
         }
         ImGui::Separator();
 
-        DrawMessages();
+        if (m_MessageBufferCount != 0)
+            DrawMessages();
 
         ImGui::End();
     }
@@ -76,8 +79,7 @@ namespace Turbo
 
     void EditorConsolePanel::DrawMessages()
     {
-        if (m_MessageBufferCount == 0)
-            return;
+        ImGui::BeginChild("Logging");
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f);
 
@@ -90,17 +92,21 @@ namespace Turbo
                 continue;
 
             // Color text matching their category
-            ImVec4 text_color = { 1.0f , 1.0f, 1.0f, 1.0f };
+            ImVec4 textColor = { 1.0f , 1.0f, 1.0f, 1.0f };
             switch (message.MessageCategory)
             {
-                case ConsoleMessage::Category::Info:  text_color = { 0.0f, 1.0f, 0.0f, 1.0f }; break;
-                case ConsoleMessage::Category::Warn:  text_color = { 1.0f, 1.0f, 0.0f, 1.0f }; break;
-                case ConsoleMessage::Category::Error: text_color = { 1.0f, 0.0f, 0.0f, 1.0f }; break;
+                case ConsoleMessage::Category::Info:  textColor = { 0.0f, 1.0f, 0.0f, 1.0f }; break;
+                case ConsoleMessage::Category::Warn:  textColor = { 1.0f, 1.0f, 0.0f, 1.0f }; break;
+                case ConsoleMessage::Category::Error: textColor = { 1.0f, 0.0f, 0.0f, 1.0f }; break;
             }
+
+            // Automatic scrolling
+            if (m_AutoScroll)
+                ImGui::SetScrollY(ImGui::GetScrollMaxY());
 
             // Offset text
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 2.0f);
-            ImGui::PushStyleColor(ImGuiCol_Text, text_color);
+            ImGui::PushStyleColor(ImGuiCol_Text, textColor);
             ImGui::Text(message.Text.c_str());
             ImGui::PopStyleColor();
 
@@ -111,6 +117,8 @@ namespace Turbo
                 ImGui::Text("(%d)", message.Count);
             }
         }
+
+        ImGui::EndChild();
     }
 
     void EditorConsolePanel::PushMessageInternal(const ConsoleMessage& message)
