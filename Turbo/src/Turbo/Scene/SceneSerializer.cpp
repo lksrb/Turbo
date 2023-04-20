@@ -22,7 +22,6 @@
 		break;                                         \
 	}
 
-
 namespace YAML
 {
     template<>
@@ -225,6 +224,23 @@ namespace Turbo
         out << YAML::BeginMap; // Entity
         out << YAML::Key << "Entity" << YAML::Value << uuid;
 
+        if (entity.HasComponent<RelationshipComponent>())
+        {
+            auto& relationshipComponent = entity.GetComponent<RelationshipComponent>();
+            out << YAML::Key << "Parent" << YAML::Value << relationshipComponent.Parent;
+
+            out << YAML::Key << "Children";
+            out << YAML::Value << YAML::BeginSeq;
+
+            for (auto childUUID : relationshipComponent.Children)
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "UUID" << YAML::Value << childUUID;
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
+        }
+
         if (entity.HasComponent<TagComponent>())
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
@@ -236,6 +252,7 @@ namespace Turbo
 
             out << YAML::EndMap;
         }
+
         if (entity.HasComponent<TransformComponent>())
         {
             auto& transform = entity.GetComponent<TransformComponent>();
@@ -499,6 +516,20 @@ namespace Turbo
                 TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
                 Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid, name);
+                auto& relationshipComponent = deserializedEntity.GetComponent<RelationshipComponent>();
+
+                u64 parent = entity["Parent"].as<u64>();
+                relationshipComponent.Parent = parent;
+
+                auto children = entity["Children"];
+                if (children)
+                {
+                    for (auto child : children)
+                    {
+                        u64 childHandle = child["UUID"].as<u64>();
+                        relationshipComponent.Children.push_back(childHandle);
+                    }
+                }
 
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)
