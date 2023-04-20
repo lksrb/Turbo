@@ -526,8 +526,8 @@ namespace Turbo
                 {
                     for (auto child : children)
                     {
-                        u64 childHandle = child["UUID"].as<u64>();
-                        relationshipComponent.Children.push_back(childHandle);
+                        u64 childUUID = child["UUID"].as<u64>();
+                        relationshipComponent.Children.push_back(childUUID);
                     }
                 }
 
