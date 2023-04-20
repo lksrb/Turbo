@@ -1,6 +1,9 @@
 Scene: StartScene
 Entities:
   - Entity: 2511981452619357033
+    Parent: 2511981452619357033
+    Children:
+      []
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -23,6 +26,9 @@ Entities:
     AudioListenerComponent:
       Primary: true
   - Entity: 12425978561696158902
+    Parent: 12425978561696158902
+    Children:
+      []
     TagComponent:
       Tag: Ground
     TransformComponent:
@@ -43,6 +49,9 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
   - Entity: 1445474774719227887
+    Parent: 1445474774719227887
+    Children:
+      []
     TagComponent:
       Tag: Sprite
     TransformComponent:
@@ -108,6 +117,9 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
   - Entity: 11837830512272370972
+    Parent: 11837830512272370972
+    Children:
+      []
     TagComponent:
       Tag: KRUH
     TransformComponent:
@@ -129,6 +141,9 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
   - Entity: 17489375651344337891
+    Parent: 17489375651344337891
+    Children:
+      []
     TagComponent:
       Tag: Text
     TransformComponent:
