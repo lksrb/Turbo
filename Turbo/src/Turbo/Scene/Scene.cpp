@@ -84,7 +84,7 @@ namespace Turbo
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
-                    for (auto& entity : view)
+                    for (auto entity : view)
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
@@ -100,7 +100,7 @@ namespace Turbo
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
 
-                    for (auto& entity : view)
+                    for (auto entity : view)
                     {
                         auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
                         renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
@@ -111,7 +111,7 @@ namespace Turbo
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
 
-                    for (auto& entity : view)
+                    for (auto entity : view)
                     {
                         auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
                         renderer2d->DrawString(transform.GetMatrix(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
@@ -123,7 +123,7 @@ namespace Turbo
                 {
                     // Box collider
                     auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                    for (auto& entity : bview)
+                    for (auto entity : bview)
                     {
                         auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
 
@@ -140,7 +140,7 @@ namespace Turbo
 
                     // Circle collider
                     auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                    for (auto& entity : cview)
+                    for (auto entity : cview)
                     {
                         auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
 
@@ -171,7 +171,7 @@ namespace Turbo
 
         // Call OnStart function in each script
         auto& scripts = GetAllEntitiesWith<ScriptComponent>();
-        for (auto& e : scripts)
+        for (auto e : scripts)
         {
             Entity entity = { e, this };
             Script::InvokeEntityOnStart(entity);
@@ -275,7 +275,7 @@ namespace Turbo
 
         // Call OnUpdate function in each script 
         auto& view = GetAllEntitiesWith<ScriptComponent>();
-        for (auto& e : view)
+        for (auto e : view)
         {
             Entity entity = { e, this };
             Script::InvokeEntityOnUpdate(entity, ts);
@@ -303,7 +303,7 @@ namespace Turbo
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
-                    for (auto& entity : view)
+                    for (auto entity : view)
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
@@ -319,7 +319,7 @@ namespace Turbo
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
 
-                    for (auto& entity : view)
+                    for (auto entity : view)
                     {
                         auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
                         renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
@@ -330,7 +330,7 @@ namespace Turbo
                 {
                     auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
 
-                    for (auto& entity : view)
+                    for (auto entity : view)
                     {
                         auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
                         renderer2d->DrawString(transform.GetMatrix(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
@@ -344,7 +344,7 @@ namespace Turbo
 
                     // Box collider
                     auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                    for (auto& entity : bview)
+                    for (auto entity : bview)
                     {
                         auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
 
@@ -360,7 +360,7 @@ namespace Turbo
 
                     // Circle collider
                     auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                    for (auto& entity : cview)
+                    for (auto entity : cview)
                     {
                         auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
 
@@ -417,6 +417,7 @@ namespace Turbo
         Entity entity = { m_Registry.create(), this };
         entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
+        entity.AddComponent<RelationshipComponent>().Parent = uuid; // Itself - means its the root
 
         auto& tagComponent = entity.AddComponent<TagComponent>();
         tagComponent.Tag = tag.empty() ? "Entity" : tag;
@@ -432,15 +433,15 @@ namespace Turbo
         m_Registry.destroy(entity);
     }
 
-	Entity Scene::DuplicateEntity(Entity entity)
-	{
+    Entity Scene::DuplicateEntity(Entity entity)
+    {
         Entity duplicated = CreateEntity(entity.GetName());
         // Copy components
         Utils::CopyComponentIfExists(AllComponents{}, duplicated, entity);
         return duplicated;
-	}
+    }
 
-	void Scene::SetViewportSize(u32 width, u32 height)
+    void Scene::SetViewportSize(u32 width, u32 height)
     {
         m_ViewportWidth = width;
         m_ViewportHeight = height;
@@ -498,7 +499,7 @@ namespace Turbo
 
         if (it != m_EntityIDMap.end())
             return Entity{ m_EntityIDMap.at(uuid), this };
-        
+
         return Entity{};
     }
 
@@ -593,6 +594,11 @@ namespace Turbo
 
     template<>
     void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
     {
     }
 }

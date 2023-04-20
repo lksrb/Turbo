@@ -71,15 +71,15 @@ namespace Turbo::Ed
             UI::ImageButton(icon, { thumbnail_size, thumbnail_size }, { 0,1 }, { 1,0 });
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
-                const wchar_t* item_path = path.c_str();
-                size_t item_path_size = (wcslen(item_path) + 1) * sizeof(wchar_t);
+                const wchar_t* itemPath = path.c_str();
+                size_t itemPathSize = (wcslen(itemPath) + 1) * sizeof(wchar_t);
                 if (path.extension() == ".cs")
                 {
-                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_SHP", item_path, item_path_size, ImGuiCond_Always);
+                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_SHP", itemPath, itemPathSize, ImGuiCond_Always);
                 }
                 else if (path.extension() == ".tscene")
                 {
-                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_VIEWPORT", item_path, item_path_size, ImGuiCond_Always);
+                    ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_VIEWPORT", itemPath, itemPathSize, ImGuiCond_Always);
                 }
                 ImGui::EndDragDropSource();
             }

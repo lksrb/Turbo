@@ -227,7 +227,7 @@ namespace Turbo
             TBO_ENGINE_ASSERT(type < s_TypeFunctionsSR.size());
 
             // Call type specific function
-            if(type < s_TypeFunctionsSR.size())
+            if (type < s_TypeFunctionsSR.size())
                 s_TypeFunctionsSR[type](name, instance);
 
         }
@@ -249,7 +249,13 @@ namespace Turbo
         {
             m_Context->EachEntity([&](Entity entity)
             {
-                DrawEntityNode(entity);
+                const auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
+
+                // If entity is root, then do draw
+                if (relationShipComponent.Parent == entity.GetUUID())
+                {
+                    DrawEntityNode(entity);
+                }
             });
 
             if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -517,7 +523,7 @@ namespace Turbo
         Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [](auto& component)
         {
             static bool s_IsValidAudioFile = true; // FIXME: static in class is not ideal
-            
+
             // Audio clip
             char s_AudioSourcePath[128];
             bool changed = false;
@@ -626,36 +632,124 @@ namespace Turbo
                 }
             }
         });
+
+        Utils::DrawComponent<RelationshipComponent>("Relationship Component", entity, [&](auto& component)
+        {
+            std::string input;
+            ImGui::InputText("Entity Name:", &input);
+            Entity childEntity = m_Context->FindEntityByName(input);
+            if (childEntity)
+            {
+                UUID uuid = childEntity.GetUUID();
+                for (auto& childUUID : component.Children)
+                {
+                    if (childUUID == uuid)
+                        return;
+                }
+                TBO_CONSOLE_INFO(uuid);
+
+                // Inform child entity that his parent has changed
+                childEntity.GetComponent<RelationshipComponent>().Parent = entity.GetUUID();
+                component.Children.push_back(uuid);
+            }
+        });
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
-        auto& tag = entity.GetComponent<TagComponent>().Tag;
+        const auto& tag = entity.GetComponent<TagComponent>().Tag;
+        auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
 
-        ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-        flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+        ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0);
+
+        bool hasChildren = relationShipComponent.Children.size() != 0;
+        flags |= !hasChildren ? ImGuiTreeNodeFlags_Leaf : 0;
+        bool opened = ImGui::TreeNodeEx((void*)(u64)(u32)entity, flags | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen, tag.c_str());
 
         if (ImGui::IsItemClicked())
         {
             SetSelectedEntity(entity);
         }
 
+        // Drag & Drop
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_PANEL_TREE_DATA"))
+            {
+                Entity childEntity = *(Entity*)payload->Data;
+
+                if (childEntity)
+                {
+                    UUID uuid = childEntity.GetUUID();
+                    bool found = false;
+                    for (auto& childUUID : relationShipComponent.Children)
+                    {
+                        if (childUUID == uuid)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        TBO_ENGINE_INFO("{} to {}", childEntity.GetName(), tag);
+
+                        auto& childEntityRelationship = childEntity.GetComponent<RelationshipComponent>();
+
+                        // Entity has a parent => recursively remove it from other relation ship components
+                        if (childEntityRelationship.Parent != uuid)
+                        {
+                            Entity rootEntity = m_Context->FindEntityByUUID(childEntityRelationship.Parent);
+                            auto& rootEntityRelationship = rootEntity.GetComponent<RelationshipComponent>();
+                            auto& it = std::find(rootEntityRelationship.Children.begin(), rootEntityRelationship.Children.end(), uuid);
+                            rootEntityRelationship.Children.erase(it);
+                        }
+
+                        // Inform child entity that his parent has changed
+                        childEntityRelationship.Parent = entity.GetUUID();
+                        relationShipComponent.Children.push_back(uuid);
+                    }
+                }
+            }
+
+            ImGui::EndDragDropTarget();
+        }
+
+        if (ImGui::BeginDragDropSource())
+        {
+            ImGui::SetDragDropPayload("SCENE_HIERARCHY_PANEL_TREE_DATA", &m_SelectedEntity, sizeof(Entity), ImGuiCond_Always);
+            ImGui::EndDragDropSource();
+        }
+
         bool entityDeleted = false;
-        if (ImGui::BeginPopupContextItem(0, 1))
+        if (entity && ImGui::BeginPopupContextItem(0, 1))
         {
             if (ImGui::MenuItem("Delete Entity"))
                 entityDeleted = true;
+
+            UUID uuid = entity.GetUUID();
+
+            // Temporary solution
+            if (relationShipComponent.Parent != uuid && ImGui::MenuItem("Pin to root"))
+            {
+                Entity rootEntity = m_Context->FindEntityByUUID(relationShipComponent.Parent);
+                auto& rootEntityRelationship = rootEntity.GetComponent<RelationshipComponent>();
+                auto& it = std::find(rootEntityRelationship.Children.begin(), rootEntityRelationship.Children.end(), uuid);
+                rootEntityRelationship.Children.erase(it);
+
+                relationShipComponent.Parent = uuid;
+
+            }
 
             ImGui::EndPopup();
         }
 
         if (opened)
         {
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-            bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
-            if (opened)
-                ImGui::TreePop();
+            for (auto& childUUID : relationShipComponent.Children)
+                DrawEntityNode(m_Context->FindEntityByUUID(childUUID));
+
             ImGui::TreePop();
         }
 
