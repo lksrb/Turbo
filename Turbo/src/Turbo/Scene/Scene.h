@@ -13,7 +13,6 @@ namespace Turbo
 {
     class Entity;
     class SceneRenderer;
-    class PhysicsScene2D;
     class Renderer2D;
 
     using EntityMap = std::unordered_map<UUID, entt::entity>;
@@ -71,19 +70,25 @@ namespace Turbo
     private:
         Entity FindPrimaryCameraEntity();
         Entity FindPrimaryAudioListenerEntity();
+
+        void ClearDeletedEntities();
     private:
         entt::registry m_Registry;
+
+        UUID m_SceneID;
 
         entt::entity m_PrimaryAudioListenerEntity = entt::null;
         entt::entity m_PrimaryCameraEntity = entt::null;
 
+        entt::entity m_SceneEntity = entt::null;
+
         EntityMap m_EntityIDMap;
+
+        std::vector<entt::entity> m_DestroyedEntities;
 
         bool m_Running = false;
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
-
-        PhysicsScene2D* m_PhysicsScene2D = nullptr;
 
         friend class Entity;
         friend class SceneSerializer;

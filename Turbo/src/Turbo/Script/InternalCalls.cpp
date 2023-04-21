@@ -79,10 +79,35 @@ namespace Turbo
     }
 
     // =============================================================================
+    //                                   Scene                                   
+    // =============================================================================
+
+    static u64 Scene_CreateEntity(MonoString* name)
+    {
+        char* cString = mono_string_to_utf8(name);
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->CreateEntity(cString);
+
+        TBO_ENGINE_ASSERT(entity);
+        mono_free(cString);
+
+        return entity.GetUUID();
+    }
+
+    static void Scene_DestroyEntity(u64 uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+        context->DestroyEntity(entity);
+    }
+
+    // =============================================================================
     //                                  Entity                                   
     // =============================================================================
 
     static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
+    static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
 
     static u64 Entity_FindEntityByName(MonoString* name)
     {
@@ -113,6 +138,19 @@ namespace Turbo
         TBO_ENGINE_ASSERT(s_EntityHasComponentFuncs.find(component_type) != s_EntityHasComponentFuncs.end());
 
         return s_EntityHasComponentFuncs.at(component_type)(entity);
+    }
+
+    static void Entity_Add_Component(u64 uuid, MonoReflectionType* reflectionType)
+    {
+        Scene* context = Script::GetCurrentScene();
+
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        MonoType* componentType = mono_reflection_type_get_type(reflectionType);
+
+        TBO_ENGINE_ASSERT(s_EntityAddComponentFuncs.find(componentType) != s_EntityAddComponentFuncs.end());
+        s_EntityAddComponentFuncs.at(componentType)(entity);
     }
 
     static MonoString* Entity_Get_Name(UUID uuid)
@@ -418,8 +456,7 @@ namespace Turbo
         TBO_ENGINE_ASSERT(entity);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = reinterpret_cast<b2Body*>(rb2d.RuntimeBody);
-        return body->GetGravityScale();
+        return rb2d.GravityScale;
     }
     static void Component_Rigidbody2D_Set_GravityScale(UUID uuid, f32 gravityScale)
     {
@@ -428,8 +465,7 @@ namespace Turbo
         TBO_ENGINE_ASSERT(entity);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        body->SetGravityScale(gravityScale);
+        rb2d.GravityScale = gravityScale;
     }
 
     static Rigidbody2DComponent::BodyType Component_Rigidbody2D_Get_BodyType(UUID uuid)
@@ -439,8 +475,7 @@ namespace Turbo
         TBO_ENGINE_ASSERT(entity);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = reinterpret_cast<b2Body*>(rb2d.RuntimeBody);
-        return Utils::Rigidbody2DTypeFromBox2DBody(body->GetType());
+        return rb2d.Type;
     }
 
     static void Component_Rigidbody2D_Set_BodyType(UUID uuid, Rigidbody2DComponent::BodyType type)
@@ -450,8 +485,47 @@ namespace Turbo
         TBO_ENGINE_ASSERT(entity);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = reinterpret_cast<b2Body*>(rb2d.RuntimeBody);
-        body->SetType(Utils::Rigidbody2DTypeToBox2DBody(type));
+        rb2d.Type = type;
+    }
+
+    static void Component_Rigidbody2D_Set_Enabled(UUID uuid, bool enabled)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        rb2d.Enabled = enabled;
+    }
+
+    static bool Component_Rigidbody2D_Get_Enabled(UUID uuid)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        return rb2d.Enabled;
+    }
+
+    static void Component_Rigidbody2D_Set_ContactEnabled(UUID uuid, bool enabled)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        rb2d.ContactEnabled = enabled;
+    }
+
+    static bool Component_Rigidbody2D_Get_ContactEnabled(UUID uuid)
+    {
+        Scene* scene = Script::GetCurrentScene();
+        Entity entity = scene->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        return rb2d.ContactEnabled;
     }
 
 #pragma endregion
@@ -556,12 +630,19 @@ namespace Turbo
 
     void InternalCalls::Init()
     {
-        // General
+        // Logging
         TBO_REGISTER_FUNCTION(Log_String);
+
+        // Scene
+        TBO_REGISTER_FUNCTION(Scene_CreateEntity);
+        TBO_REGISTER_FUNCTION(Scene_DestroyEntity);
+
+        // Entity
         TBO_REGISTER_FUNCTION(Entity_FindEntityByName);
         TBO_REGISTER_FUNCTION(Entity_Get_Instance);
         TBO_REGISTER_FUNCTION(Entity_Get_Name);
         TBO_REGISTER_FUNCTION(Entity_Has_Component);
+        TBO_REGISTER_FUNCTION(Entity_Add_Component);
 
         // Input
         TBO_REGISTER_FUNCTION(Input_IsKeyPressed);
@@ -610,7 +691,10 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_BodyType);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_LinearVelocity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_LinearVelocity);
-
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_Enabled);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_Enabled);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_ContactEnabled);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_ContactEnabled);
         // BoxCollider2D
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Offset);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Offset);
@@ -645,6 +729,7 @@ namespace Turbo
                 return;
             }
             s_EntityHasComponentFuncs[type] = [](Entity entity) { return entity.HasComponent<Component>(); };
+            s_EntityAddComponentFuncs[type] = [](Entity entity) { entity.AddComponent<Component>(); };
         }(), ...);
     }
 

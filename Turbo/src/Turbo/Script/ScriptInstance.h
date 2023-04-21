@@ -54,14 +54,14 @@ namespace Turbo
         bool GetFieldValueInternal(const std::string& name, void* buffer);
         bool SetFieldValueInternal(const std::string& name, const void* value);
     private:
+        MonoMethod* m_Constructor = nullptr;
         MonoMethod* m_OnCreateMethod = nullptr;
         MonoMethod* m_OnUpdateMethod = nullptr;
+
         MonoMethod* m_OnCollision2DBeginMethod = nullptr;
         MonoMethod* m_OnCollision2DEndMethod = nullptr;
         MonoMethod* m_OnTriggerBegin2DMethod = nullptr;
         MonoMethod* m_OnTriggerEnd2DMethod = nullptr;
-
-        MonoMethod* m_Constructor = nullptr;
 
         // Managed thunks FPs
         OnCollision2DFP m_OnCollisionBegin2DFP = nullptr;

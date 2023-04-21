@@ -125,6 +125,20 @@ namespace Turbo
 			}
 		}
 
+		// For disabling contact
+		public bool IsContactEnabled
+		{
+			get => InternalCalls.Component_Rigidbody2D_Get_ContactEnabled(Entity.ID);
+			set => InternalCalls.Component_Rigidbody2D_Set_ContactEnabled(Entity.ID, value);
+		}
+
+		// Disable rigidbody
+		public bool IsEnabled
+		{
+			get => InternalCalls.Component_Rigidbody2D_Get_Enabled(Entity.ID);
+			set => InternalCalls.Component_Rigidbody2D_Set_Enabled(Entity.ID, value);
+		}
+
 		public void ApplyTorque(float torque, bool wake = true)
 		{
 			InternalCalls.Component_Rigidbody2D_ApplyTorque(Entity.ID, torque, wake);

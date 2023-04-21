@@ -95,7 +95,8 @@ namespace Turbo::Ed
         {
             case Mode::SceneEdit:
             {
-                m_EditorCamera.OnUpdate(Time.DeltaTime);
+                if(m_ViewportHovered)
+                    m_EditorCamera.OnUpdate(Time.DeltaTime);
 
                 m_EditorScene->OnEditorUpdate(Time.DeltaTime);
                 break;
@@ -485,7 +486,7 @@ namespace Turbo::Ed
     {
         m_PanelManager->OnEvent(e);
 
-        if (m_SceneMode == Mode::SceneEdit)
+        if (m_SceneMode == Mode::SceneEdit && m_ViewportHovered)
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
@@ -851,6 +852,10 @@ namespace Turbo::Ed
         m_SceneMode = Mode::SceneEdit;
 
         m_RuntimeScene->OnRuntimeStop();
+
+        // Copy some scene settings
+        // FIXME: Should not be a scene setting anyway -> Rendering
+        m_EditorScene->ShowPhysics2DColliders = m_RuntimeScene->ShowPhysics2DColliders; 
         m_RuntimeScene = m_EditorScene;
 
         // Set current scene

@@ -3,8 +3,8 @@
 #include "Turbo/Core/Time.h"
 #include "Turbo/Scene/Components.h"
 
-#include <box2d/b2_world.h>
 #include <box2d/b2_body.h>
+#include <box2d/b2_world.h>
 #include <box2d/b2_shape.h>
 #include <box2d/b2_polygon_shape.h>
 #include <box2d/b2_contact.h>
@@ -41,29 +41,4 @@ namespace Turbo
             return Rigidbody2DComponent::BodyType::Static;
         }
     }
-
-    class Scene;
-
-    class PhysicsScene2D : public b2ContactListener
-    {
-    public:
-        PhysicsScene2D(Scene* context);
-        ~PhysicsScene2D();
-
-        void OnUpdate(FTime ts);
-
-        // b2ContactListener
-        void BeginContact(b2Contact* contact) override;
-        void EndContact(b2Contact* contact) override;
-        void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
-        void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override;
-    private:
-        void Initialize();
-
-        b2World* m_PhysicsWorld = nullptr;
-
-        Scene* m_Context = nullptr;
-    };
-
-
 }

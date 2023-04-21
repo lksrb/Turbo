@@ -114,6 +114,7 @@ namespace Turbo
         bool FixedRotation = false;
         f32 GravityScale = 1.0f;
         bool Enabled = true;
+        bool ContactEnabled = true;
 
         // Storage for runtime
         void* RuntimeBody = nullptr;

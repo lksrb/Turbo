@@ -247,16 +247,16 @@ namespace Turbo
 
         if (m_Context)
         {
-            m_Context->EachEntity([&](Entity entity)
+            auto& view = m_Context->GetAllEntitiesWith<RelationshipComponent>();
+            for (auto e : view)
             {
+                Entity entity = { e, m_Context.Get()};
                 const auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
 
                 // If entity is root, then do draw
                 if (relationShipComponent.Parent == entity.GetUUID())
-                {
                     DrawEntityNode(entity);
-                }
-            });
+            }
 
             if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
                 m_SelectedEntity = {};
@@ -326,6 +326,11 @@ namespace Turbo
         if (entity.HasComponent<TagComponent>())
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
+
+          /*  if (tag.empty())
+            {
+                TBO_ENGINE_ASSERT(false);
+            }*/
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
@@ -561,7 +566,7 @@ namespace Turbo
             ImGui::Checkbox("Primary", &component.IsPrimary);
         });
 
-        Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
+        Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [this](auto& component)
         {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
             ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
@@ -632,27 +637,6 @@ namespace Turbo
                 }
             }
         });
-
-        Utils::DrawComponent<RelationshipComponent>("Relationship Component", entity, [&](auto& component)
-        {
-            std::string input;
-            ImGui::InputText("Entity Name:", &input);
-            Entity childEntity = m_Context->FindEntityByName(input);
-            if (childEntity)
-            {
-                UUID uuid = childEntity.GetUUID();
-                for (auto& childUUID : component.Children)
-                {
-                    if (childUUID == uuid)
-                        return;
-                }
-                TBO_CONSOLE_INFO(uuid);
-
-                // Inform child entity that his parent has changed
-                childEntity.GetComponent<RelationshipComponent>().Parent = entity.GetUUID();
-                component.Children.push_back(uuid);
-            }
-        });
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -693,7 +677,7 @@ namespace Turbo
 
                     if (!found)
                     {
-                        TBO_ENGINE_INFO("{} to {}", childEntity.GetName(), tag);
+                        //TBO_ENGINE_INFO("{} to {}", childEntity.GetName(), tag);
 
                         auto& childEntityRelationship = childEntity.GetComponent<RelationshipComponent>();
 
@@ -722,11 +706,11 @@ namespace Turbo
             ImGui::EndDragDropSource();
         }
 
-        bool entityDeleted = false;
+        bool entityDestroyed = false;
         if (entity && ImGui::BeginPopupContextItem(0, 1))
         {
-            if (ImGui::MenuItem("Delete Entity"))
-                entityDeleted = true;
+            if (ImGui::MenuItem("Destroy Entity"))
+                entityDestroyed = true;
 
             UUID uuid = entity.GetUUID();
 
@@ -739,7 +723,6 @@ namespace Turbo
                 rootEntityRelationship.Children.erase(it);
 
                 relationShipComponent.Parent = uuid;
-
             }
 
             ImGui::EndPopup();
@@ -747,13 +730,13 @@ namespace Turbo
 
         if (opened)
         {
-            for (auto& childUUID : relationShipComponent.Children)
+            for (auto childUUID : relationShipComponent.Children)
                 DrawEntityNode(m_Context->FindEntityByUUID(childUUID));
 
             ImGui::TreePop();
         }
 
-        if (entityDeleted)
+        if (entityDestroyed)
         {
             m_Context->DestroyEntity(entity);
             if (m_SelectedEntity == entity)

@@ -29,11 +29,24 @@ namespace Turbo
 		internal extern static bool Input_IsMouseButtonReleased(MouseCode code);
 
 		// =============================================================================
+		//                                  Scene                                   
+		// =============================================================================
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ulong Scene_CreateEntity(string name);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Scene_DestroyEntity(ulong uuid);
+
+		// =============================================================================
 		//                                  Entity                                   
 		// =============================================================================
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Entity_Has_Component(ulong uuid, Type componentType);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Entity_Add_Component(ulong uuid, Type componentType);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_FindEntityByName(string name);
@@ -153,6 +166,19 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody2D_Set_BodyType(ulong uuid, Rigidbody2DComponent.BodyType type);
+
+		// Is Enabled
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_Set_Enabled(ulong uuid, bool enabled);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_Rigidbody2D_Get_Enabled(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody2D_Set_ContactEnabled(ulong uuid, bool enabled);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_Rigidbody2D_Get_ContactEnabled(ulong uuid);
 
 		#endregion
 

@@ -7,12 +7,13 @@ namespace Turbo
 		public readonly ulong ID;
 		public TransformComponent Transform;
 		public string Name;
-
+		
+		// Classic collision callbacks
 		public Action<Entity> OnCollisionBegin2D;
 		public Action<Entity> OnCollisionEnd2D;
 		public Action<Entity> OnTriggerBegin2D;
 		public Action<Entity> OnTriggerEnd2D;
-
+	
 		protected Entity() { ID = 0; }
 		protected virtual void OnCreate() {}
 		protected virtual void OnUpdate(float ts) {}
@@ -43,13 +44,29 @@ namespace Turbo
 			return component;
 		}
 
+		public T AddComponent<T>() where T : Component, new()
+		{
+			Type componentType = typeof(T);
+
+			if (HasComponent<T>() == true)
+			{
+				Log.Error($"Entity already has this component! {componentType.Name}");
+				return null;
+			}
+
+			InternalCalls.Entity_Add_Component(ID, componentType);
+
+			T component = new T() { Entity = this };
+			return component;
+		}
+
 		public Entity FindEntityByName(string name)
 		{
-			ulong entity_id = InternalCalls.Entity_FindEntityByName(name);
-			if (entity_id == 0)
+			ulong entityID = InternalCalls.Entity_FindEntityByName(name);
+			if (entityID == 0)
 				return null;
 
-			return new Entity(entity_id);
+			return new Entity(entityID);
 		}
 
 		public T As<T>() where T : Entity, new()

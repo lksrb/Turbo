@@ -54,20 +54,86 @@ namespace Turbo
         {
             CopyComponentIfExists<Component...>(dst, src);
         }
-
     }
+
+    class ContactListener2D : public b2ContactListener
+    {
+    private:
+        void BeginContact(b2Contact* contact) override
+        {
+            Scene* context = Script::GetCurrentScene();
+
+            b2Fixture* fixtureA = contact->GetFixtureA();
+            b2Fixture* fixtureB = contact->GetFixtureB();
+
+            Entity entityA = context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
+            Entity entityB = context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
+
+            // Acts like a begin contact, FIXME: Temporary? 
+            if (entityA && entityA.HasComponent<ScriptComponent>())
+                Script::InvokeEntityOnBeginCollision2D(entityA, entityB, fixtureA->IsSensor());
+
+            if (entityB && entityB.HasComponent<ScriptComponent>())
+                Script::InvokeEntityOnBeginCollision2D(entityB, entityA, fixtureB->IsSensor());
+#if 0
+            // Update physics settings
+            auto& rb2dA = entityA.GetComponent<Rigidbody2DComponent>();
+            auto& rb2dB = entityB.GetComponent<Rigidbody2DComponent>();
+            contact->SetEnabled(rb2dA.ContactEnabled && rb2dB.ContactEnabled);
+#endif
+        }
+
+        void EndContact(b2Contact* contact) override
+        {
+            Scene* context = Script::GetCurrentScene();
+
+            b2Fixture* fixtureA = contact->GetFixtureA();
+            b2Fixture* fixtureB = contact->GetFixtureB();
+
+            Entity entityA = context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
+            Entity entityB = context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
+
+            if (entityA && entityA.HasComponent<ScriptComponent>())
+                Script::InvokeEntityOnEndCollision2D(entityA, entityB, fixtureA->IsSensor());
+
+            if (entityB && entityB.HasComponent<ScriptComponent>())
+                Script::InvokeEntityOnEndCollision2D(entityB, entityA, fixtureB->IsSensor());
+        }
+
+        void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override
+        {
+        }
+
+        void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override
+        {
+        }
+    };
+
+    static ContactListener2D s_ContactListener;
+
+    struct SceneComponent
+    {
+        UUID SceneID;
+    };
+
+    struct Box2DWorldComponent
+    {
+        std::unique_ptr<b2World> World;
+    };
 
     Scene::Scene()
     {
+        m_SceneEntity = m_Registry.create();
+        m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
     }
 
     Scene::~Scene()
     {
-        delete m_PhysicsScene2D;
     }
 
     void Scene::OnEditorUpdate(FTime ts)
     {
+        ClearDeletedEntities();
     }
 
     void Scene::OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editorCamera)
@@ -127,8 +193,8 @@ namespace Turbo
                     {
                         auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
 
-                        const glm::vec3& translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
-                        const glm::vec3& scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+                        glm::vec3 translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
+                        glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
 
                         const glm::mat4& offsetTransform =
                             glm::translate(glm::mat4(1.0f), translation) *
@@ -144,8 +210,8 @@ namespace Turbo
                     {
                         auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
 
-                        const glm::vec3& translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
-                        const glm::vec3& scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
+                        glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
+                        glm::vec3 scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
 
                         const glm::mat4& offsetTransform =
                             glm::translate(glm::mat4(1.0f), translation) *
@@ -164,7 +230,74 @@ namespace Turbo
 
     void Scene::OnRuntimeStart()
     {
-        m_PhysicsScene2D = new PhysicsScene2D(this);
+        auto& world = m_Registry.emplace<Box2DWorldComponent>(m_SceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f })).World;
+        world->SetContactListener(&s_ContactListener);
+        {
+            auto& view = GetAllEntitiesWith<Rigidbody2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+                auto& transform = entity.GetComponent<TransformComponent>();
+                auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+                // Copy position from transform component
+                b2BodyDef bodyDef;
+                bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
+                bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
+                bodyDef.angle = transform.Rotation.z;
+
+                // Create body
+                b2Body* body = world->CreateBody(&bodyDef);
+                body->SetFixedRotation(rb2d.FixedRotation);
+                body->SetEnabled(rb2d.Enabled);
+                body->SetGravityScale(rb2d.GravityScale);
+                rb2d.RuntimeBody = body;
+                if (entity.HasComponent<BoxCollider2DComponent>())
+                {
+                    auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+                    b2PolygonShape boxShape;
+                    boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+                    b2FixtureDef fixtureDef;
+                    fixtureDef.shape = &boxShape;
+                    fixtureDef.density = bc2d.Density;
+                    fixtureDef.friction = bc2d.Friction;
+                    fixtureDef.restitution = bc2d.Restitution;
+                    fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+                    fixtureDef.isSensor = bc2d.IsSensor;
+                    b2FixtureUserData data;
+                    data.pointer = (u64)entity.GetUUID();
+                    fixtureDef.userData = data;
+                    //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
+                    //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
+                    body->CreateFixture(&fixtureDef);
+                }
+                else if (entity.HasComponent<CircleCollider2DComponent>())
+                {
+                    auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+
+                    b2CircleShape circleShape;
+                    circleShape.m_radius = transform.Scale.x * cc2d.Radius;
+                    circleShape.m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
+
+                    b2FixtureDef fixtureDef;
+                    fixtureDef.shape = &circleShape;
+                    fixtureDef.density = cc2d.Density;
+                    fixtureDef.friction = cc2d.Friction;
+                    fixtureDef.restitution = cc2d.Restitution;
+                    fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
+                    fixtureDef.isSensor = cc2d.IsSensor;
+                    b2FixtureUserData data;
+                    data.pointer = (u64)entity.GetUUID();
+                    fixtureDef.userData = data;
+                    //fixtureDef.filter.categoryBits = cc2d.CategoryBits; // <- Is that category
+                    //fixtureDef.filter.maskBits = cc2d.MaskBits;		// <- Collides with other categories
+                    body->CreateFixture(&fixtureDef);
+                }
+            }
+        }
+
+        //m_PhysicsScene2D = new PhysicsScene2D(this);
 
         Audio::OnRuntimeStart(this);
         Script::OnRuntimeStart(this);
@@ -203,16 +336,45 @@ namespace Turbo
         Script::OnRuntimeStop();
         Audio::OnRuntimeStop();
 
-        delete m_PhysicsScene2D;
-        m_PhysicsScene2D = nullptr;
-
         m_Running = false;
     }
 
     void Scene::OnRuntimeUpdate(FTime ts)
     {
+        ClearDeletedEntities();
+
         // Update 2D Physics
-        m_PhysicsScene2D->OnUpdate(ts);
+        {
+            auto& world = m_Registry.get<Box2DWorldComponent>(m_SceneEntity).World;
+
+            constexpr i32 velocityIterations = 6;
+            constexpr i32 positionIterations = 2;
+            world->Step(ts, velocityIterations, positionIterations);
+
+            // Retrieve transform from Box2D and copy settings to it
+            auto& view = GetAllEntitiesWith<Rigidbody2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+                auto& transform = entity.Transform();
+                auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+                b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+                const auto& position = body->GetPosition();
+                transform.Translation.x = position.x;
+                transform.Translation.y = position.y;
+
+                if (rb2d.FixedRotation == false)
+                    transform.Rotation.z = body->GetAngle();
+
+                // Copy settings from the component, 
+                // NOTE: Settings are from last frame, not sure if its good or bad
+                body->SetEnabled(rb2d.Enabled);
+                body->SetType(Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type));
+                body->SetGravityScale(rb2d.GravityScale);
+            }
+        }
+        //m_PhysicsScene2D->OnUpdate(ts);
 
         // Find primary audio listener
         Entity audioListenerEntity = FindPrimaryAudioListenerEntity();
@@ -429,8 +591,10 @@ namespace Turbo
 
     void Scene::DestroyEntity(Entity entity)
     {
-        m_EntityIDMap.erase(entity.GetUUID());
-        m_Registry.destroy(entity);
+        UUID uuid = entity.GetUUID();
+        TBO_ENGINE_ASSERT(m_EntityIDMap.find(uuid) != m_EntityIDMap.end());
+
+        m_DestroyedEntities.push_back(entity);
     }
 
     Entity Scene::DuplicateEntity(Entity entity)
@@ -491,6 +655,18 @@ namespace Turbo
             }
         }
         return {};
+    }
+
+    void Scene::ClearDeletedEntities()
+    {
+        for (auto e : m_DestroyedEntities)
+        {
+            Entity entity = { e, this };
+            m_EntityIDMap.erase(entity.GetUUID());
+            m_Registry.destroy(entity);
+        }
+
+        m_DestroyedEntities.clear();
     }
 
     Entity Scene::FindEntityByUUID(UUID uuid)
@@ -585,11 +761,13 @@ namespace Turbo
     template<>
     void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component)
     {
+
     }
 
     template<>
     void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
     {
+
     }
 
     template<>

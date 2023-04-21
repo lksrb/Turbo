@@ -9,9 +9,9 @@
 
 #include <yaml-cpp/yaml.h>
 
-#define WRITE_SCRIPT_FIELD(FieldType, Type)           \
-			case ScriptFieldType::FieldType:          \
-				out << scriptField.GetValue<Type>();  \
+#define WRITE_SCRIPT_FIELD(FieldType, Type)            \
+			case ScriptFieldType::FieldType:           \
+				out << scriptField.GetValue<Type>();   \
 				break
 
 #define READ_SCRIPT_FIELD(FieldType, Type)             \
@@ -713,14 +713,17 @@ namespace Turbo
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << filepath.stem().string();
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-        m_Scene->m_Registry.each([&](auto entityID)
+
+        auto& view = m_Scene->GetAllEntitiesWith<IDComponent>();
+
+        for (auto e : view)
         {
-            Entity entity = { entityID, m_Scene.Get() };
+            Entity entity = { e, m_Scene.Get() };
             if (!entity)
-                return;
+                break;
 
             SerializeEntity(out, entity);
-        });
+        }
         out << YAML::EndSeq;
         out << YAML::EndMap;
 

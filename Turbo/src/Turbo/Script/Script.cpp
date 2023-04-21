@@ -11,6 +11,7 @@
 #include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Components.h"
 #include "Turbo/Solution/Project.h"
+#include "Turbo/Physics/Physics2D.h"
 
 #include <fstream>
 
@@ -190,7 +191,7 @@ namespace Turbo
     void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor)
     {
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
-        auto& otherID = other.GetUUID();
+        UUID otherUUID = other.GetUUID();
         bool isValidClassName = ScriptClassExists(script.ClassName);
 
         // Invoke only when C# script class exists
@@ -198,16 +199,16 @@ namespace Turbo
             return;
 
         if (isSensor)
-            g_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerBegin2D(otherID);
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerBegin2D(otherUUID);
         else
-            g_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionBegin2D(otherID);
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionBegin2D(otherUUID);
 
     }
 
     void Script::InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor)
     {
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
-        auto& otherID = other.GetUUID();
+        UUID otherUUID = other.GetUUID();
         bool isValidClassName = ScriptClassExists(script.ClassName);
 
         // Invoke only when C# script class exists
@@ -215,9 +216,9 @@ namespace Turbo
             return;
 
         if (isSensor)
-            g_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerEnd2D(otherID);
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerEnd2D(otherUUID);
         else
-            g_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionEnd2D(otherID);
+            g_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionEnd2D(otherUUID);
     }
 
     Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)

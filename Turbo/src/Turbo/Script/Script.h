@@ -12,6 +12,7 @@ namespace Turbo
     class Scene;
     class Entity;
 
+    struct Contact2D;
     class Script
     {
     public:
@@ -57,7 +58,6 @@ namespace Turbo
         static void InvokeEntityOnUpdate(Entity entity, FTime ts);
         static void InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor);
         static void InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor);
-
         static ScriptFieldInstanceMap& GetEntityFieldMap(UUID uuid);
 
         static void ReloadAssemblies();
