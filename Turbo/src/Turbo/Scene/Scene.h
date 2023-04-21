@@ -26,7 +26,7 @@ namespace Turbo
         bool ShowPhysics2DColliders = false;
 
         void OnEditorUpdate(FTime ts);
-        void OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editor_camera);
+        void OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editorCamera);
 
         void OnRuntimeStart();
         void OnRuntimeStop();
