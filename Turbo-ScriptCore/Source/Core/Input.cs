@@ -18,5 +18,19 @@
 		{
 			return InternalCalls.Input_IsMouseButtonReleased(code);
 		}
+
+		public static Vector2 MousePosition 
+		{	
+			get 
+			{
+				Vector2 mousePosition = new Vector2
+				{
+					x = InternalCalls.Input_GetMouseX(),
+					y = InternalCalls.Input_GetMouseY()
+				};
+
+				return mousePosition;
+			}
+		}
 	}
 }

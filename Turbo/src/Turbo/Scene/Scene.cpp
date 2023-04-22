@@ -11,6 +11,14 @@
 
 #include "Turbo/Physics/Physics2D.h"
 
+#include <box2d/b2_body.h>
+#include <box2d/b2_world.h>
+#include <box2d/b2_shape.h>
+#include <box2d/b2_polygon_shape.h>
+#include <box2d/b2_contact.h>
+#include <box2d/b2_circle_shape.h>
+#include <box2d/b2_fixture.h>
+
 namespace Turbo
 {
     namespace Utils
@@ -251,6 +259,9 @@ namespace Turbo
                 body->SetFixedRotation(rb2d.FixedRotation);
                 body->SetEnabled(rb2d.Enabled);
                 body->SetGravityScale(rb2d.GravityScale);
+                //body->SetBullet(rb2d.IsBullet);
+                body->SetBullet(true);
+                
                 rb2d.RuntimeBody = body;
                 if (entity.HasComponent<BoxCollider2DComponent>())
                 {
@@ -296,8 +307,6 @@ namespace Turbo
                 }
             }
         }
-
-        //m_PhysicsScene2D = new PhysicsScene2D(this);
 
         Audio::OnRuntimeStart(this);
         Script::OnRuntimeStart(this);
@@ -363,7 +372,7 @@ namespace Turbo
                 const auto& position = body->GetPosition();
                 transform.Translation.x = position.x;
                 transform.Translation.y = position.y;
-
+                
                 if (rb2d.FixedRotation == false)
                     transform.Rotation.z = body->GetAngle();
 
@@ -374,7 +383,6 @@ namespace Turbo
                 body->SetGravityScale(rb2d.GravityScale);
             }
         }
-        //m_PhysicsScene2D->OnUpdate(ts);
 
         // Find primary audio listener
         Entity audioListenerEntity = FindPrimaryAudioListenerEntity();
@@ -457,7 +465,7 @@ namespace Turbo
             // Camera does exists
             if (cameraEntity)
             {
-                auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+                SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
                 camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
 
                 renderer2d->Begin2D(camera);
@@ -550,6 +558,8 @@ namespace Turbo
 
         newScene->m_ViewportWidth = other->m_ViewportWidth;
         newScene->m_ViewportHeight = other->m_ViewportHeight;
+        newScene->m_ViewportX = other->m_ViewportX;
+        newScene->m_ViewportY = other->m_ViewportY;
 
         auto& view = other->m_Registry.view<IDComponent>();
 
@@ -603,6 +613,12 @@ namespace Turbo
         // Copy components
         Utils::CopyComponentIfExists(AllComponents{}, duplicated, entity);
         return duplicated;
+    }
+
+    void Scene::SetViewportOffset(u32 x, u32 y)
+    {
+        m_ViewportX = x;
+        m_ViewportY = y;
     }
 
     void Scene::SetViewportSize(u32 width, u32 height)
@@ -693,7 +709,7 @@ namespace Turbo
         return Entity{};
     }
 
-    Entity Scene::GetCameraEntity()
+    Entity Scene::GetPrimaryCameraEntity()
     {
         return Entity{ m_PrimaryCameraEntity, this };
     }
@@ -761,13 +777,52 @@ namespace Turbo
     template<>
     void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component)
     {
+        if (!m_Running)
+            return;
 
+        auto& transform = entity.GetComponent<TransformComponent>();
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        auto& world = m_Registry.get<Box2DWorldComponent>(m_SceneEntity).World;
+
+        // Copy position from transform component
+        b2BodyDef bodyDef;
+        bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
+        bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
+        bodyDef.angle = transform.Rotation.z;
+
+        // Create body
+        b2Body* body = world->CreateBody(&bodyDef);
+        body->SetFixedRotation(rb2d.FixedRotation);
+        body->SetEnabled(rb2d.Enabled);
+        body->SetGravityScale(rb2d.GravityScale);
+        rb2d.RuntimeBody = body;
     }
 
     template<>
     void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
     {
+        if (!m_Running || !entity.HasComponent<Rigidbody2DComponent>())
+            return;
 
+        auto& transform = entity.GetComponent<TransformComponent>();
+        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+        b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+
+        b2PolygonShape boxShape;
+        boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = &boxShape;
+        fixtureDef.density = bc2d.Density;
+        fixtureDef.friction = bc2d.Friction;
+        fixtureDef.restitution = bc2d.Restitution;
+        fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+        fixtureDef.isSensor = bc2d.IsSensor;
+        b2FixtureUserData data;
+        data.pointer = (u64)entity.GetUUID();
+        fixtureDef.userData = data;
+        //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
+        //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
+        body->CreateFixture(&fixtureDef);
     }
 
     template<>

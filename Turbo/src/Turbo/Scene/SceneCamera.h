@@ -14,6 +14,7 @@ namespace Turbo
         void SetPerspective(f32 v_fov, f32 nearClip, f32 farClip);
 
         void SetViewportSize(u32 width, u32 height);
+
         // Orthographic Camera
         void SetOrthographicSize(f32 size) { m_OrthographicSize = size; RecalculateProjection(); }
         void SetOrthographicNearClip(f32 nearClip) { m_OrthographicNear = nearClip; RecalculateProjection(); }

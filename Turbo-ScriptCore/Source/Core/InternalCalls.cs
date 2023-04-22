@@ -5,16 +5,24 @@ namespace Turbo
 {
 	internal static class InternalCalls
 	{
-		// =============================================================================
-		//                                  Logging                                   
-		// =============================================================================
+		#region Application
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static uint Application_GetWidth();
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static uint Application_GetHeight();
+
+		#endregion
+
+		#region Logging
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Log_String(LogLevel level, string message);
 
-		// =============================================================================
-		//                                  Input                                   
-		// =============================================================================
+		#endregion
+
+		#region Input
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Input_IsKeyPressed(KeyCode code);
@@ -28,9 +36,14 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Input_IsMouseButtonReleased(MouseCode code);
 
-		// =============================================================================
-		//                                  Scene                                   
-		// =============================================================================
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static int Input_GetMouseX();
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static int Input_GetMouseY();
+
+		#endregion
+
+		#region Scene
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Scene_CreateEntity(string name);
@@ -38,9 +51,12 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Scene_DestroyEntity(ulong uuid);
 
-		// =============================================================================
-		//                                  Entity                                   
-		// =============================================================================
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Scene_ScreenToWorldPosition(Vector2 screenPosition, out Vector3 worldPosition);
+
+		#endregion
+
+		#region Entity
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Entity_Has_Component(ulong uuid, Type componentType);
@@ -57,9 +73,10 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static string Entity_Get_Name(ulong uuid);
 
-		// =============================================================================
-		//                                  Components                                   
-		// =============================================================================
+		#endregion
+
+		#region Components 
+
 		#region TransformComponent
 		// Translation
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -216,6 +233,8 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_CircleCollider2D_Set_Radius(ulong uuid, ref float radius);
+		#endregion
+
 		#endregion
 	}
 }

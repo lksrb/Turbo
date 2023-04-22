@@ -22,6 +22,9 @@ namespace Turbo
 			b = z = _z;
 			a = w = _w;
 		}
+
+		public Vector4(Vector3 xyz, float w) : this(xyz.x, xyz.y, xyz.z, w) { }
+		public Vector4(Vector2 xy, float z, float w) : this(xy.x, xy.y, z, w) { }
 		public Vector4(float xyzw) : this(xyzw, xyzw, xyzw, xyzw) { }
 
 		public float Length

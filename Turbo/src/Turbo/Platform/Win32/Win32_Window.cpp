@@ -205,6 +205,10 @@ namespace Turbo
             {
                 u32 x = GET_X_LPARAM(lParam);
                 u32 y = GET_Y_LPARAM(lParam);
+
+                m_OffsetX = x;
+                m_OffsetY = y;
+
                 WindowMovedEvent e(x, y);
                 m_Callback(e);
                 break;

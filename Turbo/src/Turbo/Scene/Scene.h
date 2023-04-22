@@ -40,7 +40,15 @@ namespace Turbo
         void DestroyEntity(Entity entity);
         Entity DuplicateEntity(Entity entity);
 
+        void SetViewportOffset(u32 x, u32 y);
         void SetViewportSize(u32 width, u32 height);
+
+        // Editor only
+        u32 GetViewportX() const { return m_ViewportX; }
+        u32 GetViewportY() const { return m_ViewportY; }
+
+        u32 GetViewportWidth() const { return m_ViewportWidth; }
+        u32 GetViewportHeight() const { return m_ViewportHeight; }
 
         template<typename... Components>
         inline auto GetAllEntitiesWith()
@@ -61,7 +69,7 @@ namespace Turbo
         Entity FindEntityByUUID(UUID uuid);
         Entity FindEntityByName(const std::string& name);
 
-        Entity GetCameraEntity();
+        Entity GetPrimaryCameraEntity();
 
         bool IsRunning() const { return m_Running; }
 
@@ -75,12 +83,11 @@ namespace Turbo
     private:
         entt::registry m_Registry;
 
-        UUID m_SceneID;
-
         entt::entity m_PrimaryAudioListenerEntity = entt::null;
         entt::entity m_PrimaryCameraEntity = entt::null;
 
         entt::entity m_SceneEntity = entt::null;
+        UUID m_SceneID;
 
         EntityMap m_EntityIDMap;
 
@@ -89,6 +96,7 @@ namespace Turbo
         bool m_Running = false;
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
+        u32 m_ViewportX = 0, m_ViewportY = 0;
 
         friend class Entity;
         friend class SceneSerializer;

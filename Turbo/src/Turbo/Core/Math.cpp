@@ -61,4 +61,26 @@ namespace Turbo
 
         return true;
     }
+
+    glm::vec3 Math::UnProject(const glm::vec2 position, glm::vec4 viewport, const glm::mat4& viewProjection)
+    {
+        glm::mat4 inverse = glm::inverse(viewProjection);
+
+        // Convert to [-1, 1] space
+        glm::vec4 temp = glm::vec4(1.0f);
+        temp.x = (2.0f * (position.x - viewport[0])) / viewport[2] - 1.0f;
+        temp.y = 1.0f - (2.0f * (position.y - viewport[1])) / viewport[3];
+
+        // Unprojecting
+        glm::vec4 result = inverse * temp;
+
+        // Magic
+        result /= result.w;
+
+        // TODO: Depth
+        result.z = 0.0f;
+
+        return glm::vec3(result);
+	}
+
 }

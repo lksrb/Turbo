@@ -28,6 +28,7 @@ namespace Turbo::Ed
 
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnWindowClosed(WindowCloseEvent& e);
+        bool OnWindowResize(WindowResizeEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
     private:
         void OnScenePlay();

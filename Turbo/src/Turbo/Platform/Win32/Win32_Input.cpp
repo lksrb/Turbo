@@ -3,7 +3,9 @@
 
 #include "Turbo/Core/Engine.h"
 
-#include <windows.h>
+#include "Win32_Window.h"
+
+#include <Windows.h>
 
 namespace Turbo 
 {
@@ -37,14 +39,22 @@ namespace Turbo
 
     i32 Input::GetMouseX()
     {
-        POINT mouse_pos = { -1, -1 };
-        GetCursorPos(&mouse_pos);
-        return mouse_pos.x;
+        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
+
+        POINT mousePosition = { -1, -1 };
+        GetCursorPos(&mousePosition);
+        //ScreenToClient(window->GetHandle(), &mousePosition);
+
+        return mousePosition.x;
     }
     i32 Input::GetMouseY()
     {
-        POINT mouse_pos = { -1, -1 };
-        GetCursorPos(&mouse_pos);
-        return mouse_pos.y;
+        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
+
+        POINT mousePosition = { -1, -1 };
+        GetCursorPos(&mousePosition);
+        //ScreenToClient(window->GetHandle(), &mousePosition);
+
+        return mousePosition.y;
     }
 }

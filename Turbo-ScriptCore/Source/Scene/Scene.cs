@@ -12,5 +12,12 @@
 		{
 			InternalCalls.Scene_DestroyEntity(entity.ID);
 		}
+
+		// FIXME: Kind of a hack, should be done on C# the side
+		public static Vector3 ScreenToWorldPosition(Vector2 screenPosition)
+		{
+			InternalCalls.Scene_ScreenToWorldPosition(screenPosition, out Vector3 worldPosition);
+			return worldPosition;
+		}
 	}
 }

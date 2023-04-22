@@ -10,6 +10,7 @@
 			x = _x;
 			y = _y;
 		}
+
 		public Vector2(float xy) : this(xy, xy) { }
 
 		public float Length

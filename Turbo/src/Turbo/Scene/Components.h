@@ -115,6 +115,7 @@ namespace Turbo
         f32 GravityScale = 1.0f;
         bool Enabled = true;
         bool ContactEnabled = true;
+        bool IsBullet = false;
 
         // Storage for runtime
         void* RuntimeBody = nullptr;

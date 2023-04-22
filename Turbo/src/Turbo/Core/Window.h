@@ -42,6 +42,10 @@ namespace Turbo {
         std::string_view GetTitle() const;
         u32 GetWidth() const;
         u32 GetHeight() const;
+
+        i32 GetOffsetX() const;
+        i32 GetOffsetY() const;
+
         bool IsMinimized() const;
 
         void SetEventCallback(const EventCallback& callback);
@@ -51,9 +55,11 @@ namespace Turbo {
     protected:
         Ref<SwapChain> m_Swapchain;
 
-        bool m_Focused;
-        bool m_Minimized;
-        EventCallback m_Callback;
+        i32 m_OffsetX = 0, m_OffsetY = 0;
+
+        bool m_Focused = false;
+        bool m_Minimized = false;
+        EventCallback m_Callback = nullptr;
         Window::Config m_Config;
 
         friend class RendererContext;

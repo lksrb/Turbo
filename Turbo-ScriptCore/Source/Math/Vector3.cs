@@ -14,6 +14,7 @@
 		}
 
 		public Vector3(Vector3 other) : this(other.x, other.y, other.z) { }
+		public Vector3(Vector2 xy, float z) : this(xy.x, xy.y, z) { }
 
 		public Vector3(float xyz) : this(xyz, xyz, xyz) { }
 
@@ -25,6 +26,11 @@
 		public override string ToString()
 		{
 			return $"(x: {x}, y: {y}, z: {z})";
+		}
+
+		public void Normalize()
+		{
+			this *= 1.0f / Length;
 		}
 
 		public static Vector3 Zero => new Vector3(0.0f, 0.0f, 0.0f);

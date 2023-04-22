@@ -216,9 +216,18 @@ namespace Turbo
 		}
 	}
 
+	public enum ProjectionType : uint
+	{
+		Orthographics = 0,
+		Perspective
+	}
+
 	public class CameraComponent : Component
 	{
-		// TODO:
+		public ProjectionType Projection
+		{
+			get => ProjectionType.Orthographics; // TODO:
+		}
 	}
 
 	public class SpriteRendererComponent : Component

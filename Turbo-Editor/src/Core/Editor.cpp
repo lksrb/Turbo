@@ -88,22 +88,19 @@ namespace Turbo::Ed
 
     void Editor::OnUpdate()
     {
-        if (!m_EditorScene)
-            return;
-
         switch (m_SceneMode)
         {
             case Mode::SceneEdit:
             {
-                if(m_ViewportHovered)
+                if (m_ViewportHovered)
                     m_EditorCamera.OnUpdate(Time.DeltaTime);
 
-                m_EditorScene->OnEditorUpdate(Time.DeltaTime);
+                m_CurrentScene->OnEditorUpdate(Time.DeltaTime);
                 break;
             }
             case Mode::ScenePlay:
             {
-                m_RuntimeScene->OnRuntimeUpdate(Time.DeltaTime);
+                m_CurrentScene->OnRuntimeUpdate(Time.DeltaTime);
                 break;
             }
         }
@@ -111,19 +108,16 @@ namespace Turbo::Ed
 
     void Editor::OnDraw()
     {
-        if (!m_EditorScene)
-            return;
-
         switch (m_SceneMode)
         {
             case Mode::SceneEdit:
             {
-                m_EditorScene->OnEditorRender(m_SceneRenderer, m_EditorCamera);
+                m_CurrentScene->OnEditorRender(m_SceneRenderer, m_EditorCamera);
                 break;
             }
             case Mode::ScenePlay:
             {
-                m_RuntimeScene->OnRuntimeRender(m_SceneRenderer);
+                m_CurrentScene->OnRuntimeRender(m_SceneRenderer);
                 break;
             }
         }
@@ -233,12 +227,13 @@ namespace Turbo::Ed
             m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 
             ImVec2 windowSize = ImGui::GetWindowSize();
-
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+
+            m_CurrentScene->SetViewportOffset((u32)viewportOffset.x, (u32)viewportOffset.y);
 
             if (m_ViewportWidth != windowSize.x || m_ViewportHeight != windowSize.y)
             {
-                OnViewportResize(static_cast<u32>(windowSize.x), static_cast<u32>(windowSize.y));
+                OnViewportResize((u32)windowSize.x, (u32)windowSize.y);
             }
 
             if (m_EditorScene)
@@ -307,7 +302,7 @@ namespace Turbo::Ed
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
                 if (m_SceneMode == Mode::ScenePlay)
                 {
-                    Entity cameraEntity = m_RuntimeScene->GetCameraEntity();
+                    Entity cameraEntity = m_RuntimeScene->GetPrimaryCameraEntity();
                     if (cameraEntity)
                     {
                         SceneCamera sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
@@ -494,6 +489,7 @@ namespace Turbo::Ed
         dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
         dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Editor::OnWindowClosed));
+        dispatcher.Dispatch<WindowResizeEvent>(TBO_BIND_FN(Editor::OnWindowResize));
     }
 
     bool Editor::OnKeyPressed(KeyPressedEvent& e)
@@ -561,8 +557,8 @@ namespace Turbo::Ed
             }
             case Key::O:
             {
-                if (control && shift)
-                    SaveSceneAs();
+                if (control)
+                    OpenProject();
                 break;
             }
         }
@@ -573,6 +569,13 @@ namespace Turbo::Ed
     bool Editor::OnWindowClosed(WindowCloseEvent& e)
     {
         Close();
+        return false;
+    }
+
+    bool Editor::OnWindowResize(WindowResizeEvent& e)
+    {
+        //OnViewportResize(m_ViewportX, m_ViewportY, e.GetWidth(), e.GetHeight());
+        //m_CurrentScene->SetViewportSize(e.GetWidth(), e.GetHeight());
         return false;
     }
 
@@ -718,8 +721,7 @@ namespace Turbo::Ed
         m_ViewportWidth = width;
         m_ViewportHeight = height;
 
-        if (m_EditorScene)
-            m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         m_EditorCamera.SetViewportSize(width, height);
         m_SceneRenderer->OnViewportSize(width, height);
@@ -855,7 +857,7 @@ namespace Turbo::Ed
 
         // Copy some scene settings
         // FIXME: Should not be a scene setting anyway -> Rendering
-        m_EditorScene->ShowPhysics2DColliders = m_RuntimeScene->ShowPhysics2DColliders; 
+        m_EditorScene->ShowPhysics2DColliders = m_RuntimeScene->ShowPhysics2DColliders;
         m_RuntimeScene = m_EditorScene;
 
         // Set current scene

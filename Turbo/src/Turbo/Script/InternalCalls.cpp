@@ -1,10 +1,12 @@
-#include "tbopch.h"
+﻿#include "tbopch.h"
 #include "InternalCalls.h"
 
 #include "Script.h"
 #include "Turbo/Physics/Physics2D.h"
 
 #include "Turbo/Core/Input.h"
+#include "Turbo/Core/Math.h"
+
 #include "Turbo/Scene/Entity.h"
 
 #include <mono/jit/jit.h>
@@ -16,6 +18,13 @@
 namespace Turbo
 {
     extern Script::Data* g_Data;
+
+    // =============================================================================
+    //                                  Application                                   
+    // =============================================================================
+
+    static inline u32 Application_GetWidth() { return Script::GetCurrentScene()->GetViewportWidth(); }
+    static inline u32 Application_GetHeight() { return Script::GetCurrentScene()->GetViewportHeight(); }
 
     // =============================================================================
     //                                  Logging                                   
@@ -77,6 +86,8 @@ namespace Turbo
     {
         return Input::IsMouseButtonReleased(key);
     }
+    static inline i32 Input_GetMouseX() { return Input::GetMouseX(); }
+    static inline i32 Input_GetMouseY() { return Input::GetMouseY(); }
 
     // =============================================================================
     //                                   Scene                                   
@@ -100,6 +111,26 @@ namespace Turbo
         Entity entity = context->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
         context->DestroyEntity(entity);
+    }
+
+    // TODO: MOVE! WHERE??????????????
+
+    static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->GetPrimaryCameraEntity();
+        TBO_ENGINE_ASSERT(entity);
+
+        const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
+
+        glm::vec4 viewport = 
+        { 
+            context->GetViewportX(),
+            context->GetViewportY(),
+            context->GetViewportWidth(),
+            context->GetViewportHeight() 
+        };
+        *worldPosition  = Math::UnProject(screenPosition, viewport, camera.GetViewProjection());
     }
 
     // =============================================================================
@@ -630,12 +661,17 @@ namespace Turbo
 
     void InternalCalls::Init()
     {
+        // Application
+        TBO_REGISTER_FUNCTION(Application_GetWidth);
+        TBO_REGISTER_FUNCTION(Application_GetHeight);
+
         // Logging
         TBO_REGISTER_FUNCTION(Log_String);
 
         // Scene
         TBO_REGISTER_FUNCTION(Scene_CreateEntity);
         TBO_REGISTER_FUNCTION(Scene_DestroyEntity);
+        TBO_REGISTER_FUNCTION(Scene_ScreenToWorldPosition);
 
         // Entity
         TBO_REGISTER_FUNCTION(Entity_FindEntityByName);
@@ -649,6 +685,8 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Input_IsKeyReleased);
         TBO_REGISTER_FUNCTION(Input_IsMouseButtonPressed);
         TBO_REGISTER_FUNCTION(Input_IsMouseButtonReleased);
+        TBO_REGISTER_FUNCTION(Input_GetMouseX);
+        TBO_REGISTER_FUNCTION(Input_GetMouseY);
 
         // Transform
         TBO_REGISTER_FUNCTION(Component_Transform_Get_Translation);

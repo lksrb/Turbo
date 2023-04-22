@@ -10,7 +10,7 @@
 namespace Turbo {
    
     Window::Window(const Window::Config& specification)
-        : m_Config(specification), m_Callback(nullptr), m_Minimized(false), m_Focused(false)
+        : m_Config(specification)
     {
     }
 
@@ -53,7 +53,17 @@ namespace Turbo {
         return m_Config.Height;
 	}
 
-    bool Window::IsMinimized() const
+	i32 Window::GetOffsetX() const
+	{
+        return m_OffsetX;
+	}
+
+    i32 Window::GetOffsetY() const
+	{
+        return m_OffsetY;
+	}
+
+	bool Window::IsMinimized() const
     {
         return m_Minimized;
     }
