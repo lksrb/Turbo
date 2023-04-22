@@ -1,0 +1,5 @@
+Project: GunNRun
+AssetsDirectory: Assets
+StartScene: Scenes\StartScene.tscene
+ScriptModulePath: Binaries\GunNRun.dll
+OpenSolutionOnStart: false

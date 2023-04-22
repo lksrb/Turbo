@@ -1,0 +1,7 @@
+C:\dev\TurboProjects\GunNRun\Binaries\Intermediates\Debug\GunNRun.csproj.AssemblyReference.cache
+C:\dev\TurboProjects\GunNRun\Binaries\Intermediates\Debug\GunNRun.csproj.CoreCompileInputs.cache
+C:\dev\TurboProjects\GunNRun\Binaries\Intermediates\Debug\GunNRun.csproj.CopyComplete
+C:\dev\TurboProjects\GunNRun\Binaries\Intermediates\Debug\GunNRun.dll
+C:\dev\TurboProjects\GunNRun\Binaries\Intermediates\Debug\GunNRun.pdb
+C:\dev\TurboProjects\GunNRun\Binaries\GunNRun.dll
+C:\dev\TurboProjects\GunNRun\Binaries\GunNRun.pdb
