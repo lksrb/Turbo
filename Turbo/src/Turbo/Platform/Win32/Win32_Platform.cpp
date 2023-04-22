@@ -8,8 +8,6 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <commdlg.h>
-//#include <stdio.h>
-//#include <tchar.h>
 #include <shellapi.h>
 #include <cwchar>
 
@@ -56,7 +54,7 @@ namespace Turbo
 
     f32 Platform::GetTime()
     {
-        uint64_t timerValue;
+        u64 timerValue;
         ::QueryPerformanceCounter((LARGE_INTEGER*)&timerValue);
 
         return (static_cast<f32>(timerValue - s_PlatformData->Timer.Offset) / (s_PlatformData->Timer.Frequency));
