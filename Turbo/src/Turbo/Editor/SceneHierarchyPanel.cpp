@@ -641,6 +641,9 @@ namespace Turbo
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
+        if (!entity)
+            return;
+
         const auto& tag = entity.GetComponent<TagComponent>().Tag;
         auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
 
