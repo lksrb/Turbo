@@ -605,6 +605,15 @@ namespace Turbo
         TBO_ENGINE_ASSERT(m_EntityIDMap.find(uuid) != m_EntityIDMap.end());
 
         m_DestroyedEntities.push_back(entity);
+
+        auto& relationship = entity.GetComponent<RelationshipComponent>();
+        for (auto entityUUID : relationship.Children)
+        {
+            TBO_ENGINE_ASSERT(m_EntityIDMap.find(entityUUID) != m_EntityIDMap.end());
+
+            Entity entity = { m_EntityIDMap.at(entityUUID), this };
+            DestroyEntity(entity);
+        }
     }
 
     Entity Scene::DuplicateEntity(Entity entity)
