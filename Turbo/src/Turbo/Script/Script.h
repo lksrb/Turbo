@@ -54,7 +54,9 @@ namespace Turbo
         static void OnRuntimeStart(Scene* scene);
         static void OnRuntimeStop();
 
-        static void InvokeEntityOnStart(Entity entity);
+        static void DestroyScriptInstance(Entity entity);
+
+        static void InvokeEntityOnCreate(Entity entity);
         static void InvokeEntityOnUpdate(Entity entity, FTime ts);
         static void InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor);
         static void InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor);
@@ -69,6 +71,7 @@ namespace Turbo
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);
     private:
+        static void CollectGarbage();
         static void OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent e);
         static void InitMono();
         static void ShutdownMono();

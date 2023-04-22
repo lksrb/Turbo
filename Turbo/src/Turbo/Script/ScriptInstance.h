@@ -71,6 +71,7 @@ namespace Turbo
         
         OnUpdateMethodFP m_OnUpdateMethodFP = nullptr;
 
+        u32 m_GCHandle = -1;
         MonoObject* m_Instance = nullptr;
 
         u64 m_Entity;

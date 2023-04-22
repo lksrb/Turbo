@@ -68,7 +68,10 @@ namespace Turbo
 		internal extern static ulong Entity_FindEntityByName(string name);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static object Entity_Instance_Get(ulong uuid);
+		internal extern static object Entity_Get_Instance(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Entity_AttachScript(ulong uuid, string className);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static string Entity_Get_Name(ulong uuid);

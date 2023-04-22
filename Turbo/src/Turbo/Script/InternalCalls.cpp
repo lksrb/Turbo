@@ -184,6 +184,19 @@ namespace Turbo
         s_EntityAddComponentFuncs.at(componentType)(entity);
     }
 
+    static void Entity_AttachScript(u64 uuid, MonoString* className)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+
+        char* cString = mono_string_to_utf8(className);
+
+        // This will add script component and instantiantes it
+        entity.AddComponent<ScriptComponent>(cString);
+        mono_free(cString);
+    }
+
     static MonoString* Entity_Get_Name(UUID uuid)
     {
         Scene* context = Script::GetCurrentScene();
@@ -679,6 +692,7 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Entity_Get_Name);
         TBO_REGISTER_FUNCTION(Entity_Has_Component);
         TBO_REGISTER_FUNCTION(Entity_Add_Component);
+        TBO_REGISTER_FUNCTION(Entity_AttachScript);
 
         // Input
         TBO_REGISTER_FUNCTION(Input_IsKeyPressed);
@@ -766,6 +780,7 @@ namespace Turbo
                 TBO_ENGINE_ERROR("Could not find component type {0}", managedTypename);
                 return;
             }
+
             s_EntityHasComponentFuncs[type] = [](Entity entity) { return entity.HasComponent<Component>(); };
             s_EntityAddComponentFuncs[type] = [](Entity entity) { entity.AddComponent<Component>(); };
         }(), ...);

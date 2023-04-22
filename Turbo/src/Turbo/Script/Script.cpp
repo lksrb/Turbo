@@ -22,6 +22,7 @@
 #include <mono/metadata/threads.h>
 #include <mono/metadata/tabledefs.h>
 #include <mono/metadata/attrdefs.h>
+#include <mono/metadata/mono-gc.h>
 
 namespace Turbo
 {
@@ -144,6 +145,8 @@ namespace Turbo
         g_Data->SceneContext = nullptr;
         g_Data->ScriptInstances.clear();
 
+        CollectGarbage();
+
         if (g_Data->ProjectAssemblyDirty)
         {
             g_Data->ProjectAssemblyDirty = false;
@@ -151,7 +154,21 @@ namespace Turbo
         }
     }
 
-    void Script::InvokeEntityOnStart(Entity entity)
+    void Script::DestroyScriptInstance(Entity entity)
+    {
+        UUID uuid = entity.GetUUID();
+
+        auto& it = g_Data->ScriptInstances.find(uuid);
+        if (it != g_Data->ScriptInstances.end())
+        {
+            g_Data->ScriptInstances.erase(it);
+            return;
+        }
+
+        TBO_ENGINE_ERROR("Entity does not have an attached script!");
+    }
+
+    void Script::InvokeEntityOnCreate(Entity entity)
     {
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID uuid = id.ID;
@@ -242,6 +259,8 @@ namespace Turbo
         g_Data->ProjectPathWatcher = CreateScope<FileWatcher>(FileWatcher::NotifyEvent_All, false, Script::OnProjectDirectoryChange);
         g_Data->ProjectPathWatcher->Watch(g_Data->ProjectAssemblyPath.parent_path());
         g_Data->AssemblyReloadPending = false;
+
+        CollectGarbage();
     }
 
     void Script::ReflectProjectAssembly()
@@ -361,6 +380,19 @@ namespace Turbo
         Utils::PrintAssembly(g_Data->ScriptCoreAssembly);
     }
 
+    void Script::CollectGarbage()
+    {
+        TBO_ENGINE_WARN("Collecting garbage...");
+
+        // Collect garbage
+        mono_gc_collect(mono_gc_max_generation());
+
+        // Block until finalized
+        while (mono_gc_pending_finalizers());
+
+        TBO_ENGINE_WARN("GC Finished...");
+    }
+
     // Callback from filewatcher
     void Script::OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent e)
     {
@@ -390,6 +422,8 @@ namespace Turbo
     {
         TBO_ENGINE_ASSERT(!g_Data->CoreAssemblyPath.empty());
         TBO_ENGINE_ASSERT(!g_Data->ProjectAssemblyPath.empty());
+
+        CollectGarbage();
 
         // Unloading
         {

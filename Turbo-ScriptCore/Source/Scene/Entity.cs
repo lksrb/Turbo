@@ -60,6 +60,15 @@ namespace Turbo
 			return component;
 		}
 
+		public object AttachScript(string className)
+		{
+			// Attach script
+			InternalCalls.Entity_AttachScript(ID, className);
+
+			// Get instance of it
+			return InternalCalls.Entity_Get_Instance(ID);
+		}
+
 		public Entity FindEntityByName(string name)
 		{
 			ulong entityID = InternalCalls.Entity_FindEntityByName(name);
@@ -71,7 +80,7 @@ namespace Turbo
 
 		public T As<T>() where T : Entity, new()
 		{
-			object instance = InternalCalls.Entity_Instance_Get(ID);
+			object instance = InternalCalls.Entity_Get_Instance(ID);
 			return instance as T;
 		}
 

@@ -311,12 +311,12 @@ namespace Turbo
         Audio::OnRuntimeStart(this);
         Script::OnRuntimeStart(this);
 
-        // Call OnStart function in each script
+        // Call OnCreate function in each script
         auto& scripts = GetAllEntitiesWith<ScriptComponent>();
         for (auto e : scripts)
         {
             Entity entity = { e, this };
-            Script::InvokeEntityOnStart(entity);
+            Script::InvokeEntityOnCreate(entity);
         }
 
         // Only play audio when listener is present (obviously)
@@ -687,6 +687,10 @@ namespace Turbo
         for (auto e : m_DestroyedEntities)
         {
             Entity entity = { e, this };
+
+            if(entity.HasComponent<ScriptComponent>())
+                Script::DestroyScriptInstance(entity);
+
             m_EntityIDMap.erase(entity.GetUUID());
             m_Registry.destroy(entity);
         }
@@ -756,6 +760,11 @@ namespace Turbo
     template<>
     void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
     {
+        if (!m_Running)
+            return;
+
+        // Create and instantiate entity script
+        Script::InvokeEntityOnCreate(entity);
     }
 
     template<>
