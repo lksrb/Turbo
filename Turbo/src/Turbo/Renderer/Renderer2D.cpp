@@ -276,7 +276,12 @@ namespace Turbo
             TBO_ENGINE_ASSERT(false);
 
         u32 textureIndex = 0; // White Texture
-        constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+        glm::vec2 textureCoords[] = {
+            { 0.0f, 0.0f },
+            { 1.0f, 0.0f },
+            { 1.0f, 1.0f },
+            { 0.0f, 1.0f }
+        };
 
         if (texture)
         {
@@ -323,11 +328,16 @@ namespace Turbo
         TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxQuadIndices); // TODO(Urby): Flush and reset
 
         u32 textureIndex = 0; // White Texture
-        glm::vec2 textureCoords[4];
-        memcpy(textureCoords, subTexture->GetTextureCoords().data(), 4 * sizeof(glm::vec2));
+        glm::vec2 textureCoords[] = {
+            { 0.0f, 0.0f },
+            { 1.0f, 0.0f },
+            { 1.0f, 1.0f },
+            { 0.0f, 1.0f }
+        };
 
         if (subTexture)
         {
+            memcpy(textureCoords, subTexture->GetTextureCoords().data(), 4 * sizeof(glm::vec2));
             for (u32 i = 1; i < m_TextureSlotsIndex; ++i)
             {
                 // If the texture is in the stack, just modify textureIndex

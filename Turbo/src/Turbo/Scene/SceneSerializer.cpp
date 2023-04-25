@@ -276,7 +276,7 @@ namespace Turbo
 
             out << YAML::Key << "Camera" << YAML::Value;
             out << YAML::BeginMap;
-            out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
+            out << YAML::Key << "ProjectionType" << YAML::Value << (i32)camera.GetProjectionType();
             out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
             out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.GetPerspectiveNearClip();
             out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.GetPerspectiveFarClip();
@@ -299,8 +299,13 @@ namespace Turbo
             auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
             out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
-            if (spriteRendererComponent.Texture)
-                out << YAML::Key << "TexturePath" << YAML::Value << spriteRendererComponent.Texture->GetFilepath();
+            if (spriteRendererComponent.SubTexture)
+            {
+                Ref<SubTexture2D> subTexture = spriteRendererComponent.SubTexture;
+                out << YAML::Key << "TexturePath" << YAML::Value << subTexture->GetTexture()->GetFilepath();
+                out << YAML::Key << "SpriteCoords" << YAML::Value << subTexture->GetSpriteCoords();
+                out << YAML::Key << "SpriteSize" << YAML::Value << subTexture->GetSpriteSize();
+            }
             else
                 out << YAML::Key << "TexturePath" << YAML::Value << "None";
 
@@ -571,7 +576,7 @@ namespace Turbo
                     {
                         Ref<Texture2D> texture2d = Texture2D::Create({ path });
                         if (texture2d->IsLoaded())
-                            src.Texture = texture2d;
+                            src.SubTexture = SubTexture2D::CreateFromTexture(texture2d);
                         else
                             TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", path);
 

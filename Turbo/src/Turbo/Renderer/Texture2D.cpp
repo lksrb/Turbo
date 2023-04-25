@@ -5,7 +5,6 @@
 
 namespace Turbo
 {
-    // Texture2D
     Texture2D::Texture2D(const std::string& filepath)
         : m_FilePath(filepath)
     {
@@ -42,7 +41,6 @@ namespace Turbo
         return Ref<VulkanTexture2D>::Create(config);
     }
 
-    // SubTexture2D
     SubTexture2D::SubTexture2D(Ref<Texture2D> texture)
         : m_Texture(texture)
     {
@@ -50,18 +48,19 @@ namespace Turbo
 
     Ref<SubTexture2D> SubTexture2D::CreateFromTexture(Ref<Texture2D> texture, glm::vec2 coords, glm::vec2 spriteSize)
     {
-        Ref<SubTexture2D> subTexture2d = Ref<SubTexture2D>::Create(texture);
-        subTexture2d->Snip(coords, spriteSize);
-        return subTexture2d;
+        Ref<SubTexture2D> subTexture = Ref<SubTexture2D>::Create(texture);
+        subTexture->Cut(coords, spriteSize);
+        return subTexture;
     }
 
-    void SubTexture2D::Snip(glm::vec2 coords, glm::vec2 spriteSize)
+    void SubTexture2D::Cut(glm::vec2 coords, glm::vec2 spriteSize)
     {
         m_SpriteCoords = coords;
-        m_SpriteSize = spriteSize;
+        m_SpriteSize.x = spriteSize.x ? spriteSize.x : m_Texture->GetWidth();
+        m_SpriteSize.y = spriteSize.y ? spriteSize.y : m_Texture->GetHeight();
 
-        glm::vec2 min = { (coords.x * spriteSize.x) / m_Texture->GetWidth(), (coords.y * spriteSize.y) / m_Texture->GetHeight() };
-        glm::vec2 max = { ((coords.x + 1) * spriteSize.x) / m_Texture->GetWidth(), ((coords.y + 1) * spriteSize.y) / m_Texture->GetHeight() };
+        glm::vec2 min = { (coords.x * m_SpriteSize.x) / m_Texture->GetWidth(), (coords.y * m_SpriteSize.y) / m_Texture->GetHeight() };
+        glm::vec2 max = { ((coords.x + 1) * m_SpriteSize.x) / m_Texture->GetWidth(), ((coords.y + 1) * m_SpriteSize.y) / m_Texture->GetHeight() };
 
         m_TexCoords[0] = { min.x, min.y };
         m_TexCoords[1] = { max.x, min.y };

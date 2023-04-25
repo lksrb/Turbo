@@ -447,10 +447,8 @@ namespace Turbo
             ImGui::SetCursorPos(ImVec2(cursor.x + 225.0f, cursor.y));
             ImGui::PushItemWidth(-1);
 
-            if (component.Texture)
-                UI::ImageButton(component.Texture, ImVec2(50, 50.0f), { 0, 1 }, { 1, 0 });
-            else if(component.SubTexture)
-                UI::ImageButton(component.SubTexture->GetTexture(), ImVec2(50, 50.0f), { 0, 1 }, { 1, 0 });
+            if(component.SubTexture)
+                UI::ImageButton(component.SubTexture, ImVec2(50, 50.0f), { 0, 1 }, { 1, 0 });
             else
                 ImGui::Button("##TextureButton", ImVec2(50, 50.0f));
 
@@ -474,10 +472,10 @@ namespace Turbo
                     if (success)
                     {
                         Ref<Texture2D> texture = Texture2D::Create({ texturePath.string() });
+
                         if (texture->IsLoaded())
                         {
-                            //Ref<SubTexture2D> subTexture = SubTexture2D::CreateFromTexture(texture, );
-                            component.Texture = texture;
+                            component.SubTexture = SubTexture2D::CreateFromTexture(texture);
                         }
                         else
                             TBO_WARN("Could not load texture {0}", texturePath.stem().string());

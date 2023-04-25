@@ -162,10 +162,7 @@ namespace Turbo
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                        if (src.SubTexture)
-                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
-                        else
-                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.Texture, src.Tiling, (i32)entity);
+                        renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
 
                     }
                 }
@@ -261,7 +258,7 @@ namespace Turbo
                 body->SetGravityScale(rb2d.GravityScale);
                 //body->SetBullet(rb2d.IsBullet);
                 body->SetBullet(true);
-                
+
                 rb2d.RuntimeBody = body;
                 if (entity.HasComponent<BoxCollider2DComponent>())
                 {
@@ -372,7 +369,7 @@ namespace Turbo
                 const auto& position = body->GetPosition();
                 transform.Translation.x = position.x;
                 transform.Translation.y = position.y;
-                
+
                 if (rb2d.FixedRotation == false)
                     transform.Rotation.z = body->GetAngle();
 
@@ -477,11 +474,7 @@ namespace Turbo
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                        if (src.SubTexture)
-                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
-                        else
-                            renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.Texture, src.Tiling, (i32)entity);
-
+                        renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
                     }
                 }
 
@@ -688,7 +681,7 @@ namespace Turbo
         {
             Entity entity = { e, this };
 
-            if(entity.HasComponent<ScriptComponent>())
+            if (entity.HasComponent<ScriptComponent>())
                 Script::DestroyScriptInstance(entity);
 
             m_EntityIDMap.erase(entity.GetUUID());

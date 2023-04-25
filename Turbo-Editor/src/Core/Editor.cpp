@@ -280,7 +280,7 @@ namespace Turbo::Ed
                         Ref<Texture2D> texture2d = Texture2D::Create({ "Assets/Textures/smile.png" });
 
                         if (texture2d->IsLoaded())
-                            src.Texture = texture2d;
+                            src.SubTexture = SubTexture2D::CreateFromTexture(texture2d);
                     }
 
                     if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_EditorScene))
