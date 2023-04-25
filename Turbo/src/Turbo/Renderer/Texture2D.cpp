@@ -5,21 +5,9 @@
 
 namespace Turbo
 {
-    Texture2D::Texture2D(const std::string& filepath)
-        : m_FilePath(filepath)
-    {
-        TBO_ENGINE_ASSERT(!m_FilePath.empty());
-    }
-
-    Texture2D::Texture2D(u32 color)
-        : m_Color(color)
-    {
-    }
-
     Texture2D::Texture2D(const Texture2D::Config& config)
         : m_Config(config)
     {
-        TBO_ENGINE_ASSERT(m_Config.Width != 0 && m_Config.Height != 0);
     }
 
     Texture2D::~Texture2D()
@@ -28,7 +16,9 @@ namespace Turbo
 
     Ref<Texture2D> Texture2D::Create(const std::string& filepath)
     {
-        return Ref<VulkanTexture2D>::Create(filepath);
+        Texture2D::Config config = {};
+        config.Path = filepath;
+        return Ref<VulkanTexture2D>::Create(config);
     }
 
     Ref<Texture2D> Texture2D::Create(u32 color)

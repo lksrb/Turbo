@@ -13,25 +13,28 @@ namespace Turbo
     public:
         struct Config
         {
+            Image2D::Format Format = Image2D::Format_RGBA_SRGB;
+            Image2D::Filter Filter = Image2D::Filter::Linear;
+            std::string Path;
             u32 Width = 1;
             u32 Height = 1;
-            Image2D::Format Format = Image2D::Format_RGBA_SRGB;
         };
-
+        
+        Texture2D() = default;
         Texture2D(const Texture2D::Config& config);
-        Texture2D(const std::string& filepath);
-        Texture2D(u32 color);
         virtual ~Texture2D();
 
         static Ref<Texture2D> Create(const std::string& filepath);
         static Ref<Texture2D> Create(const Texture2D::Config& config);
         static Ref<Texture2D> Create(u32 color);
 
+        const Texture2D::Config& GetConfig() const { return m_Config; }
+
         u32 GetWidth() const { return m_Config.Width; }
         u32 GetHeight() const { return m_Config.Height; }
         bool IsLoaded() const { return m_IsLoaded; }
 
-        std::string GetFilepath() const { return m_FilePath; }
+        std::string GetFilepath() const { return m_Config.Path; }
 
         virtual Ref<Image2D> GetImage() const = 0;
         virtual u64 GetHash() const = 0;
@@ -39,8 +42,6 @@ namespace Turbo
         virtual void SetData(const void* pixels) = 0;
     protected:
         bool m_IsLoaded = false;
-        u32 m_Color = 0;
-        std::string m_FilePath;
 
         Texture2D::Config m_Config;
     };

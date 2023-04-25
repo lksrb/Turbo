@@ -455,8 +455,6 @@ namespace Turbo
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 
-
-
             if (ImGui::BeginDragDropTarget())
             {
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP"))
@@ -471,12 +469,13 @@ namespace Turbo
 
                     if (success)
                     {
-                        Ref<Texture2D> texture = Texture2D::Create({ texturePath.string() });
+                        Texture2D::Config config = {};
+                        config.Filter = Image2D::Filter::Nearest;
+                        config.Path = texturePath.string();
 
+                        Ref<Texture2D> texture = Texture2D::Create(config);
                         if (texture->IsLoaded())
-                        {
                             component.SubTexture = SubTexture2D::CreateFromTexture(texture);
-                        }
                         else
                             TBO_WARN("Could not load texture {0}", texturePath.stem().string());
                     }
@@ -484,6 +483,50 @@ namespace Turbo
                         TBO_WARN("Could not load texture {0} - Invalid format", texturePath.stem().string());
                 }
                 ImGui::EndDragDropTarget();
+            }
+
+            if (component.SubTexture)
+            {
+                glm::vec2 coords = component.SubTexture->GetSpriteCoords();
+                glm::vec2 spriteSize = component.SubTexture->GetSpriteSize();
+                Image2D::Filter filter = component.SubTexture->GetTexture()->GetConfig().Filter;
+
+                const char* filterTypeStrings[] = { "Nearest", "Linear" };
+                const char* currentFilterType = filterTypeStrings[(u32)filter];
+                if (ImGui::BeginCombo("Filter", currentFilterType))
+                {
+                    for (u32 i = 0; i < 2; i++)
+                    {
+                        bool isSelected = currentFilterType == filterTypeStrings[i];
+                        if (ImGui::Selectable(filterTypeStrings[i], isSelected))
+                        {
+                            currentFilterType = filterTypeStrings[i];
+
+                            if (filter == (Image2D::Filter)i)
+                                continue;
+
+                            // Recreate the texture with different settings
+                            Texture2D::Config config = {};
+                            config.Filter = (Image2D::Filter)i;
+                            config.Path = component.SubTexture->GetTexture()->GetConfig().Path;
+
+                            Ref<Texture2D> texture = Texture2D::Create(config);
+                            if (texture->IsLoaded())
+                                component.SubTexture = SubTexture2D::CreateFromTexture(texture, coords, spriteSize);
+                            else
+                                TBO_WARN("Could not load texture {0}", config.Path);
+                        }
+
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                ImGui::InputFloat2("Sprite Coordinates", glm::value_ptr(coords));
+                ImGui::InputFloat2("Sprite Size", glm::value_ptr(spriteSize));
+
+                component.SubTexture->Cut(coords, spriteSize);
             }
 
             // TODO(Urby): Style ImGui and make id generator for imgui id system
@@ -515,10 +558,10 @@ namespace Turbo
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
         {
             const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
-            const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+            const char* currentBodyTypeString = bodyTypeStrings[(u32)component.Type];
             if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
             {
-                for (int i = 0; i < 2; i++)
+                for (u32 i = 0; i < 2; i++)
                 {
                     bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
                     if (ImGui::Selectable(bodyTypeStrings[i], isSelected))

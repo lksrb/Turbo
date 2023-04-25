@@ -35,43 +35,7 @@ namespace Turbo
         }
     }
 
-    VulkanTexture2D::VulkanTexture2D(const std::string& filepath)
-        : Texture2D(filepath)
-    {
-        // Load picture from filepath
-        int texWidth = 0, texHeight = 0, texChannel = 0;
-
-        // Vertical flip of the texture
-        stbi_set_flip_vertically_on_load(1);
-
-        void* pixels = stbi_load(m_FilePath.c_str(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
-
-        // Texture could not be loaded
-        if (texWidth * texHeight <= 0)
-        {
-            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", m_FilePath.c_str());
-            stbi_set_flip_vertically_on_load(0);
-            return;
-        }
-
-        // Update width and height
-        m_Config.Width = texWidth;
-        m_Config.Height = texHeight;
-
-        CreateImage2D();
-
-        // Tranfer buffer to GPU memory
-        SetData(pixels);
-
-        m_IsLoaded = true;
-
-        // Free pixels
-        stbi_image_free(pixels);
-        stbi_set_flip_vertically_on_load(0);
-    }
-
     VulkanTexture2D::VulkanTexture2D(u32 color)
-        : Texture2D(color)
     {
         // Create storage for the loaded texture
         CreateImage2D();
@@ -85,8 +49,44 @@ namespace Turbo
     VulkanTexture2D::VulkanTexture2D(const Texture2D::Config& config)
         : Texture2D(config)
     {
-        // Create storage for the loaded texture
+        void* pixels = nullptr;
+        if (!m_Config.Path.empty())
+        {
+
+            // Load picture from filepath
+            int texWidth = 0, texHeight = 0, texChannel = 0;
+
+            // Vertical flip of the texture
+            stbi_set_flip_vertically_on_load(1);
+
+            pixels = stbi_load(m_Config.Path.c_str(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
+
+            // Texture could not be loaded
+            if (texWidth * texHeight <= 0)
+            {
+                TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", m_Config.Path.c_str());
+                stbi_set_flip_vertically_on_load(0);
+                return;
+            }
+
+            // Update width and height
+            m_Config.Width = texWidth;
+            m_Config.Height = texHeight;
+        }
+
         CreateImage2D();
+
+        // Tranfer buffer to GPU memory
+        if (pixels)
+        {
+            SetData(pixels);
+
+            // Free pixels
+            stbi_image_free(pixels);
+            stbi_set_flip_vertically_on_load(0);
+        }
+     
+        m_IsLoaded = true;
     }
 
     VulkanTexture2D::~VulkanTexture2D()
@@ -216,6 +216,7 @@ namespace Turbo
         imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
         imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
         imageConfig.ImageFormat = m_Config.Format;
+        imageConfig.ImageFilter = m_Config.Filter;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(m_Config.Width, m_Config.Height);
     }

@@ -301,10 +301,13 @@ namespace Turbo
 
             if (spriteRendererComponent.SubTexture)
             {
+                const char* filterTypeStrings[] = { "Nearest", "Linear" };
+
                 Ref<SubTexture2D> subTexture = spriteRendererComponent.SubTexture;
                 out << YAML::Key << "TexturePath" << YAML::Value << subTexture->GetTexture()->GetFilepath();
                 out << YAML::Key << "SpriteCoords" << YAML::Value << subTexture->GetSpriteCoords();
                 out << YAML::Key << "SpriteSize" << YAML::Value << subTexture->GetSpriteSize();
+                out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(i32)subTexture->GetTexture()->GetConfig().Filter];
             }
             else
                 out << YAML::Key << "TexturePath" << YAML::Value << "None";
@@ -574,12 +577,20 @@ namespace Turbo
                     auto& path = spriteRendererComponent["TexturePath"].as<std::string>();
                     if (path != "None")
                     {
-                        Ref<Texture2D> texture2d = Texture2D::Create({ path });
-                        if (texture2d->IsLoaded())
-                            src.SubTexture = SubTexture2D::CreateFromTexture(texture2d);
-                        else
-                            TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", path);
+                        auto& filterTypeString = spriteRendererComponent["TextureFiltering"].as<std::string>();
+                        auto& spriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
+                        auto& spriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
 
+                        // Recreate the texture with different settings
+                        Texture2D::Config config = {};
+                        config.Filter = filterTypeString == "Nearest" ? Image2D::Filter::Nearest : Image2D::Filter::Linear;
+                        config.Path = path;
+
+                        Ref<Texture2D> texture = Texture2D::Create(config);
+                        if (texture->IsLoaded())
+                            src.SubTexture = SubTexture2D::CreateFromTexture(texture, spriteCoords, spriteSize);
+                        else
+                            TBO_WARN("Could not load texture {0}", config.Path);
                     }
                 }
 

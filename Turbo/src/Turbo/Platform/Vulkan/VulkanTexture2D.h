@@ -12,7 +12,6 @@ namespace Turbo
     class VulkanTexture2D : public Texture2D
     {
     public:
-        VulkanTexture2D(const std::string& filepath);
         VulkanTexture2D(const Texture2D::Config& config);
         VulkanTexture2D(u32 color);
         ~VulkanTexture2D();
