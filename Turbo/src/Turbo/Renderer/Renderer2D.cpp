@@ -324,7 +324,7 @@ namespace Turbo
 
         u32 textureIndex = 0; // White Texture
         glm::vec2 textureCoords[4];
-        memcpy(textureCoords, subTexture->GetCoords().data(), 4 * sizeof(glm::vec2));
+        memcpy(textureCoords, subTexture->GetTextureCoords().data(), 4 * sizeof(glm::vec2));
 
         if (subTexture)
         {

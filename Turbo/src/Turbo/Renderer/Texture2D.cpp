@@ -43,19 +43,29 @@ namespace Turbo
     }
 
     // SubTexture2D
-    SubTexture2D::SubTexture2D(Ref<Texture2D> texture, const glm::vec2& min, const glm::vec2 max)
+    SubTexture2D::SubTexture2D(Ref<Texture2D> texture)
         : m_Texture(texture)
     {
+    }
+
+    Ref<SubTexture2D> SubTexture2D::CreateFromTexture(Ref<Texture2D> texture, glm::vec2 coords, glm::vec2 spriteSize)
+    {
+        Ref<SubTexture2D> subTexture2d = Ref<SubTexture2D>::Create(texture);
+        subTexture2d->Snip(coords, spriteSize);
+        return subTexture2d;
+    }
+
+    void SubTexture2D::Snip(glm::vec2 coords, glm::vec2 spriteSize)
+    {
+        m_SpriteCoords = coords;
+        m_SpriteSize = spriteSize;
+
+        glm::vec2 min = { (coords.x * spriteSize.x) / m_Texture->GetWidth(), (coords.y * spriteSize.y) / m_Texture->GetHeight() };
+        glm::vec2 max = { ((coords.x + 1) * spriteSize.x) / m_Texture->GetWidth(), ((coords.y + 1) * spriteSize.y) / m_Texture->GetHeight() };
+
         m_TexCoords[0] = { min.x, min.y };
         m_TexCoords[1] = { max.x, min.y };
         m_TexCoords[2] = { max.x, max.y };
         m_TexCoords[3] = { min.x, max.y };
-    }
-
-    Ref<SubTexture2D> SubTexture2D::CreateFromTexture(Ref<Texture2D> texture, const glm::vec2& coords, const glm::vec2 spriteSize)
-    {
-        glm::vec2 min = { (coords.x * spriteSize.x) / texture->GetWidth(), (coords.y * spriteSize.y) / texture->GetHeight() };
-        glm::vec2 max = { ((coords.x + 1) * spriteSize.x) / texture->GetWidth(), ((coords.y + 1) * spriteSize.y) / texture->GetHeight() };
-        return Ref<SubTexture2D>::Create(texture, min, max);
     }
 }

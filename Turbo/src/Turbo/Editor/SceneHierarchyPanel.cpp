@@ -250,7 +250,7 @@ namespace Turbo
             auto& view = m_Context->GetAllEntitiesWith<RelationshipComponent>();
             for (auto e : view)
             {
-                Entity entity = { e, m_Context.Get()};
+                Entity entity = { e, m_Context.Get() };
                 const auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
 
                 // If entity is root, then do draw
@@ -327,10 +327,10 @@ namespace Turbo
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-          /*  if (tag.empty())
-            {
-                TBO_ENGINE_ASSERT(false);
-            }*/
+            /*  if (tag.empty())
+              {
+                  TBO_ENGINE_ASSERT(false);
+              }*/
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
@@ -446,15 +446,25 @@ namespace Turbo
                drawList->AddRectFilled(cursor, { cursor.x + 100, cursor.y + 100 }, 0xff0000ff); // red*/
             ImGui::SetCursorPos(ImVec2(cursor.x + 225.0f, cursor.y));
             ImGui::PushItemWidth(-1);
-            ImGui::Button("##textureButton", ImVec2(50, 50.0f));
+
+            if (component.Texture)
+                UI::ImageButton(component.Texture, ImVec2(50, 50.0f), { 0, 1 }, { 1, 0 });
+            else if(component.SubTexture)
+                UI::ImageButton(component.SubTexture->GetTexture(), ImVec2(50, 50.0f), { 0, 1 }, { 1, 0 });
+            else
+                ImGui::Button("##TextureButton", ImVec2(50, 50.0f));
+
             ImGui::PopItemWidth();
             ImGui::NextColumn();
+
+
+
             if (ImGui::BeginDragDropTarget())
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP"))
                 {
-                    const char* path = (const char*)payload->Data;
-                    const std::filesystem::path& texturePath = m_AssetsPath / path;
+                    const wchar_t* path = (const wchar_t*)payload->Data;
+                    const std::filesystem::path texturePath = path;
 
                     auto& fileExtension = texturePath.extension();
 
@@ -465,7 +475,10 @@ namespace Turbo
                     {
                         Ref<Texture2D> texture = Texture2D::Create({ texturePath.string() });
                         if (texture->IsLoaded())
+                        {
+                            //Ref<SubTexture2D> subTexture = SubTexture2D::CreateFromTexture(texture, );
                             component.Texture = texture;
+                        }
                         else
                             TBO_WARN("Could not load texture {0}", texturePath.stem().string());
                     }

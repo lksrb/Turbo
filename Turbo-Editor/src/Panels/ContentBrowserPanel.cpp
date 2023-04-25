@@ -73,7 +73,7 @@ namespace Turbo::Ed
             {
                 const wchar_t* itemPath = path.c_str();
                 size_t itemPathSize = (wcslen(itemPath) + 1) * sizeof(wchar_t);
-                if (path.extension() == ".cs")
+                if (path.extension() == ".cs" || path.extension() == ".png" || path.extension() == ".jpg")
                 {
                     ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_SHP", itemPath, itemPathSize, ImGuiCond_Always);
                 }

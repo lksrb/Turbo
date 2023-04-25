@@ -79,7 +79,7 @@ namespace Turbo::Ed
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
 
         // Open sandbox project
-        OpenProject(m_CurrentPath / "SandboxProject\\SandboxProject.tproject");
+        OpenProject(m_CurrentPath / "GunNRun\\GunNRun.tproject");
     }
 
     void Editor::OnShutdown()

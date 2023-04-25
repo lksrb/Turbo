@@ -437,6 +437,7 @@ namespace Turbo
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        
         body->ApplyLinearImpulse(b2Vec2(impulse->x, impulse->y), b2Vec2(worldPosition->x, worldPosition->y), wake);
     }
     static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(UUID uuid, glm::vec2* impulse, bool wake)
