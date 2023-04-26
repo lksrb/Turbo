@@ -81,7 +81,6 @@ namespace Turbo
     {
         glm::vec4 Color{ 1.0f };
         f32 Tiling = 1.0f;
-        //Ref<Texture2D> Texture; // TODO: Combine texture and subtexture
         Ref<SubTexture2D> SubTexture;
     };
 

@@ -429,11 +429,8 @@ namespace Turbo
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
 
         glm::vec3 lineVertices[4];
-
         for (u32 i = 0; i < 4; ++i)
-        {
             lineVertices[i] = transform * m_QuadVertexPositions[i];
-        }
 
         DrawLine(lineVertices[0], lineVertices[1], color, entity);
         DrawLine(lineVertices[1], lineVertices[2], color, entity);

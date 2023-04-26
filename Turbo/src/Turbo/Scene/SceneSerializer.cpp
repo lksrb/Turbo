@@ -348,10 +348,10 @@ namespace Turbo
             out << YAML::Key << "ScriptComponent";
             out << YAML::BeginMap;
 
-            auto& script_component = entity.GetComponent<ScriptComponent>();
-            out << YAML::Key << "ClassName" << YAML::Value << script_component.ClassName;
+            auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+            out << YAML::Key << "ClassName" << YAML::Value << scriptComponent.ClassName;
 
-            Ref<ScriptClass> scriptClass = Script::FindEntityClass(script_component.ClassName);
+            Ref<ScriptClass> scriptClass = Script::FindEntityClass(scriptComponent.ClassName);
             if (scriptClass)
             {
                 const auto& fields = scriptClass->GetFields();
