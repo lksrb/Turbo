@@ -730,16 +730,15 @@ namespace Turbo
         out << YAML::Key << "Scene" << YAML::Value << filepath.stem().string();
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-        auto& view = m_Scene->GetAllEntitiesWith<IDComponent>();
+        // Sort entities
+        std::map<UUID, entt::entity> sortedEntityMap;
+        auto view = m_Scene->GetAllEntitiesWith<IDComponent>();
+        for (auto entity : view)
+            sortedEntityMap[view.get<IDComponent>(entity).ID] = entity;
 
-        for (auto e : view)
-        {
-            Entity entity = { e, m_Scene.Get() };
-            if (!entity)
-                break;
+        for (auto& [id, entity] : sortedEntityMap)
+            SerializeEntity(out, {entity, m_Scene.Get() });
 
-            SerializeEntity(out, entity);
-        }
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
