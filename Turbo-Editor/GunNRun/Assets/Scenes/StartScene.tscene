@@ -1,5 +1,28 @@
 Scene: StartScene
 Entities:
+  - Entity: 2098855278331695246
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Ground2
+    TransformComponent:
+      Translation: [-12.42976, 2.51672077, 0]
+      Rotation: [0, 0, 0]
+      Scale: [22.9913979, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [0.534313738, 0.326319605, 0.0628604367, 1]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
   - Entity: 6356292223037786716
     Parent: 18351839713352600519
     Children:
@@ -33,76 +56,6 @@ Entities:
       Translation: [-23.695385, -3.1368835, 0]
       Rotation: [0, 0, 1.57079637]
       Scale: [11.8189087, 0.49994269, 1]
-    SpriteRendererComponent:
-      Color: [0.534313738, 0.326319605, 0.0628604367, 1]
-      TexturePath: None
-    Rigidbody2DComponent:
-      BodyType: Static
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.0500000007
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 18351839713352600519
-    Parent: 18351839713352600519
-    Children:
-      - UUID: 2098855278331695246
-      - UUID: 4924643023131908164
-      - UUID: 7610681435252807209
-      - UUID: 6356292223037786716
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Translation: [0, -2.91909075, 0]
-      Rotation: [0, 0, 0]
-      Scale: [34.2225761, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [0.343137264, 0.206050575, 0.0689638555, 1]
-      TexturePath: None
-    Rigidbody2DComponent:
-      BodyType: Static
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.270000011
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 17566374929209752254
-    Parent: 17566374929209752254
-    Children:
-      []
-    TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 20
-        OrthographicNear: -1
-        OrthographicFar: 1
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 2098855278331695246
-    Parent: 18351839713352600519
-    Children:
-      []
-    TagComponent:
-      Tag: Ground2
-    TransformComponent:
-      Translation: [-12.42976, 2.51672077, 0]
-      Rotation: [0, 0, 0]
-      Scale: [22.9913979, 0.5, 1]
     SpriteRendererComponent:
       Color: [0.534313738, 0.326319605, 0.0628604367, 1]
       TexturePath: None
@@ -175,5 +128,52 @@ Entities:
       Size: [0.5, 0.5]
       Density: 1
       Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 17566374929209752254
+    Parent: 17566374929209752254
+    Children:
+      []
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 20
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 18351839713352600519
+    Parent: 18351839713352600519
+    Children:
+      - UUID: 2098855278331695246
+      - UUID: 4924643023131908164
+      - UUID: 7610681435252807209
+      - UUID: 6356292223037786716
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -2.91909075, 0]
+      Rotation: [0, 0, 0]
+      Scale: [34.2225761, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [0.343137264, 0.206050575, 0.0689638555, 1]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.270000011
       Restitution: 0
       RestitutionThreshold: 0.5
