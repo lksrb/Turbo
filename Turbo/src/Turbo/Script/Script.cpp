@@ -442,6 +442,8 @@ namespace Turbo
 
     void Script::Shutdown()
     {
+        CollectGarbage();
+
         ShutdownMono();
 
         delete g_Data;

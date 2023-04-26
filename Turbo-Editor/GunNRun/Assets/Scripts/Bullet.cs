@@ -7,7 +7,11 @@ namespace GunNRun
         private float m_DeathTimer = 1.0f;
         private bool m_OneTime = false;
 
-        protected override void OnCreate()
+		~Bullet()
+		{
+			Log.Info("Bullet destroyed!");
+		}
+		protected override void OnCreate()
         {
             Log.Info("Hello from bullet!");
         }

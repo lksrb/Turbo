@@ -11,6 +11,15 @@ namespace Turbo
 		{
 			return (float)Math.Abs(value);
 		}
+		public static Vector3 Abs(Vector3 value)
+		{
+			Vector3 result = value;
+			result.x = Mathf.Abs(result.x);
+			result.y = Mathf.Abs(result.y);
+			result.z = Mathf.Abs(result.z);
+			return result;
+		}
+
 		public static float Pow(float value, float power = 2.0f)
 		{
 			return (float)Math.Pow(value, power);
@@ -76,6 +85,7 @@ namespace Turbo
 			return a.x * b.x + a.y * b.y + a.z * b.z + a.w + b.w;
 		}
 		#endregion
+
 		#region Trigonometric functions
 		public static float Sin(float radians)
 		{
