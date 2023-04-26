@@ -737,7 +737,7 @@ namespace Turbo
             sortedEntityMap[view.get<IDComponent>(entity).ID] = entity;
 
         for (auto& [id, entity] : sortedEntityMap)
-            SerializeEntity(out, {entity, m_Scene.Get() });
+            SerializeEntity(out, { entity, m_Scene.Get() });
 
         out << YAML::EndSeq;
         out << YAML::EndMap;
