@@ -1,5 +1,8 @@
-﻿namespace Turbo
+﻿using System.Runtime.InteropServices;
+
+namespace Turbo
 {
+	[StructLayout(LayoutKind.Sequential)]
 	public struct Vector2
 	{
 		public float x;

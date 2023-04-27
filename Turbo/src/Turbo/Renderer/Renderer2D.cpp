@@ -25,7 +25,7 @@ namespace Turbo
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
 
         // Default clear color
-        m_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+        m_ClearColor = { 0.2f, 0.2f, 0.2f, 1.0f };
 
         // Quad setup
         {

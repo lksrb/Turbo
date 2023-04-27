@@ -1,5 +1,8 @@
-﻿namespace Turbo
+﻿using System.Runtime.InteropServices;
+
+namespace Turbo
 {
+	[StructLayout(LayoutKind.Sequential)]
 	public struct Vector3
 	{
 		public float x;
@@ -14,7 +17,7 @@
 		}
 
 		public Vector3(Vector3 other) : this(other.x, other.y, other.z) { }
-		public Vector3(Vector2 xy, float z) : this(xy.x, xy.y, z) { }
+		public Vector3(Vector2 xy, float z = 0.0f) : this(xy.x, xy.y, z) { }
 
 		public Vector3(float xyz) : this(xyz, xyz, xyz) { }
 

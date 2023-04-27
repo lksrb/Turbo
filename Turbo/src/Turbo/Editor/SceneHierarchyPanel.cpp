@@ -173,7 +173,7 @@ namespace Turbo
             ImGui::PopID();
         }
 
-        static void CallTypeSpecificFunctionNoSceneRunning(ScriptFieldType field_type, const std::string& name, ScriptFieldInstance& instance)
+        static void CallTypeSpecificFunctionNoSceneRunning(ScriptFieldType fieldType, const std::string& name, ScriptFieldInstance& instance)
         {
             static std::array<std::function<void(const std::string& name, ScriptFieldInstance& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsNSR =
             {
@@ -194,7 +194,10 @@ namespace Turbo
                 TBO_TYPEFUNC_COMPLEX("Vector4", glm::vec4, ImGui::DragFloat4, 0.1f),
             };
 
-            u32 type = static_cast<u32>(field_type);
+            if (fieldType == ScriptFieldType::Entity) // TODO: Entity display
+                return;
+
+            u32 type = static_cast<u32>(fieldType);
 
             // Call type specific function
             if (type < s_TypeFunctionsNSR.size())
@@ -222,9 +225,10 @@ namespace Turbo
                 TBO_TYPEFUNC2_COMPLEX("Vector4", glm::vec4, ImGui::DragFloat4, 0.1f),
             };
 
-            u32 type = static_cast<u32>(fieldType);
+            if (fieldType == ScriptFieldType::Entity) // TODO: Entity display
+                return;
 
-            TBO_ENGINE_ASSERT(type < s_TypeFunctionsSR.size());
+            u32 type = static_cast<u32>(fieldType);
 
             // Call type specific function
             if (type < s_TypeFunctionsSR.size())
@@ -526,7 +530,7 @@ namespace Turbo
                 ImGui::InputFloat2("Sprite Coordinates", glm::value_ptr(coords));
                 ImGui::InputFloat2("Sprite Size", glm::value_ptr(spriteSize));
 
-                component.SubTexture->Cut(coords, spriteSize);
+                component.SubTexture->SetBounds(coords, spriteSize);
             }
 
             // TODO(Urby): Style ImGui and make id generator for imgui id system

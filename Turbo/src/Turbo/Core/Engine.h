@@ -47,6 +47,8 @@ namespace Turbo
 
             m_MainThreadQueue.emplace_back(func);
         }
+
+        bool IsClosing() const { return !m_Running; }
     private:
         Engine(ApplicationCreateCallback callback);
 

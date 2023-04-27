@@ -2,15 +2,11 @@
 
 namespace GunNRun
 {
-    public class Bullet : Entity
+	public class Bullet : Entity
     {
         private float m_DeathTimer = 1.0f;
         private bool m_OneTime = false;
 
-		~Bullet()
-		{
-			Log.Info("Bullet destroyed!");
-		}
 		protected override void OnCreate()
         {
             Log.Info("Hello from bullet!");

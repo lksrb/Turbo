@@ -118,14 +118,14 @@ namespace Turbo
         // First resize
         m_ViewportWindow->Show();
 
-        f32 last_frame = 0.0f;
+        f32 lastFrame = 0.0f;
 
         while (m_Running)
         {
-            f32 current_frame = Platform::GetTime();
-            m_Application->Time.DeltaTime = current_frame - last_frame;
+            f32 currentFrame = Platform::GetTime();
+            m_Application->Time.DeltaTime = currentFrame - lastFrame;
             m_Application->Time.TimeSinceStart += m_Application->Time.DeltaTime;
-            last_frame = current_frame;
+            lastFrame = currentFrame;
 
             m_ViewportWindow->ProcessEvents();
 

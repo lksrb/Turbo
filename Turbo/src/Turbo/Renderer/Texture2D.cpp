@@ -39,11 +39,11 @@ namespace Turbo
     Ref<SubTexture2D> SubTexture2D::CreateFromTexture(Ref<Texture2D> texture, glm::vec2 coords, glm::vec2 spriteSize)
     {
         Ref<SubTexture2D> subTexture = Ref<SubTexture2D>::Create(texture);
-        subTexture->Cut(coords, spriteSize);
+        subTexture->SetBounds(coords, spriteSize);
         return subTexture;
     }
 
-    void SubTexture2D::Cut(glm::vec2 coords, glm::vec2 spriteSize)
+    void SubTexture2D::SetBounds(glm::vec2 coords, glm::vec2 spriteSize)
     {
         m_SpriteCoords = coords;
         m_SpriteSize.x = spriteSize.x ? spriteSize.x : m_Texture->GetWidth();

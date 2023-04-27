@@ -123,14 +123,14 @@ namespace Turbo
 
         const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
 
-        glm::vec4 viewport = 
-        { 
+        glm::vec4 viewport =
+        {
             context->GetViewportX(),
             context->GetViewportY(),
             context->GetViewportWidth(),
-            context->GetViewportHeight() 
+            context->GetViewportHeight()
         };
-        *worldPosition  = Math::UnProject(screenPosition, viewport, camera.GetViewProjection());
+        *worldPosition = Math::UnProject(screenPosition, viewport, camera.GetViewProjection());
     }
 
     // =============================================================================
@@ -195,6 +195,7 @@ namespace Turbo
         // This will add script component and instantiantes it
         entity.AddComponent<ScriptComponent>(cString);
         mono_free(cString);
+
     }
 
     static MonoString* Entity_Get_Name(UUID uuid)
@@ -301,6 +302,24 @@ namespace Turbo
         TBO_ENGINE_ASSERT(entity);
 
         entity.GetComponent<SpriteRendererComponent>().Color = *color;
+    }
+
+    static void Component_SpriteRenderer_SetSpriteBounds(UUID uuid, glm::vec2 position, glm::vec2 size)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& src = entity.GetComponent<SpriteRendererComponent>();
+
+        if (src.SubTexture)
+        {
+            src.SubTexture->SetBounds(position, size);
+            return;
+        }
+
+        TBO_CONSOLE_ERROR("\"{}\" entity sprite renderer does not have a texture!", entity.GetName());
     }
 
 #pragma endregion
@@ -437,7 +456,7 @@ namespace Turbo
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        
+
         body->ApplyLinearImpulse(b2Vec2(impulse->x, impulse->y), b2Vec2(worldPosition->x, worldPosition->y), wake);
     }
     static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(UUID uuid, glm::vec2* impulse, bool wake)
@@ -714,6 +733,7 @@ namespace Turbo
         // SpriteRenderer
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Get_Color);
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Set_Color);
+        TBO_REGISTER_FUNCTION(Component_SpriteRenderer_SetSpriteBounds);
 
         // CircleRenderer
 

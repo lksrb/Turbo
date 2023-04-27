@@ -244,5 +244,10 @@ namespace Turbo
 				InternalCalls.Component_SpriteRenderer_Set_Color(Entity.ID, ref value);
 			}
 		}
+
+		public void SetSpriteBounds(Vector2 position, Vector2 size)
+		{
+			InternalCalls.Component_SpriteRenderer_SetSpriteBounds(Entity.ID, position, size);
+		}
 	}
 }

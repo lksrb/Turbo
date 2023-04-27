@@ -5,7 +5,7 @@
 namespace Turbo 
 {
     Application::Application(const Application::Config& config)
-        : m_Config(config), Engine(nullptr)
+        : m_Config(config)
     {
     }
 }

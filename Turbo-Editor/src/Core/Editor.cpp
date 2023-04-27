@@ -485,7 +485,6 @@ namespace Turbo::Ed
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
-
         dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
         dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Editor::OnWindowClosed));
@@ -880,8 +879,11 @@ namespace Turbo::Ed
 
     void Editor::Close()
     {
-        // TODO: Make this an option
 
+        if(m_RuntimeScene)
+            OnSceneStop();
+
+        // TODO: Make this an option
         SaveProject(); // Auto save
     }
 }

@@ -109,6 +109,9 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_SpriteRenderer_Set_Color(ulong uuid, ref Vector4 color);
 
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_SpriteRenderer_SetSpriteBounds(ulong uuid, Vector2 position, Vector2 size);
+
 		#endregion
 
 		#region TextComponent

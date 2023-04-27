@@ -60,7 +60,7 @@ namespace Turbo
 
         glm::vec2 GetSpriteCoords() const { return m_SpriteCoords; }
         glm::vec2 GetSpriteSize() const { return m_SpriteSize; }
-        void Cut(glm::vec2 coords, glm::vec2 spriteSize);
+        void SetBounds(glm::vec2 coords, glm::vec2 spriteSize);
     protected:
         glm::vec2 m_SpriteSize = {};
         glm::vec2 m_SpriteCoords = {};

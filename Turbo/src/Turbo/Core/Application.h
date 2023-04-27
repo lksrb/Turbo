@@ -36,13 +36,13 @@ namespace Turbo
         virtual void OnEvent(Event& event) {};
         virtual void OnDrawUI() {}
     protected:
-        Turbo::Engine* Engine;
-        Turbo::Window* Window;
+        Turbo::Engine* Engine = nullptr;
+        Turbo::Window* Window = nullptr;
         Turbo::Time Time;
 
         Application::Config m_Config;
 
-        friend class Window;
+        friend class Turbo::Window;
         friend class Win32_Window;
         friend class Turbo::Engine;
     };

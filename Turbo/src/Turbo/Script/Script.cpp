@@ -147,7 +147,7 @@ namespace Turbo
 
         CollectGarbage();
 
-        if (g_Data->ProjectAssemblyDirty)
+        if (!Engine::Get().IsClosing() && g_Data->ProjectAssemblyDirty)
         {
             g_Data->ProjectAssemblyDirty = false;
             ReloadAssemblies();
@@ -278,18 +278,18 @@ namespace Turbo
                 u32 cols[MONO_TYPEDEF_SIZE];
                 mono_metadata_decode_row(typedefTable, i, cols, MONO_TYPEDEF_SIZE);
 
-                const char* class_name = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAME]);
-                const char* namespace_name = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
-                std::string full_name;
+                const char* className = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAME]);
+                const char* nameSpace = mono_metadata_string_heap(g_Data->ProjectAssemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
+                std::string fullName;
 
                 // Use different formatting when dealing with namespace-less assemblies
-                if (strlen(namespace_name) != 0)
-                    full_name = fmt::format("{}.{}", namespace_name, class_name);
+                if (strlen(nameSpace) != 0)
+                    fullName = fmt::format("{}.{}", nameSpace, className);
                 else
-                    full_name = class_name;
+                    fullName = className;
 
                 // Is null when not a class type
-                MonoClass* klass = mono_class_from_name(g_Data->ProjectAssemblyImage, namespace_name, class_name);
+                MonoClass* klass = mono_class_from_name(g_Data->ProjectAssemblyImage, nameSpace, className);
 
                 // If is not a class, skip
                 if (klass == nullptr)
@@ -300,28 +300,28 @@ namespace Turbo
                     continue;
 
                 // If entity class is not the base of the class, skip
-                bool has_entity_base = mono_class_is_subclass_of(klass, g_Data->EntityBaseClass->GetMonoClass(), false);
-                if (has_entity_base == false)
+                bool hasEntityBase = mono_class_is_subclass_of(klass, g_Data->EntityBaseClass->GetMonoClass(), false);
+                if (hasEntityBase == false)
                     continue;
 
-                Ref<ScriptClass>& script_class = g_Data->ScriptClasses[full_name];
-                script_class = Ref<ScriptClass>::Create(klass, g_Data->EntityBaseClass);
+                Ref<ScriptClass>& scriptClass = g_Data->ScriptClasses[fullName];
+                scriptClass = Ref<ScriptClass>::Create(klass, g_Data->EntityBaseClass);
 
                 // Iterate through all fields in a class
 
                 void* iter = nullptr;
-                while (MonoClassField* mono_field = mono_class_get_fields(klass, &iter))
+                while (MonoClassField* monoField = mono_class_get_fields(klass, &iter))
                 {
-                    const char* field_name = mono_field_get_name(mono_field);
-                    u32 accessFlags = mono_field_get_flags(mono_field);
+                    const char* fieldName = mono_field_get_name(monoField);
+                    u32 accessFlags = mono_field_get_flags(monoField);
 
                     if (accessFlags & MONO_FIELD_ATTR_PUBLIC)
                     {
-                        ScriptField& field = script_class->m_ScriptFields[field_name];
-                        field.MonoField = mono_field;
-                        field.Type = Utils::GetFieldType(mono_field);
+                        ScriptField& field = scriptClass->m_ScriptFields[fieldName];
+                        field.MonoField = monoField;
+                        field.Type = Utils::GetFieldType(monoField);
 
-                        TBO_ENGINE_TRACE("[Mono-Reflect-ClassFields]: public [FieldType] {0}", field_name);
+                        TBO_ENGINE_TRACE("[Mono-Reflect-ClassFields]: public [FieldType] {0}", fieldName);
                     }
                 }
             }

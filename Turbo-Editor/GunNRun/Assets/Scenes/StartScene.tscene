@@ -7,9 +7,9 @@ Entities:
     TagComponent:
       Tag: Ground2
     TransformComponent:
-      Translation: [-12.42976, 2.51672077, 0]
+      Translation: [-9.98139572, 15.9828463, 0]
       Rotation: [0, 0, 0]
-      Scale: [22.9913979, 0.5, 1]
+      Scale: [1000, 0.5, 1]
     SpriteRendererComponent:
       Color: [0.534313738, 0.326319605, 0.0628604367, 1]
       TexturePath: None
@@ -76,21 +76,24 @@ Entities:
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [-6.03999996, 6.78000021, 0]
+      Translation: [-14.0192184, 1.26144409, 0]
       Rotation: [0, 0, 0]
       Scale: [5, 5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
-      SpriteCoords: [0, -1]
+      SpriteCoords: [2, -1]
       SpriteSize: [45, 45]
       TextureFiltering: Nearest
     ScriptComponent:
-      ClassName: GunNRun.PlayerController
+      ClassName: GunNRun.PlayerManager
       Fields:
         - Name: m_Speed
           Type: Float
           Data: 10
+        - Name: m_AnimationIdleSpeed
+          Type: Float
+          Data: 0.150000006
         - Name: m_AutoJump
           Type: Bool
           Data: false
@@ -137,16 +140,16 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-8.32984066, 5.24738503, 26.7315369]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       Camera:
-        ProjectionType: 1
+        ProjectionType: 0
         PerspectiveFOV: 0.785398185
         PerspectiveNear: 0.00999999978
         PerspectiveFar: 1000
-        OrthographicSize: 20
+        OrthographicSize: 31
         OrthographicNear: -1
         OrthographicFar: 1
       Primary: true
