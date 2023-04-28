@@ -13,6 +13,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -27,12 +28,13 @@ Entities:
     TagComponent:
       Tag: Hitbox-Horizontal
     TransformComponent:
-      Translation: [-39.6982956, 4.26438284, 0]
+      Translation: [-37.1070976, 1.14217496, 0]
       Rotation: [0, 0, 0]
-      Scale: [35.2364807, 1, 1]
+      Scale: [40.7694855, 7.33029795, 1]
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -53,6 +55,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -73,6 +76,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -93,6 +97,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -113,6 +118,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -127,15 +133,16 @@ Entities:
     TagComponent:
       Tag: Hitbox-Horizontal
     TransformComponent:
-      Translation: [-10.1703091, -17.2537251, 0]
+      Translation: [-10.1703091, -19.8872089, 0]
       Rotation: [0, 0, 0]
-      Scale: [94.7955246, 0.49994269, 1]
+      Scale: [94.8974075, 5.75060129, 1]
     SpriteRendererComponent:
       Color: [0.533333361, 0.325490206, 0.0627451017, 0]
       TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -156,6 +163,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -176,6 +184,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -196,6 +205,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -218,7 +228,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [2, -1]
+      SpriteCoords: [0, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -234,15 +244,37 @@ Entities:
           Data: false
         - Name: m_JumpPower
           Type: Float
-          Data: 15.54
+          Data: 23.9500008
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true
+      GravityScale: 3
     BoxCollider2DComponent:
       Offset: [0, -0.870000005]
       Size: [0.300000012, 0.330000013]
       Density: 0.109999999
       Friction: 0
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 10495809691805916543
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-6.21687889, -12.0180988, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4.83480263, 0.80088079, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
   - Entity: 10715464977618895156
@@ -258,6 +290,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -278,6 +311,28 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 11890741624846825386
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [54.4340134, -8.26534271, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.06900358, 0.691872358, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -298,6 +353,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -318,6 +374,28 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 13751756959912035771
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [46.6614647, -20.1033535, 0]
+      Rotation: [0, 0, 0]
+      Scale: [20.3899651, 0.89392972, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -338,6 +416,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -358,6 +437,7 @@ Entities:
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -382,6 +462,27 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [1411, 544]
+  - Entity: 16836801834439462647
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [27.1538372, -3.45825481, 0]
+      Rotation: [0, 0, 0]
+      Scale: [10.0216742, 5.84865093, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
   - Entity: 17566374929209752254
     Parent: 0
     Children:
@@ -423,6 +524,10 @@ Entities:
       - UUID: 10715464977618895156
       - UUID: 16520059961772707914
       - UUID: 10742471781252461660
+      - UUID: 16836801834439462647
+      - UUID: 13751756959912035771
+      - UUID: 11890741624846825386
+      - UUID: 10495809691805916543
     TagComponent:
       Tag: Hitboxes
     TransformComponent:

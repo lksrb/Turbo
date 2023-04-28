@@ -155,7 +155,7 @@ namespace GunNRun
 				frameIndicies.PushBack(new Vector2(0, -6));
 				frameIndicies.PushBack(new Vector2(1, -6));
 
-				m_Animations[(uint)PlayerAnimation.ShootingInAir] = new Animation(PlayerAnimation.ShootingInAir, true, 0.006f, frameIndicies);
+				m_Animations[(uint)PlayerAnimation.ShootingInAir] = new Animation(PlayerAnimation.ShootingInAir, true, 0.002f, frameIndicies);
 			}
 
 			// Set current animation

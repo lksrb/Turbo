@@ -78,7 +78,9 @@ namespace GunNRun
 					return;*/
 
 			if (m_RigidBody2D.Velocity.y < 0.0f)
+			{
 				m_IsGrounded = true;
+			}
 
 			Log.Info($"{m_RigidBody2D.Velocity}");
 		}
@@ -86,7 +88,9 @@ namespace GunNRun
 		internal void OnCollisionEnd(Entity other)
 		{
 			if (m_RigidBody2D.Velocity.x == 0.0f)
+			{
 				m_IsGrounded = false;
+			} 
 		}
 	}
 }
