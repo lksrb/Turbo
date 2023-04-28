@@ -538,6 +538,7 @@ namespace Turbo::Ed
                     if (m_SelectedEntity)
                     {
                         m_SelectedEntity = m_CurrentScene->DuplicateEntity(m_SelectedEntity);
+                        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
                         break;
                     }
                 }

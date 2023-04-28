@@ -613,7 +613,36 @@ namespace Turbo
 
         TBO_ENGINE_ASSERT(entity);
 
-        entity.GetComponent<BoxCollider2DComponent>().Offset = *offset;
+        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+        auto& transform = entity.Transform();
+
+        if (bc2d.Offset == *offset)
+            return;
+
+        bc2d.Offset = *offset;
+
+        if (entity.HasComponent<Rigidbody2DComponent>())
+        {
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->DestroyFixture(body->GetFixtureList());
+
+            b2PolygonShape boxShape;
+            boxShape.SetAsBox(bc2d.Size.x * glm::abs(transform.Scale.x), bc2d.Size.y * glm::abs(transform.Scale.y), b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+            b2FixtureDef fixtureDef;
+            fixtureDef.shape = &boxShape;
+            fixtureDef.density = bc2d.Density;
+            fixtureDef.friction = bc2d.Friction;
+            fixtureDef.restitution = bc2d.Restitution;
+            fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+            fixtureDef.isSensor = bc2d.IsSensor;
+            b2FixtureUserData data;
+            data.pointer = (u64)entity.GetUUID();
+            fixtureDef.userData = data;
+            //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
+            //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
+            body->CreateFixture(&fixtureDef);
+        }
     }
 
     // Size
@@ -633,7 +662,36 @@ namespace Turbo
 
         TBO_ENGINE_ASSERT(entity);
 
-        entity.GetComponent<BoxCollider2DComponent>().Size = *size;
+        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+        auto& transform = entity.Transform();
+
+        if (bc2d.Size == *size)
+            return;
+
+        bc2d.Size = *size;
+
+        if (entity.HasComponent<Rigidbody2DComponent>())
+        {
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->DestroyFixture(body->GetFixtureList());
+
+            b2PolygonShape boxShape;
+            boxShape.SetAsBox(bc2d.Size.x * glm::abs(transform.Scale.x), bc2d.Size.y * glm::abs(transform.Scale.y), b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+            b2FixtureDef fixtureDef;
+            fixtureDef.shape = &boxShape;
+            fixtureDef.density = bc2d.Density;
+            fixtureDef.friction = bc2d.Friction;
+            fixtureDef.restitution = bc2d.Restitution;
+            fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+            fixtureDef.isSensor = bc2d.IsSensor;
+            b2FixtureUserData data;
+            data.pointer = (u64)entity.GetUUID();
+            fixtureDef.userData = data;
+            //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
+            //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
+            body->CreateFixture(&fixtureDef);
+        }
     }
 
     // Sensor

@@ -302,12 +302,17 @@ namespace Turbo
             if (spriteRendererComponent.SubTexture)
             {
                 const char* filterTypeStrings[] = { "Nearest", "Linear" };
+                std::map<ImageFormat, const char*> formatTypeStrings;
+                formatTypeStrings[ImageFormat_RGBA_SRGB] = "RGBA_SRGB";
+                formatTypeStrings[ImageFormat_RGBA_Unorm] = "RGBA_Unorm";
 
                 Ref<SubTexture2D> subTexture = spriteRendererComponent.SubTexture;
-                out << YAML::Key << "TexturePath" << YAML::Value << subTexture->GetTexture()->GetFilepath();
+                auto& textureConfig = subTexture->GetTexture()->GetConfig();
+                out << YAML::Key << "TexturePath" << YAML::Value << textureConfig.Path;
+                out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(u32)textureConfig.Filter];
+                out << YAML::Key << "TextureFormat" << YAML::Value << formatTypeStrings[textureConfig.Format];
                 out << YAML::Key << "SpriteCoords" << YAML::Value << subTexture->GetSpriteCoords();
                 out << YAML::Key << "SpriteSize" << YAML::Value << subTexture->GetSpriteSize();
-                out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(i32)subTexture->GetTexture()->GetConfig().Filter];
             }
             else
                 out << YAML::Key << "TexturePath" << YAML::Value << "None";
@@ -578,12 +583,18 @@ namespace Turbo
                     if (path != "None")
                     {
                         auto& filterTypeString = spriteRendererComponent["TextureFiltering"].as<std::string>();
+                        auto& formatTypeString = spriteRendererComponent["TextureFormat"].as<std::string>();
                         auto& spriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
                         auto& spriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
 
+                        std::unordered_map<std::string, ImageFormat> formatTypeStrings;
+                        formatTypeStrings["RGBA_SRGB"] = ImageFormat_RGBA_SRGB;
+                        formatTypeStrings["RGBA_Unorm"] = ImageFormat_RGBA_Unorm;
+
                         // Recreate the texture with different settings
                         Texture2D::Config config = {};
-                        config.Filter = filterTypeString == "Nearest" ? Image2D::Filter::Nearest : Image2D::Filter::Linear;
+                        config.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
+                        config.Format = formatTypeStrings.at(formatTypeString);
                         config.Path = path;
 
                         Ref<Texture2D> texture = Texture2D::Create(config);

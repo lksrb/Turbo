@@ -13,8 +13,8 @@ namespace Turbo
     public:
         struct Config
         {
-            Image2D::Format Format = Image2D::Format_RGBA_SRGB;
-            Image2D::Filter Filter = Image2D::Filter::Linear;
+            ImageFormat Format = ImageFormat_RGBA_SRGB;
+            ImageFilter Filter = ImageFilter_Linear;
             std::string Path;
             u32 Width = 1;
             u32 Height = 1;
@@ -33,8 +33,6 @@ namespace Turbo
         u32 GetWidth() const { return m_Config.Width; }
         u32 GetHeight() const { return m_Config.Height; }
         bool IsLoaded() const { return m_IsLoaded; }
-
-        std::string GetFilepath() const { return m_Config.Path; }
 
         virtual Ref<Image2D> GetImage() const = 0;
         virtual u64 GetHash() const = 0;
@@ -64,10 +62,7 @@ namespace Turbo
     protected:
         glm::vec2 m_SpriteSize = {};
         glm::vec2 m_SpriteCoords = {};
-        std::array<glm::vec2, 4> m_TexCoords = 
-        {
-
-        };
+        std::array<glm::vec2, 4> m_TexCoords = {};
         Ref<Texture2D> m_Texture;
     };
 }

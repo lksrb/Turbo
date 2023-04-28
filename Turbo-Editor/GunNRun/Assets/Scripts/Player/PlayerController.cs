@@ -46,9 +46,9 @@ namespace GunNRun
 
 			IsInAir = !m_IsGrounded;
 
+			// Movement
 			Vector2 velocity = new Vector2(0, m_RigidBody2D.Velocity.y);
 
-			// Movement
 			if (m_PlayerInput.IsMoveRightKeyPressed)
 			{
 				Direction = PlayerDirection.Right;
@@ -77,7 +77,8 @@ namespace GunNRun
 			/*	if (!other.Name.Contains("Ground"))
 					return;*/
 
-			m_IsGrounded = true;
+			if (m_RigidBody2D.Velocity.y < 0.0f)
+				m_IsGrounded = true;
 
 			Log.Info($"{m_RigidBody2D.Velocity}");
 		}

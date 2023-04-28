@@ -30,7 +30,8 @@ namespace Turbo
             // Separate RenderPass
             {
                 RenderPass::Config config = {};
-                config.DestinationLayout = RenderPass::ImageLayout_Shader_ReadOnly_Optimal;
+                config.DestinationLayout = ImageLayout_Shader_ReadOnly_Optimal;
+                config.EnableDepthTesting = true;
                 m_Renderpass = RenderPass::Create(config);
                 m_Renderpass->Invalidate();
             }
@@ -38,20 +39,20 @@ namespace Turbo
             // Create framebuffers that will be used for rendering
             {
                 // Color attachment
-                FrameBuffer::Attachment color_attachment = {};
-                color_attachment.ColorMask = FrameBuffer::ColorWriteMask_RGBA;
-                color_attachment.EnableBlend = true;
-                color_attachment.BlendOperation = FrameBuffer::BlendOperation_Add;
-                color_attachment.SrcBlendFactor = FrameBuffer::BlendFactor_SrcAlpha;
-                color_attachment.DstBlendFactor = FrameBuffer::BlendFactor_OneMinus_SrcAlpha;
+                FrameBuffer::Attachment colorAttachment = {};
+                colorAttachment.ColorMask = FrameBuffer::ColorWriteMask_RGBA;
+                colorAttachment.EnableBlend = true;
+                colorAttachment.BlendOperation = FrameBuffer::BlendOperation_Add;
+                colorAttachment.SrcBlendFactor = FrameBuffer::BlendFactor_SrcAlpha;
+                colorAttachment.DstBlendFactor = FrameBuffer::BlendFactor_OneMinus_SrcAlpha;
 
                 // Framebuffer
-                FrameBuffer::Config framebuffer_config = {};
-                framebuffer_config.ColorAttachment = color_attachment;
-                framebuffer_config.DepthBuffer = nullptr;
-                framebuffer_config.Renderpass = m_Renderpass;
+                FrameBuffer::Config frameBufferConfig = {};
+                frameBufferConfig.ColorAttachment = colorAttachment;
+                frameBufferConfig.EnableDepthTesting = true;
+                frameBufferConfig.Renderpass = m_Renderpass;
 
-                m_TargetFramebuffer = FrameBuffer::Create(framebuffer_config);
+                m_TargetFramebuffer = FrameBuffer::Create(frameBufferConfig);
                 m_TargetFramebuffer->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
             }
 

@@ -162,7 +162,7 @@ namespace Turbo
 
 	public class BoxCollider2DComponent : Component
 	{
-		public Vector2 Offset
+		private Vector2 Offset // TODO: Make this more robust
 		{
 			get
 			{
@@ -175,7 +175,7 @@ namespace Turbo
 			}
 		}
 
-		public Vector2 Size
+		private Vector2 Size // TODO: Make this more robust
 		{
 			get
 			{

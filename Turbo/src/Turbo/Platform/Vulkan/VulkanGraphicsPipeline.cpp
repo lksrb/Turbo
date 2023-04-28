@@ -127,7 +127,7 @@ namespace Turbo
         // ###############################################################################################################
         // ##################                              Multisampling                                ##################
         // ###############################################################################################################
-        VkPipelineMultisampleStateCreateInfo multisampleState{};
+        VkPipelineMultisampleStateCreateInfo multisampleState = {};
         multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampleState.sampleShadingEnable = VK_FALSE;
         multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -139,7 +139,7 @@ namespace Turbo
         // ###############################################################################################################
         // ##################                          Depth and stencil testing                        ##################
         // ###############################################################################################################
-        VkPipelineDepthStencilStateCreateInfo depthAndStencilState{};
+        VkPipelineDepthStencilStateCreateInfo depthAndStencilState = {};
         if (m_Config.DepthTesting)
         {
             depthAndStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -167,7 +167,7 @@ namespace Turbo
         auto& targetFbConfig = m_Config.TargetFramebuffer->GetConfig();
 
         VkPipelineColorBlendAttachmentState colorBlendAttachments[2] = {};
-        u32 attachment_count = 1;
+        u32 attachmentCount = 1;
 
         auto& framebufferAttachment = targetFbConfig.ColorAttachment;
         colorBlendAttachments[0].colorWriteMask = (VkColorComponentFlags)framebufferAttachment.ColorMask;
@@ -178,10 +178,10 @@ namespace Turbo
         colorBlendAttachments[0].srcAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor; // Idk what is this
         colorBlendAttachments[0].dstAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
         colorBlendAttachments[0].alphaBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
-        
+
         VkPipelineColorBlendStateCreateInfo colorBlendState{};
         colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlendState.attachmentCount = attachment_count;
+        colorBlendState.attachmentCount = attachmentCount;
         colorBlendState.pAttachments = colorBlendAttachments;
         colorBlendState.logicOpEnable = VK_FALSE;
         colorBlendState.logicOp = VK_LOGIC_OP_COPY; // Optional

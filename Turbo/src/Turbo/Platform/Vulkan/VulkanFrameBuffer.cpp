@@ -38,11 +38,11 @@ namespace Turbo
         {
             // Images
             Image2D::Config imageConfig = {};
-            imageConfig.ImageFormat = Image2D::Format_BGRA_Unorm;
-            imageConfig.Aspect = Image2D::AspectFlags_Color;
-            imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
-            imageConfig.Usage = Image2D::ImageUsageFlags_ColorAttachment | Image2D::ImageUsageFlags_Sampled;
-            imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
+            imageConfig.Format = ImageFormat_BGRA_Unorm;
+            imageConfig.Aspect = ImageAspect_Color;
+            imageConfig.MemoryStorage = MemoryStorage_DeviceLocal;
+            imageConfig.Usage = ImageUsage_ColorAttachment | ImageUsage_Sampled;
+            imageConfig.Tiling = ImageTiling_Optimal;
 
             m_ColorAttachments[i] = Image2D::Create(imageConfig);
             m_ColorAttachments[i]->Invalidate(width, height);
@@ -53,23 +53,32 @@ namespace Turbo
             VkImageView attachments[2] = {};
             attachments[0] = m_ColorAttachments[i].As<VulkanImage2D>()->GetImageView();
 
-            if (m_Config.DepthBuffer)
+            if (m_Config.EnableDepthTesting)
             {
-                attachments[1] = m_Config.DepthBuffer.As<VulkanImage2D>()->GetImageView();
+                Image2D::Config depthBufferConfig = {};
+                depthBufferConfig.Format = ImageFormat_D32_SFloat_S8_Uint;
+                depthBufferConfig.Aspect = ImageAspect_Depth;
+                depthBufferConfig.MemoryStorage = MemoryStorage_DeviceLocal;
+                depthBufferConfig.Usage = ImageUsage_DepthStencilSttachment;
+                depthBufferConfig.Tiling = ImageTiling_Optimal;
+                m_DepthBuffer = Image2D::Create(depthBufferConfig);
+                m_DepthBuffer->Invalidate(width, height);
+
+                attachments[1] = m_DepthBuffer.As<VulkanImage2D>()->GetImageView();
                 attachmentCount++;
             }
 
-            VkFramebufferCreateInfo create_info = {};
-            create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            create_info.pNext = nullptr;
-            create_info.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
-            create_info.width = width;
-            create_info.height = height;
-            create_info.layers = 1;
-            create_info.attachmentCount = attachmentCount;
-            create_info.pAttachments = attachments;
+            VkFramebufferCreateInfo createInfo = {};
+            createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            createInfo.pNext = nullptr;
+            createInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
+            createInfo.width = width;
+            createInfo.height = height;
+            createInfo.layers = 1;
+            createInfo.attachmentCount = attachmentCount;
+            createInfo.pAttachments = attachments;
 
-            TBO_VK_ASSERT(vkCreateFramebuffer(device, &create_info, nullptr, &m_Framebuffers[i]));
+            TBO_VK_ASSERT(vkCreateFramebuffer(device, &createInfo, nullptr, &m_Framebuffers[i]));
         }
 
         // Add it to deletion queue 

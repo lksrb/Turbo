@@ -85,6 +85,8 @@ namespace Turbo
         const auto& GetName() { return GetComponent<TagComponent>().Tag; }
         UUID GetUUID() { return GetComponent<IDComponent>().ID; }
         TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
+        UUID GetParent() { return GetComponent<RelationshipComponent>().Parent; }
+        std::vector<UUID>& GetChildren() { return GetComponent<RelationshipComponent>().Children; }
 
         bool IsValid() const { return m_Handle != entt::null && m_Scene != nullptr; }
 

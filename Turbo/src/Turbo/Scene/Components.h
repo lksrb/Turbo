@@ -29,7 +29,7 @@ namespace Turbo
 
     struct RelationshipComponent
     {
-        UUID Parent;
+        UUID Parent = 0;
         std::vector<UUID> Children;
     };
 
@@ -151,6 +151,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent, 
+        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent,
         AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

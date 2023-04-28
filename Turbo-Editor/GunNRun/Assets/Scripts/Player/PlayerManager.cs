@@ -53,6 +53,7 @@ namespace GunNRun
 			m_PlayerController.Init(this);
 
 			m_CameraEntity = FindEntityByName("Camera");
+			m_CameraEntity.Transform.Translation = new Vector3(Transform.Translation.x, Transform.Translation.y, m_CameraEntity.Transform.Translation.z);
 
 			OnCollisionBegin2D += m_PlayerController.OnCollisionBegin;
 			OnCollisionEnd2D += m_PlayerController.OnCollisionEnd;

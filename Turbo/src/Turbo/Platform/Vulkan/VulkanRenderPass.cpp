@@ -33,7 +33,7 @@ namespace Turbo
             colorAttachment.finalLayout = static_cast<VkImageLayout>(m_Config.DestinationLayout);
         }
 
-        if (m_Config.DepthAttachment)
+        if (m_Config.EnableDepthTesting)
         {
             // Depth buffer
             auto& depthAttachment = attachments.emplace_back();
@@ -66,7 +66,7 @@ namespace Turbo
         subpassDescription.preserveAttachmentCount = 0;
         subpassDescription.pPreserveAttachments = VK_NULL_HANDLE;
         subpassDescription.pResolveAttachments = VK_NULL_HANDLE;
-        subpassDescription.pDepthStencilAttachment = m_Config.DepthAttachment ? &depthAttachmentRef : VK_NULL_HANDLE;
+        subpassDescription.pDepthStencilAttachment = m_Config.EnableDepthTesting ? &depthAttachmentRef : VK_NULL_HANDLE;
 
         // Dependencies
         VkSubpassDependency dependency{};
@@ -78,7 +78,7 @@ namespace Turbo
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-        if (m_Config.DepthAttachment)
+        if (m_Config.EnableDepthTesting)
         {
             dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;

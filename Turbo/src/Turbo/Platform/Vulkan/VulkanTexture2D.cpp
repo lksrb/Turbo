@@ -14,19 +14,19 @@ namespace Turbo
 {
     namespace Utils
     {
-        static u32 BytesPerPixelFromFormat(Image2D::Format format)
+        static u32 BytesPerPixelFromFormat(ImageFormat format)
         {
             switch (format)
             {
-                case Image2D::Format_RGB_Unorm:
-                case Image2D::Format_RGB_SRGB:
+                case ImageFormat_RGB_Unorm:
+                case ImageFormat_RGB_SRGB:
                     return 3;
-                case Image2D::Format_RGBA_SRGB:
-                case Image2D::Format_RGBA_Unorm:
-                case Image2D::Format_BGRA_Unorm:
-                case Image2D::Format_BGRA_SRGB:
+                case ImageFormat_RGBA_SRGB:
+                case ImageFormat_RGBA_Unorm:
+                case ImageFormat_BGRA_Unorm:
+                case ImageFormat_BGRA_SRGB:
                     return 4;
-                case Image2D::Format_RGBA32F:
+                case ImageFormat_RGBA32F:
                     return 4 * 4;
             }
 
@@ -211,12 +211,12 @@ namespace Turbo
     {
         // Create storage for the loaded texture
         Image2D::Config imageConfig = {};
-        imageConfig.Aspect = Image2D::AspectFlags_Color;
-        imageConfig.Usage = Image2D::ImageUsageFlags_Sampled | Image2D::ImageUsageFlags_Transfer_Destination;
-        imageConfig.Storage = Image2D::MemoryPropertyFlags_DeviceLocal;
-        imageConfig.ImageTiling = Image2D::ImageTiling_Optimal;
-        imageConfig.ImageFormat = m_Config.Format;
-        imageConfig.ImageFilter = m_Config.Filter;
+        imageConfig.Aspect = ImageAspect_Color;
+        imageConfig.Usage = ImageUsage_Sampled | ImageUsage_Transfer_Destination;
+        imageConfig.MemoryStorage = MemoryStorage_DeviceLocal;
+        imageConfig.Tiling = ImageTiling_Optimal;
+        imageConfig.Format = m_Config.Format;
+        imageConfig.Filter = m_Config.Filter;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(m_Config.Width, m_Config.Height);
     }

@@ -25,7 +25,7 @@ namespace Turbo
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
 
         // Default clear color
-        m_ClearColor = { 0.2f, 0.2f, 0.2f, 1.0f };
+        m_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
         // Quad setup
         {
@@ -69,7 +69,7 @@ namespace Turbo
             config.Shader = m_QuadShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Triangle;
-            config.DepthTesting = true;
+            config.DepthTesting = m_TargetFramebuffer->GetConfig().EnableDepthTesting;
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_QuadPipeline = GraphicsPipeline::Create(config);
             m_QuadPipeline->Invalidate();
@@ -97,7 +97,7 @@ namespace Turbo
             config.Shader = m_CircleShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Triangle;
-            config.DepthTesting = true;
+            config.DepthTesting = m_TargetFramebuffer->GetConfig().EnableDepthTesting;
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_CirclePipeline = GraphicsPipeline::Create(config);
             m_CirclePipeline->Invalidate();
@@ -125,7 +125,7 @@ namespace Turbo
             config.Shader = m_LineShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Line;
-            config.DepthTesting = true;
+            config.DepthTesting = m_TargetFramebuffer->GetConfig().EnableDepthTesting;
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();
@@ -145,12 +145,12 @@ namespace Turbo
             shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Text.glsl";
             m_TextShader = Shader::Create(shaderConfig);
 
-            // Graphics pipeText
+            // Graphics PipeText
             GraphicsPipeline::Config config = {};
             config.Shader = m_TextShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Triangle;
-            config.DepthTesting = true;
+            config.DepthTesting = m_TargetFramebuffer->GetConfig().EnableDepthTesting;
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_TextPipeline = GraphicsPipeline::Create(config);
             m_TextPipeline->Invalidate();
@@ -271,9 +271,7 @@ namespace Turbo
     void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity /*= -1*/)
     {
         TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-
-        if (m_QuadIndexCount >= Renderer2D::MaxQuadIndices)
-            TBO_ENGINE_ASSERT(false);
+        TBO_ENGINE_ASSERT(m_QuadIndexCount <= Renderer2D::MaxQuadIndices);
 
         u32 textureIndex = 0; // White Texture
         glm::vec2 textureCoords[] = {

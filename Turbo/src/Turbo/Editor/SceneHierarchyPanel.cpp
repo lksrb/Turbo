@@ -258,7 +258,7 @@ namespace Turbo
                 const auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
 
                 // If entity is root, then do draw
-                if (relationShipComponent.Parent == entity.GetUUID())
+                if (relationShipComponent.Parent == 0)
                     DrawEntityNode(entity);
             }
 
@@ -474,8 +474,10 @@ namespace Turbo
                     if (success)
                     {
                         Texture2D::Config config = {};
-                        config.Filter = Image2D::Filter::Nearest;
+                        config.Filter = ImageFilter_Nearest;
+                        config.Format = ImageFormat_RGBA_Unorm;
                         config.Path = texturePath.string();
+
 
                         Ref<Texture2D> texture = Texture2D::Create(config);
                         if (texture->IsLoaded())
@@ -493,7 +495,7 @@ namespace Turbo
             {
                 glm::vec2 coords = component.SubTexture->GetSpriteCoords();
                 glm::vec2 spriteSize = component.SubTexture->GetSpriteSize();
-                Image2D::Filter filter = component.SubTexture->GetTexture()->GetConfig().Filter;
+                ImageFilter filter = component.SubTexture->GetTexture()->GetConfig().Filter;
 
                 const char* filterTypeStrings[] = { "Nearest", "Linear" };
                 const char* currentFilterType = filterTypeStrings[(u32)filter];
@@ -506,12 +508,12 @@ namespace Turbo
                         {
                             currentFilterType = filterTypeStrings[i];
 
-                            if (filter == (Image2D::Filter)i)
+                            if (filter == (ImageFilter)i)
                                 continue;
 
                             // Recreate the texture with different settings
                             Texture2D::Config config = {};
-                            config.Filter = (Image2D::Filter)i;
+                            config.Filter = (ImageFilter)i;
                             config.Path = component.SubTexture->GetTexture()->GetConfig().Path;
 
                             Ref<Texture2D> texture = Texture2D::Create(config);
@@ -773,17 +775,15 @@ namespace Turbo
             if (ImGui::MenuItem("Destroy Entity"))
                 entityDestroyed = true;
 
-            UUID uuid = entity.GetUUID();
-
             // Temporary solution
-            if (relationShipComponent.Parent != uuid && ImGui::MenuItem("Pin to root"))
+            if (relationShipComponent.Parent != 0 && ImGui::MenuItem("Pin to root"))
             {
                 Entity rootEntity = m_Context->FindEntityByUUID(relationShipComponent.Parent);
                 auto& rootEntityRelationship = rootEntity.GetComponent<RelationshipComponent>();
-                auto& it = std::find(rootEntityRelationship.Children.begin(), rootEntityRelationship.Children.end(), uuid);
+                auto& it = std::find(rootEntityRelationship.Children.begin(), rootEntityRelationship.Children.end(), entity.GetUUID());
                 rootEntityRelationship.Children.erase(it);
 
-                relationShipComponent.Parent = uuid;
+                relationShipComponent.Parent = 0;
             }
 
             ImGui::EndPopup();

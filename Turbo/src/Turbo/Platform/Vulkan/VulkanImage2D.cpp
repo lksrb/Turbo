@@ -58,16 +58,16 @@ namespace Turbo
         imageCreateInfo.extent.height = m_Height;
         imageCreateInfo.extent.depth = 1;
         imageCreateInfo.usage = m_Config.Usage;
-        imageCreateInfo.format = static_cast<VkFormat>(m_Config.ImageFormat);
+        imageCreateInfo.format = static_cast<VkFormat>(m_Config.Format);
         imageCreateInfo.arrayLayers = 1;
         imageCreateInfo.mipLevels = 1;
-        imageCreateInfo.tiling = static_cast<VkImageTiling>(m_Config.ImageTiling);
+        imageCreateInfo.tiling = static_cast<VkImageTiling>(m_Config.Tiling);
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         VkFormatProperties validProperties;
-        vkGetPhysicalDeviceFormatProperties(RendererContext::GetPhysicalDevice(), static_cast<VkFormat>(m_Config.ImageFormat), &validProperties);
+        vkGetPhysicalDeviceFormatProperties(RendererContext::GetPhysicalDevice(), static_cast<VkFormat>(m_Config.Format), &validProperties);
 
         TBO_VK_ASSERT(vkCreateImage(device, &imageCreateInfo, nullptr, &m_Image));
 
@@ -78,7 +78,7 @@ namespace Turbo
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
 
-        allocInfo.memoryTypeIndex = Utils::FindMemoryType(memRequirements.memoryTypeBits, m_Config.Storage);
+        allocInfo.memoryTypeIndex = Utils::FindMemoryType(memRequirements.memoryTypeBits, m_Config.MemoryStorage);
 
         TBO_VK_ASSERT(vkAllocateMemory(device, &allocInfo, nullptr, &m_Memory));
         TBO_VK_ASSERT(vkBindImageMemory(device, m_Image, m_Memory, 0));
@@ -88,7 +88,7 @@ namespace Turbo
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         createInfo.image = m_Image;
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = static_cast<VkFormat>(m_Config.ImageFormat);
+        createInfo.format = static_cast<VkFormat>(m_Config.Format);
         createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -100,8 +100,8 @@ namespace Turbo
         // Sampler
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = static_cast<VkFilter>(m_Config.ImageFilter);
-        samplerInfo.minFilter = static_cast<VkFilter>(m_Config.ImageFilter);
+        samplerInfo.magFilter = static_cast<VkFilter>(m_Config.Filter);
+        samplerInfo.minFilter = static_cast<VkFilter>(m_Config.Filter);
         samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;

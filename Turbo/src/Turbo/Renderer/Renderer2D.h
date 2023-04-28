@@ -166,7 +166,6 @@ namespace Turbo
         Ref<Shader> m_TextShader;
         Ref<GraphicsPipeline> m_TextPipeline;
 
-
         struct UBCamera
         {
             glm::mat4 ViewProjection;

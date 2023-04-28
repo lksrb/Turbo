@@ -41,7 +41,7 @@ namespace Turbo
         Texture2D::Config config = {};
         config.Width = header.Width;
         config.Height = header.Height;
-        config.Format = Image2D::Format_RGBA32F;
+        config.Format = ImageFormat_RGBA32F;
 
         Ref<Texture2D> texture = Texture2D::Create(config);
         texture->SetData(pixels);

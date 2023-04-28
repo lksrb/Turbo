@@ -11,14 +11,6 @@
 
 #include "Turbo/Physics/Physics2D.h"
 
-#include <box2d/b2_body.h>
-#include <box2d/b2_world.h>
-#include <box2d/b2_shape.h>
-#include <box2d/b2_polygon_shape.h>
-#include <box2d/b2_contact.h>
-#include <box2d/b2_circle_shape.h>
-#include <box2d/b2_fixture.h>
-
 namespace Turbo
 {
     namespace Utils
@@ -582,7 +574,7 @@ namespace Turbo
         Entity entity = { m_Registry.create(), this };
         entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
-        entity.AddComponent<RelationshipComponent>().Parent = uuid; // Itself - means its the root
+        entity.AddComponent<RelationshipComponent>();
 
         auto& tagComponent = entity.AddComponent<TagComponent>();
         tagComponent.Tag = tag.empty() ? "Entity" : tag;
@@ -612,8 +604,15 @@ namespace Turbo
     Entity Scene::DuplicateEntity(Entity entity)
     {
         Entity duplicated = CreateEntity(entity.GetName());
+
         // Copy components
         Utils::CopyComponentIfExists(AllComponents{}, duplicated, entity);
+
+        // Signal entity's parent that an this entity has been duplicated
+        Entity parent = FindEntityByUUID(entity.GetParent());
+        if (parent) 
+            parent.GetChildren().push_back(duplicated.GetUUID());
+
         return duplicated;
     }
 

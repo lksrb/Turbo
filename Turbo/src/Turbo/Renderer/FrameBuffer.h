@@ -49,7 +49,7 @@ namespace Turbo
             Ref<RenderPass> Renderpass;
             Attachment ColorAttachment;
             Attachment DeptAttachment;
-            Ref<Image2D> DepthBuffer;
+            bool EnableDepthTesting = true;
             u32 Width;
             u32 Height;
         };
@@ -65,6 +65,8 @@ namespace Turbo
         virtual void Invalidate(u32 width, u32 height) = 0;
     protected:
         FrameBuffer(const FrameBuffer::Config& config);
+
+        Ref<Image2D> m_DepthBuffer;
 
         FrameBuffer::Config m_Config;
     };

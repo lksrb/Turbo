@@ -157,8 +157,8 @@ namespace Turbo
         Renderer::SetScissor(commandBuffer, 0, 0, framebufferConfig.Width, framebufferConfig.Height);
 
         VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
-        VkFramebuffer vk_framebuffer = frameBuffer.As<VulkanFrameBuffer>()->GetFrameBuffer();
-        VkRenderPass vk_renderpass = framebufferConfig.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
+        VkFramebuffer vkFramebuffer = frameBuffer.As<VulkanFrameBuffer>()->GetFrameBuffer();
+        VkRenderPass vkRenderpass = framebufferConfig.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
 
         VkClearValue clearValues[2]{};
         clearValues[0].color = { { clearColor.x, clearColor.y, clearColor.z, clearColor.w } };
@@ -166,13 +166,13 @@ namespace Turbo
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = vk_renderpass;
+        renderPassBeginInfo.renderPass = vkRenderpass;
         renderPassBeginInfo.renderArea.offset.x = 0;
         renderPassBeginInfo.renderArea.offset.y = 0;
         renderPassBeginInfo.renderArea.extent = { framebufferConfig.Width, framebufferConfig.Height };
         renderPassBeginInfo.clearValueCount = 2;
         renderPassBeginInfo.pClearValues = clearValues;
-        renderPassBeginInfo.framebuffer = vk_framebuffer;
+        renderPassBeginInfo.framebuffer = vkFramebuffer;
 
         vkCmdBeginRenderPass(vkCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
