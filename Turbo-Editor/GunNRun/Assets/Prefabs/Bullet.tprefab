@@ -1,0 +1,25 @@
+Prefab: 0
+Entities:
+  - Entity: 5956343674363414696
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Bullet
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.400000006, 0.150000006, 1]
+    SpriteRendererComponent:
+      Color: [1, 0.647058785, 0, 1]
+      TexturePath: None
+    ScriptComponent:
+      ClassName: GunNRun.Bullet
+      Fields:
+        - Name: Speed
+          Type: Float
+          Data: 40
+    Rigidbody2DComponent:
+      BodyType: Dynamic
+      FixedRotation: false
+      GravityScale: 1

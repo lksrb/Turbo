@@ -245,12 +245,28 @@ namespace Turbo
     {
     }
 
+    static UUID s_UUID;
+
     void SceneHierarchyPanel::OnDrawUI()
     {
         ImGui::Begin("Scene Hierarchy");
 
         if (m_Context)
         {
+            if (m_SelectedEntity) // FIXME: Temporary solution to invalid entity
+            {
+                Entity entity = m_Context->FindEntityByUUID(s_UUID);
+                if (entity)
+                {
+                    m_SelectedEntity = entity;
+                    s_UUID = m_SelectedEntity.GetUUID();
+                }
+                else
+                {
+                    m_SelectedEntity = {};
+                }
+            }
+
             auto& view = m_Context->GetAllEntitiesWith<RelationshipComponent>();
             for (auto e : view)
             {
@@ -282,14 +298,14 @@ namespace Turbo
 
                 // Drag & drop
                 ImGuiWindow* window = ImGui::GetCurrentWindow();
-                ImRect window_content = window->ContentRegionRect;
+                ImRect windowContent = window->ContentRegionRect;
 
                 // Handle scrolling
-                window_content.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
-                window_content.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
+                windowContent.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
+                windowContent.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
 
                 // Add script component if dragged into properties
-                if (ImGui::BeginDragDropTargetCustom(window_content, window->ID))
+                if (ImGui::BeginDragDropTargetCustom(windowContent, window->ID))
                 {
                     const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP");
 
@@ -306,6 +322,16 @@ namespace Turbo
         }
 
         ImGui::End();
+    }
+
+    void SceneHierarchyPanel::SetSelectedEntity(Entity entity /*= {}*/)
+    {
+        m_SelectedEntity = entity;
+        
+        if (m_SelectedEntity)
+        {
+            s_UUID = m_SelectedEntity.GetUUID();
+        }
     }
 
     void SceneHierarchyPanel::OnSceneContextChanged(const Ref<Scene>& context)
@@ -721,7 +747,7 @@ namespace Turbo
         // Drag & Drop
         if (ImGui::BeginDragDropTarget())
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_PANEL_TREE_DATA"))
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SHP_DATA"))
             {
                 Entity childEntity = *(Entity*)payload->Data;
 
@@ -745,7 +771,7 @@ namespace Turbo
                         auto& childEntityRelationship = childEntity.GetComponent<RelationshipComponent>();
 
                         // Entity has a parent => recursively remove it from other relation ship components
-                        if (childEntityRelationship.Parent != uuid)
+                        if (childEntityRelationship.Parent)
                         {
                             Entity rootEntity = m_Context->FindEntityByUUID(childEntityRelationship.Parent);
                             auto& rootEntityRelationship = rootEntity.GetComponent<RelationshipComponent>();
@@ -765,7 +791,7 @@ namespace Turbo
 
         if (ImGui::BeginDragDropSource())
         {
-            ImGui::SetDragDropPayload("SCENE_HIERARCHY_PANEL_TREE_DATA", &m_SelectedEntity, sizeof(Entity), ImGuiCond_Always);
+            ImGui::SetDragDropPayload("SHP_DATA", &m_SelectedEntity, sizeof(Entity), ImGuiCond_Always);
             ImGui::EndDragDropSource();
         }
 

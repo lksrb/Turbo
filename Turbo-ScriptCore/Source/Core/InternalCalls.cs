@@ -54,6 +54,9 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Scene_ScreenToWorldPosition(Vector2 screenPosition, out Vector3 worldPosition);
 
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Scene_WorldToScreenPosition(Vector3 worldPosition, out Vector2 screenPosition);
+
 		#endregion
 
 		#region Entity
@@ -75,6 +78,9 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static string Entity_Get_Name(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ulong Entity_InstantiatePrefabWithTranslation(string path, ref Vector3 translation);
 
 		#endregion
 

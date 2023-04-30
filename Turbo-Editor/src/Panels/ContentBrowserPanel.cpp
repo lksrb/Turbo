@@ -3,6 +3,9 @@
 #include <Turbo/UI/UI.h>
 #include <Turbo/Core/Platform.h>
 #include <Turbo/Solution/Project.h>
+#include <Turbo/Scene/Scene.h>
+#include <Turbo/Scene/Entity.h>
+#include <Turbo/Asset/AssetManager.h>
 
 #include <filesystem>
 
@@ -42,6 +45,32 @@ namespace Turbo::Ed
             }
         }
 
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        ImRect windowContent = window->ContentRegionRect;
+
+        // Handle scrolling
+        windowContent.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
+        windowContent.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
+
+        // Whole window has this ability
+        if (ImGui::BeginDragDropTargetCustom(windowContent, window->ID))
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SHP_DATA"))
+            {
+                Entity entity = *(Entity*)payload->Data;
+                if (entity)
+                {
+                    // Serialize every component except
+                    if (AssetManager::SerializeToPrefab(m_CurrentDirectory, entity))
+                    {
+                        TBO_ENGINE_INFO("Successfully serialized prefab!");
+                    }
+                }
+            }
+
+            ImGui::EndDragDropTarget();
+        }
+
         static f32 padding = 16.0f;
         static f32 thumbnail_size = 128;
         f32 cellSize = thumbnail_size + padding;
@@ -77,7 +106,7 @@ namespace Turbo::Ed
                 {
                     ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_SHP", itemPath, itemPathSize, ImGuiCond_Always);
                 }
-                else if (path.extension() == ".tscene")
+                else if (path.extension() == ".tscene" || path.extension() == ".tprefab")
                 {
                     ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM_VIEWPORT", itemPath, itemPathSize, ImGuiCond_Always);
                 }
@@ -133,6 +162,11 @@ namespace Turbo::Ed
     void ContentBrowserPanel::OnProjectChanged(const Ref<Project>& project)
     {
         m_CurrentDirectory = m_BasePath = Project::GetAssetsPath();
+    }
+
+    void ContentBrowserPanel::OnSceneContextChanged(const Ref<Scene>& context)
+    {
+        m_Context = context;
     }
 
 }

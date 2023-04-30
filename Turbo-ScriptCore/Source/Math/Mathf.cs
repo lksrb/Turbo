@@ -24,6 +24,7 @@ namespace Turbo
 		{
 			return (float)Math.Pow(value, power);
 		}
+		
 		public static float Sqrt(float value)
 		{
 			if(value < 0.0f)
@@ -33,14 +34,73 @@ namespace Turbo
 			}
 			return (float)Math.Sqrt(value);
 		}
+
 		public static float Radians(float angle)
 		{
 			return (Mathf.PI / 180.0f) * angle;
 		}
+
 		public static float Sign(float value)
 		{
 			return (float)Math.Sign(value);
 		}
+
+		public static float Max(float value1, float value2)
+		{
+			if (value1 < value2)
+				return value2;
+
+			return value1;
+		}
+
+		public static float Min(float value1, float value2)
+		{
+			if (value1 < value2)
+				return value1;
+
+			return value2;
+		}
+
+		public static float Clamp(float value, float minValue, float maxValue)
+		{
+			if (value > maxValue)
+				return maxValue;
+			if (value < minValue)
+				return minValue;
+
+			return value;
+		}
+
+		public static float SmoothDamp(float start, float end, ref float currentVelocity, float smoothTime, float maxSpeed, float deltaTime)
+		{
+			// Based on Game Programming Gems 4 Chapter 1.10
+			smoothTime = Mathf.Max(0.0001F, smoothTime);
+			float omega = 2F / smoothTime;
+
+			float x = omega * deltaTime;
+			float exp = 1F / (1F + x + 0.48F * x * x + 0.235F * x * x * x);
+			float change = start - end;
+			float originalTo = end;
+
+			// Clamp maximum speed
+			float maxChange = maxSpeed * smoothTime;
+			change = Mathf.Clamp(change, -maxChange, maxChange);
+			end = start - change;
+
+			float temp = (currentVelocity + omega * change) * deltaTime;
+			currentVelocity = (currentVelocity - omega * temp) * exp;
+			float output = end + (change + temp) * exp;
+
+			// Prevent overshooting
+			if (originalTo - start > 0.0F == output > originalTo)
+			{
+				output = originalTo;
+				currentVelocity = (output - originalTo) / deltaTime;
+			}
+
+			return output;
+		}
+
 		#endregion
 
 		#region Linear Algebra

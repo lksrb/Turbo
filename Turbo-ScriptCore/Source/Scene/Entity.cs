@@ -7,19 +7,19 @@ namespace Turbo
 		public readonly ulong ID;
 		public TransformComponent Transform;
 		public string Name;
-		
+
 		// Classic collision callbacks
 		public Action<Entity> OnCollisionBegin2D;
 		public Action<Entity> OnCollisionEnd2D;
 		public Action<Entity> OnTriggerBegin2D;
 		public Action<Entity> OnTriggerEnd2D;
-	
-		protected Entity() { ID = 0; }
-		protected virtual void OnCreate() {}
-		protected virtual void OnUpdate(float ts) {}
 
-		internal Entity(ulong id) 
-		{ 
+		protected Entity() { ID = 0; }
+		protected virtual void OnCreate() { }
+		protected virtual void OnUpdate(float ts) { }
+
+		internal Entity(ulong id)
+		{
 			ID = id;
 
 			Transform = GetComponent<TransformComponent>();
@@ -60,13 +60,22 @@ namespace Turbo
 			return component;
 		}
 
-		public object AttachScript(string className)
+		private object AttachScript(string className)
 		{
 			// Attach script
 			InternalCalls.Entity_AttachScript(ID, className);
 
 			// Get instance of it
 			return InternalCalls.Entity_Get_Instance(ID);
+		}
+
+		public Entity Instantiate(string prefabPath, Vector3 translation)
+		{
+			ulong entityID = InternalCalls.Entity_InstantiatePrefabWithTranslation(prefabPath, ref translation);
+			if (entityID == 0)
+				return null;
+
+			return new Entity(entityID);
 		}
 
 		public Entity FindEntityByName(string name)

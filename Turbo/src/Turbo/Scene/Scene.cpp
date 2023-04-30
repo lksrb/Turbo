@@ -227,9 +227,14 @@ namespace Turbo
 
     void Scene::OnRuntimeStart()
     {
-        auto& world = m_Registry.emplace<Box2DWorldComponent>(m_SceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f })).World;
-        world->SetContactListener(&s_ContactListener);
+        // Find primary camera
+        m_PrimaryCameraEntity = FindPrimaryCameraEntity();
+
+        // Physics 2D
         {
+            auto& world = m_Registry.emplace<Box2DWorldComponent>(m_SceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f })).World;
+            world->SetContactListener(&s_ContactListener);
+
             auto& view = GetAllEntitiesWith<Rigidbody2DComponent>();
             for (auto e : view)
             {
@@ -439,13 +444,21 @@ namespace Turbo
             Entity entity = { e, this };
             Script::InvokeEntityOnUpdate(entity, ts);
         }
+
+        // Post-Update for physics actors creation, ...
+        for (auto& func : m_PostUpdateFuncs)
+            func();
+
+        m_PostUpdateFuncs.clear();
     }
 
     void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
     {
         renderer->BeginRender();
 
-        Entity cameraEntity = FindPrimaryCameraEntity();
+        m_PrimaryCameraEntity = FindPrimaryCameraEntity();
+        Entity cameraEntity = { m_PrimaryCameraEntity, this };
+
 
         // 2D Rendering
         {
@@ -610,7 +623,7 @@ namespace Turbo
 
         // Signal entity's parent that an this entity has been duplicated
         Entity parent = FindEntityByUUID(entity.GetParent());
-        if (parent) 
+        if (parent)
             parent.GetChildren().push_back(duplicated.GetUUID());
 
         return duplicated;
@@ -637,7 +650,7 @@ namespace Turbo
         }
     }
 
-    Entity Scene::FindPrimaryCameraEntity()
+    entt::entity Scene::FindPrimaryCameraEntity()
     {
         // Find entity with camera component
         auto& cameraComponentView = GetAllEntitiesWith<CameraComponent>();
@@ -647,13 +660,11 @@ namespace Turbo
 
             if (camera.IsPrimary)
             {
-                m_PrimaryCameraEntity = entity;
-
                 // First primary camera wins
-                return { entity, this };
+                return entity;
             }
         }
-        return {};
+        return entt::null;
     }
 
     Entity Scene::FindPrimaryAudioListenerEntity()
@@ -682,6 +693,13 @@ namespace Turbo
 
             if (entity.HasComponent<ScriptComponent>())
                 Script::DestroyScriptInstance(entity);
+
+            if (m_Running && entity.HasComponent<Rigidbody2DComponent>())
+            {
+                auto& world = m_Registry.get<Box2DWorldComponent>(m_SceneEntity).World;
+                b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+                world->DestroyBody(body);
+            }
 
             m_EntityIDMap.erase(entity.GetUUID());
             m_Registry.destroy(entity);
@@ -752,11 +770,6 @@ namespace Turbo
     template<>
     void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
     {
-        if (!m_Running)
-            return;
-
-        // Create and instantiate entity script
-        Script::InvokeEntityOnCreate(entity);
     }
 
     template<>

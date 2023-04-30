@@ -105,6 +105,16 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 3754536558025639349
+    Parent: 16691287023702021333
+    Children:
+      []
+    TagComponent:
+      Tag: TopBoundary
+    TransformComponent:
+      Translation: [0, 21.2132568, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 5364571713157804291
     Parent: 18351839713352600519
     Children:
@@ -126,6 +136,16 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 5543173778021505692
+    Parent: 16691287023702021333
+    Children:
+      []
+    TagComponent:
+      Tag: BottomBoundary
+    TransformComponent:
+      Translation: [0, -21.661499, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 6356292223037786716
     Parent: 18351839713352600519
     Children:
@@ -220,7 +240,7 @@ Entities:
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [-36.1340065, 8.72060394, 0]
+      Translation: [-11.9520426, -3.40974903, 0]
       Rotation: [0, 0, 0]
       Scale: [5, 5, 1]
     SpriteRendererComponent:
@@ -228,7 +248,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [0, -1]
+      SpriteCoords: [3, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -245,6 +265,9 @@ Entities:
         - Name: m_JumpPower
           Type: Float
           Data: 23.9500008
+        - Name: m_FollowsCamera
+          Type: Bool
+          Data: true
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true
@@ -448,7 +471,8 @@ Entities:
   - Entity: 16691287023702021333
     Parent: 0
     Children:
-      []
+      - UUID: 3754536558025639349
+      - UUID: 5543173778021505692
     TagComponent:
       Tag: Background
     TransformComponent:
@@ -490,16 +514,16 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [-8.32984066, 5.24738503, 26.7315369]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       Camera:
-        ProjectionType: 0
+        ProjectionType: 1
         PerspectiveFOV: 0.785398185
         PerspectiveNear: 0.00999999978
         PerspectiveFar: 1000
-        OrthographicSize: 31
+        OrthographicSize: 24
         OrthographicNear: -1
         OrthographicFar: 1
       Primary: true

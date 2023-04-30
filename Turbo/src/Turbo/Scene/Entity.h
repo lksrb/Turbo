@@ -2,7 +2,7 @@
 
 #include <entt.hpp>
 
-#include "Turbo/Scene/Components.h"
+#include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Scene.h"
 
 namespace Turbo

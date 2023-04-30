@@ -4,8 +4,11 @@
 #include "Script.h"
 #include "Turbo/Physics/Physics2D.h"
 
+#include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Core/Input.h"
 #include "Turbo/Core/Math.h"
+
+#include "Turbo/Solution/Project.h"
 
 #include "Turbo/Scene/Entity.h"
 
@@ -23,8 +26,17 @@ namespace Turbo
     //                                  Application                                   
     // =============================================================================
 
-    static inline u32 Application_GetWidth() { return Script::GetCurrentScene()->GetViewportWidth(); }
-    static inline u32 Application_GetHeight() { return Script::GetCurrentScene()->GetViewportHeight(); }
+    static inline u32 Application_GetWidth()
+    {
+        Scene* context = Script::GetCurrentScene();
+        return context->GetViewportWidth();
+    }
+
+    static inline u32 Application_GetHeight()
+    {
+        Scene* context = Script::GetCurrentScene();
+        return context->GetViewportHeight();
+    }
 
     // =============================================================================
     //                                  Logging                                   
@@ -115,7 +127,7 @@ namespace Turbo
 
     // TODO: MOVE! WHERE??????????????
 
-    static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition)
+    static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
     {
         Scene* context = Script::GetCurrentScene();
         Entity entity = context->GetPrimaryCameraEntity();
@@ -130,7 +142,37 @@ namespace Turbo
             context->GetViewportWidth(),
             context->GetViewportHeight()
         };
+
         *worldPosition = Math::UnProject(screenPosition, viewport, camera.GetViewProjection());
+    }
+
+    static void Scene_WorldToScreenPosition(glm::vec3 worldPosition, glm::vec2* screenPosition) // FIXME: Raycasting
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->GetPrimaryCameraEntity();
+        TBO_ENGINE_ASSERT(entity);
+
+        const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
+
+        glm::vec4 clipSpacePos = camera.GetViewProjection() * glm::vec4(worldPosition, 1.0f);
+
+        glm::vec3 ndcSpacePos = clipSpacePos / clipSpacePos.w;
+
+        glm::vec2 windowSpacePos; 
+        windowSpacePos.x = ((ndcSpacePos.x + 1.0f) / 2.0f) * context->GetViewportWidth() + context->GetViewportX();
+        windowSpacePos.y = ((ndcSpacePos.y + 1.0f) / 2.0f) * context->GetViewportHeight() + context->GetViewportY();
+
+        *screenPosition = windowSpacePos;
+
+        glm::vec4 viewport =
+        {
+            context->GetViewportX(),
+            context->GetViewportY(),
+            context->GetViewportWidth(),
+            context->GetViewportHeight()
+        };
+
+        //*worldPosition = Math::UnProject(screenPosition, viewport, camera.GetViewProjection());
     }
 
     // =============================================================================
@@ -140,16 +182,20 @@ namespace Turbo
     static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
     static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
 
-    static u64 Entity_FindEntityByName(MonoString* name)
+    static u64 Entity_FindEntityByName(MonoString* string)
     {
-        char* cString = mono_string_to_utf8(name);
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByName(cString);
-
-        TBO_ENGINE_ASSERT(entity);
+        char* cString = mono_string_to_utf8(string);
+        std::string name = cString;
         mono_free(cString);
 
-        return entity.GetUUID();
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByName(name);
+
+        if (entity)
+            return entity.GetUUID();
+
+        TBO_CONSOLE_ERROR("Could not find entity with name \"{}\"", name);
+        return 0;
     }
     static MonoObject* Entity_Get_Instance(UUID uuid)
     {
@@ -195,7 +241,6 @@ namespace Turbo
         // This will add script component and instantiantes it
         entity.AddComponent<ScriptComponent>(cString);
         mono_free(cString);
-
     }
 
     static MonoString* Entity_Get_Name(UUID uuid)
@@ -208,6 +253,33 @@ namespace Turbo
         MonoString* monoString = mono_string_new(g_Data->AppDomain, entity.GetName().c_str());
         TBO_ENGINE_ASSERT(monoString);
         return monoString;
+    }
+
+    static u64 Entity_InstantiatePrefabWithTranslation(MonoString* monoString, glm::vec3* translation)
+    {
+        Scene* context = Script::GetCurrentScene();
+        char* cString = mono_string_to_utf8(monoString);
+        std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
+        mono_free(cString);
+
+        Entity entity = context->CreateEntity();
+        entity.Transform().Translation = *translation;
+
+        if (AssetManager::DeserializePrefab(prefabPath, entity))
+        {
+            // Call Entity::OnCreate method
+            if (entity.HasComponent<ScriptComponent>() && context->IsRunning())
+            {
+                Script::InvokeEntityOnCreate(entity);
+            }
+
+            return entity.GetUUID();
+        }
+
+        context->DestroyEntity(entity);
+
+        TBO_ENGINE_ERROR("Could not instantiate prefab!");
+        return 0;
     }
 
     // =============================================================================
@@ -763,6 +835,7 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Scene_CreateEntity);
         TBO_REGISTER_FUNCTION(Scene_DestroyEntity);
         TBO_REGISTER_FUNCTION(Scene_ScreenToWorldPosition);
+        TBO_REGISTER_FUNCTION(Scene_WorldToScreenPosition);
 
         // Entity
         TBO_REGISTER_FUNCTION(Entity_FindEntityByName);
@@ -771,6 +844,9 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Entity_Has_Component);
         TBO_REGISTER_FUNCTION(Entity_Add_Component);
         TBO_REGISTER_FUNCTION(Entity_AttachScript);
+
+        // Prefab
+        TBO_REGISTER_FUNCTION(Entity_InstantiatePrefabWithTranslation);
 
         // Input
         TBO_REGISTER_FUNCTION(Input_IsKeyPressed);

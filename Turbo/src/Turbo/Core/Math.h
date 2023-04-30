@@ -10,5 +10,5 @@ namespace Turbo::Math
      * Space: [-1, 1]
      * Inversed y because of the viewport (might delete later)
      */ 
-    glm::vec3 UnProject(const glm::vec2 position, glm::vec4 viewport, const glm::mat4& viewProjection);
+    glm::vec3 UnProject(glm::vec2 position, glm::vec4 viewport, const glm::mat4& viewProjection);
 }

@@ -76,7 +76,7 @@ namespace Turbo
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     private:
-        Entity FindPrimaryCameraEntity();
+        entt::entity FindPrimaryCameraEntity();
         Entity FindPrimaryAudioListenerEntity();
 
         void ClearDeletedEntities();
@@ -92,6 +92,8 @@ namespace Turbo
         EntityMap m_EntityIDMap;
 
         std::vector<entt::entity> m_DestroyedEntities;
+
+        std::vector <std::function<void()>> m_PostUpdateFuncs;
 
         bool m_Running = false;
 

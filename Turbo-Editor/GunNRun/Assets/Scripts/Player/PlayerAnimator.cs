@@ -113,7 +113,7 @@ namespace GunNRun
 				frameIndicies.PushBack(new Vector2(4, -2));
 				frameIndicies.PushBack(new Vector2(5, -2));
 
-				m_Animations[(uint)PlayerAnimation.Running] = new Animation(PlayerAnimation.Running, true, 0.006f, frameIndicies);
+				m_Animations[(uint)PlayerAnimation.Running] = new Animation(PlayerAnimation.Running, true, 0.004f, frameIndicies);
 			}
 
 			// In air

@@ -5,6 +5,7 @@
 #include "../Panels/CreateProjectPopupPanel.h"
 
 #include <Turbo/Audio/Audio.h>
+#include <Turbo/Asset/AssetManager.h>
 #include <Turbo/Debug/ScopeTimer.h>
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
@@ -203,6 +204,9 @@ namespace Turbo::Ed
             ImGui::End();
         }
 
+        // Draw all panels
+        m_PanelManager->OnDrawUI();
+
         // Viewport
         {
             ImGuiWindowFlags windowFlags = 0;
@@ -250,6 +254,19 @@ namespace Turbo::Ed
                     if (path.extension() == ".tscene")
                     {
                         OpenScene(path);
+                    }
+                    else if (path.extension() == ".tprefab" && m_SceneMode == Mode::SceneEdit) // Only in edit mode for now
+                    {
+                        Entity newEntity = m_CurrentScene->CreateEntity();
+                        if (AssetManager::DeserializePrefab(path, newEntity))
+                        {
+                            TBO_INFO("Successfully deserialized prefab!");
+                            newEntity.Transform().Translation = { 0.0f, 0.0f, 0.0f };
+                        }
+                        else
+                        {
+                            m_CurrentScene->DestroyEntity(newEntity);
+                        }
                     }
                 }
 
@@ -469,9 +486,6 @@ namespace Turbo::Ed
         ImGui::Text("Quad Count: %d", stats.QuadCount);
         ImGui::Text("Drawcalls: %d", stats.DrawCalls);
         ImGui::End();
-
-        // Draw all panels
-        m_PanelManager->OnDrawUI();
 
         // End dockspace
         ImGui::End();
@@ -881,7 +895,7 @@ namespace Turbo::Ed
     void Editor::Close()
     {
 
-        if(m_RuntimeScene)
+        if (m_RuntimeScene)
             OnSceneStop();
 
         // TODO: Make this an option
