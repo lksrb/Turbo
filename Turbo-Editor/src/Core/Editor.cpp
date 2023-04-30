@@ -51,34 +51,31 @@ namespace Turbo::Ed
 
         static std::filesystem::path GetMSBuildPath()
         {
-            // TODO: Who's responsibility is this?
+            std::filesystem::path pathToVS = Platform::GetRegistryValue(RootKey::LocalMachine, TBO_VS2022_REGISTRY_KEY);
+            TBO_ENGINE_ASSERT(!pathToVS.empty(), "Visual Studio 2022 is not installed!");
+
+            auto filter = [](const std::filesystem::path& path)
             {
-                std::filesystem::path pathToVS = Platform::GetRegistryValue(RootKey::LocalMachine, TBO_VS2022_REGISTRY_KEY);
-                TBO_ENGINE_ASSERT(!pathToVS.empty(), "Visual Studio 2022 is not installed!");
+                const auto& name = path.stem();
+                return name == L"Community" || name == L"Professional" || name == L"Enterprise";
+            };
 
-                auto filter = [](const std::filesystem::path& path)
+            if (!pathToVS.empty())
+            {
+                // Path to MSBuild
+                std::filesystem::path msBuildPath = pathToVS;
+
+                while (msBuildPath.has_parent_path())
                 {
-                    const auto& name = path.stem();
-                    return name == L"Community" || name == L"Professional" || name == L"Enterprise";
-                };
+                    if (filter(msBuildPath) || msBuildPath == L"C:\\")
+                        break;
 
-                if (!pathToVS.empty())
+                    msBuildPath = msBuildPath.parent_path();
+                }
+
+                if (msBuildPath != L"C:\\")
                 {
-                    // Path to MSBuild
-                    std::filesystem::path msBuildPath = pathToVS;
-
-                    while (msBuildPath.has_parent_path())
-                    {
-                        if (filter(msBuildPath) || msBuildPath == L"C:\\")
-                            break;
-
-                        msBuildPath = msBuildPath.parent_path();
-                    }
-
-                    if (msBuildPath != L"C:\\")
-                    {
-                        return msBuildPath / "MSBuild\\Current\\Bin\\MSBuild.exe";
-                    }
+                    return msBuildPath / "MSBuild\\Current\\Bin\\MSBuild.exe";
                 }
             }
 
@@ -114,6 +111,7 @@ namespace Turbo::Ed
         m_CurrentPath = std::filesystem::current_path();
 
         // Get path to msbuild for building assemblies
+        // NOTE: Who's responsibility is this?
         m_MSBuildPath = Utils::GetMSBuildPath();
 
         // Panels
