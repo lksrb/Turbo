@@ -37,6 +37,8 @@ VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkCommandPool)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
 }
 
+#define TBO_VK_ASSERT(x) { VkResult __result = (x); TBO_ENGINE_ASSERT(__result  == VK_SUCCESS, __result); }
+
 namespace Turbo
 {
     class Window;

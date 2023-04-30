@@ -13,10 +13,8 @@ namespace Turbo::Ed
     class CreateProjectPopupPanel : public EditorPanel
     {
     public:
-        CreateProjectPopupPanel();
+        CreateProjectPopupPanel(const CreateProjectCallback& callback);
         ~CreateProjectPopupPanel();
-
-        void SetCallback(const CreateProjectCallback& callback);
 
         void Open() { m_Open = true; }
         void OnDrawUI() override;

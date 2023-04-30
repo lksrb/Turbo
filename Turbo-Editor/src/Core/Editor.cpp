@@ -120,12 +120,7 @@ namespace Turbo::Ed
         m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
         m_PanelManager->AddPanel<EditorConsolePanel>();
-
-        // TODO: Think about panel callbacks
-        m_PanelManager->AddPanel<CreateProjectPopupPanel>()->SetCallback([this](const auto& path)
-        {
-            CreateProject(path);
-        });
+        m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(Editor::CreateProject));
 
         // Render 
         m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_ViewportWidth, m_ViewportHeight, true });
@@ -725,8 +720,7 @@ namespace Turbo::Ed
         Ref<Project> project = Ref<Project>::Create();
         {
             ProjectSerializer serializer(project);
-            TBO_ASSERT(serializer.Deserialize(configFilePath));
-            TBO_INFO("Project loaded successfully!"); // TODO: TBO_VERIFY -> Prints when it successeds
+            TBO_VERIFY(serializer.Deserialize(configFilePath), "Project loaded!");
 
             // Set it as new active project
             Project::SetActive(project);
@@ -789,8 +783,7 @@ namespace Turbo::Ed
         // Save project
         auto& active = Project::GetActive();
         ProjectSerializer serializer(active);
-        TBO_ASSERT(serializer.Serialize(Project::GetProjectConfigPath()));
-        TBO_INFO("Project saved successfully!"); // TODO: TBO_VERIFY -> Prints when it successeds
+        TBO_VERIFY(serializer.Serialize(Project::GetProjectConfigPath()), "Saving project");
     }
 
 
