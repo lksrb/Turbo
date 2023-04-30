@@ -1,5 +1,6 @@
 @echo off
-premake5 vs2022
+call premake5.exe %1
+exit /b 1
 
 IF "%1" == "" (
     pause

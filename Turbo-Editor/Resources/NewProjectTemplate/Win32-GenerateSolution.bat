@@ -1,5 +1,7 @@
 @echo off
-premake5 vs2022
+pushd %~dp0\..\
+call dependencies\premake\bin\premake5.exe vs2022
+popd
 
 IF "%1" == "" (
     pause

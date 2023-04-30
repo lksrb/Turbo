@@ -16,4 +16,10 @@ namespace Turbo
     Project::~Project()
     {
     }
+
+	void Project::Build()
+	{
+
+	}
+
 }

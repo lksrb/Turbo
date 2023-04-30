@@ -64,6 +64,8 @@ namespace Turbo
 
         static Ref<Project> GetActive() { return s_ActiveProject; }
         static void SetActive(Ref<Project> project) { s_ActiveProject = project; }
+
+        static void Build();
     private:
         Project::Config m_Config;
 

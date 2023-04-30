@@ -4,6 +4,14 @@
 
 namespace Turbo
 {
+    enum class RootKey : u32
+    {
+        None = 0,
+#ifdef TBO_PLATFORM_WIN32
+        LocalMachine
+#endif
+    };
+
     class Platform
     {
     public:
@@ -20,5 +28,7 @@ namespace Turbo
         static bool OpenFileExplorer(const std::filesystem::path& directory);
 
         static bool Execute(const std::filesystem::path& appName, const std::wstring& args = L"", const std::filesystem::path& currentPath = "", bool wait = false);
+
+        static std::filesystem::path GetRegistryValue(RootKey rootKey, const std::wstring& registryKey, const std::wstring& value = L"");
     };
 }

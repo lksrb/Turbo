@@ -12,6 +12,7 @@
 #include <cwchar>
 
 #define CheckPLATFORMError CheckError()
+#define TBO_MAX_CHARS 512
 
 namespace Turbo
 {
@@ -27,7 +28,20 @@ namespace Turbo
 
             return 0;
         }
+
+        static HKEY GetWin32KeyToRootKey(RootKey key)
+        {
+            switch (key)
+            {
+                case RootKey::None: return 0;
+                case RootKey::LocalMachine: return HKEY_LOCAL_MACHINE;
+            }
+
+            TBO_ENGINE_ERROR("Invalid root key value! Assuming local machine...");
+            return HKEY_LOCAL_MACHINE;
+        }
     }
+
     struct Win32_Platform
     {
         struct
@@ -64,12 +78,12 @@ namespace Turbo
     {
         // Title conversion
         size_t title_size = strlen(title) + 1;
-        WCHAR wtitle[MAX_PATH] = {};
+        WCHAR wtitle[TBO_MAX_CHARS] = {};
         mbstowcs_s(NULL, &wtitle[0], title_size, title, title_size - 1);
 
         // Filter conversion
         size_t filter_size = strlen(filter) + 1;
-        WCHAR wfilter[MAX_PATH] = {};
+        WCHAR wfilter[TBO_MAX_CHARS] = {};
         mbstowcs_s(NULL, &wfilter[0], filter_size, filter, filter_size);
 
         OPENFILENAME ofn = {};
@@ -95,7 +109,7 @@ namespace Turbo
     {
         // Title conversion
         size_t title_size = strlen(title) + 1;
-        WCHAR wtitle[MAX_PATH] = {};
+        WCHAR wtitle[TBO_MAX_CHARS] = {};
         mbstowcs_s(NULL, &wtitle[0], title_size, title, title_size - 1);
 
         WCHAR selected_path[MAX_PATH];
@@ -133,12 +147,12 @@ namespace Turbo
     {
         // Filter conversion
         size_t filter_size = strlen(filter) + 1;
-        WCHAR wfilter[MAX_PATH] = {};
+        WCHAR wfilter[TBO_MAX_CHARS] = {};
         mbstowcs_s(NULL, &wfilter[0], filter_size, filter, filter_size);
 
         // Suffix conversion
         size_t suffix_size = strlen(suffix) + 1;
-        WCHAR wsuffix[MAX_PATH] = {};
+        WCHAR wsuffix[TBO_MAX_CHARS] = {};
         mbstowcs_s(NULL, &wsuffix[0], suffix_size, suffix, suffix_size - 1);
 
         std::filesystem::path selected_path;
@@ -168,7 +182,7 @@ namespace Turbo
     bool Platform::OpenFileExplorer(const std::filesystem::path& directory)
     {
         // Construct argument list
-        WCHAR args[MAX_PATH] = {};
+        WCHAR args[TBO_MAX_CHARS] = {};
         //wcscat_s(args, L"/select,");
         wcscat_s(args, directory.wstring().c_str());
 
@@ -185,7 +199,7 @@ namespace Turbo
         return true;
     }
 
-    // TODO: Rework this
+    // TODO: Polish this
     bool Platform::Execute(const std::filesystem::path& appName, const std::wstring& args, const std::filesystem::path& currentPath, bool wait)
     {
         STARTUPINFO si = {};
@@ -196,31 +210,31 @@ namespace Turbo
 
         PROCESS_INFORMATION pi = {};
 
-        WCHAR szCmd[MAX_PATH] = { 0 };
+        WCHAR szCmd[TBO_MAX_CHARS] = { 0 };
         //strcat_s(szCmd, "cmd.exe /C start ");
         wcscat_s(szCmd, appName.wstring().c_str());
         wcscat_s(szCmd, L" ");
         wcscat_s(szCmd, args.c_str());
         // Start the child process. 
-        if (!CreateProcess(NULL,   // No module name (use command line)
-            szCmd,        // Command line
-            NULL,           // Process handle not inheritable
-            NULL,           // Thread handle not inheritable
-            FALSE,          // Set handle inheritance to FALSE
-            0,              // No creation flags
-            NULL,           // Use parent's environment block
-            currentDirectory,           // Use parent's starting directory 
-            &si,            // Pointer to STARTUPINFO structure
-            &pi)           // Pointer to PROCESS_INFORMATION structure
-            )
+        if (!CreateProcess(NULL,    // No module name (use command line)
+            szCmd,                  // Command line
+            NULL,                   // Process handle not inheritable
+            NULL,                   // Thread handle not inheritable
+            FALSE,                  // Set handle inheritance to FALSE
+            0,                      // No creation flags
+            NULL,                   // Use parent's environment block
+            currentDirectory,       // Use parent's starting directory 
+            &si,                    // Pointer to STARTUPINFO structure
+            &pi                     // Pointer to PROCESS_INFORMATION structure
+        ))
         {
             TBO_ENGINE_ERROR("CreateProcess failed! ErrorCode: {0}", GetLastError());
             return false;
         }
 
         // Wait until child process exits.
-        if(wait)
-            WaitForSingleObject(pi.hProcess, INFINITE); // Infinite is too much
+        if (wait)
+            WaitForSingleObject(pi.hProcess, INFINITE); // TODO: Infinite is too much
 
         // Close process and thread handles. 
         CloseHandle(pi.hProcess);
@@ -228,4 +242,38 @@ namespace Turbo
 
         return true;
     }
+
+
+    std::filesystem::path Platform::GetRegistryValue(RootKey rootKey, const std::wstring& registryKey, const std::wstring& value)
+    {
+        HKEY hKey;
+        LONG lRes = ::RegOpenKeyEx(GetWin32KeyToRootKey(rootKey), registryKey.c_str(), 0, KEY_READ, &hKey);
+        bool bExistsAndSuccess(lRes == ERROR_SUCCESS);
+
+        // Read value
+        WCHAR szBuffer[TBO_MAX_CHARS];
+        DWORD dwBufferSize = sizeof(szBuffer);
+        ULONG nError;
+        nError = ::RegQueryValueEx(hKey, value.c_str(), 0, NULL, (LPBYTE)szBuffer, &dwBufferSize);
+        ::RegCloseKey(hKey);
+
+        if (ERROR_SUCCESS != nError)
+        {
+            TBO_ENGINE_ERROR("Could not read the registy key!");
+            return {};
+        }
+
+        std::wstring result = szBuffer;
+        // Remove all unnecessary characters from path
+        size_t pos = result.find(L'\"');
+        while (pos != std::string::npos)
+        {
+            result.erase(pos, 1);
+            pos = result.find(L'\"');
+        }
+
+        return result;
+    }
+
+
 }

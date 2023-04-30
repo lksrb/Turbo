@@ -13,6 +13,13 @@ namespace Turbo::Ed
             ScenePlay = 1
         };
 
+        enum class IDE : u32
+        {
+            None = 0,
+            VisualStudioCode, // TODO
+            VisualStudio2022
+        };
+
         Editor(const Application::Config& config);
         ~Editor();
     protected: // Inherited
@@ -60,6 +67,9 @@ namespace Turbo::Ed
 
         std::filesystem::path m_EditorScenePath;
         std::filesystem::path m_CurrentPath;
+
+        IDE m_CurrentIDE = IDE::VisualStudio2022;
+        std::filesystem::path m_MSBuildPath;
 
         Entity m_SelectedEntity, m_HoveredEntity;
 

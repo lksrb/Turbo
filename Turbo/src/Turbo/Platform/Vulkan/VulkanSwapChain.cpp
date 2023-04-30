@@ -24,15 +24,15 @@ namespace Turbo
 
     void VulkanSwapChain::Initialize()
     {
-        u32 frames_in_flight = RendererContext::FramesInFlight();
+        u32 framesInFlight = RendererContext::FramesInFlight();
 
-        m_RenderFinishedSemaphores.resize(frames_in_flight);
-        m_PresentSemaphores.resize(frames_in_flight);
-        m_InFlightFences.resize(frames_in_flight);
-        m_Imageviews.resize(frames_in_flight);
-        m_Images.resize(frames_in_flight);
-        m_Framebuffers.resize(frames_in_flight);
-        m_RenderCommandBuffers.resize(frames_in_flight);
+        m_RenderFinishedSemaphores.resize(framesInFlight);
+        m_PresentSemaphores.resize(framesInFlight);
+        m_InFlightFences.resize(framesInFlight);
+        m_Imageviews.resize(framesInFlight);
+        m_Images.resize(framesInFlight);
+        m_Framebuffers.resize(framesInFlight);
+        m_RenderCommandBuffers.resize(framesInFlight);
 
         m_SwapchainFormat = Vulkan::SelectSurfaceFormat().format; // VK_FORMAT_B8G8R8A8_UNORM
 
@@ -85,54 +85,54 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
 
-        VkSwapchainKHR new_swapchain = VK_NULL_HANDLE;
+        VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
 
-        const SwapchainSupportDetails& physical_device_details = RendererContext::GetSwapchainSupportDetails();
+        const SwapchainSupportDetails& deviceDetails = RendererContext::GetSwapchainSupportDetails();
         const QueueFamilyIndices& indices = RendererContext::GetQueueFamilyIndices();
 
         // Wait for GPU
         vkDeviceWaitIdle(device);
 
-        VkSwapchainCreateInfoKHR create_info{};
-        create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        create_info.surface = RendererContext::GetSurface();
-        create_info.minImageCount = physical_device_details.nMinImageCount;
-        create_info.imageFormat = m_SwapchainFormat;
-        create_info.imageColorSpace = physical_device_details.surfaceFormat.colorSpace;
-        create_info.imageExtent = { width, height };
-        create_info.imageArrayLayers = 1;
-        create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        create_info.preTransform = physical_device_details.capabilities.currentTransform;
-        create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        create_info.presentMode = VK_PRESENT_MODE_FIFO_KHR; // V-Sync
-        create_info.clipped = VK_TRUE;
-        create_info.oldSwapchain = m_Swapchain; // Using old swapchain
+        VkSwapchainCreateInfoKHR createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        createInfo.surface = RendererContext::GetSurface();
+        createInfo.minImageCount = deviceDetails.nMinImageCount;
+        createInfo.imageFormat = m_SwapchainFormat;
+        createInfo.imageColorSpace = deviceDetails.surfaceFormat.colorSpace;
+        createInfo.imageExtent = { width, height };
+        createInfo.imageArrayLayers = 1;
+        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        createInfo.preTransform = deviceDetails.capabilities.currentTransform;
+        createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; // V-Sync
+        createInfo.clipped = VK_TRUE;
+        createInfo.oldSwapchain = m_Swapchain; // Using old swapchain
 
         if (indices.GraphicsFamily != indices.PresentFamily)
         {
             u32 queueFamilyIndices[] = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
-            create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            create_info.queueFamilyIndexCount = 2;
-            create_info.pQueueFamilyIndices = queueFamilyIndices;
+            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            createInfo.queueFamilyIndexCount = 2;
+            createInfo.pQueueFamilyIndices = queueFamilyIndices;
         }
         else
         {
-            create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         }
 
-        TBO_VK_ASSERT(vkCreateSwapchainKHR(device, &create_info, nullptr, &new_swapchain));
+        TBO_VK_ASSERT(vkCreateSwapchainKHR(device, &createInfo, nullptr, &newSwapchain));
 
         uint32_t image_count;
-        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, new_swapchain, &image_count, nullptr));
+        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &image_count, nullptr));
         TBO_ENGINE_ASSERT(image_count <= 3);
-        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, new_swapchain, &image_count, m_Images.data()));
+        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &image_count, m_Images.data()));
 
         // Destroy old stuff if exists
         if (m_Swapchain)
             Cleanup();
 
         // Assign new swapchain
-        m_Swapchain = new_swapchain;
+        m_Swapchain = newSwapchain;
 
         CreateImageviews();
         CreateFramebuffers(width, height);
@@ -142,8 +142,8 @@ namespace Turbo
 
     void VulkanSwapChain::NewFrame()
     {
-        VkSemaphore current_semaphore = m_PresentSemaphores[m_CurrentFrame];
-        TBO_VK_ASSERT(vkAcquireNextImageKHR(RendererContext::GetDevice(), m_Swapchain, UINT64_MAX, current_semaphore, VK_NULL_HANDLE, &m_ImageIndex));
+        VkSemaphore currentSemaphore = m_PresentSemaphores[m_CurrentFrame];
+        TBO_VK_ASSERT(vkAcquireNextImageKHR(RendererContext::GetDevice(), m_Swapchain, UINT64_MAX, currentSemaphore, VK_NULL_HANDLE, &m_ImageIndex));
     }
 
     void VulkanSwapChain::SwapFrame()

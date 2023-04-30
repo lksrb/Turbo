@@ -23,6 +23,12 @@
 #include <filesystem>
 #include <sstream>
 
+#define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
+
+#ifdef TBO_PLATFORM_WIN32
+#define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
+#endif
+
 namespace Turbo::Ed
 {
     namespace Utils
@@ -42,12 +48,61 @@ namespace Turbo::Ed
         {
             FindAndReplace(content, oldText, newText.string());
         }
+
+        static std::filesystem::path GetMSBuildPath()
+        {
+            // TODO: Who's responsibility is this?
+            {
+                std::filesystem::path pathToVS = Platform::GetRegistryValue(RootKey::LocalMachine, TBO_VS2022_REGISTRY_KEY);
+                TBO_ENGINE_ASSERT(!pathToVS.empty(), "Visual Studio 2022 is not installed!");
+
+                auto filter = [](const std::filesystem::path& path)
+                {
+                    const auto& name = path.stem();
+                    return name == L"Community" || name == L"Professional" || name == L"Enterprise";
+                };
+
+                if (!pathToVS.empty())
+                {
+                    // Path to MSBuild
+                    std::filesystem::path msBuildPath = pathToVS;
+
+                    while (msBuildPath.has_parent_path())
+                    {
+                        if (filter(msBuildPath) || msBuildPath == L"C:\\")
+                            break;
+
+                        msBuildPath = msBuildPath.parent_path();
+                    }
+
+                    if (msBuildPath != L"C:\\")
+                    {
+                        return msBuildPath / "MSBuild\\Current\\Bin\\MSBuild.exe";
+                    }
+                }
+            }
+
+            TBO_ENGINE_ASSERT(false, "Could not find MSBuild!");
+
+            return {};
+        }
+
+        static const wchar_t* GetIDEToString(Editor::IDE ide)
+        {
+            switch (ide)
+            {
+                case Editor::IDE::None: return L"none";
+                case Editor::IDE::VisualStudio2022: return L"vs2022";
+            }
+
+            TBO_ENGINE_ERROR("Invalid IDE!");
+            return L"";
+        }
     }
 
     Editor::Editor(const Application::Config& config)
         : Application(config), m_ViewportWidth(config.Width), m_ViewportHeight(config.Height)
     {
-        // TODO: Load imgui.ini file to retrieve viewport size
     }
 
     Editor::~Editor()
@@ -57,6 +112,9 @@ namespace Turbo::Ed
     void Editor::OnInitialize()
     {
         m_CurrentPath = std::filesystem::current_path();
+
+        // Get path to msbuild for building assemblies
+        m_MSBuildPath = Utils::GetMSBuildPath();
 
         // Panels
         m_PanelManager = Ref<PanelManager>::Create();
@@ -611,8 +669,6 @@ namespace Turbo::Ed
         std::filesystem::path turboWorkspace = m_CurrentPath.parent_path();
         std::filesystem::path configFile = projectPath / projectPath.stem().concat(".tproject");
 
-        // TODO: Make this more dynamic
-
         // Format Premake5 
         {
             std::ifstream inStream(projectPath / "premake5.lua");
@@ -676,46 +732,33 @@ namespace Turbo::Ed
 
             // Set it as new active project
             Project::SetActive(project);
-
         }
 
-        // All panels receive that project has been sent
+        // All panels receive that project has been changed
         m_PanelManager->OnProjectChanged(project);
 
-        // Building assemblies
-        const auto& projectPath = configFilePath.parent_path();
         const auto& config = project->GetConfig();
-        const auto& assemblyPath = projectPath / config.ScriptModulePath;
 
-        // Check if client configured project to open IDE on start:
-        // If yes => open solution and run build solution on that project
-        // If no => run build option to compile it anyway
-        // NOTE: Best solution would be to create some mini builder module that would take care of building a solution when needed
-
-        //std::thread loaderThread = std::thread([=]() 
+        // Building assemblies
         {
-            std::wstring solutionFile = configFilePath.stem().wstring();
-            solutionFile.append(L".sln");
-            bool assembliesExists = std::filesystem::exists(assemblyPath);
-            if (config.OpenSolutionOnStart)
-                Platform::Execute(projectPath / L"Win32-GenerateSolution.bat", solutionFile, projectPath);
-            else if (assembliesExists)
-                Platform::Execute(projectPath / "Win32-GenerateSolution.bat", solutionFile.append(L" Debug"), projectPath);
+            // Execute premake and wait for it to finish
+            Platform::Execute(config.ProjectDirectory / TBO_GEN_SOLUTION_FILE, Utils::GetIDEToString(m_CurrentIDE), config.ProjectDirectory, true);
 
-            // FIXME: Not ideal, maybe implement loader thread?
-            while (!assembliesExists)
+            if (m_CurrentIDE == IDE::VisualStudio2022)
             {
-                // Wait for it to build...
-                std::this_thread::sleep_for(1s);
-                // Check if it exists
-                assembliesExists = std::filesystem::exists(assemblyPath);
+                // Execute MSBuild and wait for it 
+                Platform::Execute(m_MSBuildPath, L"", config.ProjectDirectory, true);
             }
-            // Load project assembly
-            Script::LoadProjectAssembly(assemblyPath);
 
-            // Open scene
-            OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
-        };
+            // TODO: Think about this
+            TBO_ENGINE_ASSERT(std::filesystem::exists(config.ProjectDirectory / config.ScriptModulePath), "No assemblies found!");
+
+            // Load project assembly
+            Script::LoadProjectAssembly(config.ProjectDirectory / config.ScriptModulePath);
+        }
+
+        // Open scene
+        OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
     }
 
     void Editor::UpdateWindowTitle()
@@ -725,8 +768,8 @@ namespace Turbo::Ed
         if (!project || !m_EditorScene)
             return;
 
-        const std::string& scene_name = m_EditorScenePath.stem().string();
-        const std::string& title = fmt::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), scene_name);
+        const std::string& sceneName = m_EditorScenePath.stem().string();
+        const std::string& title = fmt::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), sceneName);
         Window->SetTitle(title.data());
     }
 
