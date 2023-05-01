@@ -739,21 +739,28 @@ namespace Turbo
 
         Utils::DrawComponent<ScriptComponent>("Script Component", entity, [&entity, m_Context = m_Context](auto& component)
         {
-            static char s_ClassNameBuffer[64];
-
-            UUID entityUUID = entity.GetUUID();
-            bool entityClassExists = Script::ScriptClassExists(component.ClassName);
-            strcpy_s(s_ClassNameBuffer, sizeof(s_ClassNameBuffer), component.ClassName.c_str());
-
-            UI::ScopedStyleColor text_color(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !entityClassExists);
-
-            if (ImGui::InputText("Class", s_ClassNameBuffer, sizeof(s_ClassNameBuffer)))
+            if (ImGui::BeginCombo("Scripts", component.ClassName.c_str()))
             {
-                component.ClassName = s_ClassNameBuffer;
-                return;
+                const auto& scriptClassMap = Script::GetScriptClassMap();
+
+                for (auto& [className, _] : scriptClassMap)
+                {
+                    bool isSelected = component.ClassName == className;
+                    if (ImGui::Selectable(className.c_str(), isSelected))
+                    {
+                        component.ClassName = className;
+                    }
+
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+
+                ImGui::EndCombo();
             }
 
             // Fields
+            UUID entityUUID = entity.GetUUID();
+
             if (m_Context->IsRunning())
             {
                 Ref<ScriptInstance> instance = Script::FindEntityInstance(entityUUID);
@@ -770,6 +777,8 @@ namespace Turbo
             }
             else // Scene is not running
             {
+                bool entityClassExists = Script::ScriptClassExists(component.ClassName);
+
                 if (entityClassExists)
                 {
                     Ref<ScriptClass> entityClass = Script::FindEntityClass(component.ClassName);

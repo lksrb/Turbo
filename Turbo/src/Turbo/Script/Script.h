@@ -17,6 +17,7 @@ namespace Turbo
     {
     public:
         using ScriptFieldInstanceMap = std::unordered_map<std::string, ScriptFieldInstance>;
+        using ScriptClassMap = std::unordered_map<std::string, Ref<ScriptClass>>;
 
         struct Data
         {
@@ -33,9 +34,10 @@ namespace Turbo
             std::filesystem::path CoreAssemblyPath;
             std::filesystem::path ProjectAssemblyPath;
 
-            std::unordered_map<UUID, Ref<ScriptInstance>> ScriptInstances;
-            std::unordered_map<std::string, Ref<ScriptClass>> ScriptClasses;
             std::unordered_map<UUID, ScriptFieldInstanceMap> EntityScriptFieldInstances;
+            ScriptClassMap ScriptClasses;
+
+            std::unordered_map<UUID, Ref<ScriptInstance>> ScriptInstances;
 
             Scene* SceneContext = nullptr;
 
@@ -65,10 +67,11 @@ namespace Turbo
         static void ReloadAssemblies();
         static void LoadProjectAssembly(const std::filesystem::path& path);
 
-        static bool ScriptClassExists(const std::string& class_name);
+        static bool ScriptClassExists(const std::string& className);
 
         static Scene* GetCurrentScene();
 
+        static const ScriptClassMap& GetScriptClassMap();
         static UUID GetUUIDFromMonoObject(MonoObject* instance);
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);

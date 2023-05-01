@@ -248,7 +248,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [3, -1]
+      SpriteCoords: [4, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager

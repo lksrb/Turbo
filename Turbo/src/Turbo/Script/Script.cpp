@@ -542,7 +542,12 @@ namespace Turbo
         return g_Data->SceneContext;
     }
 
-	UUID Script::GetUUIDFromMonoObject(MonoObject* instance)
+    const Script::ScriptClassMap& Script::GetScriptClassMap()
+    {
+        return g_Data->ScriptClasses;
+    }
+
+    UUID Script::GetUUIDFromMonoObject(MonoObject* instance)
 	{
         if (instance)
         {
