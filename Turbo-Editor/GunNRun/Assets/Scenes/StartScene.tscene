@@ -265,9 +265,6 @@ Entities:
         - Name: m_JumpPower
           Type: Float
           Data: 23.9500008
-        - Name: m_FollowsCamera
-          Type: Bool
-          Data: true
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true
@@ -528,6 +525,15 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
+    ScriptComponent:
+      ClassName: GunNRun.CameraManager
+      Fields:
+        - Name: FollowsPlayer
+          Type: Bool
+          Data: true
+        - Name: LerpMagnifier
+          Type: Float
+          Data: 3
   - Entity: 18351839713352600519
     Parent: 0
     Children:

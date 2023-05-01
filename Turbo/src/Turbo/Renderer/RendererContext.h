@@ -44,7 +44,7 @@ namespace Turbo
     class Window;
     struct SwapchainSupportDetails;
     struct QueueFamilyIndices;
-
+    
     using SubmitCallback = void(*)(VkCommandBuffer);
 
     class RendererContext
@@ -70,7 +70,7 @@ namespace Turbo
 
         static void FlushCommandBuffer(VkCommandBuffer commandBuffer);
         static void FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue);
-
+        
         template<typename F>
         static void ImmediateSubmit(F&& func)
         {

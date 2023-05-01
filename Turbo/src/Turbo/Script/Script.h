@@ -68,6 +68,8 @@ namespace Turbo
         static bool ScriptClassExists(const std::string& class_name);
 
         static Scene* GetCurrentScene();
+
+        static UUID GetUUIDFromMonoObject(MonoObject* instance);
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);
     private:

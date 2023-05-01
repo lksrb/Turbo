@@ -52,7 +52,7 @@ namespace Turbo::Ed
         static std::filesystem::path GetMSBuildPath()
         {
             std::filesystem::path pathToVS = Platform::GetRegistryValue(RootKey::LocalMachine, TBO_VS2022_REGISTRY_KEY);
-            TBO_ENGINE_ASSERT(!pathToVS.empty(), "Visual Studio 2022 is not installed!");
+            TBO_ASSERT(!pathToVS.empty(), "Visual Studio 2022 is not installed!");
 
             auto filter = [](const std::filesystem::path& path)
             {
@@ -79,7 +79,7 @@ namespace Turbo::Ed
                 }
             }
 
-            TBO_ENGINE_ASSERT(false, "Could not find MSBuild!");
+            TBO_ASSERT(false, "Could not find MSBuild!");
 
             return {};
         }
@@ -463,7 +463,7 @@ namespace Turbo::Ed
 
                 if (ImGui::MenuItem("Open solution on start", nullptr, config.OpenSolutionOnStart))
                 {
-                    Project::SetOpenSolutionOnStart(!config.OpenSolutionOnStart);
+                    config.OpenSolutionOnStart = !config.OpenSolutionOnStart;
                 }
 
                 ImGui::EndMenu();
@@ -665,7 +665,7 @@ namespace Turbo::Ed
         // Format Premake5 
         {
             std::ifstream inStream(projectPath / "premake5.lua");
-            TBO_ENGINE_ASSERT(inStream);
+            TBO_ASSERT(inStream);
             std::stringstream ss;
             ss << inStream.rdbuf();
             inStream.close();
@@ -675,7 +675,7 @@ namespace Turbo::Ed
             Utils::FindAndReplace(content, "%TURBO_PATH%", turboWorkspace);
 
             std::ofstream outStream(projectPath / "premake5.lua");
-            TBO_ENGINE_ASSERT(outStream);
+            TBO_ASSERT(outStream);
             outStream << content;
             outStream.close();
         }
@@ -683,7 +683,7 @@ namespace Turbo::Ed
         // Format .tproject file
         {
             std::ifstream inStream(projectPath / "NewProjectTemplate.tproject");
-            TBO_ENGINE_ASSERT(inStream);
+            TBO_ASSERT(inStream);
             std::stringstream ss;
             ss << inStream.rdbuf();
             inStream.close();
@@ -694,7 +694,7 @@ namespace Turbo::Ed
             Utils::FindAndReplace(content, "%PROJECT_NAME%", projectPath.stem());
 
             std::ofstream outStream(configFile);
-            TBO_ENGINE_ASSERT(outStream);
+            TBO_ASSERT(outStream);
             outStream << content;
             outStream.close();
         }
@@ -743,7 +743,7 @@ namespace Turbo::Ed
             }
 
             // TODO: Think about this
-            TBO_ENGINE_ASSERT(std::filesystem::exists(config.ProjectDirectory / config.ScriptModulePath), "No assemblies found!");
+            TBO_ASSERT(std::filesystem::exists(config.ProjectDirectory / config.ScriptModulePath), "No assemblies found!");
 
             // Load project assembly
             Script::LoadProjectAssembly(config.ProjectDirectory / config.ScriptModulePath);
@@ -928,11 +928,10 @@ namespace Turbo::Ed
 
     void Editor::Close()
     {
-
         if (m_RuntimeScene)
             OnSceneStop();
-
-        // TODO: Make this an option
-        SaveProject(); // Auto save
+        
+        // TODO: Editor settings
+        SaveProject();
     }
 }

@@ -86,7 +86,7 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
-
+        
         const SwapchainSupportDetails& deviceDetails = RendererContext::GetSwapchainSupportDetails();
         const QueueFamilyIndices& indices = RendererContext::GetQueueFamilyIndices();
 

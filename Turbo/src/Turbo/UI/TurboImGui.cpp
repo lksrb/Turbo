@@ -12,7 +12,7 @@ VkDescriptorSet ImGui::RegisterTexture(VkSampler sampler, VkImageView image_view
         return s_DescriptorSetCache.at(image_view);
     }
 
-    TBO_ENGINE_INFO("Created descriptor set!");
+    //TBO_ENGINE_INFO("Created descriptor set!");
 
     // Register a texture
     VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(sampler, image_view, image_layout);

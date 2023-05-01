@@ -10,9 +10,8 @@
 #define TBO_BIND_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 #define TBO_NOVTABLE __declspec(novtable) 
-// TODO: interfaces
-#define TBO_INTERFACE struct __declspec(novtable)
 
+#define TBO_INTERFACE struct __declspec(novtable)
 
 #include "Turbo/Core/Log.h"
 

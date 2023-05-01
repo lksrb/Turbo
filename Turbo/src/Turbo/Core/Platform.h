@@ -7,9 +7,7 @@ namespace Turbo
     enum class RootKey : u32
     {
         None = 0,
-#ifdef TBO_PLATFORM_WIN32
         LocalMachine
-#endif
     };
 
     class Platform

@@ -173,7 +173,7 @@ namespace Turbo
             ImGui::PopID();
         }
 
-        static void CallTypeSpecificFunctionNoSceneRunning(ScriptFieldType fieldType, const std::string& name, ScriptFieldInstance& instance)
+        static void CallTypeSpecificFunctionNoSceneRunning(ScriptFieldType fieldType, const std::string& name, ScriptFieldInstance& instance, Ref<Scene> scene)
         {
             static std::array<std::function<void(const std::string& name, ScriptFieldInstance& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsNSR =
             {
@@ -192,9 +192,62 @@ namespace Turbo
                 TBO_TYPEFUNC_COMPLEX("Vector2", glm::vec2, ImGui::DragFloat2, 0.1f),
                 TBO_TYPEFUNC_COMPLEX("Vector3", glm::vec3, ImGui::DragFloat3, 0.1f),
                 TBO_TYPEFUNC_COMPLEX("Vector4", glm::vec4, ImGui::DragFloat4, 0.1f),
-            };
+#if 0
+                [&scene](const std::string& name, ScriptFieldInstance& instance)
+                {
+                    static std::string buffer = "No entity";
+                    u64 uuid = instance.GetValue<u64>();
+                    Entity entity = scene->FindEntityByUUID(uuid);
 
-            if (fieldType == ScriptFieldType::Entity) // TODO: Entity display
+                    if (ImGui::InputText(name.c_str(), &buffer))
+                    {
+                        uuid = 0;
+
+                        bool isNumber = true;
+                        for (auto c : buffer)
+                        {
+                            if (!std::isdigit(c))
+                            {
+                                isNumber = false;
+                                break;
+                            }
+                        }
+
+                        if (isNumber && !buffer.empty())
+                        {
+                            u64 bufUUID = std::stoull(buffer);
+                            entity = scene->FindEntityByUUID(bufUUID);
+
+                            if (entity)
+                            {
+                                uuid = bufUUID;
+                            }
+                        }
+
+                        instance.SetValue<u64>(uuid);
+                    }
+
+                    buffer = uuid ? entity.GetName() : "No entity";
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SHP_DATA"))
+                        {
+                            Entity entity = *(Entity*)payload->Data;
+                            instance.SetValue<u64>(entity.GetUUID());
+
+                            u64 uuid = instance.GetValue<u64>();
+                            buffer = uuid ? entity.GetName() : "No entity";
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+
+                }
+#endif
+        };
+
+            if (fieldType == ScriptFieldType::Entity)
                 return;
 
             u32 type = static_cast<u32>(fieldType);
@@ -203,7 +256,7 @@ namespace Turbo
             if (type < s_TypeFunctionsNSR.size())
                 s_TypeFunctionsNSR[type](name, instance);
 
-        }
+    }
         static void CallTypeSpecificFunctionSceneRunning(ScriptFieldType fieldType, const std::string& name, Ref<ScriptInstance> instance)
         {
             static std::array<std::function<void(const std::string& name, Ref<ScriptInstance>& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsSR =
@@ -223,9 +276,20 @@ namespace Turbo
                 TBO_TYPEFUNC2_COMPLEX("Vector2", glm::vec2, ImGui::DragFloat2, 0.1f),
                 TBO_TYPEFUNC2_COMPLEX("Vector3", glm::vec3, ImGui::DragFloat3, 0.1f),
                 TBO_TYPEFUNC2_COMPLEX("Vector4", glm::vec4, ImGui::DragFloat4, 0.1f),
+#if 0
+                [](const std::string& name, Ref<ScriptInstance>& instance)
+                {
+                    static std::string buffer;
+                    u64 scriptInstancePointer = instance->GetFieldValue<u64>(name);
+
+                    UUID uuid = Script::GetUUIDFromMonoObject((MonoObject*)scriptInstancePointer);
+                    buffer = uuid ? std::to_string(uuid) : "No entity";
+                    ImGui::InputText(name.c_str(), &buffer, ImGuiInputTextFlags_ReadOnly);
+                }
+#endif
             };
 
-            if (fieldType == ScriptFieldType::Entity) // TODO: Entity display
+            if (fieldType == ScriptFieldType::Entity)
                 return;
 
             u32 type = static_cast<u32>(fieldType);
@@ -233,9 +297,8 @@ namespace Turbo
             // Call type specific function
             if (type < s_TypeFunctionsSR.size())
                 s_TypeFunctionsSR[type](name, instance);
-
         }
-    }
+}
 
     SceneHierarchyPanel::SceneHierarchyPanel()
     {
@@ -327,7 +390,7 @@ namespace Turbo
     void SceneHierarchyPanel::SetSelectedEntity(Entity entity /*= {}*/)
     {
         m_SelectedEntity = entity;
-        
+
         if (m_SelectedEntity)
         {
             s_UUID = m_SelectedEntity.GetUUID();
@@ -477,7 +540,7 @@ namespace Turbo
             ImGui::SetCursorPos(ImVec2(cursor.x + 225.0f, cursor.y));
             ImGui::PushItemWidth(-1);
 
-            if(component.SubTexture)
+            if (component.SubTexture)
                 UI::ImageButton(component.SubTexture, ImVec2(50, 50.0f), { 0, 1 }, { 1, 0 });
             else
                 ImGui::Button("##TextureButton", ImVec2(50, 50.0f));
@@ -718,7 +781,7 @@ namespace Turbo
                     for (auto& [name, field] : classFields)
                     {
                         ScriptFieldInstance& fieldInstance = entityFields[name];
-                        Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, fieldInstance);
+                        Utils::CallTypeSpecificFunctionNoSceneRunning(field.Type, name, fieldInstance, m_Context);
                     }
                 }
             }
@@ -739,6 +802,7 @@ namespace Turbo
         flags |= !hasChildren ? ImGuiTreeNodeFlags_Leaf : 0;
         bool opened = ImGui::TreeNodeEx((void*)(u64)(u32)entity, flags | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen, tag.c_str());
 
+        // TODO: Figure out how to cancel this when drag n drop is active
         if (ImGui::IsItemClicked())
         {
             SetSelectedEntity(entity);
@@ -808,8 +872,13 @@ namespace Turbo
                 auto& rootEntityRelationship = rootEntity.GetComponent<RelationshipComponent>();
                 auto& it = std::find(rootEntityRelationship.Children.begin(), rootEntityRelationship.Children.end(), entity.GetUUID());
                 rootEntityRelationship.Children.erase(it);
-
                 relationShipComponent.Parent = 0;
+            }
+
+            if (ImGui::MenuItem("Copy UUID"))
+            {
+                std::string strID = std::to_string(entity.GetUUID());
+                ImGui::SetClipboardText(strID.c_str());
             }
 
             ImGui::EndPopup();

@@ -440,18 +440,17 @@ namespace Turbo
             if (scriptClass)
             {
                 const auto& fields = scriptClass->GetFields();
-                if (fields.size() > 0)
                 {
                     // Fields
                     out << YAML::Key << "Fields" << YAML::Value;
                     out << YAML::BeginSeq;
 
                     // Cached fields values
-                    auto& cached_fields = Script::GetEntityFieldMap(uuid);
+                    auto& cachedFields = Script::GetEntityFieldMap(uuid);
 
                     for (const auto& [name, field] : fields)
                     {
-                        if (cached_fields.find(name) == cached_fields.end())
+                        if (cachedFields.find(name) == cachedFields.end())
                             continue;
 
                         out << YAML::BeginMap;
@@ -459,7 +458,7 @@ namespace Turbo
                         out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(field.Type);
 
                         out << YAML::Key << "Data" << YAML::Value;
-                        const ScriptFieldInstance& scriptField = cached_fields.at(name);
+                        const ScriptFieldInstance& scriptField = cachedFields.at(name);
 
                         switch (field.Type)
                         {

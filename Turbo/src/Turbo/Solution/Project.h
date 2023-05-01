@@ -25,10 +25,10 @@ namespace Turbo
         Project(const Project::Config& config = {});
         ~Project();
 
-        static void SetOpenSolutionOnStart(bool openSolutionOnStart)
+        Project::Config& GetConfig()
         {
             TBO_ENGINE_ASSERT(s_ActiveProject);
-            s_ActiveProject->m_Config.OpenSolutionOnStart = openSolutionOnStart;
+            return s_ActiveProject->m_Config;
         }
 
         const Project::Config& GetConfig() const

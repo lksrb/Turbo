@@ -303,6 +303,8 @@ namespace Turbo
         }
 
         Audio::OnRuntimeStart(this);
+
+        // Instantiate all entities with script component
         Script::OnRuntimeStart(this);
 
         // Call OnCreate function in each script

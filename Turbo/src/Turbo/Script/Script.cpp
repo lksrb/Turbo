@@ -138,6 +138,65 @@ namespace Turbo
     void Script::OnRuntimeStart(Scene* scene)
     {
         g_Data->SceneContext = scene;
+
+        // Instantiate script instances and sets field instances
+        auto& scripts = scene->GetAllEntitiesWith<ScriptComponent, IDComponent>();
+        for (auto& e : scripts)
+        {
+            Entity entity = { e, scene };
+            auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+            UUID uuid = id.ID;
+
+            bool isValidClassName = ScriptClassExists(script.ClassName);
+
+            if (isValidClassName)
+            {
+                Ref<ScriptClass> scriptClass = g_Data->ScriptClasses.at(script.ClassName);
+
+                Ref<ScriptInstance>& instance = g_Data->ScriptInstances[uuid];
+                instance = Ref<ScriptInstance>::Create(scriptClass, uuid);
+
+                // Copy fields
+                if (g_Data->EntityScriptFieldInstances.find(uuid) != g_Data->EntityScriptFieldInstances.end())
+                {
+                    const ScriptFieldInstanceMap& fieldMap = g_Data->EntityScriptFieldInstances.at(uuid);
+                    for (const auto& [name, fieldInstance] : fieldMap)
+                    {
+                        // Because not all script entities exist yet, skip it
+                        if (fieldInstance.Field.Type == ScriptFieldType::Entity)
+                            continue;
+
+                        instance->SetFieldValueInternal(name, fieldInstance.Buffer);
+                    }
+                }
+            }
+        }
+
+        // Loop through all script instances and copy Entity references
+        for (auto& [uuid, instance] : g_Data->ScriptInstances)
+        {
+            const ScriptFieldInstanceMap& fieldMap = g_Data->EntityScriptFieldInstances.at(uuid);
+
+            for (const auto& [name, fieldInstance] : fieldMap)
+            {
+                if (fieldInstance.Field.Type == ScriptFieldType::Entity)
+                {
+                    UUID entityRefUUID = fieldInstance.GetValue<UUID>();
+                    if (entityRefUUID)
+                    {
+                        Ref<ScriptInstance> other = FindEntityInstance(entityRefUUID);
+                        if (other)
+                        {
+                            instance->SetFieldValueInternal(name, other->GetInstance());
+                        }
+                        else
+                        {
+                            // TODO: What to do if referenced entity does not have a script component
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void Script::OnRuntimeStop()
@@ -173,27 +232,43 @@ namespace Turbo
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID uuid = id.ID;
 
-        bool isValidClassName = ScriptClassExists(script.ClassName);
-
-        if (isValidClassName)
+        Ref<ScriptInstance> runtimeInstance = FindEntityInstance(uuid);
+        if (!runtimeInstance)
         {
-            Ref<ScriptClass> scriptClass = g_Data->ScriptClasses.at(script.ClassName);
+            // Entity instantiated at runtime
 
-            Ref<ScriptInstance>& instance = g_Data->ScriptInstances[uuid];
-            instance = Ref<ScriptInstance>::Create(scriptClass, uuid);
+            bool isValidClassName = ScriptClassExists(script.ClassName);
 
-            // Copy fields
-            if (g_Data->EntityScriptFieldInstances.find(uuid) != g_Data->EntityScriptFieldInstances.end())
+            if (isValidClassName)
             {
-                const ScriptFieldInstanceMap& fieldMap = g_Data->EntityScriptFieldInstances.at(uuid);
-                for (const auto& [name, fieldInstance] : fieldMap)
-                {
-                    instance->SetFieldValueInternal(name, fieldInstance.Buffer);
-                }
-            }
+                Ref<ScriptClass> scriptClass = g_Data->ScriptClasses.at(script.ClassName);
 
-            instance->InvokeOnCreate();
+                Ref<ScriptInstance>& instance = g_Data->ScriptInstances[uuid];
+                instance = Ref<ScriptInstance>::Create(scriptClass, uuid);
+
+                // Copy fields
+                if (g_Data->EntityScriptFieldInstances.find(uuid) != g_Data->EntityScriptFieldInstances.end())
+                {
+                    const ScriptFieldInstanceMap& fieldMap = g_Data->EntityScriptFieldInstances.at(uuid);
+                    for (const auto& [name, fieldInstance] : fieldMap)
+                    {
+                        if (fieldInstance.Field.Type == ScriptFieldType::Entity)
+                        {
+                            UUID entityRefUUID = fieldInstance.GetValue<UUID>();
+                            Ref<ScriptInstance> other = FindEntityInstance(entityRefUUID);
+                            instance->SetFieldValueInternal(name, other->GetInstance());
+                            continue;
+                        }
+
+                        instance->SetFieldValueInternal(name, fieldInstance.Buffer);
+                    }
+                }
+
+                runtimeInstance = instance;
+            }
         }
+
+        runtimeInstance->InvokeOnCreate();
     }
 
     void Script::InvokeEntityOnUpdate(Entity entity, FTime ts)
@@ -466,7 +541,21 @@ namespace Turbo
         return g_Data->SceneContext;
     }
 
-    Ref<ScriptInstance> Script::FindEntityInstance(UUID uuid)
+	UUID Script::GetUUIDFromMonoObject(MonoObject* instance)
+	{
+        if (instance)
+        {
+            for (auto& [ID, script] : g_Data->ScriptInstances)
+            {
+                if (script->GetInstance() == instance)
+                    return ID;
+            }
+        }
+
+        return 0;
+	}
+
+	Ref<ScriptInstance> Script::FindEntityInstance(UUID uuid)
     {
         auto& it = g_Data->ScriptInstances.find(uuid);
 
