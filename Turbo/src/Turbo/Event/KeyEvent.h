@@ -23,7 +23,7 @@ namespace Turbo
     class KeyPressedEvent : public KeyEvent 
     {
     public:
-        KeyPressedEvent(KeyCode code, u16 repeatCount)
+        KeyPressedEvent(const KeyCode code, u16 repeatCount)
             : KeyEvent(code), m_RepeatCount(repeatCount)
         {
         }
@@ -38,7 +38,7 @@ namespace Turbo
     class KeyReleasedEvent : public KeyEvent 
     {
     public:
-        KeyReleasedEvent(KeyCode keycode)
+        KeyReleasedEvent(const KeyCode keycode)
             : KeyEvent(keycode)
         {
         }
@@ -50,7 +50,7 @@ namespace Turbo
     class KeyTypedEvent : public KeyEvent 
     {
     public:
-        KeyTypedEvent(KeyCode keycode)
+        KeyTypedEvent(const KeyCode keycode)
             : KeyEvent(keycode)
         {
         }

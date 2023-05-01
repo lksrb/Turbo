@@ -4,37 +4,42 @@
 #include "Turbo/Core/Engine.h"
 
 #include "Win32_Window.h"
+#include "Win32_Utils.h"
 
-#include <Windows.h>
+#include <WinUser.h>
 
 namespace Turbo 
 {
-    bool Input::IsKeyPressed(KeyCode keycode)
+    bool Input::IsKeyPressed(const KeyCode keyCode)
     {
         bool focused = Engine::Get().GetViewportWindow()->IsFocused();
 
-        return focused && (::GetAsyncKeyState(static_cast<int>(keycode)) & 0x8000) != 0;
+        Win32Code win32Code = Utils::GetWin32CodeFromKeyCode(keyCode);
+
+        return focused && (::GetAsyncKeyState(win32Code) & 0x8000) != 0;
     }
 
-    bool Input::IsKeyReleased(KeyCode keycode)
+    bool Input::IsKeyReleased(const KeyCode keyCode)
     {
         bool focused = Engine::Get().GetViewportWindow()->IsFocused();
 
-        return focused && (::GetAsyncKeyState(static_cast<int>(keycode)) & 0x8000) == 0;
+        Win32Code win32Code = Utils::GetWin32CodeFromKeyCode(keyCode);
+
+        return focused && (::GetAsyncKeyState(win32Code) & 0x8000) == 0;
     }
 
-    bool Input::IsMouseButtonPressed(MouseCode mousecode)
+    bool Input::IsMouseButtonPressed(const MouseCode mouseCode)
     {
         bool focused = Engine::Get().GetViewportWindow()->IsFocused();
 
-        return focused && (::GetAsyncKeyState(static_cast<int>(mousecode)) & 0x8000) != 0;
+        return focused && (::GetAsyncKeyState(static_cast<int>(mouseCode)) & 0x8000) != 0;
     }
 
-    bool Input::IsMouseButtonReleased(MouseCode mousecode)
+    bool Input::IsMouseButtonReleased(const MouseCode mouseCode)
     {
         bool focused = Engine::Get().GetViewportWindow()->IsFocused();
 
-        return focused && (::GetAsyncKeyState(static_cast<int>(mousecode)) & 0x8000) == 0;
+        return focused && (::GetAsyncKeyState(static_cast<int>(mouseCode)) & 0x8000) == 0;
     }
 
     i32 Input::GetMouseX()

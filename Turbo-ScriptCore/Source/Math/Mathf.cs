@@ -14,9 +14,9 @@ namespace Turbo
 		public static Vector3 Abs(Vector3 value)
 		{
 			Vector3 result = value;
-			result.x = Mathf.Abs(result.x);
-			result.y = Mathf.Abs(result.y);
-			result.z = Mathf.Abs(result.z);
+			result.X = Mathf.Abs(result.X);
+			result.Y = Mathf.Abs(result.Y);
+			result.Z = Mathf.Abs(result.Z);
 			return result;
 		}
 
@@ -106,9 +106,9 @@ namespace Turbo
 		#region Linear Algebra
 		public static Vector3 Sign(Vector3 value)
 		{
-			float x = Mathf.Sign(value.x);
-			float y = Mathf.Sign(value.y);
-			float z = Mathf.Sign(value.z);
+			float x = Mathf.Sign(value.X);
+			float y = Mathf.Sign(value.Y);
+			float z = Mathf.Sign(value.Z);
 			return new Vector3(x, y, z);
 		}
 		public static Vector3 Lerp(Vector3 start, Vector3 end, float maxDistanceDelta)
@@ -134,15 +134,15 @@ namespace Turbo
 
 		public static float Dot(Vector2 a, Vector2 b)
 		{
-			return a.x * b.x + a.y * b.y;
+			return a.X * b.X + a.Y * b.Y;
 		}
 		public static float Dot(Vector3 a, Vector3 b)
 		{
-			return a.x * b.x + a.y * b.y + a.z * b.z;
+			return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
 		}
 		public static float Dot(Vector4 a, Vector4 b)
 		{
-			return a.x * b.x + a.y * b.y + a.z * b.z + a.w + b.w;
+			return a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W + b.W;
 		}
 		#endregion
 

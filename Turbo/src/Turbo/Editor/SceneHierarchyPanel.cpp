@@ -793,14 +793,16 @@ namespace Turbo
         if (!entity)
             return;
 
-        const auto& tag = entity.GetComponent<TagComponent>().Tag;
-        auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
+        // TODO: Figure out how to save collapse/folding of a tree node
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 
-        ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0);
+        if (!entity.HasChildren())
+            flags |= ImGuiTreeNodeFlags_Leaf;
 
-        bool hasChildren = relationShipComponent.Children.size() != 0;
-        flags |= !hasChildren ? ImGuiTreeNodeFlags_Leaf : 0;
-        bool opened = ImGui::TreeNodeEx((void*)(u64)(u32)entity, flags | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen, tag.c_str());
+        if (m_SelectedEntity == entity)
+            flags |= ImGuiTreeNodeFlags_Selected;
+
+        bool opened = ImGui::TreeNodeEx((void*)(u64)(u32)entity, flags, entity.GetName().c_str());
 
         // TODO: Figure out how to cancel this when drag n drop is active
         if (ImGui::IsItemClicked())
@@ -814,39 +816,9 @@ namespace Turbo
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SHP_DATA"))
             {
                 Entity childEntity = *(Entity*)payload->Data;
-
                 if (childEntity)
                 {
-                    UUID uuid = childEntity.GetUUID();
-                    bool found = false;
-                    for (auto& childUUID : relationShipComponent.Children)
-                    {
-                        if (childUUID == uuid)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found)
-                    {
-                        //TBO_ENGINE_INFO("{} to {}", childEntity.GetName(), tag);
-
-                        auto& childEntityRelationship = childEntity.GetComponent<RelationshipComponent>();
-
-                        // Entity has a parent => recursively remove it from other relation ship components
-                        if (childEntityRelationship.Parent)
-                        {
-                            Entity rootEntity = m_Context->FindEntityByUUID(childEntityRelationship.Parent);
-                            auto& rootEntityRelationship = rootEntity.GetComponent<RelationshipComponent>();
-                            auto& it = std::find(rootEntityRelationship.Children.begin(), rootEntityRelationship.Children.end(), uuid);
-                            rootEntityRelationship.Children.erase(it);
-                        }
-
-                        // Inform child entity that his parent has changed
-                        childEntityRelationship.Parent = entity.GetUUID();
-                        relationShipComponent.Children.push_back(uuid);
-                    }
+                    childEntity.SetParent(entity);
                 }
             }
 
@@ -865,14 +837,13 @@ namespace Turbo
             if (ImGui::MenuItem("Destroy Entity"))
                 entityDestroyed = true;
 
-            // Temporary solution
-            if (relationShipComponent.Parent != 0 && ImGui::MenuItem("Pin to root"))
+            Entity parent = entity.GetParent();
+            if (ImGui::MenuItem("Unparent entity", "", nullptr, parent))
             {
-                Entity rootEntity = m_Context->FindEntityByUUID(relationShipComponent.Parent);
-                auto& rootEntityRelationship = rootEntity.GetComponent<RelationshipComponent>();
-                auto& it = std::find(rootEntityRelationship.Children.begin(), rootEntityRelationship.Children.end(), entity.GetUUID());
-                rootEntityRelationship.Children.erase(it);
-                relationShipComponent.Parent = 0;
+                //GetParent(nullptr); FIXME: Why does scene hierarchy panel have WinUser.h include ???
+                auto a = GetParent(nullptr);
+                parent.RemoveChild(entity);
+                entity.SetParentUUID(0);
             }
 
             if (ImGui::MenuItem("Copy UUID"))
@@ -886,7 +857,8 @@ namespace Turbo
 
         if (opened)
         {
-            for (auto childUUID : relationShipComponent.Children)
+            auto& children = entity.GetChildren();
+            for (auto& childUUID : children)
                 DrawEntityNode(m_Context->FindEntityByUUID(childUUID));
 
             ImGui::TreePop();

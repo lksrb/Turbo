@@ -2,64 +2,63 @@
 
 #include "Turbo/Core/PrimitiveTypes.h"
 
-#ifdef TBO_PLATFORM_WIN32
-    #include <winuser.h>
-#endif
-
 namespace Turbo
 {
     using KeyCode = u32;
 
     namespace Key
     {
-#ifdef TBO_PLATFORM_WIN32
         enum : KeyCode
         {
-            A = 65,
-            B = 66,
-            C = 67,
-            D = 68,
-            E = 69,
-            F = 70,
-            G = 71,
-            H = 72,
-            I = 73,
-            J = 74,
-            K = 75,
-            L = 76,
-            M = 77,
-            N = 78,
-            O = 79,
-            P = 80,
-            Q = 81,
-            R = 82,
-            S = 83,
-            T = 84,
-            U = 85,
-            V = 86,
-            W = 87,
-            X = 88,
-            Y = 89,
-            Z = 90,
+            // Alphabet
+            A = 0,
+            B = 1,
+            C = 2,
+            D = 3,
+            E = 4,
+            F = 5,
+            G = 6,
+            H = 7,
+            I = 8,
+            J = 9,
+            K = 10,
+            L = 11,
+            M = 12,
+            N = 13,
+            O = 14,
+            P = 15,
+            Q = 16,
+            R = 17,
+            S = 18,
+            T = 19,
+            U = 20,
+            V = 21,
+            W = 22,
+            X = 23,
+            Y = 24,
+            Z = 25,
 
-            Tab = VK_TAB,
+            // Controls
+            LeftShift = 26,
+            RightShift = 27,
+            LeftControl = 28,
+            RightControl = 29,
+            LeftAlt = 30,
+            RightAlt = 31,
 
-            Escape = VK_ESCAPE,
-            Space = VK_SPACE,
+            // Arrows
+            Left = 32,
+            Up = 33,
+            Right = 34,
+            Down = 35,
 
-            LeftShift = VK_LSHIFT,
-            RightShift = VK_RSHIFT,
-            LeftControl = VK_LCONTROL,
-            RightControl = VK_RCONTROL,
-            LeftAlt = VK_LMENU,
-            RightAlt = VK_RMENU,
-            Left = VK_LEFT,
-            Up = VK_UP,
-            Right = VK_RIGHT,
-            Down = VK_DOWN,
-            Enter = VK_RETURN
+            // General
+            Space = 36,
+            Enter = 37,
+            Escape = 38,
+            Tab = 39,
+
+            KeyCodeMax = 40
         };
-#endif
     }
-
 }

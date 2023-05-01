@@ -154,7 +154,7 @@ namespace Turbo
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                        renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
+                        renderer2d->DrawSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
 
                     }
                 }
@@ -166,7 +166,7 @@ namespace Turbo
                     for (auto entity : view)
                     {
                         auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                        renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                        renderer2d->DrawCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
                     }
                 }
 
@@ -177,7 +177,7 @@ namespace Turbo
                     for (auto entity : view)
                     {
                         auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
-                        renderer2d->DrawString(transform.GetMatrix(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                        renderer2d->DrawString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
                     }
                 }
 
@@ -227,6 +227,8 @@ namespace Turbo
 
     void Scene::OnRuntimeStart()
     {
+        m_Running = true;
+
         // Find primary camera
         m_PrimaryCameraEntity = FindPrimaryCameraEntity();
 
@@ -333,7 +335,6 @@ namespace Turbo
                 }
             }
         }
-        m_Running = true;
     }
 
     void Scene::OnRuntimeStop()
@@ -470,7 +471,7 @@ namespace Turbo
             if (cameraEntity)
             {
                 SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-                camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetMatrix()));
+                camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
 
                 renderer2d->Begin2D(camera);
                 // Sprites
@@ -481,7 +482,7 @@ namespace Turbo
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                        renderer2d->DrawSprite(transform.GetMatrix(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
+                        renderer2d->DrawSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
                     }
                 }
 
@@ -492,7 +493,7 @@ namespace Turbo
                     for (auto entity : view)
                     {
                         auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                        renderer2d->DrawCircle(transform.GetMatrix(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                        renderer2d->DrawCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
                     }
                 }
 
@@ -503,7 +504,7 @@ namespace Turbo
                     for (auto entity : view)
                     {
                         auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
-                        renderer2d->DrawString(transform.GetMatrix(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                        renderer2d->DrawString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
                     }
                 }
 
@@ -604,6 +605,10 @@ namespace Turbo
         UUID uuid = entity.GetUUID();
         TBO_ENGINE_ASSERT(m_EntityIDMap.find(uuid) != m_EntityIDMap.end());
 
+        Entity parent = entity.GetParent();
+        if (parent)
+            parent.RemoveChild(entity);
+
         m_DestroyedEntities.push_back(entity);
 
         auto& relationship = entity.GetComponent<RelationshipComponent>();
@@ -624,7 +629,7 @@ namespace Turbo
         Utils::CopyComponentIfExists(AllComponents{}, duplicated, entity);
 
         // Signal entity's parent that an this entity has been duplicated
-        Entity parent = FindEntityByUUID(entity.GetParent());
+        Entity parent = entity.GetParent();
         if (parent)
             parent.GetChildren().push_back(duplicated.GetUUID());
 

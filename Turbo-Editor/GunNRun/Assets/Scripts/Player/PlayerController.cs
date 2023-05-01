@@ -36,7 +36,7 @@ namespace GunNRun
 		internal void OnUpdate(float ts)
 		{
 			//m_IsGrounded = Mathf.Abs(m_RigidBody2D.Velocity.y) < ts;
-			IsMovingSideways = Mathf.Abs(m_RigidBody2D.Velocity.x) > ts;
+			IsMovingSideways = Mathf.Abs(m_RigidBody2D.Velocity.X) > ts;
 
 			if (m_PlayerInput.IsJumpKeyPressedOneTime && m_IsGrounded)
 			{
@@ -47,7 +47,7 @@ namespace GunNRun
 			IsInAir = !m_IsGrounded;
 
 			// Movement
-			Vector2 velocity = new Vector2(0, m_RigidBody2D.Velocity.y);
+			Vector2 velocity = new Vector2(0, m_RigidBody2D.Velocity.Y);
 
 			if (m_PlayerInput.IsMoveRightKeyPressed)
 			{
@@ -56,16 +56,16 @@ namespace GunNRun
 				// Rotate it to right
 				m_Transform.Scale = Mathf.Abs(m_Transform.Scale);
 
-				velocity.x = m_PlayerManager.m_Speed;
+				velocity.X = m_PlayerManager.m_Speed;
 			}
 			if (m_PlayerInput.IsMoveLeftKeyPressed)
 			{
 				Direction = PlayerDirection.Left;
 
-				Vector3 rotatedScale = new Vector3(-Mathf.Abs(m_Transform.Scale.x), m_Transform.Scale.y, m_Transform.Scale.z);
+				Vector3 rotatedScale = new Vector3(-Mathf.Abs(m_Transform.Scale.X), m_Transform.Scale.Y, m_Transform.Scale.Z);
 				m_Transform.Scale = rotatedScale;
 
-				velocity.x = (-1) * m_PlayerManager.m_Speed;
+				velocity.X = (-1) * m_PlayerManager.m_Speed;
 			}
 
 			m_RigidBody2D.Velocity = velocity;
@@ -77,7 +77,7 @@ namespace GunNRun
 			/*	if (!other.Name.Contains("Ground"))
 					return;*/
 
-			if (m_RigidBody2D.Velocity.y < 0.0f)
+			if (m_RigidBody2D.Velocity.Y < 0.0f)
 			{
 				m_IsGrounded = true;
 			}
@@ -87,7 +87,7 @@ namespace GunNRun
 
 		internal void OnCollisionEnd(Entity other)
 		{
-			if (m_RigidBody2D.Velocity.x == 0.0f)
+			if (m_RigidBody2D.Velocity.X == 0.0f)
 			{
 				m_IsGrounded = false;
 			} 

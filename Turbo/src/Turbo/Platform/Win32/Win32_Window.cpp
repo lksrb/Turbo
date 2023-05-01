@@ -1,6 +1,7 @@
 #include "tbopch.h"
 
 #include "Win32_Window.h"
+#include "Win32_Utils.h"
 
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Core/Platform.h"
@@ -18,7 +19,6 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 
 namespace Turbo
 {
-
     LRESULT CALLBACK Win32_Window::Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         // User Interface
@@ -118,8 +118,8 @@ namespace Turbo
             case WM_RBUTTONDOWN:
             {
                 MouseCode button = -1;
-                i32 mouse_x = static_cast<i32>(GET_X_LPARAM(lParam));
-                i32 mouse_y = static_cast<i32>(GET_Y_LPARAM(lParam));
+                i32 mouseX = static_cast<i32>(GET_X_LPARAM(lParam));
+                i32 mouseY = static_cast<i32>(GET_Y_LPARAM(lParam));
 
                 if (wParam & MK_LBUTTON) { button = Mouse::ButtonLeft; }
                 if (wParam & MK_RBUTTON) { button = Mouse::ButtonRight; }
@@ -127,7 +127,7 @@ namespace Turbo
                 //if (uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONDBLCLK) { button = Mouse::Button2; }
                 //if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
 
-                MouseButtonPressedEvent e(button, mouse_x, mouse_y);
+                MouseButtonPressedEvent e(button, mouseX, mouseY);
                 m_Callback(e);
                 break;
             }
@@ -135,13 +135,13 @@ namespace Turbo
             case WM_RBUTTONUP:
             {
                 MouseCode button = -1;
-                i32 mouse_x = static_cast<i32>(GET_X_LPARAM(lParam));
-                i32 mouse_y = static_cast<i32>(GET_Y_LPARAM(lParam));
+                i32 mouseX = static_cast<i32>(GET_X_LPARAM(lParam));
+                i32 mouseY = static_cast<i32>(GET_Y_LPARAM(lParam));
 
                 if (wParam & MK_LBUTTON) { button = Mouse::ButtonLeft; }
                 if (wParam & MK_RBUTTON) { button = Mouse::ButtonRight; }
 
-                MouseButtonReleasedEvent e(button, mouse_x, mouse_y);
+                MouseButtonReleasedEvent e(button, mouseX, mouseY);
                 m_Callback(e);
                 break;
             }
@@ -235,26 +235,28 @@ namespace Turbo
             case WM_KEYUP:
             case WM_SYSKEYUP:
             {
-                if (wParam < 256) // [?] UTF-8
+                if (wParam < 256) // ?? 
                 {
                     bool isKeyDown = WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
-                    int key = (int)wParam;
+                    Win32Code key = (Win32Code)wParam;
 
-                    static i32 s_LastKey = -1;
-                    static i32 s_RepeatCounter = 1;
+                    static Win32Code s_LastKey = -1;
+                    static Win32Code s_RepeatCounter = 1;
 
                     s_RepeatCounter = s_LastKey == key ? s_RepeatCounter + 1 : 1;
                     s_LastKey = key;
 
+                    KeyCode keyCode = Utils::GetKeyCodeFromWin32Code(key);
+
                     if (isKeyDown)
                     {
-                        KeyPressedEvent e(static_cast<KeyCode>(key), s_RepeatCounter); // TODO: Repeat counter
+                        KeyPressedEvent e(keyCode, s_RepeatCounter); // TODO: Repeat counter
                         m_Callback(e);
                     }
                     else
                     {
                         s_LastKey = -1;
-                        KeyReleasedEvent e(static_cast<KeyCode>(key));
+                        KeyReleasedEvent e(keyCode);
                         m_Callback(e);
                     }
                 }

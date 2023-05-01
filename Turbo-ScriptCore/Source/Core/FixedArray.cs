@@ -3,31 +3,33 @@
 	public struct FixedArray<T>
 	{
 		private T[] m_Data;
-		private uint m_Index;
+		private uint m_Size;
+		private uint m_Capacity;
 
-		public FixedArray(uint size = 3)
+		public FixedArray(uint capacity = 3)
 		{
-			m_Data = new T[size];
-			m_Index = 0;
+			m_Data = new T[capacity];
+			m_Capacity = capacity;
+			m_Size = 0;
 		}
 
 		public void PushBack(T value)
 		{
-			if (m_Index >= m_Data.Length)
+			if (m_Size >= m_Capacity)
 			{
 				Log.Error("Overflowing the buffer!");
 				return;
 			}
 
-			m_Data[m_Index] = value;
-			m_Index++;
+			m_Data[m_Size] = value;
+			m_Size++;
 		}
 
 		public T this[uint index]
 		{
 			get
 			{
-				if (index >= m_Data.Length)
+				if (index >= m_Capacity)
 				{
 					Log.Error("Indexing outside of the buffer!");
 					return default;
@@ -36,7 +38,7 @@
 			}
 			set
 			{
-				if (index >= m_Data.Length)
+				if (index >= m_Capacity)
 				{
 					Log.Error("Indexing outside of the buffer!");
 					return;
@@ -46,6 +48,6 @@
 			}
 		}
 
-		public uint Length => m_Index;
+		public uint Length => m_Size;
 	}
 }

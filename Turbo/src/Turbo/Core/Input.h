@@ -8,11 +8,11 @@ namespace Turbo
     class Input
     {
     public:
-        static bool IsKeyPressed(KeyCode keycode);
-        static bool IsKeyReleased(KeyCode keycode);
+        static bool IsKeyPressed(const KeyCode keyCode);
+        static bool IsKeyReleased(const KeyCode keyCode);
 
-        static bool IsMouseButtonPressed(MouseCode mousecode);
-        static bool IsMouseButtonReleased(MouseCode mousecode);
+        static bool IsMouseButtonPressed(const MouseCode mouseCode);
+        static bool IsMouseButtonReleased(const MouseCode mouseCode);
 
         static i32 GetMouseX();
         static i32 GetMouseY();

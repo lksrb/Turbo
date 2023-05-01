@@ -15,6 +15,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Turbo/Core/Math.h"
+
 namespace Turbo
 {
     class Entity;
@@ -40,27 +42,24 @@ namespace Turbo
         IDComponent(const UUID& id) : ID(id) {}
     };
 
-/*
-    struct PrefabComponent
-    {
-        UUID EntityID = 0;
-        UUID 
-    };
-*/
-
     struct TransformComponent
     {
         glm::vec3 Translation{ 0.0f, 0.0f, 0.0f };
         glm::vec3 Rotation{ 0.0f, 0.0f, 0.0f };
         glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
 
-        glm::mat4 GetMatrix() const
+        glm::mat4 GetTransform() const
         {
             glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
 
             return glm::translate(glm::mat4(1.0f), Translation)
                 * rotation
                 * glm::scale(glm::mat4(1.0f), Scale);
+        }
+
+        void SetTransform(const glm::mat4& transform)
+        {
+            Math::DecomposeTransform(transform, Translation, Rotation, Scale);
         }
     };
 

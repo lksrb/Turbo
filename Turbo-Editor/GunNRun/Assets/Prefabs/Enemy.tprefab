@@ -1,0 +1,19 @@
+Prefab: 0
+Entities:
+  - Entity: 16305524439716860546
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Enemy
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: None
+    ScriptComponent:
+      ClassName: GunNRun.Enemy
+      Fields:
+        []

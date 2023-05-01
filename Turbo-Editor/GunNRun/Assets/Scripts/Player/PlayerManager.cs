@@ -12,6 +12,9 @@ namespace GunNRun
 		// ---- Player Animation ----
 		public float m_AnimationIdleSpeed = 0.0f;
 
+		private float m_OffsetX = 2.0f;
+		private float m_OffsetY = -0.25f;
+
 		// --------------------------
 		internal PlayerController m_PlayerController { get; private set; } = new PlayerController();
 		internal PlayerInput m_PlayerInput { get; private set; } = new PlayerInput();
@@ -20,10 +23,10 @@ namespace GunNRun
 		private void SpawnBullet()
 		{
 			Log.Info("Pew pew!"); 
-			Vector2 direction = new Vector2(Mathf.Sign(Transform.Scale.x), 0.0f);
+			Vector2 direction = new Vector2(Mathf.Sign(Transform.Scale.X), 0.0f);
 
 			Vector3 translation = Transform.Translation;
-			translation += new Vector3(direction.x * 2, -0.25f, 0);
+			translation += new Vector3(direction.X * m_OffsetX, m_OffsetY, 0);
 
 			Bullet bullet = Instantiate("Assets/Prefabs/Bullet.tprefab", translation).As<Bullet>();
 			bullet.SetDirection(direction);
@@ -36,7 +39,6 @@ namespace GunNRun
 			m_PlayerInput.Init(this);
 			m_PlayerAnimator.Init(this);
 			m_PlayerController.Init(this);
-		
 
 			OnCollisionBegin2D += m_PlayerController.OnCollisionBegin;
 			OnCollisionEnd2D += m_PlayerController.OnCollisionEnd;

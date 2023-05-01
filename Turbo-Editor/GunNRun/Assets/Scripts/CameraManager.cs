@@ -10,6 +10,7 @@ namespace GunNRun
 		private Entity m_PlayerEntity;
 		private Entity m_TopBoundary;
 		private Entity m_BottomBoundary;
+		private TransformComponent m_PlayerTransform;
 
 		protected override void OnCreate()
 		{
@@ -19,10 +20,12 @@ namespace GunNRun
 			m_TopBoundary = FindEntityByName("TopBoundary");
 			m_BottomBoundary = FindEntityByName("BottomBoundary");
 
+			m_PlayerTransform = m_PlayerEntity.Transform;
+
 			if (FollowsPlayer)
 			{
-				Log.Info($"Player transform: {m_PlayerEntity.Transform.Translation} ");
-				Transform.Translation = new Vector3(m_PlayerEntity.Transform.Translation.x, m_PlayerEntity.Transform.Translation.y, Transform.Translation.z);
+				Log.Info($"Player transform: {m_PlayerTransform} ");
+				Transform.Translation = new Vector3(m_PlayerTransform.Translation.XY, Transform.Translation.Z);
 			}
 
 		}
@@ -32,15 +35,15 @@ namespace GunNRun
 			// Camera moving
 			if (FollowsPlayer)
 			{
-				Vector3 playerTranslation = m_PlayerEntity.Transform.Translation;
+				Vector3 playerTranslation = m_PlayerTransform.Translation;
 
-				float topY = m_TopBoundary.Transform.Translation.y;
-				float bottomY = m_BottomBoundary.Transform.Translation.y;
+				float topY = m_TopBoundary.Transform.Translation.Y;
+				float bottomY = m_BottomBoundary.Transform.Translation.Y;
 
 				// This is the center offset
 				topY += -15f;
 				bottomY += 15f;
-				playerTranslation.y = Mathf.Clamp(playerTranslation.y, bottomY, topY);
+				playerTranslation.Y = Mathf.Clamp(playerTranslation.Y, bottomY, topY);
 
 				Transform.Translation = Mathf.Lerp(Transform.Translation, playerTranslation, LerpMagnifier * ts);
 			}

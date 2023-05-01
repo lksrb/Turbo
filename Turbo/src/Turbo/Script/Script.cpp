@@ -274,10 +274,11 @@ namespace Turbo
     void Script::InvokeEntityOnUpdate(Entity entity, FTime ts)
     {
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
-        bool isValidClassName = ScriptClassExists(script.ClassName);
+        UUID uuid = id.ID;
 
-        if (isValidClassName)
-            g_Data->ScriptInstances.at(id.ID)->InvokeOnUpdate(ts);
+        Ref<ScriptInstance> instance = FindEntityInstance(uuid);
+        if(instance)
+            instance->InvokeOnUpdate(ts);
     }
 
     void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor)

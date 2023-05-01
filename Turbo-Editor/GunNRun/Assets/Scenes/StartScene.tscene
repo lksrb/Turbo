@@ -248,7 +248,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [2, -1]
+      SpriteCoords: [3, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -339,6 +339,20 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 11291919825721931468
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: EnemyManager
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: GunNRun.EnemyManager
+      Fields:
+        []
   - Entity: 11890741624846825386
     Parent: 18351839713352600519
     Children:

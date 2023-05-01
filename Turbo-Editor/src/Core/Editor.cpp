@@ -375,7 +375,7 @@ namespace Turbo::Ed
                     {
                         SceneCamera sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
                         cameraProjection = sceneCamera.GetProjection();
-                        cameraView = glm::inverse(cameraEntity.Transform().GetMatrix());
+                        cameraView = glm::inverse(cameraEntity.Transform().GetTransform());
                     }
                 }
                 ImGuizmo::SetOrthographic(false);
@@ -385,7 +385,7 @@ namespace Turbo::Ed
 
                 // Entity transform
                 auto& transformComponent = selectedEntity.Transform();
-                glm::mat4 transform = transformComponent.GetMatrix();
+                glm::mat4 transform = transformComponent.GetTransform();
 
                 // Snapping
                 bool snap = Input::IsKeyPressed(Key::LeftControl);
