@@ -407,4 +407,5 @@ Turbo-Editor/assets/Shaders/cached/
 *.vert
 Turbo-Editor/memoryleaks.txt
 Turbo-Editor/SandboxProject/Binaries/
-
+Turbo-Editor/GunNRun/Binaries/
+memoryleaks.txt
