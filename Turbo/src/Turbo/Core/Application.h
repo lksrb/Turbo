@@ -36,8 +36,6 @@ namespace Turbo
         virtual void OnEvent(Event& event) {};
         virtual void OnDrawUI() {}
     protected:
-        Turbo::Engine* Engine = nullptr;
-        Turbo::Window* Window = nullptr;
         Turbo::Time Time;
 
         Application::Config m_Config;

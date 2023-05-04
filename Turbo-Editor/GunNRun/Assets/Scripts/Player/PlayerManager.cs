@@ -2,6 +2,13 @@ using Turbo;
 
 namespace GunNRun
 {
+	public enum PhysicsCategory : ushort
+	{
+		Player,
+		Enemy,
+		Wall
+	}
+
 	public class PlayerManager : Entity
 	{
 		// ---- Player Controller ----
@@ -40,8 +47,8 @@ namespace GunNRun
 			m_PlayerAnimator.Init(this);
 			m_PlayerController.Init(this);
 
-			OnCollisionBegin2D += m_PlayerController.OnCollisionBegin;
-			OnCollisionEnd2D += m_PlayerController.OnCollisionEnd;
+			//var boxCollider = GetComponent<BoxCollider2DComponent>();
+			//boxCollider.CollisionCategory = PhysicsCategory.Player;
 		}
 
 		protected override void OnUpdate(float ts)

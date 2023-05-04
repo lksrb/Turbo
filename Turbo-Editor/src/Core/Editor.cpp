@@ -26,7 +26,7 @@
 #define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
 
 #ifdef TBO_PLATFORM_WIN32
-#define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
+    #define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
 #endif
 
 namespace Turbo::Ed
@@ -273,7 +273,7 @@ namespace Turbo::Ed
 
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
-            Engine->GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+            Engine::Get().GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
             ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
             ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -370,7 +370,7 @@ namespace Turbo::Ed
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
                 if (m_SceneMode == Mode::ScenePlay)
                 {
-                    Entity cameraEntity = m_RuntimeScene->GetPrimaryCameraEntity();
+                    Entity cameraEntity = m_RuntimeScene->FindPrimaryCameraEntity();
                     if (cameraEntity)
                     {
                         SceneCamera sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
@@ -761,7 +761,7 @@ namespace Turbo::Ed
 
         const std::string& sceneName = m_EditorScenePath.stem().string();
         const std::string& title = fmt::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), sceneName);
-        Window->SetTitle(title.data());
+        Engine::Get().GetViewportWindow()->SetTitle(title.data());
     }
 
     void Editor::OnViewportResize(u32 width, u32 height)

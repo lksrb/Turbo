@@ -42,10 +42,10 @@ namespace Turbo
         using FileEvent = u32;
         using Callback = std::function<void(std::filesystem::path, FileWatcher::FileEvent)>;
 
-        FileWatcher(NotifyEvent events, bool search_tree, const Callback& callback);
+        FileWatcher(NotifyEvent events, bool searchTree, const Callback& callback);
         ~FileWatcher();
 
-        void Watch(const std::filesystem::path& watch_path);
+        void Watch(const std::filesystem::path& watchPath);
 
         void StopWatching();
     private:

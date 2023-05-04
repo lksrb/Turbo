@@ -33,13 +33,18 @@ namespace Turbo
     {
         UUID Parent = 0;
         std::vector<UUID> Children;
+
+        RelationshipComponent() = default;
+        RelationshipComponent(const RelationshipComponent&) = default;
     };
 
     struct IDComponent
     {
         UUID ID;
 
+        IDComponent() = default;
         IDComponent(const UUID& id) : ID(id) {}
+        IDComponent(const IDComponent&) = default;
     };
 
     struct TransformComponent
@@ -48,7 +53,10 @@ namespace Turbo
         glm::vec3 Rotation{ 0.0f, 0.0f, 0.0f };
         glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
 
-        glm::mat4 GetTransform() const
+        TransformComponent() = default;
+        TransformComponent(const TransformComponent&) = default;
+
+        inline glm::mat4 GetTransform() const
         {
             glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
 
@@ -57,7 +65,7 @@ namespace Turbo
                 * glm::scale(glm::mat4(1.0f), Scale);
         }
 
-        void SetTransform(const glm::mat4& transform)
+        inline void SetTransform(const glm::mat4& transform)
         {
             Math::DecomposeTransform(transform, Translation, Rotation, Scale);
         }
@@ -70,11 +78,17 @@ namespace Turbo
         bool Spatial = false;
         bool PlayOnStart = true;
         bool Loop = false;
+
+        AudioSourceComponent() = default;
+        AudioSourceComponent(const AudioSourceComponent&) = default;
     };
 
     struct AudioListenerComponent
     {
         bool IsPrimary = true;
+
+        AudioListenerComponent() = default;
+        AudioListenerComponent(const AudioListenerComponent&) = default;
     };
 
     struct CameraComponent
@@ -82,6 +96,18 @@ namespace Turbo
         SceneCamera Camera;
         bool IsPrimary = true;
         bool FixedAspectRatio = false;
+
+        CameraComponent() = default;
+        CameraComponent(const CameraComponent&) = default;
+    };
+
+    struct CategoryComponent
+    {
+        u16 Category = 0x0001;
+        u16 Mask = 0xFFFF;
+
+        CategoryComponent() = default;
+        CategoryComponent(const CategoryComponent&) = default;
     };
 
     struct SpriteRendererComponent
@@ -89,6 +115,9 @@ namespace Turbo
         glm::vec4 Color{ 1.0f };
         f32 Tiling = 1.0f;
         Ref<SubTexture2D> SubTexture;
+
+        SpriteRendererComponent() = default;
+        SpriteRendererComponent(const SpriteRendererComponent&) = default;
     };
 
     struct CircleRendererComponent
@@ -96,6 +125,9 @@ namespace Turbo
         glm::vec4 Color{ 1.0f };
         f32 Thickness = 1.0f;
         f32 Fade = 0.005f;
+
+        CircleRendererComponent() = default;
+        CircleRendererComponent(const CircleRendererComponent&) = default;
     };
 
     struct TextComponent
@@ -105,14 +137,21 @@ namespace Turbo
         f32 KerningOffset = 0.0f;
         f32 LineSpacing = 0.0f;
         Ref<Font> FontAsset = Font::GetDefaultFont();
+
+        TextComponent() = default;
+        TextComponent(const TextComponent&) = default;
     };
 
     struct ScriptComponent
     {
         std::string ClassName;
+
+        ScriptComponent() = default;
+        ScriptComponent(const std::string& className) : ClassName(className) {};
+        ScriptComponent(const ScriptComponent&) = default;
     };
 
-    // Physics
+    // Physics 2D
     struct Rigidbody2DComponent
     {
         enum class BodyType : u32 { Static = 0, Dynamic, Kinematic };
@@ -121,10 +160,13 @@ namespace Turbo
         f32 GravityScale = 1.0f;
         bool Enabled = true;
         bool ContactEnabled = true;
-        bool IsBullet = false;
+        bool IsBullet = false; // Continous collision detection
 
         // Storage for runtime
         void* RuntimeBody = nullptr;
+
+        Rigidbody2DComponent() = default;
+        Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
     };
 
     struct BoxCollider2DComponent
@@ -137,6 +179,9 @@ namespace Turbo
         f32 Restitution = 0.0f;
         f32 RestitutionThreshold = 0.5f;
         bool IsSensor = false;
+
+        BoxCollider2DComponent() = default;
+        BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
     };
 
     struct CircleCollider2DComponent
@@ -149,6 +194,9 @@ namespace Turbo
         f32 Restitution = 0.0f;
         f32 RestitutionThreshold = 0.5f;
         bool IsSensor = false;
+
+        CircleCollider2DComponent() = default;
+        CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
     };
 
     template<typename... Components>

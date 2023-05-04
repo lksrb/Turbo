@@ -9,8 +9,6 @@
 
 namespace Turbo
 {
-    extern Script::Data* g_Data;
-
     ScriptClass::ScriptClass(MonoClass* klass, Ref<ScriptClass> base_class)
         : m_MonoClass(klass), m_BaseClass(base_class)
     {
@@ -19,7 +17,8 @@ namespace Turbo
     ScriptClass::ScriptClass(const std::string& nameSpace, const std::string& className, Ref<ScriptClass> baseClas)
         : m_BaseClass(baseClas)
     {
-        m_MonoClass = mono_class_from_name(g_Data->ScriptCoreAssemblyImage, nameSpace.c_str(), className.c_str());
+        m_MonoClass = mono_class_from_name(Script::GetCoreAssemblyImage(), nameSpace.c_str(), className.c_str());
+        m_Size = (u64)mono_class_instance_size(m_MonoClass);
     }
 
 	ScriptClass::~ScriptClass()
@@ -47,5 +46,4 @@ namespace Turbo
             mono_free(cstring);
         }
     }
-
 }

@@ -34,15 +34,13 @@ namespace Turbo
         {
             TBO_ENGINE_ASSERT(!HasComponent<Component>(), "Entity already has this component!");
             Component& component = m_Scene->m_Registry.emplace<Component>(m_Handle, std::forward<Args>(args)...);
-            m_Scene->OnComponentAdded<Component>(*this, component);
             return component;
         }
 
         template<typename Component, typename... Args>
-        Component& AddCustomComponent(Args&&... args)
+        Component& ReplaceCompoment(Args&&... args)
         {
-            TBO_ENGINE_ASSERT(!HasComponent<Component>(), "Entity already has this component!");
-            Component& component = m_Scene->m_Registry.emplace<Component>(m_Handle, std::forward<Args>(args)...);
+            Component& component = m_Scene->m_Registry.replace<Component>(m_Handle, std::forward<Args>(args)...);
             return component;
         }
 
@@ -50,7 +48,6 @@ namespace Turbo
         Component& AddOrReplaceComponent(Args&&... args)
         {
             Component& component = m_Scene->m_Registry.emplace_or_replace<Component>(m_Handle, std::forward<Args>(args)...);
-            m_Scene->OnComponentAdded<Component>(*this, component);
             return component;
         }
 

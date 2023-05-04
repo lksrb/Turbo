@@ -2,6 +2,8 @@
 #include "InternalCalls.h"
 
 #include "Script.h"
+#include "ScriptInstance.h"
+
 #include "Turbo/Physics/Physics2D.h"
 
 #include "Turbo/Asset/AssetManager.h"
@@ -20,8 +22,6 @@
 
 namespace Turbo
 {
-    extern Script::Data* g_Data;
-
     // =============================================================================
     //                                  Application                                   
     // =============================================================================
@@ -130,7 +130,7 @@ namespace Turbo
     static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
     {
         Scene* context = Script::GetCurrentScene();
-        Entity entity = context->GetPrimaryCameraEntity();
+        Entity entity = context->FindPrimaryCameraEntity();
         TBO_ENGINE_ASSERT(entity);
 
         const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
@@ -149,7 +149,7 @@ namespace Turbo
     static void Scene_WorldToScreenPosition(glm::vec3 worldPosition, glm::vec2* screenPosition) // FIXME: Raycasting
     {
         Scene* context = Script::GetCurrentScene();
-        Entity entity = context->GetPrimaryCameraEntity();
+        Entity entity = context->FindPrimaryCameraEntity();
         TBO_ENGINE_ASSERT(entity);
 
         const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
@@ -202,7 +202,7 @@ namespace Turbo
         Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
         TBO_ENGINE_ASSERT(instance);
 
-        return instance->GetInstance();
+        return instance->GetMonoInstance();
     }
     static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflectionType)
     {
@@ -230,17 +230,29 @@ namespace Turbo
         s_EntityAddComponentFuncs.at(componentType)(entity);
     }
 
-    static void Entity_AttachScript(u64 uuid, MonoString* className)
+    static MonoArray* Entity_Get_Children(u64 uuid)
     {
         Scene* context = Script::GetCurrentScene();
+
         Entity entity = context->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
-        char* cString = mono_string_to_utf8(className);
+        MonoDomain* appDomain = Script::GetAppDomain();
+        Ref<ScriptClass> entityClass = Script::GetEntityBaseClass();
 
-        // This will add script component and instantiantes it
-        entity.AddComponent<ScriptComponent>(cString);
-        mono_free(cString);
+        const auto& children = entity.GetChildren();
+
+        // Create an array of Entity refs
+        MonoArray* monoArray = mono_array_new(appDomain, entityClass->GetMonoClass(), children.size());
+
+        // Allocate new entities
+        for (uintptr_t i = 0; i < children.size(); i++)
+        {
+            Ref<ScriptInstance> instance = Ref<ScriptInstance>::Create(entityClass, children[i]);
+            mono_array_setref(monoArray, i, instance->GetMonoInstance());
+        }
+
+        return monoArray;
     }
 
     static MonoString* Entity_Get_Name(UUID uuid)
@@ -250,7 +262,9 @@ namespace Turbo
         Entity entity = context->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
-        MonoString* monoString = mono_string_new(g_Data->AppDomain, entity.GetName().c_str());
+        MonoDomain* appDomain = Script::GetAppDomain();
+
+        MonoString* monoString = mono_string_new(appDomain, entity.GetName().c_str());
         TBO_ENGINE_ASSERT(monoString);
         return monoString;
     }
@@ -267,6 +281,12 @@ namespace Turbo
 
         if (AssetManager::DeserializePrefab(prefabPath, entity))
         {
+            // Create physics body 2D
+            if (entity.HasComponent<Rigidbody2DComponent>())
+            {
+
+            }
+
             // Call Entity::OnCreate method
             if (entity.HasComponent<ScriptComponent>() && context->IsRunning())
             {
@@ -421,9 +441,11 @@ namespace Turbo
 
         Entity entity = context->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
+        
+        MonoDomain* appDomain = Script::GetAppDomain();
 
         const std::string& text = entity.GetComponent<TextComponent>().Text;
-        MonoString* monoString = mono_string_new(g_Data->AppDomain, text.c_str());
+        MonoString* monoString = mono_string_new(appDomain, text.c_str());
         return monoString;
     }
 #pragma endregion
@@ -693,28 +715,8 @@ namespace Turbo
 
         bc2d.Offset = *offset;
 
-        if (entity.HasComponent<Rigidbody2DComponent>())
-        {
-            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-            b2Body* body = (b2Body*)rb2d.RuntimeBody;
-            body->DestroyFixture(body->GetFixtureList());
-
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(bc2d.Size.x * glm::abs(transform.Scale.x), bc2d.Size.y * glm::abs(transform.Scale.y), b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
-            b2FixtureDef fixtureDef;
-            fixtureDef.shape = &boxShape;
-            fixtureDef.density = bc2d.Density;
-            fixtureDef.friction = bc2d.Friction;
-            fixtureDef.restitution = bc2d.Restitution;
-            fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-            fixtureDef.isSensor = bc2d.IsSensor;
-            b2FixtureUserData data;
-            data.pointer = (u64)entity.GetUUID();
-            fixtureDef.userData = data;
-            //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
-            //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
-            body->CreateFixture(&fixtureDef);
-        }
+        // Destroys old fixture and replaces it with new one
+        entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
     }
 
     // Size
@@ -742,28 +744,8 @@ namespace Turbo
 
         bc2d.Size = *size;
 
-        if (entity.HasComponent<Rigidbody2DComponent>())
-        {
-            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-            b2Body* body = (b2Body*)rb2d.RuntimeBody;
-            body->DestroyFixture(body->GetFixtureList());
-
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(bc2d.Size.x * glm::abs(transform.Scale.x), bc2d.Size.y * glm::abs(transform.Scale.y), b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
-            b2FixtureDef fixtureDef;
-            fixtureDef.shape = &boxShape;
-            fixtureDef.density = bc2d.Density;
-            fixtureDef.friction = bc2d.Friction;
-            fixtureDef.restitution = bc2d.Restitution;
-            fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-            fixtureDef.isSensor = bc2d.IsSensor;
-            b2FixtureUserData data;
-            data.pointer = (u64)entity.GetUUID();
-            fixtureDef.userData = data;
-            //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
-            //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
-            body->CreateFixture(&fixtureDef);
-        }
+        // Destroys old fixture and replaces it with new one
+        entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
     }
 
     // Sensor
@@ -843,7 +825,7 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Entity_Get_Name);
         TBO_REGISTER_FUNCTION(Entity_Has_Component);
         TBO_REGISTER_FUNCTION(Entity_Add_Component);
-        TBO_REGISTER_FUNCTION(Entity_AttachScript);
+        TBO_REGISTER_FUNCTION(Entity_Get_Children);
 
         // Prefab
         TBO_REGISTER_FUNCTION(Entity_InstantiatePrefabWithTranslation);
@@ -929,7 +911,7 @@ namespace Turbo
             std::string_view structName = typeName.substr(pos + 1);
             std::string managedTypename = fmt::format("Turbo.{}", structName);
 
-            MonoType* type = mono_reflection_type_from_name(managedTypename.data(), g_Data->ScriptCoreAssemblyImage);
+            MonoType* type = mono_reflection_type_from_name(managedTypename.data(), Script::GetCoreAssemblyImage());
             if (!type)
             {
                 TBO_ENGINE_ERROR("Could not find component type {0}", managedTypename);

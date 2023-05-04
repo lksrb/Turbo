@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Turbo/Core/Common.h"
-
 #include "Turbo/Scene/Scene.h"
 
 namespace YAML
@@ -26,7 +25,6 @@ namespace Turbo
         static void SerializeEntity(YAML::Emitter& out, Entity entity);
         static void DeserializeEntity(YAML::Node& entity, Entity deserializedEntity, bool overwriteTranslation = true);
     private:
-
         Ref<Scene> m_Scene;
     };
 }

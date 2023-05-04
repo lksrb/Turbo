@@ -31,6 +31,10 @@ namespace GunNRun
 
 			m_RigidBody2D = m_PlayerManager.GetComponent<Rigidbody2DComponent>();
 			m_Transform = m_PlayerManager.Transform;
+
+			// Set callbacks
+			m_PlayerManager.OnCollisionBegin2D += OnCollisionBegin;
+			m_PlayerManager.OnCollisionEnd2D += OnCollisionEnd;
 		}
 
 		internal void OnUpdate(float ts)
@@ -71,11 +75,11 @@ namespace GunNRun
 			m_RigidBody2D.Velocity = velocity;
 		}
 
-		internal void OnCollisionBegin(Entity other)
+		private void OnCollisionBegin(Entity other)
 		{
 			// Simple filtering
-			/*	if (!other.Name.Contains("Ground"))
-					return;*/
+			if (!FilterCollision(other))
+				return;
 
 			if (m_RigidBody2D.Velocity.Y < 0.0f)
 			{
@@ -85,12 +89,21 @@ namespace GunNRun
 			Log.Info($"{m_RigidBody2D.Velocity}");
 		}
 
-		internal void OnCollisionEnd(Entity other)
+		private void OnCollisionEnd(Entity other)
 		{
+			if (!FilterCollision(other))
+				return;
+
 			if (m_RigidBody2D.Velocity.X == 0.0f)
 			{
 				m_IsGrounded = false;
-			} 
+			}
 		}
+		
+		private bool FilterCollision(Entity entity)
+		{
+			return entity.Name.Contains("Hitbox-Horizontal");
+		}
+
 	}
 }

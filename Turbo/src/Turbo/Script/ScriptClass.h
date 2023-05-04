@@ -22,9 +22,13 @@ namespace Turbo
 
         const ScriptFields& GetFields() const { return m_ScriptFields; }
 
+        u64 GetSize() const { return m_Size; }
+
         Ref<ScriptClass> GetBaseClass() const { return m_BaseClass; }
     private:
         ScriptFields m_ScriptFields;
+        
+        u64 m_Size = 0;
 
         Ref<ScriptClass> m_BaseClass;
         MonoClass* m_MonoClass;

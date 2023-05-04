@@ -13,6 +13,14 @@
 
 namespace Turbo
 {
+    const uint16_t CATEGORY_PLAYER = 0x0003;
+    const uint16_t CATEGORY_ENEMY = 0x0002;
+    const uint16_t CATEGORY_WALL = 0x0004;
+
+    // Define group index for players and enemies
+    const int PLAYER_GROUP_INDEX = -1;
+    const int ENEMY_GROUP_INDEX = -2;
+
     namespace Utils
     {
         template<typename... Components>
@@ -125,10 +133,25 @@ namespace Turbo
     {
         m_SceneEntity = m_Registry.create();
         m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
+
+        m_Registry.on_construct<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentConstruct>(this);
+        m_Registry.on_destroy<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
+        m_Registry.on_construct<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentConstruct>(this);
+        m_Registry.on_update<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentUpdate>(this);
+        m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
+        m_Registry.on_construct<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentConstruct>(this);
+        m_Registry.on_destroy<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentDestroy>(this);
     }
 
     Scene::~Scene()
     {
+        m_Registry.clear();
+
+        m_Registry.on_construct<ScriptComponent>().disconnect(this);
+        m_Registry.on_destroy<ScriptComponent>().disconnect(this);
+
+        m_Registry.on_construct<Rigidbody2DComponent>().disconnect();
+        m_Registry.on_destroy<Rigidbody2DComponent>().disconnect();
     }
 
     void Scene::OnEditorUpdate(FTime ts)
@@ -233,15 +256,16 @@ namespace Turbo
         m_PrimaryCameraEntity = FindPrimaryCameraEntity();
 
         // Physics 2D
-        {
-            auto& world = m_Registry.emplace<Box2DWorldComponent>(m_SceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f })).World;
-            world->SetContactListener(&s_ContactListener);
+        auto& world = m_Registry.emplace<Box2DWorldComponent>(m_SceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f })).World;
+        world->SetContactListener(&s_ContactListener);
 
+        {
             auto& view = GetAllEntitiesWith<Rigidbody2DComponent>();
             for (auto e : view)
             {
                 Entity entity = { e, this };
-                auto& transform = entity.GetComponent<TransformComponent>();
+                auto& transform = entity.Transform();
+
                 auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
                 // Copy position from transform component
@@ -255,52 +279,78 @@ namespace Turbo
                 body->SetFixedRotation(rb2d.FixedRotation);
                 body->SetEnabled(rb2d.Enabled);
                 body->SetGravityScale(rb2d.GravityScale);
-                //body->SetBullet(rb2d.IsBullet);
-                body->SetBullet(true);
+                body->SetBullet(rb2d.IsBullet);
 
                 rb2d.RuntimeBody = body;
-                if (entity.HasComponent<BoxCollider2DComponent>())
-                {
-                    auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+            }
+        }
 
-                    b2PolygonShape boxShape;
-                    boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
-                    b2FixtureDef fixtureDef;
-                    fixtureDef.shape = &boxShape;
-                    fixtureDef.density = bc2d.Density;
-                    fixtureDef.friction = bc2d.Friction;
-                    fixtureDef.restitution = bc2d.Restitution;
-                    fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-                    fixtureDef.isSensor = bc2d.IsSensor;
-                    b2FixtureUserData data;
-                    data.pointer = (u64)entity.GetUUID();
-                    fixtureDef.userData = data;
-                    //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
-                    //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
-                    body->CreateFixture(&fixtureDef);
+        {
+            auto& view = GetAllEntitiesWith<BoxCollider2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+
+                auto& transform = entity.Transform();
+                auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+                TBO_ENGINE_ASSERT(entity.HasComponent<Rigidbody2DComponent>());
+                b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+
+                b2PolygonShape boxShape;
+                boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+                b2FixtureDef fixtureDef;
+                fixtureDef.shape = &boxShape;
+                fixtureDef.density = bc2d.Density;
+                fixtureDef.friction = bc2d.Friction;
+                fixtureDef.restitution = bc2d.Restitution;
+                fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+                fixtureDef.isSensor = bc2d.IsSensor;
+                b2FixtureUserData data;
+                data.pointer = (u64)entity.GetUUID();
+                fixtureDef.userData = data;
+             /*   if(entity.GetName() == "Player") {
+                    fixtureDef.filter.categoryBits = CATEGORY_PLAYER;
+                    fixtureDef.filter.maskBits = CATEGORY_WALL;
+                    fixtureDef.filter.groupIndex = 0;
                 }
-                else if (entity.HasComponent<CircleCollider2DComponent>())
+                else if (entity.GetName() == "Hitbox-Horizontal")
                 {
-                    auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+                    fixtureDef.filter.categoryBits = CATEGORY_WALL;
+                    fixtureDef.filter.maskBits = CATEGORY_ENEMY | CATEGORY_PLAYER;
+                    fixtureDef.filter.groupIndex = 0;
+                }*/
+                body->CreateFixture(&fixtureDef);
+            }
+        }
 
-                    b2CircleShape circleShape;
-                    circleShape.m_radius = transform.Scale.x * cc2d.Radius;
-                    circleShape.m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
+        {
+            auto& view = GetAllEntitiesWith<CircleCollider2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
 
-                    b2FixtureDef fixtureDef;
-                    fixtureDef.shape = &circleShape;
-                    fixtureDef.density = cc2d.Density;
-                    fixtureDef.friction = cc2d.Friction;
-                    fixtureDef.restitution = cc2d.Restitution;
-                    fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
-                    fixtureDef.isSensor = cc2d.IsSensor;
-                    b2FixtureUserData data;
-                    data.pointer = (u64)entity.GetUUID();
-                    fixtureDef.userData = data;
-                    //fixtureDef.filter.categoryBits = cc2d.CategoryBits; // <- Is that category
-                    //fixtureDef.filter.maskBits = cc2d.MaskBits;		// <- Collides with other categories
-                    body->CreateFixture(&fixtureDef);
-                }
+                auto& transform = entity.Transform();
+                auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+                TBO_ENGINE_ASSERT(entity.HasComponent<Rigidbody2DComponent>());
+                b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+
+                b2CircleShape circleShape;
+                circleShape.m_radius = transform.Scale.x * cc2d.Radius;
+                circleShape.m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
+
+                b2FixtureDef fixtureDef;
+                fixtureDef.shape = &circleShape;
+                fixtureDef.density = cc2d.Density;
+                fixtureDef.friction = cc2d.Friction;
+                fixtureDef.restitution = cc2d.Restitution;
+                fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
+                fixtureDef.isSensor = cc2d.IsSensor;
+                b2FixtureUserData data;
+                data.pointer = (u64)entity.GetUUID();
+                fixtureDef.userData = data;
+                //fixtureDef.filter.categoryBits = cc2d.CategoryBits; // <- Is that category
+                //fixtureDef.filter.maskBits = cc2d.MaskBits;		// <- Collides with other categories
+                body->CreateFixture(&fixtureDef);
             }
         }
 
@@ -457,97 +507,95 @@ namespace Turbo
 
     void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
     {
+        Entity cameraEntity = FindPrimaryCameraEntity();
+
+        if (!cameraEntity)
+            return;
+
+        SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+        camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
+
         renderer->BeginRender();
-
-        m_PrimaryCameraEntity = FindPrimaryCameraEntity();
-        Entity cameraEntity = { m_PrimaryCameraEntity, this };
-
 
         // 2D Rendering
         {
             Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
+            renderer2d->Begin2D(camera);
 
-            // Camera does exists
-            if (cameraEntity)
+            // Sprites
             {
-                SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-                camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
+                auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
-                renderer2d->Begin2D(camera);
-                // Sprites
+                for (auto entity : view)
                 {
-                    auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
+                    auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                    for (auto entity : view)
-                    {
-                        auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                        renderer2d->DrawSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
-                    }
+                    renderer2d->DrawSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
                 }
-
-                // Circles
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                        renderer2d->DrawCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
-                    }
-                }
-
-                // Text
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
-                        renderer2d->DrawString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
-                    }
-                }
-
-                // Debug lines
-                if (ShowPhysics2DColliders)
-                {
-                    f32 zOffset = camera.GetProjectionType() == Camera::ProjectionType::Perspective ? 0.001f : 0.0f; // TODO: Think about this
-
-                    // Box collider
-                    auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                    for (auto entity : bview)
-                    {
-                        auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
-
-                        glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
-
-                        glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), transform.Translation)
-                            * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
-                            * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, zOffset))
-                            * glm::scale(glm::mat4(1.0f), scale);
-
-                        renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-                    }
-
-                    // Circle collider
-                    auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                    for (auto entity : cview)
-                    {
-                        auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
-
-                        const glm::vec3& translation = transform.Translation + glm::vec3(cc2d.Offset, zOffset);
-                        const glm::vec3& scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
-
-                        const glm::mat4& offsetTransform =
-                            glm::translate(glm::mat4(1.0f), translation) *
-                            glm::scale(glm::mat4(1.0f), scale);
-
-                        renderer2d->DrawCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035, 0.005f, (i32)entity);
-                    }
-                }
-
-                renderer2d->End2D();
             }
+
+            // Circles
+            {
+                auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                    renderer2d->DrawCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                }
+            }
+
+            // Text
+            {
+                auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
+
+                for (auto entity : view)
+                {
+                    auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+                    renderer2d->DrawString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                }
+            }
+
+            // Debug lines
+            if (ShowPhysics2DColliders)
+            {
+                f32 zOffset = camera.GetProjectionType() == Camera::ProjectionType::Perspective ? 0.001f : 0.0f; // TODO: Think about this
+
+                // Box collider
+                auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+                for (auto entity : bview)
+                {
+                    auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+                    glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+
+                    glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), transform.Translation)
+                        * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
+                        * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, zOffset))
+                        * glm::scale(glm::mat4(1.0f), scale);
+
+                    renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                }
+
+                // Circle collider
+                auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+                for (auto entity : cview)
+                {
+                    auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+                    glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, zOffset);
+                    glm::vec3 scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
+
+                    const glm::mat4& offsetTransform =
+                        glm::translate(glm::mat4(1.0f), translation) *
+                        glm::scale(glm::mat4(1.0f), scale);
+
+                    renderer2d->DrawCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035, 0.005f, (i32)entity);
+                }
+            }
+
+            renderer2d->End2D();
         }
 
         renderer->EndRender();
@@ -657,7 +705,7 @@ namespace Turbo
         }
     }
 
-    entt::entity Scene::FindPrimaryCameraEntity()
+    Entity Scene::FindPrimaryCameraEntity()
     {
         // Find entity with camera component
         auto& cameraComponentView = GetAllEntitiesWith<CameraComponent>();
@@ -668,10 +716,11 @@ namespace Turbo
             if (camera.IsPrimary)
             {
                 // First primary camera wins
-                return entity;
+                m_PrimaryCameraEntity = entity;
+                return { m_PrimaryCameraEntity, this };
             }
         }
-        return entt::null;
+        return {};
     }
 
     Entity Scene::FindPrimaryAudioListenerEntity()
@@ -700,13 +749,6 @@ namespace Turbo
 
             if (entity.HasComponent<ScriptComponent>())
                 Script::DestroyScriptInstance(entity);
-
-            if (m_Running && entity.HasComponent<Rigidbody2DComponent>())
-            {
-                auto& world = m_Registry.get<Box2DWorldComponent>(m_SceneEntity).World;
-                b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
-                world->DestroyBody(body);
-            }
 
             m_EntityIDMap.erase(entity.GetUUID());
             m_Registry.destroy(entity);
@@ -739,79 +781,15 @@ namespace Turbo
         return Entity{};
     }
 
-    Entity Scene::GetPrimaryCameraEntity()
-    {
-        return Entity{ m_PrimaryCameraEntity, this };
-    }
+    // ---- EnTT callbacks ----
 
-    // Events ------------------------------------------------------------------------------------
-
-    template<typename T>
-    void Scene::OnComponentAdded(Entity entity, T& component)
-    {
-        static_assert(sizeof(T) == 0);
-    }
-
-    template<>
-    void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
-    {
-        if (m_ViewportWidth > 0 && m_ViewportHeight > 0)
-            component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-    }
-
-    template<>
-    void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<TextComponent>(Entity entity, TextComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<AudioSourceComponent>(Entity entity, AudioSourceComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<AudioListenerComponent>(Entity entity, AudioListenerComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component)
+    void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
         if (!m_Running)
             return;
 
-        auto& transform = entity.GetComponent<TransformComponent>();
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        auto& transform = registry.get<TransformComponent>(entity);
+        auto& rb2d = registry.get<Rigidbody2DComponent>(entity);
         auto& world = m_Registry.get<Box2DWorldComponent>(m_SceneEntity).World;
 
         // Copy position from transform component
@@ -825,19 +803,43 @@ namespace Turbo
         body->SetFixedRotation(rb2d.FixedRotation);
         body->SetEnabled(rb2d.Enabled);
         body->SetGravityScale(rb2d.GravityScale);
-        body->SetBullet(true);
+        body->SetBullet(rb2d.IsBullet);
         rb2d.RuntimeBody = body;
+
+        // TODO: Box or circle collider components already exists => use them to create colliders for b2Body aswell
     }
 
-    template<>
-    void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
+    // On replacing component
+    void Scene::OnBoxCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running || !entity.HasComponent<Rigidbody2DComponent>())
+        if (!m_Running)
             return;
 
-        auto& transform = entity.GetComponent<TransformComponent>();
-        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-        b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+        // Destroys original box collider
+        OnBoxCollider2DComponentDestroy(registry, entity);
+
+        // Create new one
+        OnBoxCollider2DComponentConstruct(registry, entity);
+    }
+
+    void Scene::OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        if (!m_Running)
+            return;
+
+        auto& world = registry.get<Box2DWorldComponent>(m_SceneEntity).World;
+        b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
+        world->DestroyBody(body);
+    }
+
+    void Scene::OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
+    {
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+            return;
+
+        auto& transform = registry.get<TransformComponent>(entity);
+        auto& bc2d = registry.get<BoxCollider2DComponent>(entity);
+        b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
 
         b2PolygonShape boxShape;
         boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
@@ -849,20 +851,97 @@ namespace Turbo
         fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
         fixtureDef.isSensor = bc2d.IsSensor;
         b2FixtureUserData data;
-        data.pointer = (u64)entity.GetUUID();
+        data.pointer = (u64)registry.get<IDComponent>(entity).ID;
         fixtureDef.userData = data;
-        //fixtureDef.filter.categoryBits = bc2d.CategoryBits; // <- Is that category
-        //fixtureDef.filter.maskBits = bc2d.MaskBits;		// <- Collides with other categories
+        //fixtureDef.filter.categoryBits = bc2d.Category;
+        //fixtureDef.filter.maskBits = bc2d.Mask;
+        //fixtureDef.filter.groupIndex = 0;
         body->CreateFixture(&fixtureDef);
     }
 
-    template<>
-    void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
+    void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
     {
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+            return;
+
+        auto& transform = registry.get<TransformComponent>(entity);
+        b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
+
+        // Iterate through the fixture list and destroy everything that is polygon shaped
+        b2Fixture* fixture = body->GetFixtureList();
+        while (fixture != nullptr)
+        {
+            b2Fixture* nextFixture = fixture->GetNext();
+
+            b2Shape* shape = fixture->GetShape();
+
+            if (shape->GetType() == b2Shape::e_polygon)
+                body->DestroyFixture(fixture);
+
+            fixture = nextFixture;
+        }
     }
 
-    template<>
-    void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
+    void Scene::OnCircleCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+            return;
+
+        auto& transform = registry.get<TransformComponent>(entity);
+        auto& cc2d = registry.get<CircleCollider2DComponent>(entity);
+        b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
+
+        b2CircleShape circleShape;
+        circleShape.m_radius = transform.Scale.x * cc2d.Radius;
+        circleShape.m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
+
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = &circleShape;
+        fixtureDef.density = cc2d.Density;
+        fixtureDef.friction = cc2d.Friction;
+        fixtureDef.restitution = cc2d.Restitution;
+        fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
+        fixtureDef.isSensor = cc2d.IsSensor;
+        b2FixtureUserData data;
+        data.pointer = (u64)registry.get<IDComponent>(entity).ID;
+        fixtureDef.userData = data;
+        //fixtureDef.filter.categoryBits = cc2d.CategoryBits; // <- Is that category
+        //fixtureDef.filter.maskBits = cc2d.MaskBits;		// <- Collides with other categories
+        body->CreateFixture(&fixtureDef);
+    }
+
+    void Scene::OnCircleCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
+    {
+        if (!m_Running)
+            return;
+
+        // Destroys original box collider
+        OnCircleCollider2DComponentDestroy(registry, entity);
+
+        // Create new one
+        OnCircleCollider2DComponentConstruct(registry, entity);
+    }
+
+    void Scene::OnCircleCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+            return;
+
+        auto& transform = registry.get<TransformComponent>(entity);
+        b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
+
+        // Iterate through the fixture list and destroy everything that is circle shaped
+        b2Fixture* fixture = body->GetFixtureList();
+        while (fixture != nullptr)
+        {
+            b2Fixture* nextFixture = fixture->GetNext();
+
+            b2Shape* shape = fixture->GetShape();
+
+            if (shape->GetType() == b2Shape::e_circle)
+                body->DestroyFixture(fixture);
+
+            fixture = nextFixture;
+        }
     }
 }

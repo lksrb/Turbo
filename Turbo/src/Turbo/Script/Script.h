@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ScriptClass.h"
-#include "ScriptField.h"
 #include "ScriptInstance.h"
+#include "ScriptField.h"
 
 #include "Turbo/Core/UUID.h"
 #include "Turbo/Core/FileWatcher.h"
@@ -12,50 +12,20 @@ namespace Turbo
     class Scene;
     class Entity;
 
-    struct Contact2D;
     class Script
     {
     public:
+        struct Data;
+
         using ScriptFieldInstanceMap = std::unordered_map<std::string, ScriptFieldInstance>;
         using ScriptClassMap = std::unordered_map<std::string, Ref<ScriptClass>>;
-
-        struct Data
-        {
-            MonoDomain* RootDomain = nullptr;
-            MonoDomain* AppDomain = nullptr;
-            MonoAssembly* ScriptCoreAssembly = nullptr;
-            MonoImage* ScriptCoreAssemblyImage = nullptr;
-
-            MonoAssembly* ProjectAssembly = nullptr;
-            MonoImage* ProjectAssemblyImage = nullptr;
-
-            Ref<ScriptClass> EntityBaseClass;
-
-            std::filesystem::path CoreAssemblyPath;
-            std::filesystem::path ProjectAssemblyPath;
-
-            std::unordered_map<UUID, ScriptFieldInstanceMap> EntityScriptFieldInstances;
-            ScriptClassMap ScriptClasses;
-
-            std::unordered_map<UUID, Ref<ScriptInstance>> ScriptInstances;
-
-            Scene* SceneContext = nullptr;
-
-            Scope<FileWatcher> ProjectPathWatcher;
-            bool AssemblyReloadPending = false;
-            bool ProjectAssemblyDirty = false;
-#ifdef TBO_DEBUG
-            bool MonoDebugging = true;
-#else
-            bool MonoDebugging = false;
-#endif
-        };
 
         static void Init();
         static void Shutdown();
         static void OnRuntimeStart(Scene* scene);
         static void OnRuntimeStop();
 
+        static void CreateScriptInstance(Entity entity);
         static void DestroyScriptInstance(Entity entity);
 
         static void InvokeEntityOnCreate(Entity entity);
@@ -71,16 +41,22 @@ namespace Turbo
 
         static Scene* GetCurrentScene();
 
+        static MonoImage* GetCoreAssemblyImage();
+        static MonoDomain* GetAppDomain();
+
         static const ScriptClassMap& GetScriptClassMap();
         static UUID GetUUIDFromMonoObject(MonoObject* instance);
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);
+        static Ref<ScriptClass> GetEntityBaseClass();
     private:
-        static void CollectGarbage();
-        static void OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent e);
         static void InitMono();
         static void ShutdownMono();
+        static void CollectGarbage();
         static void LoadCoreAssembly(const std::filesystem::path& path);
         static void ReflectProjectAssembly();
+        static void OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent event);
+    private:
+        static inline Script::Data* s_Data = nullptr;
     };
 }

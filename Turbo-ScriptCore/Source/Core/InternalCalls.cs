@@ -74,10 +74,10 @@ namespace Turbo
 		internal extern static object Entity_Get_Instance(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Entity_AttachScript(ulong uuid, string className);
+		internal extern static string Entity_Get_Name(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static string Entity_Get_Name(ulong uuid);
+		internal extern static Entity[] Entity_Get_Children(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_InstantiatePrefabWithTranslation(string path, ref Vector3 translation);
@@ -212,6 +212,7 @@ namespace Turbo
 		#endregion
 
 		#region BoxCollider2DComponent
+
 		// Offset
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_BoxCollider2D_Get_Offset(ulong uuid, out Vector2 offset);
@@ -229,6 +230,13 @@ namespace Turbo
 		// IsSensor
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Component_BoxCollider2D_Get_IsSensor(ulong uuid);
+
+		// CollisionCategory
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_BoxCollider2D_Set_CollisionCategory(ulong uuid, ushort category);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ushort Component_BoxCollider2D_Get_CollisionCategory(ulong uuid);
 		#endregion
 
 		#region CircleCollider2DComponent

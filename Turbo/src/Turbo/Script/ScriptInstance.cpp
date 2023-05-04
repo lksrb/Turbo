@@ -13,31 +13,31 @@
 
 namespace Turbo
 {
-    extern Script::Data* g_Data;
-
     ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, u64 entity)
         : m_ScriptClass(scriptClass), m_Entity(entity)
     {
-        m_Constructor = m_ScriptClass->GetBaseClass()->GetMethod(".ctor", 1);
-       
-        m_Instance = mono_object_new(g_Data->AppDomain, m_ScriptClass->GetMonoClass());
+        // NOTE: Kinda weird
+        Ref<ScriptClass> baseClass = m_ScriptClass->GetBaseClass() ? m_ScriptClass->GetBaseClass() : Script::GetEntityBaseClass();
 
-        // Create handle to an object to later destroy it
+        m_Constructor = baseClass->GetMethod(".ctor", 1);
+       
+        m_Instance = mono_object_new(Script::GetAppDomain(), m_ScriptClass->GetMonoClass());
+
+        // NOTE: Figure out how this works
         m_GCHandle = mono_gchandle_new(m_Instance, false);
 
         // Call default constructor
         mono_runtime_object_init(m_Instance);
 
         // Gets overriden methods
-        m_OnCreateMethod = mono_object_get_virtual_method(m_Instance, m_ScriptClass->GetBaseClass()->GetMethod("OnCreate", 0));
-        m_OnUpdateMethod = mono_object_get_virtual_method(m_Instance, m_ScriptClass->GetBaseClass()->GetMethod("OnUpdate", 1));
-
+        m_OnCreateMethod = mono_object_get_virtual_method(m_Instance, baseClass->GetMethod("OnCreate", 0));
+        m_OnUpdateMethod = mono_object_get_virtual_method(m_Instance, baseClass->GetMethod("OnUpdate", 1));
 
         // Physics2D
-        m_OnCollision2DBeginMethod = m_ScriptClass->GetBaseClass()->GetMethod("OnCollisionBegin2D_Internal", 1);
-        m_OnCollision2DEndMethod = m_ScriptClass->GetBaseClass()->GetMethod("OnCollisionEnd2D_Internal", 1);
-        m_OnTriggerBegin2DMethod = m_ScriptClass->GetBaseClass()->GetMethod("OnTriggerBegin2D_Internal", 1);
-        m_OnTriggerEnd2DMethod = m_ScriptClass->GetBaseClass()->GetMethod("OnTriggerEnd2D_Internal", 1);
+        m_OnCollision2DBeginMethod = baseClass->GetMethod("OnCollisionBegin2D_Internal", 1);
+        m_OnCollision2DEndMethod = baseClass->GetMethod("OnCollisionEnd2D_Internal", 1);
+        m_OnTriggerBegin2DMethod = baseClass->GetMethod("OnTriggerBegin2D_Internal", 1);
+        m_OnTriggerEnd2DMethod = baseClass->GetMethod("OnTriggerEnd2D_Internal", 1);
 
         // Invoke base class constructor and assign it the entity id
         void* params = &m_Entity;

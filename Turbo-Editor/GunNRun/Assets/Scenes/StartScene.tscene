@@ -260,7 +260,7 @@ Entities:
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [-11.9520426, -3.40974903, 0]
+      Translation: [0.69026351, 12.2767467, 0]
       Rotation: [0, 0, 0]
       Scale: [5, 5, 1]
     SpriteRendererComponent:
@@ -268,7 +268,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [7, -2]
+      SpriteCoords: [2, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -395,7 +395,9 @@ Entities:
     ScriptComponent:
       ClassName: GunNRun.EnemyManager
       Fields:
-        []
+        - Name: IdleAnimationSpeed
+          Type: Float
+          Data: 0.150000006
   - Entity: 11890741624846825386
     Parent: 18351839713352600519
     Children:

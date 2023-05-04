@@ -740,34 +740,37 @@ namespace Turbo
         auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
         if (rigidbody2DComponent)
         {
-            auto& rb2d = deserializedEntity.AddComponent<Rigidbody2DComponent>();
+            Rigidbody2DComponent rb2d;
             rb2d.Type = RigidBody2DBodyTypeFromString(rigidbody2DComponent["BodyType"].as<std::string>());
             rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
             rb2d.GravityScale = rigidbody2DComponent["GravityScale"].as<f32>();
+            deserializedEntity.AddComponent<Rigidbody2DComponent>(rb2d);
         }
 
         auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
         if (boxCollider2DComponent)
         {
-            auto& bc2d = deserializedEntity.AddComponent<BoxCollider2DComponent>();
+            BoxCollider2DComponent bc2d;
             bc2d.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
             bc2d.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
             bc2d.Density = boxCollider2DComponent["Density"].as<f32>();
             bc2d.Friction = boxCollider2DComponent["Friction"].as<f32>();
             bc2d.Restitution = boxCollider2DComponent["Restitution"].as<f32>();
             bc2d.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<f32>();
+            deserializedEntity.AddComponent<BoxCollider2DComponent>(bc2d);
         }
 
         auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
         if (circleCollider2DComponent)
         {
-            auto& cc2d = deserializedEntity.AddComponent<CircleCollider2DComponent>();
+            CircleCollider2DComponent cc2d;
             cc2d.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
             cc2d.Radius = circleCollider2DComponent["Radius"].as<f32>();
             cc2d.Density = circleCollider2DComponent["Density"].as<f32>();
             cc2d.Friction = circleCollider2DComponent["Friction"].as<f32>();
             cc2d.Restitution = circleCollider2DComponent["Restitution"].as<f32>();
             cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<f32>();
+            deserializedEntity.AddComponent<CircleCollider2DComponent>(cc2d);
         }
     }
 }

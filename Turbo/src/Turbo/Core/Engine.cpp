@@ -73,10 +73,6 @@ namespace Turbo
         if (m_Application->m_Config.EnableUI)
             m_UI = UserInterface::Create();
 
-        // Client access
-        m_Application->Engine = this;
-        m_Application->Window = m_ViewportWindow;
-
         m_Initialized = true;
 
         TBO_ENGINE_INFO("Engine initialized succefully!");
@@ -95,7 +91,6 @@ namespace Turbo
 
         Renderer::Shutdown();
         m_UI.Reset();
-
 
         RendererContext::Shutdown();
 

@@ -188,6 +188,12 @@ namespace Turbo
 			}
 		}
 
+		public ushort CollisionCategory
+		{
+			get => InternalCalls.Component_BoxCollider2D_Get_CollisionCategory(Entity.ID);
+			set => InternalCalls.Component_BoxCollider2D_Set_CollisionCategory(Entity.ID, value);
+		}
+
 		public bool IsSensor
 		{
 			get => InternalCalls.Component_BoxCollider2D_Get_IsSensor(Entity.ID);

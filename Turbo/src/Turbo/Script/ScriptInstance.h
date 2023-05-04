@@ -12,7 +12,6 @@ namespace Turbo
         static inline u8 s_FieldValueBuffer[16];
 
         using OnUpdateMethodFP = void(__stdcall*)(MonoObject*, f32, MonoObject**);
-
         using OnCollision2DFP = void(__stdcall*)(MonoObject*, u64, MonoObject**);
     public:
         ScriptInstance(Ref<ScriptClass> scriptClass, u64 entity);
@@ -47,7 +46,7 @@ namespace Turbo
             SetFieldValueInternal(name, value);
         }
 
-        MonoObject* GetInstance() const { return m_Instance; }
+        MonoObject* GetMonoInstance() const { return m_Instance; }
 
         Ref<ScriptClass> GetScriptClass() const { return m_ScriptClass; }
     private:

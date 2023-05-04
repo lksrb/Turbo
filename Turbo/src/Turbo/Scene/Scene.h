@@ -69,17 +69,22 @@ namespace Turbo
         Entity FindEntityByUUID(UUID uuid);
         Entity FindEntityByName(const std::string& name);
 
-        Entity GetPrimaryCameraEntity();
-
-        bool IsRunning() const { return m_Running; }
-
-        template<typename T>
-        void OnComponentAdded(Entity entity, T& component);
-    private:
-        entt::entity FindPrimaryCameraEntity();
+        Entity FindPrimaryCameraEntity();
         Entity FindPrimaryAudioListenerEntity();
 
+        bool IsRunning() const { return m_Running; }
+    private:
         void ClearDeletedEntities();
+
+        //void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
+        void OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity);
+        void OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity);
+        void OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity);
+        void OnBoxCollider2DComponentUpdate(entt::registry& registry, entt::entity entity);
+        void OnBoxCollider2DComponentDestroy(entt::registry& registry, entt::entity entity);
+        void OnCircleCollider2DComponentConstruct(entt::registry& registry, entt::entity entity);
+        void OnCircleCollider2DComponentUpdate(entt::registry& registry, entt::entity entity);
+        void OnCircleCollider2DComponentDestroy(entt::registry& registry, entt::entity entity);
     private:
         entt::registry m_Registry;
 
@@ -93,7 +98,7 @@ namespace Turbo
 
         std::vector<entt::entity> m_DestroyedEntities;
 
-        std::vector <std::function<void()>> m_PostUpdateFuncs;
+        std::vector<std::function<void()>> m_PostUpdateFuncs;
 
         bool m_Running = false;
 

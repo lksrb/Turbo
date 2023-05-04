@@ -8,11 +8,11 @@ namespace Turbo
 		public TransformComponent Transform;
 		public string Name;
 
-		// Classic collision callbacks
-		public Action<Entity> OnCollisionBegin2D;
-		public Action<Entity> OnCollisionEnd2D;
-		public Action<Entity> OnTriggerBegin2D;
-		public Action<Entity> OnTriggerEnd2D;
+		// Collision callbacks
+		public event Action<Entity> OnCollisionBegin2D;
+		public event Action<Entity> OnCollisionEnd2D;
+		public event Action<Entity> OnTriggerBegin2D;
+		public event Action<Entity> OnTriggerEnd2D;
 
 		protected Entity() { ID = 0; }
 		protected virtual void OnCreate() { }
@@ -60,14 +60,7 @@ namespace Turbo
 			return component;
 		}
 
-		private object AttachScript(string className)
-		{
-			// Attach script
-			InternalCalls.Entity_AttachScript(ID, className);
-
-			// Get instance of it
-			return InternalCalls.Entity_Get_Instance(ID);
-		}
+		public Entity[] Children() => InternalCalls.Entity_Get_Children(ID);
 
 		public Entity Instantiate(string prefabPath, Vector3 translation)
 		{

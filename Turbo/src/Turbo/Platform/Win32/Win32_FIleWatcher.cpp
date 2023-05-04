@@ -5,8 +5,8 @@
 
 namespace Turbo
 {
-    FileWatcher::FileWatcher(NotifyEvent events, bool search_tree, const Callback& callback)
-        : m_NotifyEvents(events), m_SearchTree(search_tree), m_OnDirChangedCallback(callback)
+    FileWatcher::FileWatcher(NotifyEvent events, bool searchTree, const Callback& callback)
+        : m_NotifyEvents(events), m_SearchTree(searchTree), m_OnDirChangedCallback(callback)
     {
     }
 
