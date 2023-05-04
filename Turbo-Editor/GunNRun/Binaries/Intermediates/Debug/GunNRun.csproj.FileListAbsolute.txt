@@ -1,7 +1,0 @@
-C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Binaries\Intermediates\Debug\GunNRun.csproj.AssemblyReference.cache
-C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Binaries\Intermediates\Debug\GunNRun.csproj.CoreCompileInputs.cache
-C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Binaries\Intermediates\Debug\GunNRun.csproj.CopyComplete
-C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Binaries\Intermediates\Debug\GunNRun.dll
-C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Binaries\Intermediates\Debug\GunNRun.pdb
-C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Binaries\GunNRun.dll
-C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Binaries\GunNRun.pdb
