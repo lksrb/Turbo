@@ -146,6 +146,16 @@ Entities:
       Translation: [0, -21.661499, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+  - Entity: 6055910795352511283
+    Parent: 11291919825721931468
+    Children:
+      []
+    TagComponent:
+      Tag: EnemySpawnpoint
+    TransformComponent:
+      Translation: [-41.2546654, -13.2727623, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 6356292223037786716
     Parent: 18351839713352600519
     Children:
@@ -212,6 +222,16 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 7848235633622245108
+    Parent: 11291919825721931468
+    Children:
+      []
+    TagComponent:
+      Tag: EnemySpawnpoint
+    TransformComponent:
+      Translation: [14.5724173, 7.86776638, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 8005991667340502089
     Parent: 18351839713352600519
     Children:
@@ -248,7 +268,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [4, -1]
+      SpriteCoords: [7, -2]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -276,6 +296,16 @@ Entities:
       Friction: 0
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 9847006707833483323
+    Parent: 11291919825721931468
+    Children:
+      []
+    TagComponent:
+      Tag: EnemySpawnpoint
+    TransformComponent:
+      Translation: [25.1083717, -13.4780846, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 10495809691805916543
     Parent: 18351839713352600519
     Children:
@@ -339,10 +369,23 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 11097502558217381998
+    Parent: 11291919825721931468
+    Children:
+      []
+    TagComponent:
+      Tag: EnemySpawnpoint
+    TransformComponent:
+      Translation: [-39.339138, 7.11517668, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 11291919825721931468
     Parent: 0
     Children:
-      []
+      - UUID: 7848235633622245108
+      - UUID: 11097502558217381998
+      - UUID: 9847006707833483323
+      - UUID: 6055910795352511283
     TagComponent:
       Tag: EnemyManager
     TransformComponent:

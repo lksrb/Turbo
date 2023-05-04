@@ -4,9 +4,10 @@ namespace Turbo
 {
 	public static class Mathf
 	{
+		#region General
+
 		public const float PI = 3.1415926535897931f;
 
-		#region General
 		public static float Abs(float value)
 		{
 			return (float)Math.Abs(value);

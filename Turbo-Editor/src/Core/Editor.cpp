@@ -742,7 +742,6 @@ namespace Turbo::Ed
                 Platform::Execute(m_MSBuildPath, L"", config.ProjectDirectory, true);
             }
 
-            // TODO: Think about this
             TBO_ASSERT(std::filesystem::exists(config.ProjectDirectory / config.ScriptModulePath), "No assemblies found!");
 
             // Load project assembly

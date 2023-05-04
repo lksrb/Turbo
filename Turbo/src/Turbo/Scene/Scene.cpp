@@ -825,6 +825,7 @@ namespace Turbo
         body->SetFixedRotation(rb2d.FixedRotation);
         body->SetEnabled(rb2d.Enabled);
         body->SetGravityScale(rb2d.GravityScale);
+        body->SetBullet(true);
         rb2d.RuntimeBody = body;
     }
 
