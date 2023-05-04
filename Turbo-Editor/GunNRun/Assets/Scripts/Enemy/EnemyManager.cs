@@ -8,7 +8,14 @@ namespace GunNRun
 		{
 			Log.Info("Hello from enemy manager!");
 
-			Instantiate("Assets/Prefabs/Enemy.tprefab", Vector3.Zero);
+
+
+			//foreach (Entity entity : GetChildren())
+			//{
+			//
+			//}
+
+			Instantiate("Assets/Prefabs/Enemy.tprefab", new Vector3(0, 10, 0));
 		}
 
 		protected override void OnUpdate(float ts)
