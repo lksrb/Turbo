@@ -247,19 +247,11 @@ namespace Turbo
         auto entities = data["Entities"];
         if (entities)
         {
-            for (auto entity : entities)
+            for (auto entityNode : entities)
             {
-                u64 uuid = entity["Entity"].as<u64>();
-
-                std::string name;
-                auto tagComponent = entity["TagComponent"];
-                if (tagComponent)
-                    name = tagComponent["Tag"].as<std::string>();
-
-                TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
-
-                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid, name);
-                DeserializeEntity(entity, deserializedEntity);
+                u64 uuid = entityNode["Entity"].as<u64>();
+                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid);
+                DeserializeEntity(entityNode, deserializedEntity);
             }
         }
 
@@ -566,10 +558,19 @@ namespace Turbo
         out << YAML::EndMap; // Entity
     }
 
-    // FIXME: Temporary solution
     void SceneSerializer::DeserializeEntity(YAML::Node& entity, Entity deserializedEntity, bool overwriteTranslation)
     {
         u64 uuid = deserializedEntity.GetUUID();
+
+        std::string name;
+        auto tagComponent = entity["TagComponent"];
+        if (tagComponent)
+        {
+            name = tagComponent["Tag"].as<std::string>();
+            deserializedEntity.GetComponent<TagComponent>().Tag = name;
+        }
+
+        TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
         auto& relationshipComponent = deserializedEntity.GetComponent<RelationshipComponent>();
         u64 parent = entity["Parent"].as<u64>();
@@ -579,6 +580,7 @@ namespace Turbo
         if (children)
         {
             for (auto child : children)
+
             {
                 u64 childUUID = child["UUID"].as<u64>();
                 relationshipComponent.Children.push_back(childUUID);
@@ -670,7 +672,6 @@ namespace Turbo
         if (scriptComponent)
         {
             std::string className = scriptComponent["ClassName"].as<std::string>();
-            deserializedEntity.AddComponent<ScriptComponent>(className);
             Ref<ScriptClass> entityClass = Script::FindEntityClass(className);
             if (entityClass)
             {
@@ -715,6 +716,9 @@ namespace Turbo
                     }
                 }
             }
+
+            // [Runtime]: Creates script instance
+            deserializedEntity.AddComponent<ScriptComponent>(className);
         }
 
         auto audioSourceComponent = entity["AudioSourceComponent"];

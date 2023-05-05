@@ -23,8 +23,18 @@ namespace YAML
 
 namespace Turbo
 {
-	bool AssetManager::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
-	{
+    bool AssetManager::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
+    {
+        std::string filename = entity.GetName();
+        filename.append(".tprefab");
+        std::ofstream fout(filepath / filename);
+
+        if (!fout)
+        {
+            TBO_ENGINE_ERROR("Could not serialize prefab! ({})", filepath);
+            return false;
+        }
+
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Prefab" << YAML::Value << "0"; // TODO: Prefab UUID
@@ -33,23 +43,13 @@ namespace Turbo
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::string filename = entity.GetName();
-        filename.append(".tprefab");
-        std::ofstream fout(filepath / filename);
+        fout << out.c_str();
 
-        if (fout)
-        {
-            fout << out.c_str();
-            return true;
-        }
+        return true;
+    }
 
-        TBO_ENGINE_ERROR("Could not serialize prefab! ({})", filepath);
-
-        return false;
-	}
-
-	bool AssetManager::DeserializePrefab(const std::filesystem::path& filepath, Entity deserializedEntity)
-	{
+    bool AssetManager::DeserializePrefab(const std::filesystem::path& filepath, Entity deserializedEntity)
+    {
         YAML::Node data;
         try
         {
@@ -77,20 +77,10 @@ namespace Turbo
             return false;
         }
 
-        // TODO: Clean up
-
-        auto entity = *entities.begin();
-
-        std::string name;
-        auto tagComponent = entity["TagComponent"];
-        if (tagComponent)
-            name = tagComponent["Tag"].as<std::string>();
-
-        deserializedEntity.GetComponent<TagComponent>().Tag = name;
-
-        SceneSerializer::DeserializeEntity(entity, deserializedEntity, false);
+        // TODO: Maybe some more error checking?
+        SceneSerializer::DeserializeEntity(*entities.begin(), deserializedEntity, false);
 
         return true;
-	}
+    }
 
 }

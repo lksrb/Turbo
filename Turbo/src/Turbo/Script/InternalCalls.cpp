@@ -281,14 +281,8 @@ namespace Turbo
 
         if (AssetManager::DeserializePrefab(prefabPath, entity))
         {
-            // Create physics body 2D
-            if (entity.HasComponent<Rigidbody2DComponent>())
-            {
-
-            }
-
-            // Call Entity::OnCreate method
-            if (entity.HasComponent<ScriptComponent>() && context->IsRunning())
+            // Call C# Entity::OnCreate method
+            if (entity.HasComponent<ScriptComponent>())
             {
                 Script::InvokeEntityOnCreate(entity);
             }

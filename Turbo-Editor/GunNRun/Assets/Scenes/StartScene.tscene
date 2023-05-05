@@ -262,13 +262,13 @@ Entities:
     TransformComponent:
       Translation: [0.69026351, 12.2767467, 0]
       Rotation: [0, 0, 0]
-      Scale: [5, 5, 1]
+      Scale: [4.5, 4.5, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [2, -1]
+      SpriteCoords: [4, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -284,7 +284,7 @@ Entities:
           Data: false
         - Name: m_JumpPower
           Type: Float
-          Data: 23.9500008
+          Data: 28
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true
@@ -292,7 +292,7 @@ Entities:
     BoxCollider2DComponent:
       Offset: [0, -0.870000005]
       Size: [0.300000012, 0.330000013]
-      Density: 0.109999999
+      Density: 0.159999996
       Friction: 0
       Restitution: 0
       RestitutionThreshold: 0.5
@@ -397,7 +397,7 @@ Entities:
       Fields:
         - Name: IdleAnimationSpeed
           Type: Float
-          Data: 0.150000006
+          Data: 0.319999993
   - Entity: 11890741624846825386
     Parent: 18351839713352600519
     Children:

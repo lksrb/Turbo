@@ -134,12 +134,15 @@ namespace Turbo
         m_SceneEntity = m_Registry.create();
         m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
 
+        m_Registry.on_construct<ScriptComponent>().connect<&Scene::OnScriptComponentConstruct>(this);
+        m_Registry.on_destroy<ScriptComponent>().connect<&Scene::OnScriptComponentDestroy>(this);
         m_Registry.on_construct<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentConstruct>(this);
         m_Registry.on_destroy<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
         m_Registry.on_construct<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentConstruct>(this);
         m_Registry.on_update<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentUpdate>(this);
         m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
         m_Registry.on_construct<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentConstruct>(this);
+        m_Registry.on_update<CircleCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentUpdate>(this);
         m_Registry.on_destroy<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentDestroy>(this);
     }
 
@@ -150,8 +153,8 @@ namespace Turbo
         m_Registry.on_construct<ScriptComponent>().disconnect(this);
         m_Registry.on_destroy<ScriptComponent>().disconnect(this);
 
-        m_Registry.on_construct<Rigidbody2DComponent>().disconnect();
-        m_Registry.on_destroy<Rigidbody2DComponent>().disconnect();
+        m_Registry.on_construct<Rigidbody2DComponent>().disconnect(this);
+        m_Registry.on_destroy<Rigidbody2DComponent>().disconnect(this);
     }
 
     void Scene::OnEditorUpdate(FTime ts)
@@ -356,11 +359,17 @@ namespace Turbo
 
         Audio::OnRuntimeStart(this);
 
-        // Instantiate all entities with script component
         Script::OnRuntimeStart(this);
 
+        // Instantiate script instances and sets field instances
+        auto& scripts = GetAllEntitiesWith<ScriptComponent, IDComponent>();
+        for (auto& e : scripts)
+        {
+            Entity entity = { e, this };
+            Script::CreateScriptInstance(entity);
+        }
+
         // Call OnCreate function in each script
-        auto& scripts = GetAllEntitiesWith<ScriptComponent>();
         for (auto e : scripts)
         {
             Entity entity = { e, this };
@@ -617,6 +626,7 @@ namespace Turbo
             const auto& id = other->m_Registry.get<IDComponent>(*it).ID;
             const auto& name = other->m_Registry.get<TagComponent>(*it).Tag;
             newScene->m_EntityIDMap[id] = (entt::entity)newScene->CreateEntityWithUUID(id, name);
+            newScene->m_UUIDMap[*it] = id;
         }
 
         // Copy components (except IDComponent and TagComponent)
@@ -644,6 +654,7 @@ namespace Turbo
         tagComponent.Tag = tag.empty() ? "Entity" : tag;
 
         m_EntityIDMap[uuid] = (entt::entity)entity;
+        m_UUIDMap[(entt::entity)entity] = uuid;
 
         return entity;
     }
@@ -743,15 +754,12 @@ namespace Turbo
 
     void Scene::ClearDeletedEntities()
     {
-        for (auto e : m_DestroyedEntities)
+        for (auto entity : m_DestroyedEntities)
         {
-            Entity entity = { e, this };
-
-            if (entity.HasComponent<ScriptComponent>())
-                Script::DestroyScriptInstance(entity);
-
-            m_EntityIDMap.erase(entity.GetUUID());
+            UUID uuid = m_Registry.get<IDComponent>(entity).ID;
             m_Registry.destroy(entity);
+            m_EntityIDMap.erase(uuid);
+            m_UUIDMap.erase(entity);
         }
 
         m_DestroyedEntities.clear();
@@ -765,6 +773,16 @@ namespace Turbo
             return Entity{ m_EntityIDMap.at(uuid), this };
 
         return Entity{};
+    }
+
+    UUID Scene::FindUUIDByEntity(entt::entity entity)
+    {
+        auto& it = m_UUIDMap.find(entity);
+
+        if (it != m_UUIDMap.end())
+            return m_UUIDMap.at(entity);
+
+        return UUID::Null;
     }
 
     Entity Scene::FindEntityByName(const std::string& name)
@@ -782,6 +800,24 @@ namespace Turbo
     }
 
     // ---- EnTT callbacks ----
+
+    void Scene::OnScriptComponentConstruct(entt::registry& registry, entt::entity entity)
+    {
+        if (!m_Running)
+            return;
+        
+        Entity scriptEntity = { entity, this };
+        Script::CreateScriptInstance(scriptEntity);
+    }
+
+    void Scene::OnScriptComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        if (!m_Running)
+            return;
+
+        Entity scriptEntity = { entity, this};
+        Script::DestroyScriptInstance(scriptEntity);
+    }
 
     void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {

@@ -16,6 +16,8 @@ namespace Turbo
     class Renderer2D;
 
     using EntityMap = std::unordered_map<UUID, entt::entity>;
+    using UUIDMap = std::map<entt::entity, UUID>;
+
     class Scene
     {
     public:
@@ -67,6 +69,7 @@ namespace Turbo
         }
 
         Entity FindEntityByUUID(UUID uuid);
+        UUID FindUUIDByEntity(entt::entity entity);
         Entity FindEntityByName(const std::string& name);
 
         Entity FindPrimaryCameraEntity();
@@ -76,7 +79,8 @@ namespace Turbo
     private:
         void ClearDeletedEntities();
 
-        //void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
+        void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
+        void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
         void OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity);
         void OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity);
@@ -95,6 +99,7 @@ namespace Turbo
         UUID m_SceneID;
 
         EntityMap m_EntityIDMap;
+        UUIDMap m_UUIDMap;
 
         std::vector<entt::entity> m_DestroyedEntities;
 
