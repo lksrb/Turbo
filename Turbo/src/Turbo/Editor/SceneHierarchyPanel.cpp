@@ -419,12 +419,6 @@ namespace Turbo
         if (entity.HasComponent<TagComponent>())
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
-
-            /*  if (tag.empty())
-              {
-                  TBO_ENGINE_ASSERT(false);
-              }*/
-
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
             strncpy_s(buffer, sizeof(buffer), tag.c_str(), sizeof(buffer));
