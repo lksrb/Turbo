@@ -36,7 +36,7 @@ namespace Turbo
     }
 
     VulkanGraphicsPipeline::VulkanGraphicsPipeline(const GraphicsPipeline::Config& config)
-        : GraphicsPipeline(config), m_Pipeline(VK_NULL_HANDLE), m_PipelineLayout(VK_NULL_HANDLE)
+        : GraphicsPipeline(config)
     {
     }
 

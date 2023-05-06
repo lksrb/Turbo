@@ -111,7 +111,7 @@ namespace Turbo
             TBO_ENGINE_WARN("Already registered!");
             return;
         }
-        const auto& audioFile = audioClip->m_AudioFile;
+        const AudioFile& audioFile = audioClip->GetAudioFile();
 
         // Populating WAVEFORMATEX structure
         WAVEFORMATEX wfx = { 0 };

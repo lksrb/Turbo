@@ -27,9 +27,16 @@ namespace Turbo
 		{
 			return $"(x: {X}, y: {Y})";
 		}
+
+		public override bool Equals(object obj) => base.Equals(obj);
+		public override int GetHashCode() => base.GetHashCode();
+
 		public static Vector2 Zero => new Vector2(0.0f, 0.0f);
 		public static Vector2 Up => new Vector2(0.0f, 1.0f);
 		public static Vector2 Right => new Vector2(1.0f, 0.0f);
+
+		public static bool operator ==(Vector2 u, Vector2 v) => u.X == v.X && u.Y == v.Y;
+		public static bool operator !=(Vector2 u, Vector2 v) => !(u == v);
 
 		public static Vector2 operator +(Vector2 u, Vector2 v)
 		{

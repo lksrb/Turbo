@@ -41,8 +41,8 @@ namespace GunNRun
 				float bottomY = m_BottomBoundary.Transform.Translation.Y;
 
 				// This is the center offset
-				topY += -15f;
-				bottomY += 15f;
+				topY += -13f;
+				bottomY += 13f;
 				playerTranslation.Y = Mathf.Clamp(playerTranslation.Y, bottomY, topY);
 
 				Transform.Translation = Mathf.Lerp(Transform.Translation, playerTranslation, LerpMagnifier * ts);

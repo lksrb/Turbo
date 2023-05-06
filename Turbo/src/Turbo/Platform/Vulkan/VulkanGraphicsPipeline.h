@@ -17,7 +17,7 @@ namespace Turbo
 
         void Invalidate() override;
     private:
-        VkPipeline m_Pipeline;
-        VkPipelineLayout m_PipelineLayout;
+        VkPipeline m_Pipeline = VK_NULL_HANDLE;
+        VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
     };
 }

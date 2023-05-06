@@ -1,6 +1,6 @@
 Prefab: 0
 Entities:
-  - Entity: 5956343674363414696
+  - Entity: 3803815952250875861
     Parent: 0
     Children:
       []
@@ -23,3 +23,11 @@ Entities:
       BodyType: Dynamic
       FixedRotation: false
       GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false

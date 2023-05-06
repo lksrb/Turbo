@@ -2,14 +2,6 @@
 
 namespace GunNRun
 {
-	internal enum PlayerDirection : uint
-	{
-		Left = 0,
-		Right,
-		Up,
-		Down
-	}
-
 	internal class PlayerController
 	{
 		private PlayerManager m_PlayerManager;
@@ -20,9 +12,8 @@ namespace GunNRun
 
 		private bool m_IsGrounded = false;
 
-		internal PlayerDirection Direction { get; private set; } = PlayerDirection.Right;
-		internal bool IsMovingSideways { get; private set; } = false;
-		internal bool IsInAir { get; private set; } = false;
+		internal bool IsInAir { get; private set; }
+		internal Vector2 Velocity;
 
 		internal void Init(PlayerManager playerManager)
 		{
@@ -40,7 +31,6 @@ namespace GunNRun
 		internal void OnUpdate(float ts)
 		{
 			//m_IsGrounded = Mathf.Abs(m_RigidBody2D.Velocity.y) < ts;
-			IsMovingSideways = Mathf.Abs(m_RigidBody2D.Velocity.X) > ts;
 
 			if (m_PlayerInput.IsJumpKeyPressedOneTime && m_IsGrounded)
 			{
@@ -55,8 +45,6 @@ namespace GunNRun
 
 			if (m_PlayerInput.IsMoveRightKeyPressed)
 			{
-				Direction = PlayerDirection.Right;
-
 				// Rotate it to right
 				m_Transform.Scale = Mathf.Abs(m_Transform.Scale);
 
@@ -64,21 +52,19 @@ namespace GunNRun
 			}
 			if (m_PlayerInput.IsMoveLeftKeyPressed)
 			{
-				Direction = PlayerDirection.Left;
-
 				Vector3 rotatedScale = new Vector3(-Mathf.Abs(m_Transform.Scale.X), m_Transform.Scale.Y, m_Transform.Scale.Z);
 				m_Transform.Scale = rotatedScale;
 
 				velocity.X = (-1) * m_PlayerManager.m_Speed;
 			}
 
-			m_RigidBody2D.Velocity = velocity;
+			Velocity = m_RigidBody2D.Velocity = velocity;
 		}
 
 		private void OnCollisionBegin(Entity other)
 		{
 			// Simple filtering
-			if (!FilterCollision(other))
+			if (FilterCollision(other))
 				return;
 
 			if (m_RigidBody2D.Velocity.Y < 0.0f)
@@ -86,12 +72,12 @@ namespace GunNRun
 				m_IsGrounded = true;
 			}
 
-			Log.Info($"{m_RigidBody2D.Velocity}");
+			//Log.Info($"{m_RigidBody2D.Velocity}");
 		}
 
 		private void OnCollisionEnd(Entity other)
 		{
-			if (!FilterCollision(other))
+			if (FilterCollision(other))
 				return;
 
 			if (m_RigidBody2D.Velocity.X == 0.0f)
@@ -102,7 +88,7 @@ namespace GunNRun
 		
 		private bool FilterCollision(Entity entity)
 		{
-			return entity.Name.Contains("Hitbox-Horizontal");
+			return !(entity.Name.Contains("Hitbox-Horizontal"));
 		}
 
 	}

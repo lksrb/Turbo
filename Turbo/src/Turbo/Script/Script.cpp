@@ -473,8 +473,12 @@ namespace Turbo
     {
         TBO_ENGINE_WARN("Collecting garbage...");
 
-        // Collect garbage
-        mono_gc_collect(mono_gc_max_generation());
+        int generation = mono_gc_max_generation();
+        TBO_ENGINE_WARN("Generation: {}", generation);
+
+        // Collect garbage 
+        // FIXME: For some reasion throws seg fault
+        mono_gc_collect(generation);
 
         // Block until finalized
         while (mono_gc_pending_finalizers());

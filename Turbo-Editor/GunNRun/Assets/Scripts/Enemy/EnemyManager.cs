@@ -4,7 +4,11 @@ namespace GunNRun
 {
 	public class EnemyManager : Entity
 	{
-		public float IdleAnimationSpeed;
+		// ---- Enemy Animation ----
+		public float IdleAnimationDelay;
+		public float RunningAnimationDelay;
+		public float IdleShootingAnimationDelay;
+		public float RunShootingAnimationDelay;
 
 		private Enemy[] m_Enemies;
 		private string m_EnemyPrefabPath = "Assets/Prefabs/Enemy.tprefab";
@@ -18,7 +22,12 @@ namespace GunNRun
 
 			for (int i = 0; i < children.Length; i++)
 			{
-				m_Enemies[i] = Instantiate(m_EnemyPrefabPath, children[i].Transform.Translation).As<Enemy>();
+				Entity child = children[i];
+
+				if(child.Name == "EnemySpawnpoint")
+				{
+					m_Enemies[i] = Instantiate(m_EnemyPrefabPath, child.Transform.Translation).As<Enemy>();
+				}
 			}
 		}
 

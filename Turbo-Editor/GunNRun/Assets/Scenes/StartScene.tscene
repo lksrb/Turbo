@@ -1,5 +1,55 @@
 Scene: StartScene
 Entities:
+  - Entity: 35416695145306529
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-6.75813627, 19.0410442, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.16418648, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 147193305664861726
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-46.413105, -2.76243973, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.16418648, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 992539161297914811
     Parent: 18351839713352600519
     Children:
@@ -21,6 +71,57 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 1155954803297297754
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [11.1348076, 19.5298443, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 1548819513959043867
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-37.4911804, 20.8177185, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 1722652122317087564
     Parent: 18351839713352600519
     Children:
@@ -42,6 +143,57 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 1982282623182232916
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-46.3974152, 18.9378357, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.16418648, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 1993947611031324074
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-37.4867172, -0.943324447, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 2092556153460548787
     Parent: 18351839713352600519
     Children:
@@ -63,6 +215,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 2098855278331695246
     Parent: 18351839713352600519
     Children:
@@ -84,6 +237,57 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 2268413292962256373
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-20.8780766, -0.966379583, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 2551506028031777059
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-20.849535, 20.8302917, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 3193950577920207961
     Parent: 18351839713352600519
     Children:
@@ -105,6 +309,32 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 3414489235558869352
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-28.5288868, 19.0227966, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.16418648, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 3754536558025639349
     Parent: 16691287023702021333
     Children:
@@ -115,6 +345,153 @@ Entities:
       Translation: [0, 21.2132568, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+  - Entity: 3963101575909252578
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-28.5531864, -2.22439146, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 4019696901580140415
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [29.1603966, 18.3492413, 0]
+      Rotation: [0, 0, 0]
+      Scale: [5.94266558, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 4117927080553639549
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Trigger
+    TransformComponent:
+      Translation: [37.7179031, -15.1989861, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 6.0999999, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: true
+  - Entity: 4365075717103867284
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [8.60752392, -2.72160697, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.16418648, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 4370608213418642017
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [11.196331, 19.0589581, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.16418648, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 4934584358947146178
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [32.4374809, -4.00833607, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.93273008, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 5364571713157804291
     Parent: 18351839713352600519
     Children:
@@ -136,6 +513,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 5543173778021505692
     Parent: 16691287023702021333
     Children:
@@ -180,6 +558,57 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 6568737493388259619
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [18.812542, 20.8393536, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 7414094051061602085
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-28.5399361, -2.73332477, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.16418648, 2.20477366, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 7610681435252807209
     Parent: 18351839713352600519
     Children:
@@ -201,6 +630,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 7625493870243597475
     Parent: 18351839713352600519
     Children:
@@ -222,6 +652,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 7848235633622245108
     Parent: 11291919825721931468
     Children:
@@ -229,7 +660,7 @@ Entities:
     TagComponent:
       Tag: EnemySpawnpoint
     TransformComponent:
-      Translation: [14.5724173, 7.86776638, 0]
+      Translation: [14.5724173, 6.47616529, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 8005991667340502089
@@ -253,6 +684,32 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 8440192685783371146
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-12.7853441, 22.0642071, 0]
+      Rotation: [0, 0, 0]
+      Scale: [89.8117752, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 9446318442325437810
     Parent: 0
     Children:
@@ -260,7 +717,7 @@ Entities:
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [0.69026351, 12.2767467, 0]
+      Translation: [1.09930551, 7.65653801, 0]
       Rotation: [0, 0, 0]
       Scale: [4.5, 4.5, 1]
     SpriteRendererComponent:
@@ -268,7 +725,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [4, -1]
+      SpriteCoords: [2, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -276,26 +733,64 @@ Entities:
         - Name: m_Speed
           Type: Float
           Data: 10
-        - Name: m_AnimationIdleSpeed
+        - Name: InAirShootingAnimationDelay
           Type: Float
-          Data: 0.150000006
+          Data: 0.0599999987
+        - Name: RunShootingAnimationDelay
+          Type: Float
+          Data: 0.0500000007
         - Name: m_AutoJump
           Type: Bool
           Data: false
         - Name: m_JumpPower
           Type: Float
-          Data: 28
+          Data: 27.9500008
+        - Name: IdleAnimationDelay
+          Type: Float
+          Data: 0.150000006
+        - Name: RunningAnimationDelay
+          Type: Float
+          Data: 0.109999999
+        - Name: IdleShootingAnimationDelay
+          Type: Float
+          Data: 0.00999999978
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true
       GravityScale: 3
     BoxCollider2DComponent:
-      Offset: [0, -0.870000005]
+      Offset: [0, -0.769999981]
       Size: [0.300000012, 0.330000013]
       Density: 0.159999996
       Friction: 0
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 9811587685894055827
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [17.5380058, -0.906363249, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 9847006707833483323
     Parent: 11291919825721931468
     Children:
@@ -306,6 +801,31 @@ Entities:
       Translation: [25.1083717, -13.4780846, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+  - Entity: 9893486231517080975
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [8.59904099, -2.22847652, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 10495809691805916543
     Parent: 18351839713352600519
     Children:
@@ -327,6 +847,32 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 10561322758534103710
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-55.3970032, 20.8076477, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 10715464977618895156
     Parent: 18351839713352600519
     Children:
@@ -348,6 +894,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 11018067431284079712
     Parent: 18351839713352600519
     Children:
@@ -369,6 +916,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 11097502558217381998
     Parent: 11291919825721931468
     Children:
@@ -395,9 +943,43 @@ Entities:
     ScriptComponent:
       ClassName: GunNRun.EnemyManager
       Fields:
-        - Name: IdleAnimationSpeed
+        - Name: IdleAnimationDelay
           Type: Float
-          Data: 0.319999993
+          Data: 0.300000012
+        - Name: RunningAnimationDelay
+          Type: Float
+          Data: 0.129999995
+        - Name: IdleShootingAnimationDelay
+          Type: Float
+          Data: 0.00400000019
+        - Name: RunShootingAnimationDelay
+          Type: Float
+          Data: 0.00400000019
+  - Entity: 11889504255731476370
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-28.5483875, 19.5366516, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 11890741624846825386
     Parent: 18351839713352600519
     Children:
@@ -419,6 +1001,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 12394697233975821028
     Parent: 18351839713352600519
     Children:
@@ -440,6 +1023,82 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 12443669017322340734
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-46.4463806, 19.5240784, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 12446795580283910264
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-6.7599678, 19.534544, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 13121701293741724612
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-55.389061, -0.977442503, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 13580131478346242947
     Parent: 18351839713352600519
     Children:
@@ -461,6 +1120,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 13751756959912035771
     Parent: 18351839713352600519
     Children:
@@ -482,6 +1142,82 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 13849793160945367780
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [25.1187706, 19.5289898, 0]
+      Rotation: [0, 0, 0]
+      Scale: [5.94266558, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 14376272881480467056
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-46.4718246, -2.20260143, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 14546801755813669820
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [2.18156028, 20.7866192, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 16338463366215615773
     Parent: 18351839713352600519
     Children:
@@ -503,6 +1239,32 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 16425432961480381284
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-15.7647877, 20.8087158, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.51134443, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 16520059961772707914
     Parent: 18351839713352600519
     Children:
@@ -524,6 +1286,32 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 16685833445881118363
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [-0.2105968, -0.976538062, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3.00887966, 5.75059986, 1]
+    SpriteRendererComponent:
+      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 16691287023702021333
     Parent: 0
     Children:
@@ -563,6 +1351,7 @@ Entities:
       Friction: 0.0500000007
       Restitution: 0
       RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 17566374929209752254
     Parent: 0
     Children:
@@ -617,6 +1406,36 @@ Entities:
       - UUID: 13751756959912035771
       - UUID: 11890741624846825386
       - UUID: 10495809691805916543
+      - UUID: 4117927080553639549
+      - UUID: 8440192685783371146
+      - UUID: 4019696901580140415
+      - UUID: 13849793160945367780
+      - UUID: 6568737493388259619
+      - UUID: 1155954803297297754
+      - UUID: 4370608213418642017
+      - UUID: 14546801755813669820
+      - UUID: 12446795580283910264
+      - UUID: 35416695145306529
+      - UUID: 3414489235558869352
+      - UUID: 1982282623182232916
+      - UUID: 16425432961480381284
+      - UUID: 2551506028031777059
+      - UUID: 11889504255731476370
+      - UUID: 1548819513959043867
+      - UUID: 12443669017322340734
+      - UUID: 10561322758534103710
+      - UUID: 2268413292962256373
+      - UUID: 3963101575909252578
+      - UUID: 1993947611031324074
+      - UUID: 14376272881480467056
+      - UUID: 13121701293741724612
+      - UUID: 16685833445881118363
+      - UUID: 9893486231517080975
+      - UUID: 9811587685894055827
+      - UUID: 4365075717103867284
+      - UUID: 7414094051061602085
+      - UUID: 147193305664861726
+      - UUID: 4934584358947146178
     TagComponent:
       Tag: Hitboxes
     TransformComponent:

@@ -13,7 +13,8 @@ namespace Turbo
         AudioClip(const std::string& filepath);
         ~AudioClip();
 
-        const auto& GetFilepath() const { return m_Filepath; }
+        const std::string& GetFilepath() const { return m_Filepath; }
+        const AudioFile& GetAudioFile() const { return m_AudioFile; }
     private:
         std::string m_Filepath;
 
@@ -21,6 +22,5 @@ namespace Turbo
         f32 m_AudioLength = 0;
 
         friend class Audio;
-        friend class XAudio2AudioBackend; // NOTE: Maybe not ideal
     };
 }

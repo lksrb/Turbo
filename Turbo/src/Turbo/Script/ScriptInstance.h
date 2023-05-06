@@ -70,9 +70,8 @@ namespace Turbo
         
         OnUpdateMethodFP m_OnUpdateMethodFP = nullptr;
 
-        u32 m_GCHandle = -1;
         MonoObject* m_Instance = nullptr;
-
+        MonoObject* m_Exception = nullptr;
         u64 m_Entity;
         Ref<ScriptClass> m_ScriptClass;
 

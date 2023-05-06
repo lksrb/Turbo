@@ -32,18 +32,8 @@ namespace Turbo
         return method;
     }
 
-    void ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params)
+    void ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, MonoObject** exception, void** params)
     {
-        MonoObject* exception;
-        mono_runtime_invoke(method, instance, params, &exception);
-
-        // TODO: Exception handling
-        if (exception)
-        {
-            MonoString* message = mono_object_to_string(exception, nullptr);
-            char* cstring = mono_string_to_utf8(message);
-            TBO_FATAL(cstring);
-            mono_free(cstring);
-        }
+        mono_runtime_invoke(method, instance, params, exception);
     }
 }

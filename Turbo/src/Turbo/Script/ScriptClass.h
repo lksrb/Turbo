@@ -16,7 +16,7 @@ namespace Turbo
         ~ScriptClass();
 
         MonoMethod* GetMethod(const std::string& methodName, u32 paramCount);
-        void InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
+        void InvokeMethod(MonoObject* instance, MonoMethod* method, MonoObject** exception, void** params = nullptr);
 
         MonoClass* GetMonoClass() const { return m_MonoClass; }
 

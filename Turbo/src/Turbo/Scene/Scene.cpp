@@ -77,12 +77,14 @@ namespace Turbo
             Entity entityA = context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
             Entity entityB = context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
 
-            // Acts like a begin contact, FIXME: Temporary? 
-            if (entityA && entityA.HasComponent<ScriptComponent>())
-                Script::InvokeEntityOnBeginCollision2D(entityA, entityB, fixtureA->IsSensor());
+            if (entityA && entityB)
+            {
+                if (entityA.HasComponent<ScriptComponent>())
+                    Script::InvokeEntityOnBeginCollision2D(entityA, entityB, fixtureA->IsSensor());
 
-            if (entityB && entityB.HasComponent<ScriptComponent>())
-                Script::InvokeEntityOnBeginCollision2D(entityB, entityA, fixtureB->IsSensor());
+                if (entityB.HasComponent<ScriptComponent>())
+                    Script::InvokeEntityOnBeginCollision2D(entityB, entityA, fixtureB->IsSensor());
+            }
 #if 0
             // Update physics settings
             auto& rb2dA = entityA.GetComponent<Rigidbody2DComponent>();
@@ -101,11 +103,14 @@ namespace Turbo
             Entity entityA = context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
             Entity entityB = context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
 
-            if (entityA && entityA.HasComponent<ScriptComponent>())
-                Script::InvokeEntityOnEndCollision2D(entityA, entityB, fixtureA->IsSensor());
+            if (entityA && entityB)
+            {
+                if (entityA.HasComponent<ScriptComponent>())
+                    Script::InvokeEntityOnEndCollision2D(entityA, entityB, fixtureA->IsSensor());
 
-            if (entityB && entityB.HasComponent<ScriptComponent>())
-                Script::InvokeEntityOnEndCollision2D(entityB, entityA, fixtureB->IsSensor());
+                if (entityB.HasComponent<ScriptComponent>())
+                    Script::InvokeEntityOnEndCollision2D(entityB, entityA, fixtureB->IsSensor());
+            }
         }
 
         void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override
@@ -311,17 +316,17 @@ namespace Turbo
                 b2FixtureUserData data;
                 data.pointer = (u64)entity.GetUUID();
                 fixtureDef.userData = data;
-             /*   if(entity.GetName() == "Player") {
-                    fixtureDef.filter.categoryBits = CATEGORY_PLAYER;
-                    fixtureDef.filter.maskBits = CATEGORY_WALL;
-                    fixtureDef.filter.groupIndex = 0;
-                }
-                else if (entity.GetName() == "Hitbox-Horizontal")
-                {
-                    fixtureDef.filter.categoryBits = CATEGORY_WALL;
-                    fixtureDef.filter.maskBits = CATEGORY_ENEMY | CATEGORY_PLAYER;
-                    fixtureDef.filter.groupIndex = 0;
-                }*/
+                /*   if(entity.GetName() == "Player") {
+                       fixtureDef.filter.categoryBits = CATEGORY_PLAYER;
+                       fixtureDef.filter.maskBits = CATEGORY_WALL;
+                       fixtureDef.filter.groupIndex = 0;
+                   }
+                   else if (entity.GetName() == "Hitbox-Horizontal")
+                   {
+                       fixtureDef.filter.categoryBits = CATEGORY_WALL;
+                       fixtureDef.filter.maskBits = CATEGORY_ENEMY | CATEGORY_PLAYER;
+                       fixtureDef.filter.groupIndex = 0;
+                   }*/
                 body->CreateFixture(&fixtureDef);
             }
         }
@@ -412,8 +417,9 @@ namespace Turbo
         {
             auto& world = m_Registry.get<Box2DWorldComponent>(m_SceneEntity).World;
 
-            constexpr i32 velocityIterations = 6;
-            constexpr i32 positionIterations = 2;
+            // TODO: Figure out how to tweak this
+            constexpr i32 velocityIterations = 1; // 6
+            constexpr i32 positionIterations = 1; // 2
             world->Step(ts, velocityIterations, positionIterations);
 
             // Retrieve transform from Box2D and copy settings to it
@@ -757,8 +763,8 @@ namespace Turbo
         for (auto entity : m_DestroyedEntities)
         {
             UUID uuid = m_Registry.get<IDComponent>(entity).ID;
-            m_Registry.destroy(entity);
             m_EntityIDMap.erase(uuid);
+            m_Registry.destroy(entity);
             m_UUIDMap.erase(entity);
         }
 
@@ -805,7 +811,7 @@ namespace Turbo
     {
         if (!m_Running)
             return;
-        
+
         Entity scriptEntity = { entity, this };
         Script::CreateScriptInstance(scriptEntity);
     }
@@ -815,7 +821,7 @@ namespace Turbo
         if (!m_Running)
             return;
 
-        Entity scriptEntity = { entity, this};
+        Entity scriptEntity = { entity, this };
         Script::DestroyScriptInstance(scriptEntity);
     }
 
@@ -865,6 +871,7 @@ namespace Turbo
 
         auto& world = registry.get<Box2DWorldComponent>(m_SceneEntity).World;
         b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
+
         world->DestroyBody(body);
     }
 
@@ -900,7 +907,6 @@ namespace Turbo
         if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
-        auto& transform = registry.get<TransformComponent>(entity);
         b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
 
         // Iterate through the fixture list and destroy everything that is polygon shaped
@@ -963,7 +969,6 @@ namespace Turbo
         if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
-        auto& transform = registry.get<TransformComponent>(entity);
         b2Body* body = (b2Body*)registry.get<Rigidbody2DComponent>(entity).RuntimeBody;
 
         // Iterate through the fixture list and destroy everything that is circle shaped

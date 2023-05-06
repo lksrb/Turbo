@@ -9,7 +9,7 @@
 #include <mono/metadata/class.h>
 #include <mono/metadata/object.h>
 
-#define TBO_USE_MANAGED_THUNKS 1
+#define TBO_USE_MANAGED_THUNKS 0
 
 namespace Turbo
 {
@@ -22,9 +22,6 @@ namespace Turbo
         m_Constructor = baseClass->GetMethod(".ctor", 1);
        
         m_Instance = mono_object_new(Script::GetAppDomain(), m_ScriptClass->GetMonoClass());
-
-        // NOTE: Figure out how this works
-        m_GCHandle = mono_gchandle_new(m_Instance, false);
 
         // Call default constructor
         mono_runtime_object_init(m_Instance);
@@ -41,7 +38,7 @@ namespace Turbo
 
         // Invoke base class constructor and assign it the entity id
         void* params = &m_Entity;
-        m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &params);
+        m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, nullptr, &params);
 
 #if TBO_USE_MANAGED_THUNKS
         // Managed thunks
@@ -55,111 +52,114 @@ namespace Turbo
 
     ScriptInstance::~ScriptInstance()
     {
-        mono_gchandle_free(m_GCHandle);
     }
 
     void ScriptInstance::InvokeOnCreate()
     {
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod);
+        m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod, nullptr);
     }
 
     void ScriptInstance::InvokeOnUpdate(FTime ts)
     {
+        if (m_Exception)
+        {
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_CONSOLE_FATAL(cstring);
+            mono_free(cstring);
+
+            return;
+        }
+
 #if TBO_USE_MANAGED_THUNKS
         // NOTE: When an exception is thrown while the debugger is attached,
         // with managed thunks, debugger does not tell client that an exception has been thrown other than is prints into console.
         // With mono_runtime_invoke, this works
         // TODO: Find out how to show exception to a client in his opened editor
 
-        MonoObject* exception;
-        m_OnUpdateMethodFP(m_Instance, ts, &exception);
+        m_OnUpdateMethodFP(m_Instance, ts, &m_Exception);
 
-        if (exception)
-        {
-            MonoString* message = mono_object_to_string(exception, nullptr);
-            char* cstring = mono_string_to_utf8(message);
-            TBO_FATAL(cstring);
-            mono_free(cstring);
-        }
 #else
         void* params = &ts;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod, &params);
+        m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod, &m_Exception, &params);
 #endif
     }
 
     void ScriptInstance::InvokeOnCollisionBegin2D(u64 otherEntity)
     {
-#if TBO_USE_MANAGED_THUNKS
-        MonoObject* exception;
-        m_OnCollisionBegin2DFP(m_Instance, otherEntity, &exception);
-
-        if (exception)
+        if (m_Exception)
         {
-            MonoString* message = mono_object_to_string(exception, nullptr);
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
             char* cstring = mono_string_to_utf8(message);
-            TBO_FATAL(cstring);
+            TBO_CONSOLE_FATAL(cstring);
             mono_free(cstring);
+
+            return;
         }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnCollisionBegin2DFP(m_Instance, otherEntity, &m_Exception);
+
 #else
-        void* params = &ts;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollisionBegin2DFP, &params);
+        void* params = &otherEntity;
+        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollision2DBeginMethod, &m_Exception, &params);
 #endif
     }
 
     void ScriptInstance::InvokeOnCollisionEnd2D(u64 otherEntity)
     {
-#if TBO_USE_MANAGED_THUNKS
-        MonoObject* exception;
-        m_OnCollisionEnd2DFP(m_Instance, otherEntity, &exception);
-
-        if (exception)
+        if (m_Exception)
         {
-            MonoString* message = mono_object_to_string(exception, nullptr);
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
             char* cstring = mono_string_to_utf8(message);
-            TBO_FATAL(cstring);
+            TBO_CONSOLE_FATAL(cstring);
             mono_free(cstring);
+            return;
         }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnCollisionEnd2DFP(m_Instance, otherEntity, &m_Exception);
 #else
-        void* params = &ts;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollisionEnd2DFP, &params);
+        void* params = &otherEntity;
+        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollision2DEndMethod, &m_Exception, &params);
 #endif
     }
 
     void ScriptInstance::InvokeOnTriggerBegin2D(u64 otherEntity)
     {
-#if TBO_USE_MANAGED_THUNKS
-        MonoObject* exception;
-        m_OnTriggerBegin2DFP(m_Instance, otherEntity, &exception);
-
-        if (exception)
+        if (m_Exception)
         {
-            MonoString* message = mono_object_to_string(exception, nullptr);
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
             char* cstring = mono_string_to_utf8(message);
-            TBO_FATAL(cstring);
+            TBO_CONSOLE_FATAL(cstring);
             mono_free(cstring);
+            return;
         }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnTriggerBegin2DFP(m_Instance, otherEntity, &m_Exception);
 #else
-        void* params = &ts;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollisionEnd2DFP, &params);
+        void* params = &otherEntity;
+        m_ScriptClass->InvokeMethod(m_Instance, m_OnTriggerBegin2DMethod, &m_Exception, &params);
 #endif
     }
 
     void ScriptInstance::InvokeOnTriggerEnd2D(u64 otherEntity)
     {
-#if TBO_USE_MANAGED_THUNKS
-        MonoObject* exception;
-        m_OnTriggerEnd2DFP(m_Instance, otherEntity, &exception);
-
-        if (exception)
+        if (m_Exception)
         {
-            MonoString* message = mono_object_to_string(exception, nullptr);
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
             char* cstring = mono_string_to_utf8(message);
-            TBO_FATAL(cstring);
+            TBO_CONSOLE_FATAL(cstring);
             mono_free(cstring);
+            return;
         }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnTriggerEnd2DFP(m_Instance, otherEntity, &m_Exception);
 #else
-        void* params = &ts;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollisionEnd2DFP, &params);
+        void* params = &otherEntity;
+        m_ScriptClass->InvokeMethod(m_Instance, m_OnTriggerEnd2DMethod, &m_Exception, &params);
 #endif
     }
 

@@ -17,7 +17,11 @@ namespace GunNRun
 		public bool m_AutoJump = false;
 
 		// ---- Player Animation ----
-		public float m_AnimationIdleSpeed = 0.0f;
+		public float IdleAnimationDelay;
+		public float RunningAnimationDelay;
+		public float IdleShootingAnimationDelay;
+		public float RunShootingAnimationDelay;
+		public float InAirShootingAnimationDelay;
 
 		private float m_OffsetX = 2.0f;
 		private float m_OffsetY = -0.25f;
@@ -29,7 +33,7 @@ namespace GunNRun
 
 		private void SpawnBullet()
 		{
-			Log.Info("Pew pew!"); 
+			//Log.Info("Pew pew!"); 
 			Vector2 direction = new Vector2(Mathf.Sign(Transform.Scale.X), 0.0f);
 
 			Vector3 translation = Transform.Translation;
@@ -41,8 +45,6 @@ namespace GunNRun
 
 		protected override void OnCreate()
 		{
-			Log.Info("Hello entity!");
-
 			m_PlayerInput.Init(this);
 			m_PlayerAnimator.Init(this);
 			m_PlayerController.Init(this);
@@ -59,7 +61,9 @@ namespace GunNRun
 			}
 
 			m_PlayerInput.OnUpdate(ts);
+
 			m_PlayerController.OnUpdate(ts);
+
 			m_PlayerAnimator.OnUpdate(ts);
 		}
 	}

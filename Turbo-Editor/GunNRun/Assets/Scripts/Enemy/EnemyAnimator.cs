@@ -1,23 +1,27 @@
-﻿using Turbo;
+﻿
+using System.Collections.Generic;
+using Turbo;
 
 namespace GunNRun
 {
-	internal enum EnemyAnimation : uint
+	public static class EnemyAnimation
 	{
-		Idle = 0,
-		Running,
-		InAir,
-		ShootingIdle,
-		ShootingRunning,
+		public static readonly int Idle = 0;
+		public static readonly int Running = 1;
+		public static readonly int ShootingIdle = 2;
+		public static readonly int ShootingRunning = 3;
+		public static readonly int Dying = 4;
+
+		public static readonly int Count = 5;
 	}
 
 	internal class EnemyAnimator
 	{
 		private Enemy m_Enemy;
 
-		private Animation m_CurrentAnimation;
 		private SpriteRendererComponent m_SpriteRenderer;
-		private Animation[] m_Animations;
+		private SpriteAnimator m_Animator;
+
 		private readonly Vector2 m_SpriteSize = new Vector2(32, 38);
 
 		internal void Init(Enemy enemy)
@@ -25,137 +29,120 @@ namespace GunNRun
 			m_Enemy = enemy;
 
 			m_SpriteRenderer = m_Enemy.GetComponent<SpriteRendererComponent>();
+			m_Animator = new SpriteAnimator(m_SpriteRenderer, EnemyAnimation.Count);
+			m_Animator.SetOnAnimationChangeCallback(OnAnimationChange);
 
-			m_Animations = new Animation[10];
 			// Idle
 			{
-				var frameIndicies = new FixedArray<Vector2>(7);
-				frameIndicies.PushBack(new Vector2(0, 0));
-				frameIndicies.PushBack(new Vector2(1, 0));
-				frameIndicies.PushBack(new Vector2(2, 0));
+				var frameIndicies = new List<Vector2>(3)
+				{
+					new Vector2(0, 0),
+					new Vector2(1, 0),
+					new Vector2(2, 0)
+				};
 
-				m_Animations[(uint)PlayerAnimation.Idle] = new Animation(PlayerAnimation.Idle, true, m_Enemy.m_EnemyManager.IdleAnimationSpeed, frameIndicies);
+				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.Idle, frameIndicies, m_SpriteSize,  m_Enemy.m_EnemyManager.IdleAnimationDelay, true));
 			}
 
 			// Running
 			{
-				var frameIndicies = new FixedArray<Vector2>(8);
-				frameIndicies.PushBack(new Vector2(6, -1));
-				frameIndicies.PushBack(new Vector2(7, -1));
-				frameIndicies.PushBack(new Vector2(0, -2));
-				frameIndicies.PushBack(new Vector2(1, -2));
-				frameIndicies.PushBack(new Vector2(2, -2));
-				frameIndicies.PushBack(new Vector2(3, -2));
-				frameIndicies.PushBack(new Vector2(4, -2));
-				frameIndicies.PushBack(new Vector2(5, -2));
+				var frameIndicies = new List<Vector2>(8)
+				{
+					new Vector2(11, 0),
+					new Vector2(12, 0),
+					new Vector2(13, 0),
+					new Vector2(14, 0),
+					new Vector2(15, 0),
+					new Vector2(16, 0),
+					new Vector2(17, 0),
+					new Vector2(18, 0)
+				};
 
-				m_Animations[(uint)PlayerAnimation.Running] = new Animation(PlayerAnimation.Running, true, 0.004f, frameIndicies);
-			}
-
-			// In air
-			{
-				var frameIndicies = new FixedArray<Vector2>(2);
-				frameIndicies.PushBack(new Vector2(7, -2));
-				frameIndicies.PushBack(new Vector2(7, -2));
-
-				m_Animations[(uint)PlayerAnimation.InAir] = new Animation(PlayerAnimation.InAir, true, 0.006f, frameIndicies);
+				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.Running, frameIndicies, m_SpriteSize, m_Enemy.m_EnemyManager.RunningAnimationDelay, true));
 			}
 
 			// Idle shooting
 			{
-				var frameIndicies = new FixedArray<Vector2>(2);
-				frameIndicies.PushBack(new Vector2(2, -3));
-				frameIndicies.PushBack(new Vector2(3, -3));
-
-				m_Animations[(uint)PlayerAnimation.ShootingIdle] = new Animation(PlayerAnimation.ShootingIdle, true, 0.006f, frameIndicies);
+				var frameIndicies = new List<Vector2>(2)
+				{
+					new Vector2(2, -3),
+					new Vector2(3, -3)
+				};
+				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.ShootingIdle, frameIndicies, m_SpriteSize, m_Enemy.m_EnemyManager.IdleShootingAnimationDelay, true));
 			}
 
 			// Running shooting
 			{
-				var frameIndicies = new FixedArray<Vector2>(8);
-				frameIndicies.PushBack(new Vector2(0, -4));
-				frameIndicies.PushBack(new Vector2(1, -4));
-				frameIndicies.PushBack(new Vector2(2, -4));
-				frameIndicies.PushBack(new Vector2(3, -4));
-				frameIndicies.PushBack(new Vector2(4, -4));
-				frameIndicies.PushBack(new Vector2(5, -4));
-				frameIndicies.PushBack(new Vector2(6, -4));
-				frameIndicies.PushBack(new Vector2(7, -4));
+				var frameIndicies = new List<Vector2>(8)
+				{
+					new Vector2(0, 0),
+					new Vector2(1, 0),
+					new Vector2(2, 0),
+					new Vector2(3, 0),
+					new Vector2(4, 0),
+					new Vector2(5, 0),
+					new Vector2(6, 0),
+					new Vector2(7, 0)
+				};
 
-				m_Animations[(uint)PlayerAnimation.ShootingRunning] = new Animation(PlayerAnimation.ShootingRunning, true, 0.006f, frameIndicies);
+				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.ShootingRunning, frameIndicies, m_SpriteSize, m_Enemy.m_EnemyManager.RunShootingAnimationDelay, true));
 			}
 
-			// In air shooting
+			// Dying
 			{
-				var frameIndicies = new FixedArray<Vector2>(2);
-				frameIndicies.PushBack(new Vector2(0, -6));
-				frameIndicies.PushBack(new Vector2(1, -6));
+				var frameIndicies = new List<Vector2>(4)
+				{
+					new Vector2(19, 0),
+					new Vector2(20, 0),
+					new Vector2(21, 0),
+					new Vector2(22, 0)
+				};
 
-				m_Animations[(uint)PlayerAnimation.ShootingInAir] = new Animation(PlayerAnimation.ShootingInAir, true, 0.002f, frameIndicies);
+				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.Dying, frameIndicies, m_SpriteSize, 0.150f, false));
 			}
 
-			// Set current animation
-			m_CurrentAnimation = GetAnimation(PlayerAnimation.Idle);
+			m_Animator.ChangeAnimation(EnemyAnimation.Idle);
 		}
 
 		internal void OnUpdate(float ts)
 		{
-			OnUpdateAnimation(ts);
-/*
-			var animIndex = m_CurrentAnimation.Index;
-			if (m_PlayerController.IsMovingSideways)
+			Vector2 velocity = m_Enemy.Velocity;
+
+			var animIndex = m_Animator.GetCurrentAnimationID();
+			if (velocity.X != 0.0f)
 			{
-				animIndex = PlayerAnimation.Running;
+				animIndex = EnemyAnimation.Running;
 			}
 			else
 			{
-				animIndex = PlayerAnimation.Idle;
+				animIndex = EnemyAnimation.Idle;
 			}
 
-			if (m_PlayerInput.IsShootKeyPressedOneTime)
+			if(m_Enemy.m_Health <= 0)
 			{
-				animIndex = m_PlayerController.IsMovingSideways ? PlayerAnimation.ShootingRunning : PlayerAnimation.ShootingIdle;
+				animIndex = EnemyAnimation.Dying;
 			}
 
-			if (m_PlayerController.IsInAir)
+		/*	if (m_PlayerInput.IsShootKeyPressedOneTime)
 			{
-				animIndex = m_PlayerInput.IsShootKeyPressedOneTime ? PlayerAnimation.ShootingInAir : PlayerAnimation.InAir;
+				animIndex = velocity.X != 0.0f ? PlayerAnimation.ShootingRunning : PlayerAnimation.ShootingIdle;
 			}
+*/
 
-			ChangeAnimation(animIndex);*/
+			m_Animator.ChangeAnimation(animIndex);
+			m_Animator.OnUpdate(ts);
 		}
 
-		private void OnUpdateAnimation(float ts)
+		private void OnAnimationChange(SpriteAnimation current, ref SpriteAnimation next)
 		{
-			m_CurrentAnimation.AnimationSpeed = m_Enemy.m_EnemyManager.IdleAnimationSpeed;
-
-			var animationSpritePosition = m_CurrentAnimation.CurrentFrame(ts);
-			m_SpriteRenderer.SetSpriteBounds(animationSpritePosition, m_SpriteSize);
-		}
-
-		private void ChangeAnimation(PlayerAnimation animation)
-		{
-			if (m_CurrentAnimation.Index == animation)
-				return;
-
-			Animation nextAnimation = GetAnimation(animation);
-			// From idle to running
-			if ((m_CurrentAnimation.Index == PlayerAnimation.Running && animation == PlayerAnimation.ShootingRunning) ||
-				(m_CurrentAnimation.Index == PlayerAnimation.ShootingRunning && animation == PlayerAnimation.Running))
+			// Idle <=> Running
+			if ((current.ID == EnemyAnimation.Running && next.ID == EnemyAnimation.ShootingRunning) ||
+				(current.ID == EnemyAnimation.ShootingRunning && next.ID == EnemyAnimation.Running))
 			{
-				nextAnimation.AnimationIndex = m_CurrentAnimation.AnimationIndex;
-				nextAnimation.CurrentTime = m_CurrentAnimation.CurrentTime;
-				//nextAnimation.NextFrame();
+				next.CurrentIndex = current.CurrentIndex;
+				next.CurrentTime = current.CurrentTime;
 			}
-
-			Log.Info($"{m_CurrentAnimation.Index} -> {nextAnimation.Index}");
-
-			m_CurrentAnimation = nextAnimation;
-		}
-
-		private Animation GetAnimation(PlayerAnimation animation)
-		{
-			return m_Animations[(uint)animation].Clone();
 		}
 	}
 }
+

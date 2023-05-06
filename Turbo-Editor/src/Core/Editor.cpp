@@ -378,6 +378,7 @@ namespace Turbo::Ed
                         cameraView = glm::inverse(cameraEntity.Transform().GetTransform());
                     }
                 }
+
                 ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();
 
@@ -389,12 +390,12 @@ namespace Turbo::Ed
 
                 // Snapping
                 bool snap = Input::IsKeyPressed(Key::LeftControl);
-                f32 snap_value = 0.5f;
+                f32 snapValue = 0.5f;
 
                 if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
-                    snap_value = 45.0f;
+                    snapValue = 45.0f;
 
-                f32 snap_values[] = { snap_value, snap_value, snap_value };
+                f32 snap_values[] = { snapValue, snapValue, snapValue };
 
                 ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
                 (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
@@ -645,12 +646,12 @@ namespace Turbo::Ed
     }
 
     bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
-    {
-        if (e.GetMouseButton() == Mouse::ButtonLeft)
+    {/*
+        if (e.GetMouseButton() == Mouse::ButtonLeft) // TODO: Object picking
         {
             if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
                 m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_HoveredEntity);
-        }
+        }*/ 
         return false;
     }
 

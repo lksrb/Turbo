@@ -419,6 +419,9 @@ namespace Turbo
         if (entity.HasComponent<TagComponent>())
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
+
+
+
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
             strncpy_s(buffer, sizeof(buffer), tag.c_str(), sizeof(buffer));
@@ -845,6 +848,7 @@ namespace Turbo
             {
                 //GetParent(nullptr); FIXME: Why does scene hierarchy panel have WinUser.h include ???
                 auto a = GetParent(nullptr);
+
                 parent.RemoveChild(entity);
                 entity.SetParentUUID(0);
             }
