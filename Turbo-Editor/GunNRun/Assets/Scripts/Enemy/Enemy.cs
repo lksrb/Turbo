@@ -16,7 +16,8 @@ namespace GunNRun
 		internal EnemyManager m_EnemyManager;
 
 		private Random m_Random = new Random();
-		private float m_NextMoveCurrentTime = 2.0f;
+		private float m_NextMoveCurrentTime;
+		private readonly float m_MinTime = 2.0f;
 
 		protected override void OnCreate()
 		{
@@ -29,31 +30,27 @@ namespace GunNRun
 			OnTriggerBegin2D += OnTriggerBegin;
 
 			Log.Info("Enemy spawned!");
+
+			m_NextMoveCurrentTime = (float)m_Random.NextDouble() + m_MinTime;
 		}
 
 		protected override void OnUpdate(float ts)
 		{
 			Vector2 velocity = m_Rigidbody2D.Velocity;
 
-			if (m_NextMoveCurrentTime > 2.0f)
+			if (m_NextMoveCurrentTime < 0.0f)
 			{
-				m_NextMoveCurrentTime = 0.0f;
+				Log.Info("asdasd");
 
-				int lol = m_Random.Next(0, 5);
+				m_NextMoveCurrentTime = (float)m_Random.NextDouble() + m_MinTime;
 
-				//Log.Info(lol);
+				m_Speed = m_Random.Next(-1, 2);
 
-				/*if (lol == 1)
-				{
-					m_Speed = 5.0f;
-				} else
-				{
-					m_Speed = 0.0f;
-				}*/
+				m_Speed *= 5;
 			}
 			velocity.X = m_Speed;
 
-			m_NextMoveCurrentTime += ts;
+			m_NextMoveCurrentTime -= ts;
 
 			Velocity = velocity;
 
@@ -86,7 +83,6 @@ namespace GunNRun
 					break;
 				case "Bullet":
 					Log.Info("HIT!");
-
 					--m_Health;
 					break;
 			}
