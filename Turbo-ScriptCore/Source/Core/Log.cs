@@ -10,6 +10,7 @@
 	}
 	public static class Log
 	{
+		public static void Info(int value) => Log.Info($"{value}");
 		public static void Info(float value) => Log.Info($"{value}");
 		public static void Info(Vector2 value) => Log.Info($"{value}");
 		public static void Info(Vector3 value) => Log.Info($"{value}");
