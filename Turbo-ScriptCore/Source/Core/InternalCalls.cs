@@ -84,6 +84,13 @@ namespace Turbo
 
 		#endregion
 
+		#region Physics2D
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ulong Physics2D_RayCast(Vector2 a, Vector2 b);
+
+		#endregion
+
 		#region Components 
 
 		#region TransformComponent

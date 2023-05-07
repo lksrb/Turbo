@@ -26,6 +26,8 @@ namespace Turbo
         // Call default constructor
         mono_runtime_object_init(m_Instance);
 
+        //m_GCHandle = mono_gchandle_new_v2(m_Instance, false);
+
         // Gets overriden methods
         m_OnCreateMethod = mono_object_get_virtual_method(m_Instance, baseClass->GetMethod("OnCreate", 0));
         m_OnUpdateMethod = mono_object_get_virtual_method(m_Instance, baseClass->GetMethod("OnUpdate", 1));
@@ -52,6 +54,7 @@ namespace Turbo
 
     ScriptInstance::~ScriptInstance()
     {
+        //mono_gchandle_free_v2(m_GCHandle);
     }
 
     void ScriptInstance::InvokeOnCreate()

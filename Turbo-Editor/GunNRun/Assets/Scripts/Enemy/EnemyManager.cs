@@ -8,7 +8,6 @@ namespace GunNRun
 		public float IdleAnimationDelay;
 		public float RunningAnimationDelay;
 		public float IdleShootingAnimationDelay;
-		public float RunShootingAnimationDelay;
 
 		private Enemy[] m_Enemies;
 		private string m_EnemyPrefabPath = "Assets/Prefabs/Enemy.tprefab";

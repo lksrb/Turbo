@@ -62,6 +62,8 @@ namespace Turbo
         MonoMethod* m_OnTriggerBegin2DMethod = nullptr;
         MonoMethod* m_OnTriggerEnd2DMethod = nullptr;
 
+        MonoGCHandle m_GCHandle = nullptr;
+
         // Managed thunks FPs
         OnCollision2DFP m_OnCollisionBegin2DFP = nullptr;
         OnCollision2DFP m_OnCollisionEnd2DFP = nullptr;

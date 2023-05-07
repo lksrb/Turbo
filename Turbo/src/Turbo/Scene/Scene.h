@@ -14,6 +14,7 @@ namespace Turbo
     class Entity;
     class SceneRenderer;
     class Renderer2D;
+    class PhysicsWorld2D;
 
     using EntityMap = std::unordered_map<UUID, entt::entity>;
     using UUIDMap = std::map<entt::entity, UUID>;
@@ -75,9 +76,11 @@ namespace Turbo
         Entity FindPrimaryCameraEntity();
         Entity FindPrimaryAudioListenerEntity();
 
+        PhysicsWorld2D* GetPhysicsWorld2D();
+
         bool IsRunning() const { return m_Running; }
     private:
-        void ClearDeletedEntities();
+        void ClearEntities();
 
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);

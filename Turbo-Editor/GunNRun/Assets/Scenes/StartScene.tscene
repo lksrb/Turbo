@@ -10,9 +10,28 @@ Entities:
       Translation: [-6.75813627, 19.0410442, 0]
       Rotation: [0, 0, 0]
       Scale: [6.16418648, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 134011598750947048
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [48.04702, 18.5817738, 0]
+      Rotation: [0, 0, 0]
+      Scale: [15.8518524, 6.34305906, 1]
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -35,9 +54,6 @@ Entities:
       Translation: [-46.413105, -2.76243973, 0]
       Rotation: [0, 0, 0]
       Scale: [6.16418648, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -82,9 +98,6 @@ Entities:
       Translation: [11.1348076, 19.5298443, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -107,9 +120,6 @@ Entities:
       Translation: [-37.4911804, 20.8177185, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -154,9 +164,6 @@ Entities:
       Translation: [-46.3974152, 18.9378357, 0]
       Rotation: [0, 0, 0]
       Scale: [6.16418648, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -179,9 +186,6 @@ Entities:
       Translation: [-37.4867172, -0.943324447, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -248,9 +252,6 @@ Entities:
       Translation: [-20.8780766, -0.966379583, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -273,9 +274,6 @@ Entities:
       Translation: [-20.849535, 20.8302917, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -320,9 +318,6 @@ Entities:
       Translation: [-28.5288868, 19.0227966, 0]
       Rotation: [0, 0, 0]
       Scale: [6.16418648, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -355,9 +350,6 @@ Entities:
       Translation: [-28.5531864, -2.22439146, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -380,9 +372,6 @@ Entities:
       Translation: [29.1603966, 18.3492413, 0]
       Rotation: [0, 0, 0]
       Scale: [5.94266558, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -427,9 +416,6 @@ Entities:
       Translation: [8.60752392, -2.72160697, 0]
       Rotation: [0, 0, 0]
       Scale: [6.16418648, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -452,9 +438,6 @@ Entities:
       Translation: [11.196331, 19.0589581, 0]
       Rotation: [0, 0, 0]
       Scale: [6.16418648, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -477,9 +460,6 @@ Entities:
       Translation: [32.4374809, -4.00833607, 0]
       Rotation: [0, 0, 0]
       Scale: [1.93273008, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -544,9 +524,6 @@ Entities:
       Translation: [-10.1703091, -19.8872089, 0]
       Rotation: [0, 0, 0]
       Scale: [94.8974075, 5.75060129, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -569,9 +546,6 @@ Entities:
       Translation: [18.812542, 20.8393536, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -594,9 +568,6 @@ Entities:
       Translation: [-28.5399361, -2.73332477, 0]
       Rotation: [0, 0, 0]
       Scale: [6.16418648, 2.20477366, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -695,9 +666,28 @@ Entities:
       Translation: [-12.7853441, 22.0642071, 0]
       Rotation: [0, 0, 0]
       Scale: [89.8117752, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.0500000007
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 9275529731230612808
+    Parent: 18351839713352600519
+    Children:
+      []
+    TagComponent:
+      Tag: Hitbox-Horizontal
+    TransformComponent:
+      Translation: [39.9983139, 17.3426075, 0]
+      Rotation: [0, 0, 0]
+      Scale: [4.92255545, 0.697869956, 1]
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -725,7 +715,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Player\SpriteSheet_player.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_SRGB
-      SpriteCoords: [2, -1]
+      SpriteCoords: [0, -1]
       SpriteSize: [45, 45]
     ScriptComponent:
       ClassName: GunNRun.PlayerManager
@@ -776,9 +766,6 @@ Entities:
       Translation: [17.5380058, -0.906363249, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -811,9 +798,6 @@ Entities:
       Translation: [8.59904099, -2.22847652, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -858,9 +842,6 @@ Entities:
       Translation: [-55.3970032, 20.8076477, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -951,10 +932,7 @@ Entities:
           Data: 0.129999995
         - Name: IdleShootingAnimationDelay
           Type: Float
-          Data: 0.00400000019
-        - Name: RunShootingAnimationDelay
-          Type: Float
-          Data: 0.00400000019
+          Data: 0.209999993
   - Entity: 11889504255731476370
     Parent: 18351839713352600519
     Children:
@@ -965,9 +943,6 @@ Entities:
       Translation: [-28.5483875, 19.5366516, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1034,9 +1009,6 @@ Entities:
       Translation: [-46.4463806, 19.5240784, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1059,9 +1031,6 @@ Entities:
       Translation: [-6.7599678, 19.534544, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1084,9 +1053,6 @@ Entities:
       Translation: [-55.389061, -0.977442503, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1153,9 +1119,6 @@ Entities:
       Translation: [25.1187706, 19.5289898, 0]
       Rotation: [0, 0, 0]
       Scale: [5.94266558, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1178,9 +1141,6 @@ Entities:
       Translation: [-46.4718246, -2.20260143, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1203,9 +1163,6 @@ Entities:
       Translation: [2.18156028, 20.7866192, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1250,9 +1207,6 @@ Entities:
       Translation: [-15.7647877, 20.8087158, 0]
       Rotation: [0, 0, 0]
       Scale: [3.51134443, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1297,9 +1251,6 @@ Entities:
       Translation: [-0.2105968, -0.976538062, 0]
       Rotation: [0, 0, 0]
       Scale: [3.00887966, 5.75059986, 1]
-    SpriteRendererComponent:
-      Color: [0.533333361, 0.325490206, 0.0627451017, 0]
-      TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -1436,6 +1387,8 @@ Entities:
       - UUID: 7414094051061602085
       - UUID: 147193305664861726
       - UUID: 4934584358947146178
+      - UUID: 134011598750947048
+      - UUID: 9275529731230612808
     TagComponent:
       Tag: Hitboxes
     TransformComponent:

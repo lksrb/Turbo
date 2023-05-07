@@ -6,84 +6,87 @@ namespace GunNRun
 {
 	public class Enemy : Entity
 	{
-		private Rigidbody2DComponent m_Rigidbody2D;
 		private EnemyAnimator m_Animator = new EnemyAnimator();
-		private float m_Speed = 5.0f;
-		internal int m_Health = 5;
 
-		internal Vector2 Velocity { get; private set; } = Vector2.Zero;
+		// Shooting
+		private readonly float m_ShootingCooldown = 0.3f;
+		private float m_ShootingTimer = 0.2f;
+		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
+		private float m_OffsetX = 1.0f;
+		private float m_OffsetY = -0.25f;
+
+		internal bool IsShooting { get; private set; } = false;
+		internal EnemyController Controller { get; private set; } = new EnemyController();
+		internal int Health { get; private set; } = 5;
 
 		internal EnemyManager m_EnemyManager;
-
-		private Random m_Random = new Random();
-		private float m_NextMoveCurrentTime;
-		private readonly float m_MinTime = 2.0f;
 
 		protected override void OnCreate()
 		{
 			m_EnemyManager = FindEntityByName("EnemyManager").As<EnemyManager>();
-			m_Rigidbody2D = GetComponent<Rigidbody2DComponent>();
 
+			Controller.Init(this);
 			m_Animator.Init(this);
 
 			OnCollisionBegin2D += OnCollision;
 			OnTriggerBegin2D += OnTriggerBegin;
 
 			Log.Info("Enemy spawned!");
-
-			m_NextMoveCurrentTime = (float)m_Random.NextDouble() + m_MinTime;
 		}
 
 		protected override void OnUpdate(float ts)
 		{
-			Vector2 velocity = m_Rigidbody2D.Velocity;
+			Controller.OnUpdate(ts);
 
-			if (m_NextMoveCurrentTime < 0.0f)
+			if (IsShooting)
 			{
-				Log.Info("asdasd");
+				if (m_ShootingTimer > m_ShootingCooldown)
+				{
+					m_ShootingTimer = 0.0f;
+					SpawnBullet();
+				}
 
-				m_NextMoveCurrentTime = (float)m_Random.NextDouble() + m_MinTime;
-
-				m_Speed = m_Random.Next(-1, 2);
-
-				m_Speed *= 5;
+				m_ShootingTimer += ts;
 			}
-			velocity.X = m_Speed;
-
-			m_NextMoveCurrentTime -= ts;
-
-			Velocity = velocity;
-
-			if(m_Health <= 0)
+			else
 			{
-				velocity.X = 0;
-				m_Rigidbody2D.IsEnabled = false;
-			}
-
-			m_Rigidbody2D.Velocity = velocity;
-
-			if (Velocity.X != 0)
-			{
-				var scale = Transform.Scale;
-				var velocityX = Velocity.X;
-
-				Vector3 rotatedScale = new Vector3(Mathf.Sign(velocityX) * Mathf.Abs(scale.X), scale.Y, scale.Z);
-				Transform.Scale = rotatedScale;
+				m_ShootingTimer = 0.2f; // For faster reaction
 			}
 
 			m_Animator.OnUpdate(ts);
 		}
-		
+
+		internal void StartShooting()
+		{
+			IsShooting = true;
+		}
+
+		internal void StopShooting()
+		{
+			IsShooting = false;
+		}
+
+		private void SpawnBullet()
+		{
+			Vector2 direction = new Vector2(Mathf.Sign(Transform.Scale.X), 0.0f);
+
+			Vector3 translation = Transform.Translation;
+			translation += new Vector3(direction.X * m_OffsetX, m_OffsetY, 0);
+
+			Bullet bullet = Instantiate(m_BulletPrefab, translation).As<Bullet>();
+			bullet.SetDirection(direction);
+		}
+
 		private void OnCollision(Entity other)
 		{
 			switch (other.Name)
 			{
 				case "Hitbox-Horizontal":
-					m_Speed *= -1;
+					Controller.OnCollision(other);
 					break;
 				case "Bullet":
 					Log.Info("HIT!");
-					--m_Health;
+					--Health;
 					break;
 			}
 		}
@@ -93,7 +96,11 @@ namespace GunNRun
 			switch (other.Name)
 			{
 				case "Hitbox-Trigger":
-					m_Speed *= -1;
+					Controller.OnCollision(other);
+					break;
+				case "Bullet":
+					Log.Info("HIT!");
+					--Health;
 					break;
 			}
 		}

@@ -60,6 +60,9 @@ namespace Turbo
 			return component;
 		}
 
+		public static bool operator ==(Entity a, Entity b) => a.ID == b.ID;
+		public static bool operator !=(Entity a, Entity b) => !(a == b);
+
 		public Entity[] Children() => InternalCalls.Entity_Get_Children(ID);
 
 		public Entity Instantiate(string prefabPath, Vector3 translation)
@@ -90,5 +93,9 @@ namespace Turbo
 		private void OnCollisionEnd2D_Internal(ulong id) => OnCollisionEnd2D?.Invoke(new Entity(id));
 		private void OnTriggerBegin2D_Internal(ulong id) => OnTriggerBegin2D?.Invoke(new Entity(id));
 		private void OnTriggerEnd2D_Internal(ulong id) => OnTriggerEnd2D?.Invoke(new Entity(id));
+
+		public override string ToString() => Name;
+		public override bool Equals(object obj) => base.Equals(obj);
+		public override int GetHashCode() => base.GetHashCode();
 	}
 }

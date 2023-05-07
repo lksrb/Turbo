@@ -564,7 +564,6 @@ namespace Turbo
                         config.Format = ImageFormat_RGBA_Unorm;
                         config.Path = texturePath.string();
 
-
                         Ref<Texture2D> texture = Texture2D::Create(config);
                         if (texture->IsLoaded())
                             component.SubTexture = SubTexture2D::CreateFromTexture(texture);

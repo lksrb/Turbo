@@ -19,7 +19,6 @@
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/appdomain.h>
 #include <mono/metadata/threads.h>
-#include <mono/metadata/tabledefs.h>
 #include <mono/metadata/attrdefs.h>
 #include <mono/metadata/mono-gc.h>
 
@@ -471,6 +470,8 @@ namespace Turbo
 
     void Script::CollectGarbage()
     {
+        return;
+
         TBO_ENGINE_WARN("Collecting garbage...");
 
         int generation = mono_gc_max_generation();

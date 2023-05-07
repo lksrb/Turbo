@@ -169,7 +169,7 @@ namespace Turbo
         VkPipelineColorBlendAttachmentState colorBlendAttachments[2] = {};
         u32 attachmentCount = 1;
 
-        auto& framebufferAttachment = targetFbConfig.ColorAttachment;
+        const auto& framebufferAttachment = targetFbConfig.ColorAttachment;
         colorBlendAttachments[0].colorWriteMask = (VkColorComponentFlags)framebufferAttachment.ColorMask;
         colorBlendAttachments[0].blendEnable = framebufferAttachment.EnableBlend;
         colorBlendAttachments[0].srcColorBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor;

@@ -9,5 +9,6 @@ extern "C" {
     typedef struct _MonoMethod MonoMethod;
     typedef struct _MonoAssembly MonoAssembly;
     typedef struct _MonoException MonoException;
+    typedef void* MonoGCHandle;
 }
 

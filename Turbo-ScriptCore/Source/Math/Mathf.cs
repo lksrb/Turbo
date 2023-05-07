@@ -117,7 +117,7 @@ namespace Turbo
 			Vector3 distance = end - start;
 
 			// Removes unnecessary approximation
-			if(distance.Length < maxDistanceDelta) 
+			if(distance.Length() < maxDistanceDelta) 
 				return end;
 
 			return start + distance * maxDistanceDelta;
@@ -127,7 +127,7 @@ namespace Turbo
 			Vector3 direction = end - start;
 
 			// Removes unnecessary approximation
-			if (direction.Length < maxDistanceDelta)
+			if (direction.Length() < maxDistanceDelta)
 				return end;
 
 			return start + Mathf.Sign(direction) * maxDistanceDelta;

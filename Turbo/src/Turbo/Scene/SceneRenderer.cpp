@@ -25,8 +25,6 @@ namespace Turbo
 
         if (m_Config.RenderIntoTexture)
         {
-            u32 frames_in_flight = RendererContext::FramesInFlight();
-
             // Separate RenderPass
             {
                 RenderPass::Config config = {};

@@ -8,11 +8,10 @@ namespace GunNRun
 	{
 		public static readonly int Idle = 0;
 		public static readonly int Running = 1;
-		public static readonly int ShootingIdle = 2;
-		public static readonly int ShootingRunning = 3;
-		public static readonly int Dying = 4;
+		public static readonly int IdleShooting = 2;
+		public static readonly int Dying = 3;
 
-		public static readonly int Count = 5;
+		public static readonly int Count = 4;
 	}
 
 	internal class EnemyAnimator
@@ -30,7 +29,6 @@ namespace GunNRun
 
 			m_SpriteRenderer = m_Enemy.GetComponent<SpriteRendererComponent>();
 			m_Animator = new SpriteAnimator(m_SpriteRenderer, EnemyAnimation.Count);
-			m_Animator.SetOnAnimationChangeCallback(OnAnimationChange);
 
 			// Idle
 			{
@@ -65,27 +63,10 @@ namespace GunNRun
 			{
 				var frameIndicies = new List<Vector2>(2)
 				{
-					new Vector2(2, -3),
-					new Vector2(3, -3)
+					new Vector2(3, -3),
+					new Vector2(4, -3)
 				};
-				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.ShootingIdle, frameIndicies, m_SpriteSize, m_Enemy.m_EnemyManager.IdleShootingAnimationDelay, true));
-			}
-
-			// Running shooting
-			{
-				var frameIndicies = new List<Vector2>(8)
-				{
-					new Vector2(0, 0),
-					new Vector2(1, 0),
-					new Vector2(2, 0),
-					new Vector2(3, 0),
-					new Vector2(4, 0),
-					new Vector2(5, 0),
-					new Vector2(6, 0),
-					new Vector2(7, 0)
-				};
-
-				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.ShootingRunning, frameIndicies, m_SpriteSize, m_Enemy.m_EnemyManager.RunShootingAnimationDelay, true));
+				m_Animator.AddAnimation(new SpriteAnimation(EnemyAnimation.IdleShooting, frameIndicies, m_SpriteSize, m_Enemy.m_EnemyManager.IdleShootingAnimationDelay, true));
 			}
 
 			// Dying
@@ -106,7 +87,7 @@ namespace GunNRun
 
 		internal void OnUpdate(float ts)
 		{
-			Vector2 velocity = m_Enemy.Velocity;
+			Vector2 velocity = m_Enemy.Controller.Velocity;
 
 			var animIndex = m_Animator.GetCurrentAnimationID();
 			if (velocity.X != 0.0f)
@@ -118,30 +99,18 @@ namespace GunNRun
 				animIndex = EnemyAnimation.Idle;
 			}
 
-			if(m_Enemy.m_Health <= 0)
+			if(m_Enemy.Health <= 0)
 			{
 				animIndex = EnemyAnimation.Dying;
 			}
 
-		/*	if (m_PlayerInput.IsShootKeyPressedOneTime)
+			if (m_Enemy.IsShooting)
 			{
-				animIndex = velocity.X != 0.0f ? PlayerAnimation.ShootingRunning : PlayerAnimation.ShootingIdle;
+				animIndex = EnemyAnimation.IdleShooting;
 			}
-*/
 
 			m_Animator.ChangeAnimation(animIndex);
 			m_Animator.OnUpdate(ts);
-		}
-
-		private void OnAnimationChange(SpriteAnimation current, ref SpriteAnimation next)
-		{
-			// Idle <=> Running
-			if ((current.ID == EnemyAnimation.Running && next.ID == EnemyAnimation.ShootingRunning) ||
-				(current.ID == EnemyAnimation.ShootingRunning && next.ID == EnemyAnimation.Running))
-			{
-				next.CurrentIndex = current.CurrentIndex;
-				next.CurrentTime = current.CurrentTime;
-			}
 		}
 	}
 }

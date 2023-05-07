@@ -15,7 +15,7 @@ namespace GunNRun
         {
 			Log.Info("Hello from bullet!");
 
-			OnCollisionBegin2D += OnCollisionBegin;
+			OnTriggerBegin2D += OnTriggerBegin;
 		}
 
 		protected override void OnUpdate(float ts)
@@ -34,7 +34,7 @@ namespace GunNRun
 			rigidBody.Velocity = direction * Speed;
 		}
 
-		private void OnCollisionBegin(Entity other)
+		private void OnTriggerBegin(Entity other)
 		{
 			m_Destroy = true;
 		}

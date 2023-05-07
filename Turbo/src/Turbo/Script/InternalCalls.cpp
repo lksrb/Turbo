@@ -5,6 +5,7 @@
 #include "ScriptInstance.h"
 
 #include "Turbo/Physics/Physics2D.h"
+#include "Turbo/Physics/PhysicsWorld2D.h"
 
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Core/Input.h"
@@ -82,24 +83,41 @@ namespace Turbo
     //                                  Input                                   
     // =============================================================================
 
-    static inline bool Input_IsKeyPressed(uint32_t key)
+    static bool Input_IsKeyPressed(u32 key)
     {
         return Input::IsKeyPressed(key);
     }
-    static inline bool Input_IsKeyReleased(uint32_t key)
+    static bool Input_IsKeyReleased(u32 key)
     {
         return Input::IsKeyReleased(key);
     }
-    static inline bool Input_IsMouseButtonPressed(uint32_t key)
+    static bool Input_IsMouseButtonPressed(u32 key)
     {
         return Input::IsMouseButtonPressed(key);
     }
-    static inline bool Input_IsMouseButtonReleased(uint32_t key)
+    static bool Input_IsMouseButtonReleased(u32 key)
     {
         return Input::IsMouseButtonReleased(key);
     }
-    static inline i32 Input_GetMouseX() { return Input::GetMouseX(); }
-    static inline i32 Input_GetMouseY() { return Input::GetMouseY(); }
+    static i32 Input_GetMouseX() { return Input::GetMouseX(); }
+    static i32 Input_GetMouseY() { return Input::GetMouseY(); }
+
+    // =============================================================================
+    //                                  Physics 2D                                   
+    // =============================================================================
+
+    static u64 Physics2D_RayCast(glm::vec2 a, glm::vec2 b)
+    {
+        Scene* context = Script::GetCurrentScene();
+
+        PhysicsWorld2D* physicsWorld2d = context->GetPhysicsWorld2D();
+
+        Entity hitEntity = physicsWorld2d->RayCast(a, b);
+        if(hitEntity)
+            return hitEntity.GetUUID();
+
+        return UUID::Null;
+    }
 
     // =============================================================================
     //                                   Scene                                   
@@ -158,7 +176,7 @@ namespace Turbo
 
         glm::vec3 ndcSpacePos = clipSpacePos / clipSpacePos.w;
 
-        glm::vec2 windowSpacePos; 
+        glm::vec2 windowSpacePos;
         windowSpacePos.x = ((ndcSpacePos.x + 1.0f) / 2.0f) * context->GetViewportWidth() + context->GetViewportX();
         windowSpacePos.y = ((ndcSpacePos.y + 1.0f) / 2.0f) * context->GetViewportHeight() + context->GetViewportY();
 
@@ -171,8 +189,6 @@ namespace Turbo
             context->GetViewportWidth(),
             context->GetViewportHeight()
         };
-
-        //*worldPosition = Math::UnProject(screenPosition, viewport, camera.GetViewProjection());
     }
 
     // =============================================================================
@@ -435,7 +451,7 @@ namespace Turbo
 
         Entity entity = context->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
-        
+
         MonoDomain* appDomain = Script::GetAppDomain();
 
         const std::string& text = entity.GetComponent<TextComponent>().Text;
@@ -863,6 +879,9 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_AudioListener_Get_IsPrimary);
         TBO_REGISTER_FUNCTION(Component_AudioListener_Set_IsPrimary);
 
+        // Physics2D
+        TBO_REGISTER_FUNCTION(Physics2D_RayCast);
+
         // RigidBody2D
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulse);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulseToCenter);
@@ -878,6 +897,7 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_Enabled);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Set_ContactEnabled);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_Get_ContactEnabled);
+
         // BoxCollider2D
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Offset);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Offset);

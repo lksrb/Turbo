@@ -1,6 +1,6 @@
 Prefab: 0
 Entities:
-  - Entity: 3803815952250875861
+  - Entity: 8140897834826531650
     Parent: 0
     Children:
       []
@@ -21,8 +21,8 @@ Entities:
           Data: 40
     Rigidbody2DComponent:
       BodyType: Dynamic
-      FixedRotation: false
-      GravityScale: 1
+      FixedRotation: true
+      GravityScale: 0
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -30,4 +30,4 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-      IsSensor: false
+      IsSensor: true
