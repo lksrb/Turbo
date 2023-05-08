@@ -423,9 +423,18 @@ namespace Turbo::Ed
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("New Project..."))
+                if (ImGui::BeginMenu("New"))
                 {
-                    m_PanelManager->GetPanel<CreateProjectPopupPanel>()->Open();
+                    if (ImGui::MenuItem("Project..."))
+                    {
+                        m_PanelManager->GetPanel<CreateProjectPopupPanel>()->Open();
+                    }
+                    if (ImGui::MenuItem("Scene", nullptr, nullptr, m_SceneMode == Mode::SceneEdit))
+                    {
+                        CreateScene();
+                    }
+
+                    ImGui::EndMenu();
                 }
                 if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
                 {
@@ -786,6 +795,21 @@ namespace Turbo::Ed
         TBO_VERIFY(serializer.Serialize(Project::GetProjectConfigPath()), "Saving project");
     }
 
+    void Editor::CreateScene()
+    {
+        // Save current scene
+        SaveScene();
+
+        std::filesystem::path scenePath = Project::GetAssetsPath() / "Scenes\\TestScene.tscene";
+
+        Ref<Scene> newScene = Ref<Scene>::Create();
+        newScene->CreateEntity("Start entity!");
+
+        SceneSerializer serializer(newScene);
+        TBO_VERIFY(serializer.Serialize(scenePath), "New scene serialization");
+
+        OpenScene(scenePath);
+    }
 
     void Editor::SaveScene()
     {

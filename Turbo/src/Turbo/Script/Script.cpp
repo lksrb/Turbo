@@ -256,7 +256,12 @@ namespace Turbo
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
 
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
-        TBO_ENGINE_ASSERT(instance, "Could not find script instance!");
+
+        if (!instance)
+        {
+            TBO_CONSOLE_ERROR("Could not find script class! ({0})", script.ClassName);
+            return;
+        }
 
         instance->InvokeOnCreate();
     }
@@ -265,7 +270,13 @@ namespace Turbo
     {
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
-        TBO_ENGINE_ASSERT(instance, "Could not find script instance!");
+
+        if (!instance)
+        {
+            TBO_CONSOLE_ERROR("Could not find script class! ({0})", script.ClassName);
+            return;
+        }
+
         instance->InvokeOnUpdate(ts);
     }
 

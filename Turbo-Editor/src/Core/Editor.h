@@ -13,10 +13,10 @@ namespace Turbo::Ed
             ScenePlay = 1
         };
 
+        // Expand
         enum class IDE : u32
         {
             None = 0,
-            VisualStudioCode, // TODO
             VisualStudio2022
         };
 
@@ -45,6 +45,7 @@ namespace Turbo::Ed
         void SaveProject();
         void OpenProject(std::filesystem::path filepath = {});
     private: // Scene
+        void CreateScene();
         void SaveScene();
         void SaveSceneAs();
         void OpenScene(const std::filesystem::path& filepath = {});

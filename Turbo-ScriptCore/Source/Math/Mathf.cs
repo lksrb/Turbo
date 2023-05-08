@@ -105,6 +105,12 @@ namespace Turbo
 		#endregion
 
 		#region Linear Algebra
+		public static Vector2 Sign(Vector2 value)
+		{
+			float x = Mathf.Sign(value.X);
+			float y = Mathf.Sign(value.Y);
+			return new Vector2(x, y);
+		}
 		public static Vector3 Sign(Vector3 value)
 		{
 			float x = Mathf.Sign(value.X);
@@ -117,17 +123,28 @@ namespace Turbo
 			Vector3 distance = end - start;
 
 			// Removes unnecessary approximation
-			if(distance.Length() < maxDistanceDelta) 
+			if(distance.Length < maxDistanceDelta) 
 				return end;
 
 			return start + distance * maxDistanceDelta;
 		}
+		public static Vector2 Lerp(Vector2 start, Vector2 end, float maxDistanceDelta)
+		{
+			Vector2 distance = end - start;
+
+			// Removes unnecessary approximation
+			if (distance.Length < maxDistanceDelta)
+				return end;
+
+			return start + distance * maxDistanceDelta;
+		}
+
 		public static Vector3 Cerp(Vector3 start, Vector3 end, float maxDistanceDelta)
 		{
 			Vector3 direction = end - start;
 
 			// Removes unnecessary approximation
-			if (direction.Length() < maxDistanceDelta)
+			if (direction.Length < maxDistanceDelta)
 				return end;
 
 			return start + Mathf.Sign(direction) * maxDistanceDelta;
