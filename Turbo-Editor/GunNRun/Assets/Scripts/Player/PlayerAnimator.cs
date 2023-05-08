@@ -13,8 +13,9 @@ namespace GunNRun
 		public static readonly int ShootingIdle = 3;
 		public static readonly int ShootingRunning = 4;
 		public static readonly int ShootingInAir = 5;
+		public static readonly int Crouching = 6;
 
-		public static readonly int Count = 6;
+		public static readonly int Count = 7;
 	}
 
 	internal class PlayerAnimator
@@ -72,6 +73,17 @@ namespace GunNRun
 				m_Animator.AddAnimation(new SpriteAnimation(PlayerAnimation.Running, frameIndicies, m_SpriteSize, m_PlayerManager.RunningAnimationDelay, true));
 			}
 
+			// Crouching
+			{
+				var frameIndicies = new List<Vector2>(2)
+				{
+					new Vector2(6, -2),
+					new Vector2(6, -2),
+				};
+
+				m_Animator.AddAnimation(new SpriteAnimation(PlayerAnimation.Crouching, frameIndicies, m_SpriteSize, 0.10f, true));
+			}
+			
 			// In air
 			{
 				var frameIndicies = new List<Vector2>(2)
@@ -129,8 +141,9 @@ namespace GunNRun
 		{
 			Vector2 velocity = m_PlayerController.Velocity;
 
+			var currentAnimation = m_Animator.GetCurrentAnimation();
+			var animIndex = currentAnimation.ID;
 
-			var animIndex = m_Animator.GetCurrentAnimationID();
 			if (velocity.X != 0.0f)
 			{
 				animIndex = PlayerAnimation.Running;
@@ -148,6 +161,11 @@ namespace GunNRun
 			if (m_PlayerController.IsInAir)
 			{
 				animIndex = m_PlayerInput.IsShootKeyPressedOneTime ? PlayerAnimation.ShootingInAir : PlayerAnimation.InAir;
+			}
+
+			if (m_PlayerController.IsCrouching)
+			{
+				animIndex = PlayerAnimation.Crouching;
 			}
 
 			m_Animator.ChangeAnimation(animIndex);

@@ -31,6 +31,8 @@ namespace GunNRun
 		internal PlayerInput m_PlayerInput { get; private set; } = new PlayerInput();
 		internal PlayerAnimator m_PlayerAnimator { get; private set; } = new PlayerAnimator();
 
+		private BoxCollider2DComponent m_BoxCollider;
+
 		private void SpawnBullet()
 		{
 			//Log.Info("Pew pew!"); 
@@ -49,9 +51,13 @@ namespace GunNRun
 			m_PlayerAnimator.Init(this);
 			m_PlayerController.Init(this);
 
+			m_BoxCollider = GetComponent<BoxCollider2DComponent>();
+
 			//var boxCollider = GetComponent<BoxCollider2DComponent>();
 			//boxCollider.CollisionCategory = PhysicsCategory.Player;
 		}
+
+		private bool m_WasCrouching = false;
 
 		protected override void OnUpdate(float ts)
 		{
@@ -60,11 +66,29 @@ namespace GunNRun
 				SpawnBullet();
 			}
 
+			if (m_PlayerController.IsCrouching && !m_WasCrouching)
+			{
+				m_WasCrouching = true;
+
+				m_BoxCollider.IsSensor = true;
+
+			} else if(!m_PlayerController.IsCrouching)
+			{
+				m_WasCrouching = false;
+
+				m_BoxCollider.IsSensor = false; 
+			}
+
 			m_PlayerInput.OnUpdate(ts);
 
 			m_PlayerController.OnUpdate(ts);
 
 			m_PlayerAnimator.OnUpdate(ts);
+		}
+
+		private void LowerBoxCollider()
+		{
+			m_BoxCollider.IsSensor = true;
 		}
 	}
 }

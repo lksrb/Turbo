@@ -10,6 +10,7 @@ namespace GunNRun
 		private readonly KeyCode m_ShootKeyCode = KeyCode.L;
 		private readonly KeyCode m_MoveLeftKeyCode = KeyCode.A;
 		private readonly KeyCode m_MoveRightKeyCode = KeyCode.D;
+		private readonly KeyCode m_CrouchKeyCode = KeyCode.LeftControl;
 
 		// ---- Jumping ----
 		private bool m_IsJumpKeyReleased = true;
@@ -17,6 +18,9 @@ namespace GunNRun
 
 		internal bool IsJumpKeyPressed { get; private set; }
 		internal bool IsJumpKeyPressedOneTime => m_WasJumpKeyReleasedLastFrame && IsJumpKeyPressed;
+
+		// ---- Crouchning ----
+		internal bool IsCrouchKeyHold { get; private set; } = false;
 
 		// ---- Moving ----
 		internal bool IsMoveLeftKeyPressed { get; private set; }
@@ -40,6 +44,9 @@ namespace GunNRun
 			m_WasJumpKeyReleasedLastFrame = m_IsJumpKeyReleased;
 			IsJumpKeyPressed = Input.IsKeyPressed(m_JumpKeyCode);
 			m_IsJumpKeyReleased = Input.IsKeyReleased(m_JumpKeyCode);
+
+			// ---- Crouching -----
+			IsCrouchKeyHold = Input.IsKeyPressed(m_CrouchKeyCode);
 
 			// ---- Moving ----
 			IsMoveLeftKeyPressed = Input.IsKeyPressed(m_MoveLeftKeyCode);

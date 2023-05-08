@@ -89,7 +89,7 @@ namespace GunNRun
 		{
 			Vector2 velocity = m_Enemy.Controller.Velocity;
 
-			var animIndex = m_Animator.GetCurrentAnimationID();
+			var animIndex = m_Animator.GetCurrentAnimation().ID;
 			if (velocity.X != 0.0f)
 			{
 				animIndex = EnemyAnimation.Running;
@@ -99,14 +99,14 @@ namespace GunNRun
 				animIndex = EnemyAnimation.Idle;
 			}
 
-			if(m_Enemy.Health <= 0)
-			{
-				animIndex = EnemyAnimation.Dying;
-			}
-
 			if (m_Enemy.IsShooting)
 			{
 				animIndex = EnemyAnimation.IdleShooting;
+			}
+
+			if (m_Enemy.Health <= 0)
+			{
+				animIndex = EnemyAnimation.Dying;
 			}
 
 			m_Animator.ChangeAnimation(animIndex);

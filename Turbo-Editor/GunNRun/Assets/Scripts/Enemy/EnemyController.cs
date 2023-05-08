@@ -51,7 +51,7 @@ namespace GunNRun
 				// Direction
 				Vector3 dist = m_Transform.Translation - m_Player.Transform.Translation;
 
-				if(Mathf.Abs(dist.X) < 10.0f)
+				if (Mathf.Abs(dist.X) < 15.0f && Mathf.Abs(dist.Y) < 1.0f)
 				{
 					Direction dir = dist.X < 0.0f ? Direction.Right : Direction.Left;
 					ChangeDirection(dir);

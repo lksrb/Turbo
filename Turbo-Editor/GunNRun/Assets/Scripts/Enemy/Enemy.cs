@@ -12,8 +12,8 @@ namespace GunNRun
 		private readonly float m_ShootingCooldown = 0.3f;
 		private float m_ShootingTimer = 0.2f;
 		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
-		private float m_OffsetX = 1.0f;
-		private float m_OffsetY = -0.25f;
+		private float m_OffsetX = 1.5f;
+		private float m_OffsetY = 0.0f;
 
 		internal bool IsShooting { get; private set; } = false;
 		internal EnemyController Controller { get; private set; } = new EnemyController();
@@ -36,7 +36,11 @@ namespace GunNRun
 
 		protected override void OnUpdate(float ts)
 		{
+			m_Animator.OnUpdate(ts);
 			Controller.OnUpdate(ts);
+
+			if (Health <= 0)
+				return;
 
 			if (IsShooting)
 			{
@@ -53,7 +57,6 @@ namespace GunNRun
 				m_ShootingTimer = 0.2f; // For faster reaction
 			}
 
-			m_Animator.OnUpdate(ts);
 		}
 
 		internal void StartShooting()

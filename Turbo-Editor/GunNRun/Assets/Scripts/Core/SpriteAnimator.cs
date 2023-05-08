@@ -58,7 +58,12 @@ namespace GunNRun
 			m_SpriteRenderer.SetSpriteBounds(animationSpritePosition, m_CurrentAnimation.SpriteSize);
 		}
 
-		public int GetCurrentAnimationID() => m_CurrentAnimation.ID;
+		public SpriteAnimation GetCurrentAnimation() => m_CurrentAnimation;
+
+		public void ModifyCurrentDelay(float delay)
+		{
+			m_CurrentAnimation.AnimationDelay = delay; 
+		}
 
 		private SpriteAnimation GetAnimation(int id)
 		{

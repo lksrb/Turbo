@@ -36,6 +36,9 @@ namespace GunNRun
 
 		private void OnTriggerBegin(Entity other)
 		{
+			if (other.Name == "Hitbox-Trigger")
+				return;
+
 			m_Destroy = true;
 		}
 	}

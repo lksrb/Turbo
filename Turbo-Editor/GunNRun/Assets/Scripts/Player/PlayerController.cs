@@ -14,6 +14,7 @@ namespace GunNRun
 
 		internal bool IsInAir { get; private set; }
 		internal Vector2 Velocity;
+		internal bool IsCrouching { get; private set; }
 
 		internal void Init(PlayerManager playerManager)
 		{
@@ -57,6 +58,9 @@ namespace GunNRun
 
 				velocity.X = (-1) * m_PlayerManager.m_Speed;
 			}
+
+			// Crouching
+			IsCrouching = m_PlayerInput.IsCrouchKeyHold && velocity.Length <= 0.5f;
 
 			Velocity = m_RigidBody2D.Velocity = velocity;
 		}
