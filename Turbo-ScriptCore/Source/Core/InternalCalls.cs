@@ -238,6 +238,9 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Component_BoxCollider2D_Get_IsSensor(ulong uuid);
 
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_BoxCollider2D_Set_IsSensor(ulong uuid, bool isSensor);
+
 		// CollisionCategory
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_BoxCollider2D_Set_CollisionCategory(ulong uuid, ushort category);

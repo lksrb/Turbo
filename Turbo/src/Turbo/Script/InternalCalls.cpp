@@ -758,7 +758,7 @@ namespace Turbo
         entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
     }
 
-    // Sensor
+    // IsSensor
     static bool Component_BoxCollider2D_Get_IsSensor(UUID uuid)
     {
         Scene* context = Script::GetCurrentScene();
@@ -768,6 +768,25 @@ namespace Turbo
 
         return entity.GetComponent<BoxCollider2DComponent>().IsSensor;
     }
+
+    static void Component_BoxCollider2D_Set_IsSensor(UUID uuid, bool isSensor)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+
+        TBO_ENGINE_ASSERT(entity);
+
+        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+        if (bc2d.IsSensor == isSensor)
+            return;
+
+        bc2d.IsSensor = isSensor;
+
+        // Destroys old fixture and replaces it with new one
+        entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
+    }
+
 
 #pragma endregion
 
@@ -904,6 +923,7 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Size);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Size);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_IsSensor);
+        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_IsSensor);
 
         // CircleCollider2D
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_Offset);

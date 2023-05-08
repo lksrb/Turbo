@@ -70,7 +70,7 @@ namespace Turbo
         UUID SceneID;
     };
 
-    struct Physics2DWorldComponent
+    struct PhysicsWorld2DComponent
     {
         std::unique_ptr<PhysicsWorld2D> World;
     };
@@ -205,7 +205,7 @@ namespace Turbo
         m_PrimaryCameraEntity = FindPrimaryCameraEntity();
 
         // Physics 2D
-        auto& physicsWorld2d = m_Registry.emplace<Physics2DWorldComponent>(m_SceneEntity, std::make_unique<PhysicsWorld2D>(glm::vec2{ 0.0f, -9.8f })).World;
+        auto& physicsWorld2d = m_Registry.emplace<PhysicsWorld2DComponent>(m_SceneEntity, std::make_unique<PhysicsWorld2D>(glm::vec2{ 0.0f, -9.8f })).World;
 
         {
             auto& view = GetAllEntitiesWith<Rigidbody2DComponent>();
@@ -287,7 +287,7 @@ namespace Turbo
 
         // Update 2D Physics
         {
-            auto& world = m_Registry.get<Physics2DWorldComponent>(m_SceneEntity).World;
+            auto& world = m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
             world->Step(ts);
 
             // Retrieve transform from Box2D and copy settings to it
@@ -622,7 +622,7 @@ namespace Turbo
 
     PhysicsWorld2D* Scene::GetPhysicsWorld2D()
     {
-        return m_Registry.get<Physics2DWorldComponent>(m_SceneEntity).World.get();
+        return m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World.get();
     }
 
     void Scene::ClearEntities()
@@ -697,7 +697,7 @@ namespace Turbo
         if (!m_Running)
             return;
 
-        auto& physicsWorld2d = m_Registry.get<Physics2DWorldComponent>(m_SceneEntity).World;
+        auto& physicsWorld2d = m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
 
         Entity e = { entity, this };
         physicsWorld2d->ConstructBody(e);
@@ -721,7 +721,7 @@ namespace Turbo
         if (!m_Running)
             return;
 
-        auto& physicsWorld2d = registry.get<Physics2DWorldComponent>(m_SceneEntity).World;
+        auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
 
         Entity e = { entity, this };
         physicsWorld2d->DestroyPhysicsBody(e);
@@ -732,7 +732,7 @@ namespace Turbo
         if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
-        auto& physicsWorld2d = registry.get<Physics2DWorldComponent>(m_SceneEntity).World;
+        auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
 
         Entity e = { entity, this };
         physicsWorld2d->ConstructBoxCollider(e);
@@ -743,7 +743,7 @@ namespace Turbo
         if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
-        auto& physicsWorld2d = registry.get<Physics2DWorldComponent>(m_SceneEntity).World;
+        auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
 
         Entity e = { entity, this };
         physicsWorld2d->DestroyBoxCollider(e);
@@ -754,7 +754,7 @@ namespace Turbo
         if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
-        auto& physicsWorld2d = registry.get<Physics2DWorldComponent>(m_SceneEntity).World;
+        auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
 
         Entity e = { entity, this };
         physicsWorld2d->ConstructCircleCollider(e);
@@ -777,7 +777,7 @@ namespace Turbo
         if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
-        auto& physicsWorld2d = registry.get<Physics2DWorldComponent>(m_SceneEntity).World;
+        auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
 
         Entity e = { entity, this };
         physicsWorld2d->ConstructCircleCollider(e);

@@ -175,7 +175,7 @@ namespace Turbo
 			}
 		}
 
-		private Vector2 Size // TODO: Make this more robust
+		public Vector2 Size // TODO: Make this more robust
 		{
 			get
 			{
@@ -188,7 +188,7 @@ namespace Turbo
 			}
 		}
 
-		public ushort CollisionCategory
+		private ushort CollisionCategory
 		{
 			get => InternalCalls.Component_BoxCollider2D_Get_CollisionCategory(Entity.ID);
 			set => InternalCalls.Component_BoxCollider2D_Set_CollisionCategory(Entity.ID, value);
@@ -197,6 +197,7 @@ namespace Turbo
 		public bool IsSensor
 		{
 			get => InternalCalls.Component_BoxCollider2D_Get_IsSensor(Entity.ID);
+			set => InternalCalls.Component_BoxCollider2D_Set_IsSensor(Entity.ID, value);
 		}
 	}
 
