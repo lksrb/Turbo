@@ -551,16 +551,19 @@ namespace Turbo
     Entity Scene::DuplicateEntity(Entity entity)
     {
         Entity duplicated = CreateEntity(entity.GetName());
+        CopyEntity(entity, duplicated);
+        return duplicated;
+    }
 
+    void Scene::CopyEntity(Entity src, Entity dst)
+    {
         // Copy components
-        Utils::CopyComponentIfExists(AllComponents{}, duplicated, entity);
+        Utils::CopyComponentIfExists(AllComponents{}, dst, src);
 
         // Signal entity's parent that an this entity has been duplicated
-        Entity parent = entity.GetParent();
+        Entity parent = src.GetParent();
         if (parent)
-            parent.GetChildren().push_back(duplicated.GetUUID());
-
-        return duplicated;
+            parent.GetChildren().push_back(dst.GetUUID());
     }
 
     void Scene::SetViewportOffset(u32 x, u32 y)

@@ -24,7 +24,6 @@ namespace GunNRun
 
 			if (FollowsPlayer)
 			{
-				Log.Info($"Player transform: {m_PlayerTransform} ");
 				Transform.Translation = new Vector3(m_PlayerTransform.Translation.XY, Transform.Translation.Z);
 			}
 
@@ -35,7 +34,7 @@ namespace GunNRun
 			// Camera moving
 			if (FollowsPlayer)
 			{
-				Vector3 playerTranslation = m_PlayerTransform.Translation;
+				Vector3 playerTranslation = new Vector3(m_PlayerTransform.Translation.XY, Transform.Translation.Z);
 
 			/*	float topY = m_TopBoundary.Transform.Translation.Y;
 				float bottomY = m_BottomBoundary.Transform.Translation.Y;

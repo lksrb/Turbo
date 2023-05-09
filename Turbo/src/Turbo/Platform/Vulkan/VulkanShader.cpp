@@ -249,7 +249,7 @@ namespace Turbo
 
         if (m_Compile)
         {
-            Benchmark::ScopeTimer timer("Shader compilation");
+            Debug::ScopeTimer timer("Shader compilation");
 
             TBO_ENGINE_WARN("Changes detected! Compiling...");
 
@@ -295,7 +295,7 @@ namespace Turbo
                 }
                 else
                 {
-                    Benchmark::ScopeTimer timer("Shader compilation(not thread)"); // TODO: Rewrite this to be multithreaded
+                    Debug::ScopeTimer timer("Shader compilation(not thread)"); // TODO: Rewrite this to be multithreaded
                     TBO_ENGINE_WARN("Changes detected! Compiling...");
                     CompileShader(shaderStage);
                     TBO_ENGINE_INFO("Compilation complete!");
@@ -350,7 +350,7 @@ namespace Turbo
 
     void VulkanShader::Reflect()
     {
-        Benchmark::ScopeTimer timer("Shader reflection");
+        Debug::ScopeTimer timer("Shader reflection");
 
         TBO_ENGINE_TRACE("-----------------------------------------------");
         for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)

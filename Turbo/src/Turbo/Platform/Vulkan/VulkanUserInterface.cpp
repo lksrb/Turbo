@@ -241,6 +241,24 @@ namespace Turbo
     }
 #endif
 
+    namespace Utils
+    {
+        static ImGuiMouseCursor ImGuiCursorToCursorMode(CursorMode cursorMode)
+        {
+            switch (cursorMode)
+            {
+                case Turbo::Hidden: return ImGuiMouseCursor_None;
+                case Turbo::Arrow: return ImGuiMouseCursor_Arrow;
+                case Turbo::Hand: return ImGuiMouseCursor_Hand;
+            }
+            
+            TBO_ENGINE_ERROR("Invalid cursor mode!");
+
+            return ImGuiMouseCursor_None;
+        }
+
+    }
+
     static void CheckVkResult(VkResult r)
     {
         TBO_VK_ASSERT(r);
@@ -268,7 +286,7 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
         u32 framesInFlight = RendererContext::FramesInFlight();
-        Window* viewport_window = Engine::Get().GetViewportWindow();
+        Window* viewportWindow = Engine::Get().GetViewportWindow();
 
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -276,7 +294,7 @@ namespace Turbo
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;    // Enable mouse input
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;			// Enable Multi-Viewport / Platform Windows
-
+        //io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;     // Disable this so Input class can control mouse cursor
         io.Fonts->AddFontDefault();
 
         // Merge in icons from Font Awesome
@@ -315,11 +333,11 @@ namespace Turbo
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
         pool_info.maxSets = 100 * IM_ARRAYSIZE(poolSizes);
-        pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(poolSizes);
+        pool_info.poolSizeCount = (u32)IM_ARRAYSIZE(poolSizes);
         pool_info.pPoolSizes = poolSizes;
         TBO_VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool));
 #ifdef TBO_PLATFORM_WIN32
-        Win32_Window* window = dynamic_cast<Win32_Window*>(viewport_window);
+        Win32_Window* window = dynamic_cast<Win32_Window*>(viewportWindow);
         TBO_ENGINE_ASSERT(ImGui_ImplWin32_Init(window->GetHandle()));
 #endif
         // Custom CreateVkSurface function
@@ -340,7 +358,7 @@ namespace Turbo
         initInfo.Allocator = nullptr;
         initInfo.CheckVkResultFn = CheckVkResult;
 
-        Ref<VulkanSwapChain> swapchain = viewport_window->GetSwapchain().As<VulkanSwapChain>();
+        Ref<VulkanSwapChain> swapchain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
         VkRenderPass renderPass = swapchain->GetRenderPass();
 
         ImGui_ImplVulkan_Init(&initInfo, renderPass);
@@ -357,13 +375,15 @@ namespace Turbo
         m_SecondaryBuffers.resize(framesInFlight);
         RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers.data(), framesInFlight);
     }
-
     void VulkanUserInterface::BeginUI()
     {
         ImGui_ImplWin32_NewFrame();
         ImGui_ImplVulkan_NewFrame();
         ImGui::NewFrame();
         ImGuizmo::BeginFrame();
+
+        // FIXME: Maybe not ideal solution
+        ImGui::SetMouseCursor(Utils::ImGuiCursorToCursorMode(Input::GetCursorMode()));
     }
 
     void VulkanUserInterface::EndUI()
@@ -376,7 +396,7 @@ namespace Turbo
             Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
             u32 width = viewportWindow->GetWidth();
             u32 height = viewportWindow->GetHeight();
-            u32 current_frame = swapChain->GetCurrentFrame();
+            u32 currentFrame = swapChain->GetCurrentFrame();
 
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -414,7 +434,7 @@ namespace Turbo
                 cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
                 cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
 
-                TBO_VK_ASSERT(vkBeginCommandBuffer(m_SecondaryBuffers[current_frame], &cmdBufInfo));
+                TBO_VK_ASSERT(vkBeginCommandBuffer(m_SecondaryBuffers[currentFrame], &cmdBufInfo));
                 {
                     VkViewport viewport = {};
                     viewport.x = 0.0f;
@@ -423,23 +443,23 @@ namespace Turbo
                     viewport.height = -(f32)height;
                     viewport.minDepth = 0.0f;
                     viewport.maxDepth = 1.0f;
-                    vkCmdSetViewport(m_SecondaryBuffers[current_frame], 0, 1, &viewport);
+                    vkCmdSetViewport(m_SecondaryBuffers[currentFrame], 0, 1, &viewport);
 
                     VkRect2D scissor = {};
                     scissor.extent.width = width;
                     scissor.extent.height = height;
                     scissor.offset.x = 0;
                     scissor.offset.y = 0;
-                    vkCmdSetScissor(m_SecondaryBuffers[current_frame], 0, 1, &scissor);
+                    vkCmdSetScissor(m_SecondaryBuffers[currentFrame], 0, 1, &scissor);
 
                     // Record dear imgui primitives into command buffer
                     ImDrawData* main_draw_data = ImGui::GetDrawData();
-                    ImGui_ImplVulkan_RenderDrawData(main_draw_data, m_SecondaryBuffers[current_frame]);
+                    ImGui_ImplVulkan_RenderDrawData(main_draw_data, m_SecondaryBuffers[currentFrame]);
                 }
-                TBO_VK_ASSERT(vkEndCommandBuffer(m_SecondaryBuffers[current_frame]));
+                TBO_VK_ASSERT(vkEndCommandBuffer(m_SecondaryBuffers[currentFrame]));
 
                 // Execute imgui secondary command buffer
-                vkCmdExecuteCommands(currentbuffer, 1, &m_SecondaryBuffers[current_frame]);
+                vkCmdExecuteCommands(currentbuffer, 1, &m_SecondaryBuffers[currentFrame]);
             }
 
             vkCmdEndRenderPass(currentbuffer);
@@ -467,4 +487,7 @@ namespace Turbo
             e.Handled |= e.IsInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
         }
     }
+
+ 
+
 }

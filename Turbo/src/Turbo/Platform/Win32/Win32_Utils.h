@@ -124,7 +124,7 @@ namespace Turbo
                // General
                TBO_KEYCODE(VK_SPACE, Key::Space),
                TBO_KEYCODE(VK_RETURN, Key::Enter),
-               TBO_KEYCODE(VK_RETURN, Key::Escape),
+               TBO_KEYCODE(VK_ESCAPE, Key::Escape),
                TBO_KEYCODE(VK_TAB, Key::Tab)
             };
 

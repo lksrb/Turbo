@@ -217,6 +217,7 @@ namespace Turbo
             Ref<ScriptClass> scriptClass = s_Data->ScriptClasses.at(script.ClassName);
 
             Ref<ScriptInstance>& instance = s_Data->ScriptInstances[uuid];
+            TBO_ENGINE_ASSERT(instance == nullptr);
             instance = Ref<ScriptInstance>::Create(scriptClass, uuid);
 
             // Copy fields

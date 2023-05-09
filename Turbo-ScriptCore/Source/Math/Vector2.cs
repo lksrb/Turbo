@@ -38,19 +38,11 @@ namespace Turbo
 		public static bool operator ==(Vector2 u, Vector2 v) => u.X == v.X && u.Y == v.Y;
 		public static bool operator !=(Vector2 u, Vector2 v) => !(u == v);
 
-		public static Vector2 operator +(Vector2 u, Vector2 v)
-		{
-			return new Vector2(u.X + v.X, u.Y + v.Y);
-		}
-
-		public static Vector2 operator -(Vector2 u, Vector2 v)
-		{
-			return new Vector2(u.X - v.X, u.Y - v.Y);
-		}
-
-		public static Vector2 operator *(Vector2 u, float v)
-		{
-			return new Vector2(u.X * v, u.Y * v);
-		}
+		public static implicit operator Vector2(Vector3 value) => new Vector2(value);
+		public static implicit operator Vector2(Vector4 value) => new Vector2(value);
+		public static Vector2 operator +(Vector2 u, Vector2 v) => new Vector2(u.X + v.X, u.Y + v.Y);
+		public static Vector2 operator -(Vector2 u, Vector2 v) => new Vector2(u.X - v.X, u.Y - v.Y);
+		public static Vector2 operator *(Vector2 u, float v) => new Vector2(u.X * v, u.Y * v);
+		public static Vector2 operator *(float u, Vector2 v) => v * u;
 	}
 }

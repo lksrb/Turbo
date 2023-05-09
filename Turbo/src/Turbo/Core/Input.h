@@ -5,6 +5,15 @@
 
 namespace Turbo 
 {
+    enum CursorMode : u32
+    {
+        Hidden = 0,
+        Arrow,
+        Hand,
+
+        Count
+    };
+
     class Input
     {
     public:
@@ -13,6 +22,9 @@ namespace Turbo
 
         static bool IsMouseButtonPressed(const MouseCode mouseCode);
         static bool IsMouseButtonReleased(const MouseCode mouseCode);
+
+        static void SetCursorMode(CursorMode cursorMode);
+        static CursorMode GetCursorMode();
 
         static i32 GetMouseX();
         static i32 GetMouseY();

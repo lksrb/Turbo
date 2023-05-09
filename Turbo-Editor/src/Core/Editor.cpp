@@ -308,16 +308,7 @@ namespace Turbo::Ed
                     }
                     else if (path.extension() == ".tprefab" && m_SceneMode == Mode::SceneEdit) // Only in edit mode for now
                     {
-                        Entity newEntity = m_CurrentScene->CreateEntity();
-                        if (AssetManager::DeserializePrefab(path, newEntity))
-                        {
-                            TBO_INFO("Successfully deserialized prefab!");
-                            newEntity.Transform().Translation = { 0.0f, 0.0f, 0.0f };
-                        }
-                        else
-                        {
-                            m_CurrentScene->DestroyEntity(newEntity);
-                        }
+                        TBO_VERIFY(AssetManager::DeserializePrefab(path, m_CurrentScene.Get()), "Successfully deserialized prefab!");
                     }
                 }
 
@@ -619,7 +610,12 @@ namespace Turbo::Ed
                 }
                 break;
             }
-
+            case Key::Escape:
+            {
+                // Set cursor back
+                Input::SetCursorMode(CursorMode::Arrow);
+                break;
+            }
             // Menu
             case Key::S:
             {
@@ -946,7 +942,10 @@ namespace Turbo::Ed
             m_SelectedEntity = m_EditorScene->FindEntityByUUID(selectedEntityUUID);
         }
 
-        m_PanelManager->SetSceneContext(m_RuntimeScene);
+        // Set cursor back
+        Input::SetCursorMode(CursorMode::Arrow);
+
+        m_PanelManager->SetSceneContext(m_EditorScene);
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 

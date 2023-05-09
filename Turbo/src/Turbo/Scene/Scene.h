@@ -42,6 +42,7 @@ namespace Turbo
         Entity CreateEntityWithUUID(UUID uuid, const  std::string& tag = "");
         void DestroyEntity(Entity entity);
         Entity DuplicateEntity(Entity entity);
+        void CopyEntity(Entity src, Entity dst);
 
         void SetViewportOffset(u32 x, u32 y);
         void SetViewportSize(u32 width, u32 height);

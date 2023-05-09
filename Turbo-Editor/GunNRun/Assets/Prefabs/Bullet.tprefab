@@ -1,6 +1,6 @@
 Prefab: 0
 Entities:
-  - Entity: 8140897834826531650
+  - Entity: 12848816525635531240
     Parent: 0
     Children:
       []
@@ -9,16 +9,23 @@ Entities:
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.400000006, 0.150000006, 1]
+      Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
-      Color: [1, 0.647058785, 0, 1]
-      TexturePath: None
+      Color: [1, 1, 1, 1]
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Bullet.png
+      TextureFiltering: Nearest
+      TextureFormat: RGBA_Unorm
+      SpriteCoords: [0, 0]
+      SpriteSize: [24, 24]
     ScriptComponent:
       ClassName: GunNRun.Bullet
       Fields:
         - Name: Speed
           Type: Float
-          Data: 40
+          Data: 10
+        - Name: DestroyOnImpact
+          Type: Bool
+          Data: false
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true

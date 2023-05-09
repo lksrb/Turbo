@@ -565,7 +565,7 @@ namespace Turbo
         u64 uuid = deserializedEntity.GetUUID();
 
         std::string name;
-        auto tagComponent = entity["TagComponent"];
+        auto& tagComponent = entity["TagComponent"];
         if (tagComponent)
         {
             name = tagComponent["Tag"].as<std::string>();
@@ -574,7 +574,7 @@ namespace Turbo
 
         TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
-        auto& relationshipComponent = deserializedEntity.GetComponent<RelationshipComponent>();
+        auto relationshipComponent = deserializedEntity.GetComponent<RelationshipComponent>();
         u64 parent = entity["Parent"].as<u64>();
         relationshipComponent.Parent = parent;
 

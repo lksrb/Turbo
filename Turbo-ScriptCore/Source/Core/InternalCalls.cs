@@ -37,9 +37,10 @@ namespace Turbo
 		internal extern static bool Input_IsMouseButtonReleased(MouseCode code);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static int Input_GetMouseX();
+		internal extern static void Input_SetCursorMode(CursorMode mode);
+
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static int Input_GetMouseY();
+		internal extern static void Input_GetMousePosition(out Vector2 mousePosition);
 
 		#endregion
 

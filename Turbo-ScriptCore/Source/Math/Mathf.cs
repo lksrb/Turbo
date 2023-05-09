@@ -12,6 +12,7 @@ namespace Turbo
 		{
 			return (float)Math.Abs(value);
 		}
+
 		public static Vector3 Abs(Vector3 value)
 		{
 			Vector3 result = value;
@@ -36,9 +37,14 @@ namespace Turbo
 			return (float)Math.Sqrt(value);
 		}
 
-		public static float Radians(float angle)
+		public static float Radians(float degrees)
 		{
-			return (Mathf.PI / 180.0f) * angle;
+			return (Mathf.PI / 180.0f) * degrees;
+		}
+
+		public static float Degrees(float radians)
+		{
+			return (180.0f / Mathf.PI) * radians;
 		}
 
 		public static float Sign(float value)

@@ -16,11 +16,11 @@ namespace GunNRun
 		internal bool IsDownKeyPressed { get; private set; }
 
 		// ---- Shooting ----
-		private readonly KeyCode m_ShootKeyCode = KeyCode.L;
+		private readonly MouseCode m_ShootMouseCode = MouseCode.ButtonLeft;
 		private bool m_IsShootKeyReleased = true;
-		private bool m_WasShootKeyReleasedLastFrame = true;
-		internal bool IsShootKeyPressed { get; private set; }
-		internal bool IsShootKeyPressedOneTime => m_WasShootKeyReleasedLastFrame && IsShootKeyPressed;
+		private bool m_WasShootMouseButtonPressed = false;
+		private bool m_IsShootMouseButtonPressed = false;
+		internal bool IsShootMouseButtonPressed => m_WasShootMouseButtonPressed && m_IsShootMouseButtonPressed;
 
 		internal void OnUpdate()
 		{
@@ -31,9 +31,9 @@ namespace GunNRun
 			IsDownKeyPressed = Input.IsKeyPressed(m_MoveDownKeyCode);
 
 			// ---- Shooting ----
-			m_WasShootKeyReleasedLastFrame = m_IsShootKeyReleased;
-			IsShootKeyPressed = Input.IsKeyPressed(m_ShootKeyCode);
-			m_IsShootKeyReleased = Input.IsKeyReleased(m_ShootKeyCode);
+			m_WasShootMouseButtonPressed = m_IsShootKeyReleased;
+			m_IsShootMouseButtonPressed = Input.IsMouseButtonPressed(m_ShootMouseCode);
+			m_IsShootKeyReleased = Input.IsMouseButtonReleased(m_ShootMouseCode);
 		}
 	}
 }

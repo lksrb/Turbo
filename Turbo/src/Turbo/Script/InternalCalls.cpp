@@ -8,6 +8,7 @@
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
 #include "Turbo/Asset/AssetManager.h"
+#include "Turbo/Core/Engine.h"
 #include "Turbo/Core/Input.h"
 #include "Turbo/Core/Math.h"
 
@@ -99,8 +100,16 @@ namespace Turbo
     {
         return Input::IsMouseButtonReleased(key);
     }
-    static i32 Input_GetMouseX() { return Input::GetMouseX(); }
-    static i32 Input_GetMouseY() { return Input::GetMouseY(); }
+    static void Input_GetMousePosition(glm::vec2* mousePosition)
+    { 
+        mousePosition->x = (f32)Input::GetMouseX();
+        mousePosition->y = (f32)Input::GetMouseY();
+    }
+
+    static void Input_SetCursorMode(u32 cursorMode)
+    {
+        Input::SetCursorMode((CursorMode)cursorMode);
+    }
 
     // =============================================================================
     //                                  Physics 2D                                   
@@ -181,14 +190,6 @@ namespace Turbo
         windowSpacePos.y = ((ndcSpacePos.y + 1.0f) / 2.0f) * context->GetViewportHeight() + context->GetViewportY();
 
         *screenPosition = windowSpacePos;
-
-        glm::vec4 viewport =
-        {
-            context->GetViewportX(),
-            context->GetViewportY(),
-            context->GetViewportWidth(),
-            context->GetViewportHeight()
-        };
     }
 
     // =============================================================================
@@ -292,10 +293,9 @@ namespace Turbo
         std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
         mono_free(cString);
 
-        Entity entity = context->CreateEntity();
-        entity.Transform().Translation = *translation;
+        Entity entity = AssetManager::DeserializePrefab(prefabPath, context, *translation);
 
-        if (AssetManager::DeserializePrefab(prefabPath, entity))
+        if (entity)
         {
             // Call C# Entity::OnCreate method
             if (entity.HasComponent<ScriptComponent>())
@@ -305,8 +305,6 @@ namespace Turbo
 
             return entity.GetUUID();
         }
-
-        context->DestroyEntity(entity);
 
         TBO_ENGINE_ERROR("Could not instantiate prefab!");
         return 0;
@@ -864,8 +862,8 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Input_IsKeyReleased);
         TBO_REGISTER_FUNCTION(Input_IsMouseButtonPressed);
         TBO_REGISTER_FUNCTION(Input_IsMouseButtonReleased);
-        TBO_REGISTER_FUNCTION(Input_GetMouseX);
-        TBO_REGISTER_FUNCTION(Input_GetMouseY);
+        TBO_REGISTER_FUNCTION(Input_GetMousePosition);
+        TBO_REGISTER_FUNCTION(Input_SetCursorMode);
 
         // Transform
         TBO_REGISTER_FUNCTION(Component_Transform_Get_Translation);

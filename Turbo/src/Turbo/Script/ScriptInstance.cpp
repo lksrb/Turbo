@@ -9,7 +9,7 @@
 #include <mono/metadata/class.h>
 #include <mono/metadata/object.h>
 
-#define TBO_USE_MANAGED_THUNKS 0
+#define TBO_USE_MANAGED_THUNKS 1
 
 namespace Turbo
 {
@@ -29,8 +29,8 @@ namespace Turbo
         //m_GCHandle = mono_gchandle_new_v2(m_Instance, false);
 
         // Gets overriden methods
-        m_OnCreateMethod = mono_object_get_virtual_method(m_Instance, baseClass->GetMethod("OnCreate", 0));
-        m_OnUpdateMethod = mono_object_get_virtual_method(m_Instance, baseClass->GetMethod("OnUpdate", 1));
+        m_OnCreateMethod = scriptClass->GetMethod("OnCreate", 0);
+        m_OnUpdateMethod = scriptClass->GetMethod("OnUpdate", 1);
 
         // Physics2D
         m_OnCollision2DBeginMethod = baseClass->GetMethod("OnCollisionBegin2D_Internal", 1);
@@ -59,7 +59,17 @@ namespace Turbo
 
     void ScriptInstance::InvokeOnCreate()
     {
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod, nullptr);
+        if (m_Exception)
+        {
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_CONSOLE_FATAL(cstring);
+            mono_free(cstring);
+
+            return;
+        }
+
+        m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod, &m_Exception);
     }
 
     void ScriptInstance::InvokeOnUpdate(FTime ts)

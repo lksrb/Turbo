@@ -11,6 +11,7 @@ namespace GunNRun
 		internal readonly PlayerInput Input = new PlayerInput();
 		internal readonly PlayerController Controller = new PlayerController();
 		internal readonly PlayerAnimator Animator = new PlayerAnimator();
+		internal readonly GunManager Gun = new GunManager();
 
 		internal Vector2 Velocity => Controller.Velocity;
 		internal SpriteRendererComponent SpriteRenderer => GetComponent<SpriteRendererComponent>();
@@ -19,6 +20,7 @@ namespace GunNRun
 		{
 			Controller.Init(this);
 			Animator.Init(this);
+			Gun.Init(this);
 		}
 
 		protected override void OnUpdate(float ts)
@@ -26,6 +28,12 @@ namespace GunNRun
 			Input.OnUpdate();
 			Controller.OnUpdate(ts);
 			Animator.OnUpdate(ts);
+			Gun.OnUpdate(ts);
+
+			if(Input.IsShootMouseButtonPressed)
+			{
+				Gun.Shoot();
+			}
 		}
 	}
 }

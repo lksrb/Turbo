@@ -4,6 +4,7 @@
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/SceneSerializer.h"
 #include "Turbo/Scene/Entity.h"
+#include "Turbo/Debug/ScopeTimer.h"
 #include "Turbo/Script/Script.h"
 
 #include <yaml-cpp/yaml.h>
@@ -23,6 +24,36 @@ namespace YAML
 
 namespace Turbo
 {
+    namespace Utils
+    {
+        template<typename... Component>
+        static void CopyComponentIfExists(Entity dst, Entity src)
+        {
+            ([&]()
+            {
+                if (src.HasComponent<Component>())
+                    dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
+            }(), ...);
+        }
+
+        template<typename... Component>
+        static void CopyComponentIfExists(ComponentGroup<Component...>, Entity dst, Entity src)
+        {
+            CopyComponentIfExists<Component...>(dst, src);
+        }
+    }
+
+    static Ref<Scene> s_CacheScene = Ref<Scene>::Create();
+
+    struct CachedNode
+    {
+        YAML::Node Node;
+        size_t LastWriteTime = 0;
+        Entity CachedPrefab;
+    };
+
+    static std::unordered_map<std::filesystem::path, CachedNode> s_CachedNodes(10);
+
     bool AssetManager::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
     {
         std::string filename = entity.GetName();
@@ -48,39 +79,111 @@ namespace Turbo
         return true;
     }
 
-    bool AssetManager::DeserializePrefab(const std::filesystem::path& filepath, Entity deserializedEntity)
+    Entity AssetManager::DeserializePrefab(const std::filesystem::path& filepath, Scene* scene, glm::vec3 translation)
     {
-        YAML::Node data;
+        Debug::ScopeTimer timer("Prefab");
+
+        size_t lastTimeWrite = std::filesystem::last_write_time(filepath).time_since_epoch().count();
+        auto& cachedNode = s_CachedNodes[filepath];
+
+        Entity deserializedEntity = scene->CreateEntity();
+        deserializedEntity.Transform().Translation = translation;
+#if 1
         try
         {
-            data = YAML::LoadFile(filepath);
+            // If the file was modified, then
+            if (lastTimeWrite != cachedNode.LastWriteTime)
+            {
+                // Load file 
+                cachedNode = { YAML::LoadFile(filepath), lastTimeWrite };
+            }
         }
         catch (YAML::Exception e)
         {
+            s_CachedNodes.erase(filepath);
             TBO_ENGINE_ERROR(e.what());
             return {};
         }
 
-        auto prefab = data["Prefab"];
+        // Actually load the entity
+        const auto& data = cachedNode.Node;
 
-        if (!prefab)
+        if (!data["Prefab"])
         {
+            s_CachedNodes.erase(filepath);
             TBO_ENGINE_ERROR("Prefab keyword is missing in prefab file!");
-            return false;
+            return {};
         }
 
         auto entities = data["Entities"];
 
         if (!entities)
         {
+            s_CachedNodes.erase(filepath);
             TBO_ENGINE_ERROR("Entity keyword is missing in prefab file!");
-            return false;
+            return {};
         }
 
+        // Deserialize
         // TODO: Maybe some more error checking?
         SceneSerializer::DeserializeEntity(*entities.begin(), deserializedEntity, false);
+#else
+        try
+        {
+            // If the file was modified, then
+            if (lastTimeWrite != cachedNode.LastWriteTime)
+            {
+                // Load file 
+                cachedNode = { YAML::LoadFile(filepath), lastTimeWrite };
 
-        return true;
+                // Create cache entity for cache scene
+                cachedNode.CachedPrefab = s_CacheScene->CreateEntityWithUUID(deserializedEntity.GetUUID());
+
+                // Actually load the entity
+                const auto& data = cachedNode.Node;
+
+                if (!data["Prefab"])
+                {
+                    s_CachedNodes.erase(filepath);
+                    scene->DestroyEntity(deserializedEntity);
+                    TBO_ENGINE_ERROR("Prefab keyword is missing in prefab file!");
+                    return {};
+                }
+
+                auto entities = data["Entities"];
+
+                if (!entities)
+                {
+                    s_CachedNodes.erase(filepath);
+                    scene->DestroyEntity(deserializedEntity);
+                    TBO_ENGINE_ERROR("Entity keyword is missing in prefab file!");
+                    return {};
+                }
+
+                // Deserialize
+                // TODO: Maybe some more error checking?
+                SceneSerializer::DeserializeEntity(*entities.begin(), cachedNode.CachedPrefab, false);
+            }
+        }
+        catch (YAML::Exception e)
+        {
+            s_CachedNodes.erase(filepath);
+            scene->DestroyEntity(deserializedEntity);
+            TBO_ENGINE_ERROR(e.what());
+            return {};
+        }
+
+        // Set name
+        deserializedEntity.GetComponent<TagComponent>().Tag = cachedNode.CachedPrefab.GetName();
+
+        // Set translation
+        cachedNode.CachedPrefab.Transform().Translation = translation;
+
+        // Copy all components except IDComponent and TagComponent
+        scene->CopyEntity(cachedNode.CachedPrefab, deserializedEntity);
+#endif
+        
+        return deserializedEntity;
     }
 
 }

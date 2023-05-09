@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Turbo/Core/Input.h"
 #include "Turbo/Event/Event.h"
 
 namespace Turbo 
@@ -7,7 +8,7 @@ namespace Turbo
     class UserInterface 
     {
     public:
-        static Ref<UserInterface>Create();
+        static Ref<UserInterface> Create();
         virtual ~UserInterface();
 
         virtual void BeginUI() = 0;

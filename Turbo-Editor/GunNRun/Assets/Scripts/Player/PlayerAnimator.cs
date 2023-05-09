@@ -14,7 +14,7 @@ namespace GunNRun
 
 		private Player m_Player;
 		private SpriteAnimator m_Animator;
-		private Vector2 m_SpriteSize = new Vector2(16.0f, 16.0f);
+		private Vector2 m_SpriteSize = new Vector2(20.0f, 20.0f);
 
 		internal void Init(Player player)
 		{
@@ -51,8 +51,6 @@ namespace GunNRun
 
 		internal void OnUpdate(float ts)
 		{
-			
-
 			if(m_Player.Velocity.Length != 0.0f)
 			{
 				m_Animator.ChangeAnimation(PlayerAnimation.Running);

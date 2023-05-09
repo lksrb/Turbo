@@ -5,6 +5,8 @@
 
 namespace Turbo
 {
+    static std::unordered_map<std::string, Ref<Texture2D>> s_CachedTextures;
+
     Texture2D::Texture2D(const Texture2D::Config& config)
         : m_Config(config)
     {
@@ -18,7 +20,7 @@ namespace Turbo
     {
         Texture2D::Config config = {};
         config.Path = filepath;
-        return Ref<VulkanTexture2D>::Create(config);
+        return Texture2D::Create(config);
     }
 
     Ref<Texture2D> Texture2D::Create(u32 color)
@@ -28,7 +30,19 @@ namespace Turbo
 
     Ref<Texture2D> Texture2D::Create(const Texture2D::Config& config)
     {
-        return Ref<VulkanTexture2D>::Create(config);
+        // Cache textures for better texture slots management
+        if (s_CachedTextures.find(config.Path) == s_CachedTextures.end())
+        {
+            auto& texture = s_CachedTextures[config.Path];
+            texture = Ref<VulkanTexture2D>::Create(config);
+            if (texture == nullptr)
+            {
+                s_CachedTextures.erase(config.Path);
+                return nullptr;
+            }
+        }
+        
+        return s_CachedTextures.at(config.Path);
     }
 
     SubTexture2D::SubTexture2D(Ref<Texture2D> texture)
