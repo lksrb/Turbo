@@ -1,37 +1,31 @@
-﻿using Turbo;
+﻿using System;
+using System.Collections.Generic;
+using Turbo;
 
 namespace GunNRun
 {
 	public class EnemyManager : Entity
 	{
-		// ---- Enemy Animation ----
-		public float IdleAnimationDelay;
-		public float RunningAnimationDelay;
-		public float IdleShootingAnimationDelay;
-
-		private Enemy[] m_Enemies;
-		private string m_EnemyPrefabPath = "Assets/Prefabs/Enemy.tprefab";
+		private readonly string m_EnemyPrefab = "Assets/Prefabs/Enemy.tprefab";
+		private List<Entity> m_Enemies;
+		private Entity[] m_EntitySpawnPoints;
 
 		protected override void OnCreate()
 		{
-			Log.Info("Hello from enemy manager!");
+			m_EntitySpawnPoints = GetChildren();
+			m_Enemies = new List<Entity>(m_EntitySpawnPoints.Length);
 
-			var children = Children();
-			m_Enemies = new Enemy[children.Length];
-
-			for (int i = 0; i < children.Length; i++)
+			for (int i = 0; i < 1; i++)
 			{
-				Entity child = children[i];
-
-				if(child.Name == "EnemySpawnpoint")
-				{
-					m_Enemies[i] = Instantiate(m_EnemyPrefabPath, child.Transform.Translation).As<Enemy>();
-				}
+				var translation = m_EntitySpawnPoints[i].Transform.Translation;
+				translation.Z = 1.0f;
+				m_Enemies.Add(Instantiate(m_EnemyPrefab, translation));
 			}
 		}
 
 		protected override void OnUpdate(float ts)
 		{
+
 		}
 	}
 }

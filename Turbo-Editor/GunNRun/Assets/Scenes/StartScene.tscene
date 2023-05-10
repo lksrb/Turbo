@@ -7,7 +7,7 @@ Entities:
     TagComponent:
       Tag: Background
     TransformComponent:
-      Translation: [0, 0, -0.100000001]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [15, 15, 1]
     SpriteRendererComponent:
@@ -17,6 +17,33 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [222, 222]
+  - Entity: 1888460577509847937
+    Parent: 3009038603943104041
+    Children:
+      []
+    TagComponent:
+      Tag: EnemySpawn
+    TransformComponent:
+      Translation: [-2.67645288, -2.40240502, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 3009038603943104041
+    Parent: 0
+    Children:
+      - UUID: 6174695415243055011
+      - UUID: 15275810699910722890
+      - UUID: 1888460577509847937
+      - UUID: 11571004055169477472
+    TagComponent:
+      Tag: EnemyManager
+    TransformComponent:
+      Translation: [100, 1.30819702, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: GunNRun.EnemyManager
+      Fields:
+        []
   - Entity: 5240512203980104604
     Parent: 0
     Children:
@@ -24,7 +51,7 @@ Entities:
     TagComponent:
       Tag: GameManager
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [100, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     ScriptComponent:
@@ -32,30 +59,41 @@ Entities:
       Fields:
         []
   - Entity: 5981385862843799727
-    Parent: 0
+    Parent: 6826732556068052498
     Children:
       []
     TagComponent:
       Tag: Gun
     TransformComponent:
-      Translation: [-0.106079012, -0.279655546, 0.00999999978]
+      Translation: [-0.128698185, -0.233774304, 2]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [2, 2, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Guns.png
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Shotgun.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
-      SpriteSize: [20, 20]
-  - Entity: 6826732556068052498
-    Parent: 0
+      SpriteSize: [40, 40]
+  - Entity: 6174695415243055011
+    Parent: 3009038603943104041
     Children:
       []
     TagComponent:
+      Tag: EnemySpawn
+    TransformComponent:
+      Translation: [3.581604, 0.517333984, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 6826732556068052498
+    Parent: 0
+    Children:
+      - UUID: 5981385862843799727
+      - UUID: 10853154627007332081
+    TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [0, 0, 1]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -63,7 +101,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\PlayerSpriteSheet2.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [2, 1]
+      SpriteCoords: [0, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.Player
@@ -90,13 +128,13 @@ Entities:
       RestitutionThreshold: 0.5
       IsSensor: false
   - Entity: 10853154627007332081
-    Parent: 0
+    Parent: 6826732556068052498
     Children:
       []
     TagComponent:
       Tag: Crosshair
     TransformComponent:
-      Translation: [4.8616333, -2.05758667, 0]
+      Translation: [100, -2.05758667, 3]
       Rotation: [0, 0, 0]
       Scale: [0.75, 0.75, 1]
     SpriteRendererComponent:
@@ -123,7 +161,7 @@ Entities:
         PerspectiveNear: 0.00999999978
         PerspectiveFar: 1000
         OrthographicSize: 10
-        OrthographicNear: -1
+        OrthographicNear: -10
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
@@ -136,3 +174,23 @@ Entities:
         - Name: LerpMagnifier
           Type: Float
           Data: 3
+  - Entity: 11571004055169477472
+    Parent: 3009038603943104041
+    Children:
+      []
+    TagComponent:
+      Tag: EnemySpawn
+    TransformComponent:
+      Translation: [-6.05658007, 0.329101384, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 15275810699910722890
+    Parent: 3009038603943104041
+    Children:
+      []
+    TagComponent:
+      Tag: EnemySpawn
+    TransformComponent:
+      Translation: [6.54315186, -3.27124047, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]

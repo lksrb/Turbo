@@ -9,10 +9,10 @@ namespace Turbo
 		public string Name;
 
 		// Collision callbacks
-		public event Action<Entity> OnCollisionBegin2D;
-		public event Action<Entity> OnCollisionEnd2D;
-		public event Action<Entity> OnTriggerBegin2D;
-		public event Action<Entity> OnTriggerEnd2D;
+		protected event Action<Entity> OnCollisionBegin2D;
+		protected event Action<Entity> OnCollisionEnd2D;
+		protected event Action<Entity> OnTriggerBegin2D;
+		protected event Action<Entity> OnTriggerEnd2D;
 
 		protected Entity() { ID = 0; }
 		protected virtual void OnCreate() { }
@@ -63,11 +63,20 @@ namespace Turbo
 		public static bool operator ==(Entity a, Entity b) => a.ID == b.ID;
 		public static bool operator !=(Entity a, Entity b) => !(a == b);
 
-		public Entity[] Children() => InternalCalls.Entity_Get_Children(ID);
+		public Entity[] GetChildren() => InternalCalls.Entity_Get_Children(ID);
 
 		public Entity Instantiate(string prefabPath, Vector3 translation)
 		{
 			ulong entityID = InternalCalls.Entity_InstantiatePrefabWithTranslation(prefabPath, ref translation);
+			if (entityID == 0)
+				return null;
+
+			return new Entity(entityID);
+		}
+
+		public Entity InstantiateChild(string prefabPath, Vector3 translation)
+		{
+			ulong entityID = InternalCalls.Entity_InstantiateChildPrefabWithTranslation(ID, prefabPath, ref translation);
 			if (entityID == 0)
 				return null;
 

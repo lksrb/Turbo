@@ -94,7 +94,7 @@ namespace Turbo
 
             newParent.GetChildren().push_back(GetUUID());
         }
-        
+
         void RemoveChild(Entity childEntity)
         {
             auto& children = GetChildren();
@@ -137,6 +137,9 @@ namespace Turbo
     private:
         entt::entity m_Handle = entt::null;
         Scene* m_Scene = nullptr;
+
+        // FIXME: Maybe not ideal
+        friend class AssetManager;
     };
 }
 

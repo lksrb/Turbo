@@ -101,7 +101,7 @@ namespace Turbo
         return Input::IsMouseButtonReleased(key);
     }
     static void Input_GetMousePosition(glm::vec2* mousePosition)
-    { 
+    {
         mousePosition->x = (f32)Input::GetMouseX();
         mousePosition->y = (f32)Input::GetMouseY();
     }
@@ -122,7 +122,7 @@ namespace Turbo
         PhysicsWorld2D* physicsWorld2d = context->GetPhysicsWorld2D();
 
         Entity hitEntity = physicsWorld2d->RayCast(a, b);
-        if(hitEntity)
+        if (hitEntity)
             return hitEntity.GetUUID();
 
         return UUID::Null;
@@ -286,6 +286,26 @@ namespace Turbo
         return monoString;
     }
 
+    // FIXME: Temporary
+    static void InvokeOnCreateRecursively(Entity entity)
+    {
+        Scene* context = Script::GetCurrentScene();
+
+        // Call C# Entity::OnCreate method
+        if (entity.HasComponent<ScriptComponent>())
+        {
+            Script::InvokeEntityOnCreate(entity);
+        }
+
+        const auto& children = entity.GetChildren();
+        for (auto childUUID : children)
+        {
+            Entity child = context->FindEntityByUUID(childUUID);
+            TBO_ENGINE_ASSERT(child);
+            InvokeOnCreateRecursively(child);
+        }
+    }
+
     static u64 Entity_InstantiatePrefabWithTranslation(MonoString* monoString, glm::vec3* translation)
     {
         Scene* context = Script::GetCurrentScene();
@@ -297,11 +317,7 @@ namespace Turbo
 
         if (entity)
         {
-            // Call C# Entity::OnCreate method
-            if (entity.HasComponent<ScriptComponent>())
-            {
-                Script::InvokeEntityOnCreate(entity);
-            }
+            InvokeOnCreateRecursively(entity);
 
             return entity.GetUUID();
         }
@@ -309,6 +325,23 @@ namespace Turbo
         TBO_ENGINE_ERROR("Could not instantiate prefab!");
         return 0;
     }
+
+    static u64 Entity_InstantiateChildPrefabWithTranslation(u64 parentID, MonoString* monoString, glm::vec3* translation)
+    {
+        Scene* context = Script::GetCurrentScene();
+
+        u64 childID = Entity_InstantiatePrefabWithTranslation(monoString, translation);
+
+        if (childID)
+        {
+            Entity parent = context->FindEntityByUUID(parentID);
+            Entity child = context->FindEntityByUUID(childID);
+            child.SetParent(parent);
+        }
+
+        return childID;
+    }
+
 
     // =============================================================================
     //                                  Components                                   
@@ -856,6 +889,7 @@ namespace Turbo
 
         // Prefab
         TBO_REGISTER_FUNCTION(Entity_InstantiatePrefabWithTranslation);
+        TBO_REGISTER_FUNCTION(Entity_InstantiateChildPrefabWithTranslation);
 
         // Input
         TBO_REGISTER_FUNCTION(Input_IsKeyPressed);

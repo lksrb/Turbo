@@ -353,9 +353,10 @@ namespace Turbo::Ed
             }
 
             // Gizmos
-            Entity selectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
+            m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
 
-            if (selectedEntity && m_GizmoType != -1)
+            // FIXME: Temporary solution
+            if (m_SelectedEntity && m_GizmoType != -1 && m_SceneMode != Mode::ScenePlay)
             {
                 glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
@@ -376,7 +377,7 @@ namespace Turbo::Ed
                 ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
                 // Entity transform
-                auto& transformComponent = selectedEntity.Transform();
+                auto& transformComponent = m_SelectedEntity.Transform();
                 glm::mat4 transform = transformComponent.GetTransform();
 
                 // Snapping
@@ -904,16 +905,16 @@ namespace Turbo::Ed
 
         // Select the same entity in runtime scene
         {
-            UUID selected_entity_uuid = 0;
+            UUID selectedEntityUUID = 0;
             m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
 
             if (m_SelectedEntity)
-                selected_entity_uuid = m_SelectedEntity.GetUUID();
+                selectedEntityUUID = m_SelectedEntity.GetUUID();
 
-            m_SelectedEntity = m_RuntimeScene->FindEntityByUUID(selected_entity_uuid);
+            m_SelectedEntity = m_RuntimeScene->FindEntityByUUID(selectedEntityUUID);
         }
 
-        m_PanelManager->SetSceneContext(m_RuntimeScene);
+        m_PanelManager->SetSceneContext(m_CurrentScene);
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 
@@ -942,10 +943,10 @@ namespace Turbo::Ed
             m_SelectedEntity = m_EditorScene->FindEntityByUUID(selectedEntityUUID);
         }
 
-        // Set cursor back
+        // Reset cursor
         Input::SetCursorMode(CursorMode::Arrow);
 
-        m_PanelManager->SetSceneContext(m_EditorScene);
+        m_PanelManager->SetSceneContext(m_CurrentScene);
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 

@@ -3,6 +3,8 @@
 
 #include "Turbo/Platform/Vulkan/VulkanTexture2D.h"
 
+#define TBO_CACHE_TEXTURES 1
+
 namespace Turbo
 {
     static std::unordered_map<std::string, Ref<Texture2D>> s_CachedTextures;
@@ -30,6 +32,7 @@ namespace Turbo
 
     Ref<Texture2D> Texture2D::Create(const Texture2D::Config& config)
     {
+#if TBO_CACHE_TEXTURES
         // Cache textures for better texture slots management
         if (s_CachedTextures.find(config.Path) == s_CachedTextures.end())
         {
@@ -43,6 +46,9 @@ namespace Turbo
         }
         
         return s_CachedTextures.at(config.Path);
+#else
+        return Ref<VulkanTexture2D>::Create(config);
+#endif
     }
 
     SubTexture2D::SubTexture2D(Ref<Texture2D> texture)

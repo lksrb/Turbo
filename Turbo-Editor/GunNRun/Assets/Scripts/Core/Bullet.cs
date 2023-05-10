@@ -24,7 +24,7 @@ namespace GunNRun
 
 		protected override void OnUpdate(float ts)
         {
-			m_Rigidbody2D.Velocity = Mathf.Lerp(m_Rigidbody2D.Velocity, Vector3.Zero, 4.0f * ts);
+			m_Rigidbody2D.Velocity = Mathf.Lerp(m_Rigidbody2D.Velocity, Vector3.Zero, 3.0f * ts);
 
 			if ((!m_OneTime && m_DeathTimer < 0.0f) || m_Destroy)
             {

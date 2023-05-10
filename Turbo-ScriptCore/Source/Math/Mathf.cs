@@ -16,10 +16,35 @@ namespace Turbo
 		public static Vector3 Abs(Vector3 value)
 		{
 			Vector3 result = value;
-			result.X = Mathf.Abs(result.X);
-			result.Y = Mathf.Abs(result.Y);
-			result.Z = Mathf.Abs(result.Z);
+			result.X = Abs(result.X);
+			result.Y = Abs(result.Y);
+			result.Z = Abs(result.Z);
 			return result;
+		}
+
+		public static Vector2 Normalize(Vector2 value)
+		{
+			Vector2 result = value;
+			result.Normalize();
+			return result;
+		}
+
+		public static Vector3 Normalize(Vector3 value)
+		{
+			Vector3 result = value;
+			result.Normalize();
+			return result;
+		}
+
+		public static float Lerp(float start, float end, float maxDistanceDelta)
+		{
+			float distance = end - start;
+
+			// Removes unnecessary approximation
+			if (distance < maxDistanceDelta)
+				return end;
+
+			return start + distance * maxDistanceDelta;
 		}
 
 		public static float Pow(float value, float power = 2.0f)
@@ -78,10 +103,12 @@ namespace Turbo
 			return value;
 		}
 
+		public static float Clamp01(float value) => Clamp(value, 0, 1);
+
 		public static float SmoothDamp(float start, float end, ref float currentVelocity, float smoothTime, float maxSpeed, float deltaTime)
 		{
 			// Based on Game Programming Gems 4 Chapter 1.10
-			smoothTime = Mathf.Max(0.0001F, smoothTime);
+			smoothTime = Max(0.0001F, smoothTime);
 			float omega = 2F / smoothTime;
 
 			float x = omega * deltaTime;
@@ -91,7 +118,7 @@ namespace Turbo
 
 			// Clamp maximum speed
 			float maxChange = maxSpeed * smoothTime;
-			change = Mathf.Clamp(change, -maxChange, maxChange);
+			change = Clamp(change, -maxChange, maxChange);
 			end = start - change;
 
 			float temp = (currentVelocity + omega * change) * deltaTime;
@@ -111,17 +138,28 @@ namespace Turbo
 		#endregion
 
 		#region Linear Algebra
+
+		public static Vector3 Clamp(Vector3 value, Vector3 min, Vector3 max)
+		{
+			Vector3 result = value;
+			result.X = Clamp(result.X, min.X, max.X);
+			result.Y = Clamp(result.Y, min.Y, max.Y);
+			result.Z = Clamp(result.Z, min.Z, max.Z);
+
+			return result;
+		}
+
 		public static Vector2 Sign(Vector2 value)
 		{
-			float x = Mathf.Sign(value.X);
-			float y = Mathf.Sign(value.Y);
+			float x = Sign(value.X);
+			float y = Sign(value.Y);
 			return new Vector2(x, y);
 		}
 		public static Vector3 Sign(Vector3 value)
 		{
-			float x = Mathf.Sign(value.X);
-			float y = Mathf.Sign(value.Y);
-			float z = Mathf.Sign(value.Z);
+			float x = Sign(value.X);
+			float y = Sign(value.Y);
+			float z = Sign(value.Z);
 			return new Vector3(x, y, z);
 		}
 		public static Vector3 Lerp(Vector3 start, Vector3 end, float maxDistanceDelta)
@@ -153,7 +191,7 @@ namespace Turbo
 			if (direction.Length < maxDistanceDelta)
 				return end;
 
-			return start + Mathf.Sign(direction) * maxDistanceDelta;
+			return start + Sign(direction) * maxDistanceDelta;
 		}
 
 		public static float Dot(Vector2 a, Vector2 b)
@@ -168,48 +206,26 @@ namespace Turbo
 		{
 			return a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W + b.W;
 		}
+
 		#endregion
 
 		#region Trigonometric functions
-		public static float Sin(float radians)
-		{
-			return (float)Math.Sin(radians);
-		}
-		public static float Cos(float radians)
-		{
-			return (float)Math.Cos(radians);
-		}
-		public static float Tan(float radians)
-		{
-			return (float)Math.Tan(radians);
-		}
-		public static float Sinh(float radians)
-		{
-			return (float)Math.Sinh(radians);
-		}
-		public static float Cosh(float radians)
-		{
-			return (float)Math.Cosh(radians);
-		}
-		public static float Tanh(float radians)
-		{
-			return (float)Math.Tanh(radians);
-		}
+
+		public static float Sin(float radians) => (float)Math.Sin(radians);
+		public static float Cos(float radians) => (float)Math.Cos(radians);
+		public static float Tan(float radians) => (float)Math.Tan(radians);
+		public static float Sinh(float radians) => (float)Math.Sinh(radians);
+		public static float Cosh(float radians) => (float)Math.Cosh(radians);
+		public static float Tanh(float radians) => (float)Math.Tanh(radians);
+
 		#endregion
 
 		#region Inverse trigonometric functions
-		public static float Asin(float value)
-		{
-			return (float)Math.Asin(value);
-		}
-		public static float Acos(float value)
-		{
-			return (float)Math.Acos(value);
-		}
-		public static float Atan(float value)
-		{
-			return (float)Math.Atan(value);
-		}
+		
+		public static float Asin(float value) => (float)Math.Asin(value);
+		public static float Acos(float value) => (float)Math.Acos(value);
+		public static float Atan(float value) => (float)Math.Atan(value);
+		
 		#endregion
 	}
 }

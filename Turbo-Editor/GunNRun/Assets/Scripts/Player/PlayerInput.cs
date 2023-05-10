@@ -4,19 +4,19 @@ namespace GunNRun
 {
 	internal class PlayerInput
 	{
-
-		// ---- Moving ----
 		private readonly KeyCode m_MoveUpKeyCode = KeyCode.W;
 		private readonly KeyCode m_MoveDownKeyCode = KeyCode.S;
 		private readonly KeyCode m_MoveLeftKeyCode = KeyCode.A;
 		private readonly KeyCode m_MoveRightKeyCode = KeyCode.D;
+		private readonly MouseCode m_ShootMouseCode = MouseCode.ButtonLeft;
+
+		// ---- Moving ----
 		internal bool IsLeftKeyPressed { get; private set; }
 		internal bool IsRightKeyPressed { get; private set; }
 		internal bool IsUpKeyPressed { get; private set; }
 		internal bool IsDownKeyPressed { get; private set; }
 
 		// ---- Shooting ----
-		private readonly MouseCode m_ShootMouseCode = MouseCode.ButtonLeft;
 		private bool m_IsShootKeyReleased = true;
 		private bool m_WasShootMouseButtonPressed = false;
 		private bool m_IsShootMouseButtonPressed = false;

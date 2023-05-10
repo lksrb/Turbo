@@ -83,6 +83,9 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_InstantiatePrefabWithTranslation(string path, ref Vector3 translation);
 
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ulong Entity_InstantiateChildPrefabWithTranslation(ulong uuid, string path, ref Vector3 translation);
+
 		#endregion
 
 		#region Physics2D

@@ -24,27 +24,6 @@ namespace YAML
 
 namespace Turbo
 {
-    namespace Utils
-    {
-        template<typename... Component>
-        static void CopyComponentIfExists(Entity dst, Entity src)
-        {
-            ([&]()
-            {
-                if (src.HasComponent<Component>())
-                    dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
-            }(), ...);
-        }
-
-        template<typename... Component>
-        static void CopyComponentIfExists(ComponentGroup<Component...>, Entity dst, Entity src)
-        {
-            CopyComponentIfExists<Component...>(dst, src);
-        }
-    }
-
-    static Ref<Scene> s_CacheScene = Ref<Scene>::Create();
-
     struct CachedNode
     {
         YAML::Node Node;
@@ -53,6 +32,75 @@ namespace Turbo
     };
 
     static std::unordered_map<std::filesystem::path, CachedNode> s_CachedNodes(10);
+    static Ref<Scene> s_CacheScene = Ref<Scene>::Create();
+
+    namespace Utils
+    {
+        static void SerializeRecursively(YAML::Emitter& out, Scene* scene, Entity entity)
+        {
+            SceneSerializer::SerializeEntity(out, entity);
+
+            // Children
+            const auto& children = entity.GetChildren();
+            for (auto childUUID : children)
+            {
+                Entity child = scene->FindEntityByUUID(childUUID);
+                if (child)
+                {
+                    SerializeRecursively(out, scene, child);
+                }
+            }
+        }
+
+        static YAML::Node LoadOrGetNode(const std::filesystem::path& filepath)
+        {
+            size_t lastTimeWrite = std::filesystem::last_write_time(filepath).time_since_epoch().count();
+
+            auto& cachedNode = s_CachedNodes[filepath];
+
+            try
+            {
+                // If the file was modified, then
+                if (lastTimeWrite != cachedNode.LastWriteTime)
+                {
+                    // Load file 
+                    cachedNode = { YAML::LoadFile(filepath), lastTimeWrite };
+                }
+            }
+            catch (YAML::Exception e)
+            {
+                s_CachedNodes.erase(filepath);
+                TBO_ENGINE_ERROR(e.what());
+                return {};
+            }
+
+            return cachedNode.Node;
+        }
+
+        static bool PrefabErrorCheck(const YAML::Node& node, const std::filesystem::path& filepath)
+        {
+            if (!node)
+                return false;
+
+            if (!node["Prefab"])
+            {
+                s_CachedNodes.erase(filepath);
+                TBO_ENGINE_ERROR("Prefab keyword is missing in prefab file!");
+                return false;
+            }
+
+            auto entities = node["Entities"];
+
+            if (!entities)
+            {
+                s_CachedNodes.erase(filepath);
+                TBO_ENGINE_ERROR("Entity keyword is missing in prefab file!");
+                return false;
+            }
+
+            return true;
+        }
+    }
 
     bool AssetManager::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
     {
@@ -70,7 +118,9 @@ namespace Turbo
         out << YAML::BeginMap;
         out << YAML::Key << "Prefab" << YAML::Value << "0"; // TODO: Prefab UUID
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-        SceneSerializer::SerializeEntity(out, entity);
+
+        Utils::SerializeRecursively(out, entity.m_Scene, entity);
+
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
@@ -81,52 +131,30 @@ namespace Turbo
 
     Entity AssetManager::DeserializePrefab(const std::filesystem::path& filepath, Scene* scene, glm::vec3 translation)
     {
-        Debug::ScopeTimer timer("Prefab");
+        Debug::ScopeTimer timer("Prefab Deserialization");
 
-        size_t lastTimeWrite = std::filesystem::last_write_time(filepath).time_since_epoch().count();
-        auto& cachedNode = s_CachedNodes[filepath];
-
-        Entity deserializedEntity = scene->CreateEntity();
-        deserializedEntity.Transform().Translation = translation;
 #if 1
-        try
-        {
-            // If the file was modified, then
-            if (lastTimeWrite != cachedNode.LastWriteTime)
-            {
-                // Load file 
-                cachedNode = { YAML::LoadFile(filepath), lastTimeWrite };
-            }
-        }
-        catch (YAML::Exception e)
-        {
-            s_CachedNodes.erase(filepath);
-            TBO_ENGINE_ERROR(e.what());
-            return {};
-        }
+        const auto& data = Utils::LoadOrGetNode(filepath);
 
-        // Actually load the entity
-        const auto& data = cachedNode.Node;
-
-        if (!data["Prefab"])
-        {
-            s_CachedNodes.erase(filepath);
-            TBO_ENGINE_ERROR("Prefab keyword is missing in prefab file!");
+        if (!Utils::PrefabErrorCheck(data, filepath))
             return {};
-        }
 
         auto entities = data["Entities"];
+        auto& it = entities.begin();
 
-        if (!entities)
+        // Top entity
+        Entity parent = scene->CreateEntity();
+        parent.Transform().Translation = translation;
+        SceneSerializer::DeserializeEntity(*it, parent, false);
+
+        //  Children
+        while (++it != entities.end())
         {
-            s_CachedNodes.erase(filepath);
-            TBO_ENGINE_ERROR("Entity keyword is missing in prefab file!");
-            return {};
+            u64 uuid = (*it)["Entity"].as<u64>();
+            Entity child = scene->CreateEntityWithUUID(uuid);
+            child.Transform().Translation = translation; // Temporary fix
+            SceneSerializer::DeserializeEntity(*it, child, false);
         }
-
-        // Deserialize
-        // TODO: Maybe some more error checking?
-        SceneSerializer::DeserializeEntity(*entities.begin(), deserializedEntity, false);
 #else
         try
         {
@@ -171,7 +199,7 @@ namespace Turbo
             scene->DestroyEntity(deserializedEntity);
             TBO_ENGINE_ERROR(e.what());
             return {};
-        }
+    }
 
         // Set name
         deserializedEntity.GetComponent<TagComponent>().Tag = cachedNode.CachedPrefab.GetName();
@@ -182,8 +210,8 @@ namespace Turbo
         // Copy all components except IDComponent and TagComponent
         scene->CopyEntity(cachedNode.CachedPrefab, deserializedEntity);
 #endif
-        
-        return deserializedEntity;
-    }
+
+        return parent;
+}
 
 }
