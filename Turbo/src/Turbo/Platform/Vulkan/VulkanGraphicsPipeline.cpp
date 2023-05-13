@@ -140,11 +140,11 @@ namespace Turbo
         // ##################                          Depth and stencil testing                        ##################
         // ###############################################################################################################
         VkPipelineDepthStencilStateCreateInfo depthAndStencilState = {};
-        if (m_Config.DepthTesting)
+        //if (m_Config.DepthTesting)
         {
             depthAndStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-            depthAndStencilState.depthTestEnable = VK_TRUE;
-            depthAndStencilState.depthWriteEnable = VK_TRUE;
+            depthAndStencilState.depthTestEnable = m_Config.DepthTesting;
+            depthAndStencilState.depthWriteEnable = m_Config.DepthTesting;
             depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
             depthAndStencilState.depthBoundsTestEnable = VK_FALSE;
             depthAndStencilState.minDepthBounds = 0.0f; // Optional
@@ -235,7 +235,7 @@ namespace Turbo
         pipelineCreateInfo.pViewportState = &viewportState;
         pipelineCreateInfo.pRasterizationState = &rasterizer;
         pipelineCreateInfo.pMultisampleState = &multisampleState;
-        pipelineCreateInfo.pDepthStencilState = m_Config.DepthTesting ? &depthAndStencilState : VK_NULL_HANDLE;
+        pipelineCreateInfo.pDepthStencilState = &depthAndStencilState;
         pipelineCreateInfo.pColorBlendState = &colorBlendState;
         pipelineCreateInfo.pDynamicState = &dynamicStatesInfo;
         pipelineCreateInfo.layout = m_PipelineLayout;

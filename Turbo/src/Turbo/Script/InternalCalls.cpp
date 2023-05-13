@@ -19,30 +19,37 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 
-
 #define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, name);
 
 namespace Turbo
 {
-    // =============================================================================
-    //                                  Application                                   
-    // =============================================================================
+    static Entity GetEntity(u64 uuid)
+    {
+        Scene* context = Script::GetCurrentScene();
+        Entity entity = context->FindEntityByUUID(uuid);
+        TBO_ENGINE_ASSERT(entity);
+        return entity;
+    }
+    static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
+    static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
 
-    static inline u32 Application_GetWidth()
+    #pragma region Application
+
+    static u32 Application_GetWidth()
     {
         Scene* context = Script::GetCurrentScene();
         return context->GetViewportWidth();
     }
 
-    static inline u32 Application_GetHeight()
+    static u32 Application_GetHeight()
     {
         Scene* context = Script::GetCurrentScene();
         return context->GetViewportHeight();
     }
 
-    // =============================================================================
-    //                                  Logging                                   
-    // =============================================================================
+#pragma endregion
+
+    #pragma region Logging
 
     static void Log_String(u32 level, MonoString* string)
     {
@@ -80,9 +87,9 @@ namespace Turbo
         }
     }
 
-    // =============================================================================
-    //                                  Input                                   
-    // =============================================================================
+#pragma endregion
+
+    #pragma region Input
 
     static bool Input_IsKeyPressed(u32 key)
     {
@@ -111,9 +118,9 @@ namespace Turbo
         Input::SetCursorMode((CursorMode)cursorMode);
     }
 
-    // =============================================================================
-    //                                  Physics 2D                                   
-    // =============================================================================
+#pragma endregion
+
+    #pragma region Physics2D
 
     static u64 Physics2D_RayCast(glm::vec2 a, glm::vec2 b)
     {
@@ -128,9 +135,9 @@ namespace Turbo
         return UUID::Null;
     }
 
-    // =============================================================================
-    //                                   Scene                                   
-    // =============================================================================
+#pragma endregion
+
+    #pragma region Scene
 
     static u64 Scene_CreateEntity(MonoString* name)
     {
@@ -146,14 +153,12 @@ namespace Turbo
 
     static void Scene_DestroyEntity(u64 uuid)
     {
+        Entity entity = GetEntity(uuid);
         Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
         context->DestroyEntity(entity);
     }
 
     // TODO: MOVE! WHERE??????????????
-
     static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
     {
         Scene* context = Script::GetCurrentScene();
@@ -192,12 +197,9 @@ namespace Turbo
         *screenPosition = windowSpacePos;
     }
 
-    // =============================================================================
-    //                                  Entity                                   
-    // =============================================================================
+#pragma endregion
 
-    static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
-    static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
+    #pragma region Entity
 
     static u64 Entity_FindEntityByName(MonoString* string)
     {
@@ -214,6 +216,7 @@ namespace Turbo
         TBO_CONSOLE_ERROR("Could not find entity with name \"{}\"", name);
         return 0;
     }
+
     static MonoObject* Entity_Get_Instance(UUID uuid)
     {
         Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
@@ -221,12 +224,10 @@ namespace Turbo
 
         return instance->GetMonoInstance();
     }
+
     static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflectionType)
     {
-        Scene* context = Script::GetCurrentScene();
-
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         MonoType* component_type = mono_reflection_type_get_type(reflectionType);
         TBO_ENGINE_ASSERT(s_EntityHasComponentFuncs.find(component_type) != s_EntityHasComponentFuncs.end());
@@ -236,10 +237,7 @@ namespace Turbo
 
     static void Entity_Add_Component(u64 uuid, MonoReflectionType* reflectionType)
     {
-        Scene* context = Script::GetCurrentScene();
-
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         MonoType* componentType = mono_reflection_type_get_type(reflectionType);
 
@@ -249,10 +247,7 @@ namespace Turbo
 
     static MonoArray* Entity_Get_Children(u64 uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         MonoDomain* appDomain = Script::GetAppDomain();
         Ref<ScriptClass> entityClass = Script::GetEntityBaseClass();
@@ -274,10 +269,7 @@ namespace Turbo
 
     static MonoString* Entity_Get_Name(UUID uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         MonoDomain* appDomain = Script::GetAppDomain();
 
@@ -326,26 +318,23 @@ namespace Turbo
         return 0;
     }
 
-    static u64 Entity_InstantiateChildPrefabWithTranslation(u64 parentID, MonoString* monoString, glm::vec3* translation)
+    static u64 Entity_InstantiateChildPrefabWithTranslation(u64 uuid, MonoString* monoString, glm::vec3* translation)
     {
-        Scene* context = Script::GetCurrentScene();
-
         u64 childID = Entity_InstantiatePrefabWithTranslation(monoString, translation);
 
         if (childID)
         {
-            Entity parent = context->FindEntityByUUID(parentID);
-            Entity child = context->FindEntityByUUID(childID);
+            Entity parent = GetEntity(uuid);
+            Entity child = GetEntity(childID);
             child.SetParent(parent);
         }
 
         return childID;
     }
+#pragma endregion
 
+    #pragma region Components
 
-    // =============================================================================
-    //                                  Components                                   
-    // =============================================================================
 #pragma region TransformComponent
 
 // Translation
@@ -353,19 +342,13 @@ namespace Turbo
 // Translation
     static void Component_Transform_Get_Translation(UUID uuid, glm::vec3* outTranslation)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
-
+        Entity entity = GetEntity(uuid);
         *outTranslation = entity.GetComponent<TransformComponent>().Translation;
     }
 
     static void Component_Transform_Set_Translation(UUID uuid, glm::vec3* translation)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
         entity.GetComponent<TransformComponent>().Translation = *translation;
     }
 
@@ -374,20 +357,13 @@ namespace Turbo
     // Rotation
     static void Component_Transform_Get_Rotation(UUID uuid, glm::vec3* outRotation)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
-
+        Entity entity = GetEntity(uuid);
         *outRotation = entity.GetComponent<TransformComponent>().Rotation;
     }
 
     static void Component_Transform_Set_Rotation(UUID uuid, glm::vec3* rotation)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
-
+        Entity entity = GetEntity(uuid);
         entity.GetComponent<TransformComponent>().Rotation = *rotation;
     }
 
@@ -396,21 +372,13 @@ namespace Turbo
     // Scale
     static void Component_Transform_Get_Scale(UUID uuid, glm::vec3* outScale)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
-
+        Entity entity = GetEntity(uuid);
         *outScale = entity.GetComponent<TransformComponent>().Scale;
     }
 
     static void Component_Transform_Set_Scale(UUID uuid, glm::vec3* scale)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
-
+        Entity entity = GetEntity(uuid);
         entity.GetComponent<TransformComponent>().Scale = *scale;
     }
 
@@ -420,29 +388,20 @@ namespace Turbo
 
     static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* out_color)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         *out_color = entity.GetComponent<SpriteRendererComponent>().Color;
     }
     static void Component_SpriteRenderer_Set_Color(UUID uuid, glm::vec4* color)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         entity.GetComponent<SpriteRendererComponent>().Color = *color;
     }
 
     static void Component_SpriteRenderer_SetSpriteBounds(UUID uuid, glm::vec2 position, glm::vec2 size)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& src = entity.GetComponent<SpriteRendererComponent>();
 
@@ -468,20 +427,14 @@ namespace Turbo
         std::string string = cString;
         mono_free(cString);
 
-        Scene* context = Script::GetCurrentScene();
-
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         entity.GetComponent<TextComponent>().Text = string;
     }
 
     static MonoString* Component_Text_Get_Text(u64 uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         MonoDomain* appDomain = Script::GetAppDomain();
 
@@ -495,9 +448,7 @@ namespace Turbo
 
     static f32 Component_AudioSource_Get_Gain(u64 uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
         return audioSourceComponent.Gain;
@@ -505,9 +456,7 @@ namespace Turbo
 
     static void Component_AudioSource_Set_Gain(u64 uuid, f32 gain)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
         audioSourceComponent.Gain = gain;
@@ -515,9 +464,7 @@ namespace Turbo
 
     static bool Component_AudioSource_Get_PlayOnStart(u64 uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
         return audioSourceComponent.PlayOnStart;
@@ -525,9 +472,7 @@ namespace Turbo
 
     static void Component_AudioSource_Set_PlayOnStart(u64 uuid, bool playOnStart)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
         audioSourceComponent.PlayOnStart = playOnStart;
@@ -535,9 +480,7 @@ namespace Turbo
 
     static bool Component_AudioSource_Get_Loop(u64 uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
         return audioSourceComponent.Loop;
@@ -545,9 +488,7 @@ namespace Turbo
 
     static void Component_AudioSource_Set_Loop(u64 uuid, bool loop)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
         audioSourceComponent.Loop = loop;
@@ -559,23 +500,17 @@ namespace Turbo
 
     static bool Component_AudioListener_Get_IsPrimary(u64 uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
-
         return audioListenerComponent.IsPrimary;
     }
 
     static void Component_AudioListener_Set_IsPrimary(u64 uuid, bool isPrimary)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
-
         audioListenerComponent.IsPrimary = isPrimary;
     }
 
@@ -734,19 +669,13 @@ namespace Turbo
     // Offset
     static void Component_BoxCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         *outOffset = entity.GetComponent<BoxCollider2DComponent>().Offset;
     }
     static void Component_BoxCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
         auto& transform = entity.Transform();
@@ -763,19 +692,13 @@ namespace Turbo
     // Size
     static void Component_BoxCollider2D_Get_Size(UUID uuid, glm::vec2* outSize)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         *outSize = entity.GetComponent<BoxCollider2DComponent>().Size;
     }
     static void Component_BoxCollider2D_Set_Size(UUID uuid, glm::vec2* size)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
         auto& transform = entity.Transform();
@@ -792,20 +715,14 @@ namespace Turbo
     // IsSensor
     static bool Component_BoxCollider2D_Get_IsSensor(UUID uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         return entity.GetComponent<BoxCollider2DComponent>().IsSensor;
     }
 
     static void Component_BoxCollider2D_Set_IsSensor(UUID uuid, bool isSensor)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
 
@@ -818,6 +735,54 @@ namespace Turbo
         entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
     }
 
+    static void Component_BoxCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
+    {
+        Entity entity = GetEntity(uuid);
+
+        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+        if (bc2d.CollisionCategory == category && bc2d.CollisionMask == mask)
+            return;
+
+        bc2d.CollisionCategory = category;
+        bc2d.CollisionMask = mask;
+
+        if (!entity.HasComponent<BoxCollider2DComponent>())
+        {
+            TBO_CONSOLE_ERROR("Entity deoes not have a rigidbody!");
+            return;
+        }
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+        // Iterate through all fixtures and set collision filters
+        b2Fixture* fixture = body->GetFixtureList();
+        while (fixture != nullptr)
+        {
+            b2Shape* shape = fixture->GetShape();
+
+            if (shape->GetType() == b2Shape::e_polygon)
+            {
+                b2Filter collisionFilter;
+                collisionFilter.categoryBits = bc2d.CollisionCategory;
+                collisionFilter.maskBits = bc2d.CollisionMask;
+                collisionFilter.groupIndex = 0;
+                fixture->SetFilterData(collisionFilter);
+            }
+
+            fixture = fixture->GetNext();
+        }
+    }
+
+    static void Component_BoxCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
+    {
+        Entity entity = GetEntity(uuid);
+
+        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+        *category = bc2d.CollisionCategory;
+        *mask = bc2d.CollisionMask;
+    }
 
 #pragma endregion
 
@@ -826,19 +791,13 @@ namespace Turbo
     // Offset
     static void Component_CircleCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         *outOffset = entity.GetComponent<CircleCollider2DComponent>().Offset;
     }
     static void Component_CircleCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         entity.GetComponent<CircleCollider2DComponent>().Offset = *offset;
     }
@@ -846,22 +805,62 @@ namespace Turbo
     // Radius
     static float Component_CircleCollider2D_Get_Radius(UUID uuid)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         return entity.GetComponent<CircleCollider2DComponent>().Radius;
     }
     static void Component_CircleCollider2D_Set_Radius(UUID uuid, f32* radius)
     {
-        Scene* context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByUUID(uuid);
-
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         entity.GetComponent<CircleCollider2DComponent>().Radius = *radius;
     }
+
+    static void Component_CircleCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
+    {
+        Entity entity = GetEntity(uuid);
+
+        auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+
+        if (cc2d.CollisionCategory == category && cc2d.CollisionMask == mask)
+            return;
+
+        cc2d.CollisionCategory = category;
+        cc2d.CollisionMask = mask;
+
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+        // Iterate through all fixtures and set collision filters
+        b2Fixture* fixture = body->GetFixtureList();
+        while (fixture != nullptr)
+        {
+            b2Shape* shape = fixture->GetShape();
+
+            if (shape->GetType() == b2Shape::e_circle)
+            {
+                b2Filter collisionFilter;
+                collisionFilter.categoryBits = cc2d.CollisionCategory;
+                collisionFilter.maskBits = cc2d.CollisionMask;
+                collisionFilter.groupIndex = 0;
+                fixture->SetFilterData(collisionFilter);
+            }
+
+            fixture = fixture->GetNext();
+        }
+    }
+
+    static void Component_CircleCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
+    {
+        Entity entity = GetEntity(uuid);
+
+        auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+        *category = cc2d.CollisionCategory;
+        *mask = cc2d.CollisionMask;
+    }
+
+#pragma endregion
+
 #pragma endregion
 
     void InternalCalls::Init()
@@ -956,12 +955,16 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Size);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_IsSensor);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_IsSensor);
+        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_CollisionFilter);
+        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_CollisionFilter);
 
         // CircleCollider2D
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_Offset);
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_Offset);
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_Radius);
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_Radius);
+        TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_CollisionFilter);
+        TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_CollisionFilter);
 
         // Register components in AllComponents struct
         RegisterComponents();

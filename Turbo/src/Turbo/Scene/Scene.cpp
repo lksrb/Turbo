@@ -14,14 +14,6 @@
 
 namespace Turbo
 {
-    const u16 CATEGORY_PLAYER = 0x0003;
-    const u16 CATEGORY_ENEMY = 0x0002;
-    const u16 CATEGORY_WALL = 0x0004;
-
-    // Define group index for players and enemies
-    const int PLAYER_GROUP_INDEX = -1;
-    const int ENEMY_GROUP_INDEX = -2;
-
     namespace Utils
     {
         template<typename... Components>
@@ -88,7 +80,7 @@ namespace Turbo
         m_Registry.on_update<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentUpdate>(this);
         m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
         m_Registry.on_construct<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentConstruct>(this);
-        m_Registry.on_update<CircleCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentUpdate>(this);
+        m_Registry.on_update<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentUpdate>(this);
         m_Registry.on_destroy<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentDestroy>(this);
     }
 
@@ -283,6 +275,8 @@ namespace Turbo
 
     void Scene::OnRuntimeUpdate(FTime ts)
     {
+        Script::OnNewFrame(ts);
+
         ClearEntities();
 
         // Update 2D Physics
@@ -363,7 +357,7 @@ namespace Turbo
         for (auto e : view)
         {
             Entity entity = { e, this };
-            Script::InvokeEntityOnUpdate(entity, ts);
+            Script::InvokeEntityOnUpdate(entity);
         }
 
         // Post-Update for physics actors creation, ...
@@ -783,6 +777,6 @@ namespace Turbo
         auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
 
         Entity e = { entity, this };
-        physicsWorld2d->ConstructCircleCollider(e);
+        physicsWorld2d->DestroyCircleCollilder(e);
     }
 }

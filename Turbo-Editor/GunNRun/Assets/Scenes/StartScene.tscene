@@ -7,43 +7,39 @@ Entities:
     TagComponent:
       Tag: Background
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-0.730434418, -0.238189697, 0]
       Rotation: [0, 0, 0]
-      Scale: [15, 15, 1]
+      Scale: [25, 25, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\background2.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
-      SpriteSize: [222, 222]
-  - Entity: 1888460577509847937
-    Parent: 3009038603943104041
+      SpriteSize: [400, 400]
+  - Entity: 4508532295251490996
+    Parent: 7088181304825687220
     Children:
       []
     TagComponent:
-      Tag: EnemySpawn
+      Tag: Wall-Hitbox
     TransformComponent:
-      Translation: [-2.67645288, -2.40240502, 0]
+      Translation: [-0.74582386, -11.7630854, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 3009038603943104041
-    Parent: 0
-    Children:
-      - UUID: 6174695415243055011
-      - UUID: 15275810699910722890
-      - UUID: 1888460577509847937
-      - UUID: 11571004055169477472
-    TagComponent:
-      Tag: EnemyManager
-    TransformComponent:
-      Translation: [100, 1.30819702, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    ScriptComponent:
-      ClassName: GunNRun.EnemyManager
-      Fields:
-        []
+      Scale: [24.9701786, 0.558862865, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 5240512203980104604
     Parent: 0
     Children:
@@ -58,6 +54,51 @@ Entities:
       ClassName: GunNRun.GameManager
       Fields:
         []
+  - Entity: 5342186540803250279
+    Parent: 0
+    Children:
+      - UUID: 17285425761718094563
+    TagComponent:
+      Tag: Shooter
+    TransformComponent:
+      Translation: [-2.74060059, -0.209236205, 0.400000006]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\ShooterSpriteSheet.png
+      TextureFiltering: Nearest
+      TextureFormat: RGBA_Unorm
+      SpriteCoords: [2, 1]
+      SpriteSize: [20, 20]
+    ScriptComponent:
+      ClassName: GunNRun.ShooterEnemy
+      Fields:
+        - Name: Speed
+          Type: Float
+          Data: 5
+        - Name: IdleAnimation
+          Type: Float
+          Data: 0.150000006
+        - Name: RunningAnimation
+          Type: Float
+          Data: 0.100000001
+        - Name: MinDistanceFromPlayer
+          Type: Float
+          Data: 5
+    Rigidbody2DComponent:
+      BodyType: Dynamic
+      FixedRotation: true
+      GravityScale: 0
+      IsBullet: true
+    BoxCollider2DComponent:
+      Offset: [0, -0.0500000007]
+      Size: [0.300000012, 0.349999994]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 5981385862843799727
     Parent: 6826732556068052498
     Children:
@@ -75,16 +116,6 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [40, 40]
-  - Entity: 6174695415243055011
-    Parent: 3009038603943104041
-    Children:
-      []
-    TagComponent:
-      Tag: EnemySpawn
-    TransformComponent:
-      Translation: [3.581604, 0.517333984, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
   - Entity: 6826732556068052498
     Parent: 0
     Children:
@@ -119,6 +150,47 @@ Entities:
       BodyType: Dynamic
       FixedRotation: true
       GravityScale: 0
+      IsBullet: true
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.349999994, 0.400000006]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 7088181304825687220
+    Parent: 0
+    Children:
+      - UUID: 17906007892390790693
+      - UUID: 10742243965363763042
+      - UUID: 11693970229941093422
+      - UUID: 4508532295251490996
+    TagComponent:
+      Tag: Map
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: GunNRun.MapManager
+      Fields:
+        []
+  - Entity: 10742243965363763042
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [11.6217899, -0.661072254, 0]
+      Rotation: [0, 0, 1.57079637]
+      Scale: [23.9078884, 0.300364256, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -174,23 +246,66 @@ Entities:
         - Name: LerpMagnifier
           Type: Float
           Data: 3
-  - Entity: 11571004055169477472
-    Parent: 3009038603943104041
+  - Entity: 11693970229941093422
+    Parent: 7088181304825687220
     Children:
       []
     TagComponent:
-      Tag: EnemySpawn
+      Tag: Wall-Hitbox
     TransformComponent:
-      Translation: [-6.05658007, 0.329101384, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-  - Entity: 15275810699910722890
-    Parent: 3009038603943104041
+      Translation: [-13.0726452, -0.661072254, 0]
+      Rotation: [0, 0, 1.57079637]
+      Scale: [23.9061737, 0.300337464, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 17285425761718094563
+    Parent: 5342186540803250279
     Children:
       []
     TagComponent:
-      Tag: EnemySpawn
+      Tag: ShooterGun
     TransformComponent:
-      Translation: [6.54315186, -3.27124047, 0]
+      Translation: [-2.64099121, -0.449999988, 0.449999988]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Guns.png
+      TextureFiltering: Nearest
+      TextureFormat: RGBA_Unorm
+      SpriteCoords: [5, 1]
+      SpriteSize: [20, 20]
+  - Entity: 17906007892390790693
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [-0.74582386, 10.9952993, 0]
+      Rotation: [0, 0, 0]
+      Scale: [24.9701786, 0.558862865, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false

@@ -247,10 +247,10 @@ namespace Turbo
 
 		// CollisionCategory
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_BoxCollider2D_Set_CollisionCategory(ulong uuid, ushort category);
+		internal extern static void Component_BoxCollider2D_Set_CollisionFilter(ulong uuid, ushort category, ushort mask);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static ushort Component_BoxCollider2D_Get_CollisionCategory(ulong uuid);
+		internal extern static void Component_BoxCollider2D_Get_CollisionFilter(ulong uuid, out ushort category, out ushort mask);
 		#endregion
 
 		#region CircleCollider2DComponent
@@ -267,6 +267,14 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_CircleCollider2D_Set_Radius(ulong uuid, ref float radius);
+
+		// CollisionCategory
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_CircleCollider2D_Set_CollisionFilter(ulong uuid, ushort category, ushort mask);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_CircleCollider2D_Get_CollisionFilter(ulong uuid, out ushort category, out ushort mask);
+
 		#endregion
 
 		#endregion

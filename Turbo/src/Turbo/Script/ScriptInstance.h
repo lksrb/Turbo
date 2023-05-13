@@ -11,14 +11,14 @@ namespace Turbo
     private:
         static inline u8 s_FieldValueBuffer[16];
 
-        using OnUpdateMethodFP = void(__stdcall*)(MonoObject*, f32, MonoObject**);
+        using OnUpdateMethodFP = void(__stdcall*)(MonoObject*, MonoObject**);
         using OnCollision2DFP = void(__stdcall*)(MonoObject*, u64, MonoObject**);
     public:
         ScriptInstance(Ref<ScriptClass> scriptClass, u64 entity);
         ~ScriptInstance();
 
         void InvokeOnCreate();
-        void InvokeOnUpdate(FTime ts);
+        void InvokeOnUpdate();
 
         void InvokeOnCollisionBegin2D(u64 otherEntity);
         void InvokeOnCollisionEnd2D(u64 otherEntity);

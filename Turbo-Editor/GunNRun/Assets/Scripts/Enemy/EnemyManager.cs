@@ -4,28 +4,38 @@ using Turbo;
 
 namespace GunNRun
 {
-	public class EnemyManager : Entity
+	internal enum EnemyType : uint
 	{
-		private readonly string m_EnemyPrefab = "Assets/Prefabs/Enemy.tprefab";
-		private List<Entity> m_Enemies;
-		private Entity[] m_EntitySpawnPoints;
+		Suicider = 0,
+		Shooter,
+		RPG,
 
-		protected override void OnCreate()
+		Count
+	}
+
+	internal class EnemyManager
+	{
+		private List<Entity> m_Enemies = new List<Entity>(10);
+		private GameManager m_GameManager;
+
+		private string[] m_PrefabPaths;
+
+		internal void Init(GameManager manager)
 		{
-			m_EntitySpawnPoints = GetChildren();
-			m_Enemies = new List<Entity>(m_EntitySpawnPoints.Length);
+			m_GameManager = manager;
 
-			for (int i = 0; i < 1; i++)
-			{
-				var translation = m_EntitySpawnPoints[i].Transform.Translation;
-				translation.Z = 1.0f;
-				m_Enemies.Add(Instantiate(m_EnemyPrefab, translation));
-			}
+			m_PrefabPaths = new string[(uint)EnemyType.Count];
+			m_PrefabPaths[(uint)EnemyType.Suicider] = "Assets/Prefabs/Suicider.tprefab";
+			m_PrefabPaths[(uint)EnemyType.Shooter] = "Assets/Prefabs/Shooter.tprefab";
+			m_PrefabPaths[(uint)EnemyType.RPG] = "Assets/Prefabs/RPG.tprefab";
 		}
 
-		protected override void OnUpdate(float ts)
+		internal void SpawnEnemy(Vector3 translation, EnemyType type)
 		{
-
+			Entity enemy = m_GameManager.Instantiate(m_PrefabPaths[(uint)type], translation);
+			m_Enemies.Add(enemy);
 		}
+
+		internal List<Entity> Enemies => m_Enemies;
 	}
 }

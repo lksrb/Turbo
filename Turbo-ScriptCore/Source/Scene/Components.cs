@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
@@ -160,9 +161,21 @@ namespace Turbo
 		}
 	}
 
+	public struct CollisionFilter
+	{
+		public ushort CollisionCategory;
+		public ushort CollisionMask;
+
+		public CollisionFilter(ushort category = 0x0001, ushort mask = 0xFFFF)
+		{
+			CollisionCategory = category;
+			CollisionMask = mask;
+		}
+	}
+
 	public class BoxCollider2DComponent : Component
 	{
-		private Vector2 Offset // TODO: Make this more robust
+		public Vector2 Offset
 		{
 			get
 			{
@@ -188,10 +201,17 @@ namespace Turbo
 			}
 		}
 
-		private ushort CollisionCategory
+		public CollisionFilter Filter
 		{
-			get => InternalCalls.Component_BoxCollider2D_Get_CollisionCategory(Entity.ID);
-			set => InternalCalls.Component_BoxCollider2D_Set_CollisionCategory(Entity.ID, value);
+			get 
+			{
+				InternalCalls.Component_BoxCollider2D_Get_CollisionFilter(Entity.ID, out ushort category, out ushort mask);
+				return new CollisionFilter(category, mask);
+			}
+			set
+			{
+				InternalCalls.Component_BoxCollider2D_Set_CollisionFilter(Entity.ID, value.CollisionCategory, value.CollisionMask);
+			}
 		}
 
 		public bool IsSensor
@@ -220,6 +240,19 @@ namespace Turbo
 		{
 			get => InternalCalls.Component_CircleCollider2D_Get_Radius(Entity.ID);
 			set => InternalCalls.Component_CircleCollider2D_Set_Radius(Entity.ID, ref value);
+		}
+
+		public CollisionFilter Filter
+		{
+			get
+			{
+				InternalCalls.Component_CircleCollider2D_Get_CollisionFilter(Entity.ID, out ushort category, out ushort mask);
+				return new CollisionFilter(category, mask);
+			}
+			set
+			{
+				InternalCalls.Component_CircleCollider2D_Set_CollisionFilter(Entity.ID, value.CollisionCategory, value.CollisionMask);
+			}
 		}
 	}
 

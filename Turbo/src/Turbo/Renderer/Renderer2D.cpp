@@ -125,7 +125,7 @@ namespace Turbo
             config.Shader = m_LineShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Line;
-            config.DepthTesting = true;
+            config.DepthTesting = false;
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();

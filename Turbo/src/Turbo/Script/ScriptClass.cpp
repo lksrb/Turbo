@@ -27,9 +27,7 @@ namespace Turbo
 
     MonoMethod* ScriptClass::GetMethod(const std::string& methodName, u32 paramCount)
     {
-        MonoMethod* method = mono_class_get_method_from_name(m_MonoClass, methodName.c_str(), paramCount);
-        TBO_ENGINE_ASSERT(method);
-        return method;
+        return mono_class_get_method_from_name(m_MonoClass, methodName.c_str(), paramCount);;
     }
 
     void ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, MonoObject** exception, void** params)

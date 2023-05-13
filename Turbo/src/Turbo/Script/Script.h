@@ -29,7 +29,7 @@ namespace Turbo
         static void DestroyScriptInstance(Entity entity);
 
         static void InvokeEntityOnCreate(Entity entity);
-        static void InvokeEntityOnUpdate(Entity entity, FTime ts);
+        static void InvokeEntityOnUpdate(Entity entity);
         static void InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor);
         static void InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor);
         static ScriptFieldInstanceMap& GetEntityFieldMap(UUID uuid);
@@ -44,7 +44,10 @@ namespace Turbo
         static MonoImage* GetCoreAssemblyImage();
         static MonoDomain* GetAppDomain();
 
-        static const ScriptClassMap& GetScriptClassMap();
+        static void OnNewFrame(FTime ts);
+
+        static void CopyScriptClassFields(Entity source, Entity destination);
+        static const ScriptClassMap& GetScriptClassMap();;
         static UUID GetUUIDFromMonoObject(MonoObject* instance);
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);

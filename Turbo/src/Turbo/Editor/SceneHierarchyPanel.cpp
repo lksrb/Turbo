@@ -668,6 +668,7 @@ namespace Turbo
                 ImGui::EndCombo();
             }
             ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+            ImGui::Checkbox("Is Bullet", &component.IsBullet);
             ImGui::DragFloat("Gravity Scale", &component.GravityScale, 0.1f);
         });
         Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [](auto& component)

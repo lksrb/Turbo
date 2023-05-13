@@ -16,7 +16,7 @@ namespace Turbo
 
 		protected Entity() { ID = 0; }
 		protected virtual void OnCreate() { }
-		protected virtual void OnUpdate(float ts) { }
+		protected virtual void OnUpdate() { }
 
 		internal Entity(ulong id)
 		{

@@ -519,6 +519,7 @@ namespace Turbo
             out << YAML::Key << "BodyType" << YAML::Value << RigidBody2DBodyTypeToString(rb2dComponent.Type);
             out << YAML::Key << "FixedRotation" << YAML::Value << rb2dComponent.FixedRotation;
             out << YAML::Key << "GravityScale" << YAML::Value << rb2dComponent.GravityScale;
+            out << YAML::Key << "IsBullet" << YAML::Value << rb2dComponent.IsBullet;
 
             out << YAML::EndMap;
         }
@@ -749,6 +750,7 @@ namespace Turbo
             rb2d.Type = RigidBody2DBodyTypeFromString(rigidbody2DComponent["BodyType"].as<std::string>());
             rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
             rb2d.GravityScale = rigidbody2DComponent["GravityScale"].as<f32>();
+            rb2d.IsBullet = rigidbody2DComponent["IsBullet"].as<bool>();
             deserializedEntity.AddComponent<Rigidbody2DComponent>(rb2d);
         }
 

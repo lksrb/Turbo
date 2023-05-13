@@ -51,6 +51,12 @@ namespace Turbo
             memcpy_s(Buffer, sizeof(Buffer), &val, sizeof(T));
         }
 
+
+        void SetValue(const ScriptFieldInstance& instance)
+        {
+            memcpy_s(Buffer, sizeof(Buffer), instance.Buffer, sizeof(Buffer));
+        }
+
         template<typename T>
         T GetValue() const
         {

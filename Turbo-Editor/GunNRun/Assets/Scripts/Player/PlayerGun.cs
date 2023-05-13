@@ -4,7 +4,7 @@ using Turbo;
 
 namespace GunNRun
 {
-	internal class GunManager
+	internal class PlayerGun
 	{
 		private Player m_Player;
 		private Vector2 m_PlayerInitialInitialPos;
@@ -16,15 +16,14 @@ namespace GunNRun
 		// Bullet
 		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
 		private Vector2 m_ShootDirection = Vector2.Zero;
-		private bool m_BulletShot = false;
-		private readonly float m_ShootCooldowm = 0.7f;
-		private float m_ShootCooldowmTimer = 0.0f;
+		private bool m_IsBulletAnimating = false;
+
+		private Timer m_ShootCoolDown = new Timer(0.7f);
+		internal bool BulletShot { get; private set; } = false;
 
 		// Cursor
 		private Entity m_Crosshair;
 		private Vector3 m_WorldMousePosition;
-		private Random m_Random = new Random();
-
 
 		internal void Init(Player player)
 		{
@@ -35,24 +34,22 @@ namespace GunNRun
 			m_GunInitialPos = new Vector2(m_Gun.Transform.Translation);
 
 			m_Crosshair = m_Player.FindEntityByName("Crosshair");
-
-			// First one is slow
-			m_Random.NextDouble();
 		}
 
-		internal void OnUpdate(float ts)
+		internal void OnUpdate()
 		{
 			m_WorldMousePosition = Camera.ScreenToWorldPosition(Input.MousePosition);
 
-			FollowPlayer(ts);
-			MouseFollowCrosshair(ts);
-			RotateToCrosshair(ts);
+			OnFollowPlayer();
+			OnMouseFollowCrosshair();
+			OnRotateToCrosshair();
 
-			if (m_BulletShot && (m_ShootCooldowmTimer += ts) > m_ShootCooldowm)
+			if (m_IsBulletAnimating && m_ShootCoolDown)
 			{
-				m_ShootCooldowmTimer = 0.0f;
-				m_BulletShot = false;
+				m_IsBulletAnimating = false;
 			}
+
+			BulletShot = false;
 		}
 
 		private void ShootBullet(Vector2 direction)
@@ -62,40 +59,42 @@ namespace GunNRun
 			translation.Y += 0.1f;
 			translation.Z = 0.5f;
 			Bullet bullet = m_Player.InstantiateChild(m_BulletPrefab, translation).As<Bullet>();
-			bullet.SetDirection(direction);
+			bullet.Init(m_Player, direction);
 		}
 
 		internal void Shoot()
 		{
-			if (m_BulletShot)
+			if (m_IsBulletAnimating)
 				return;
 
 			for (int i = -4; i <= 4; i++)
 			{
 				Vector2 direction = m_ShootDirection;
 
-				float angle = (Mathf.PI / 64) * (float)m_Random.NextDouble() * i;
+				float angle = (Mathf.PI / 64) * Random.Float() * i;
 
 				float xRotated = direction.X * Mathf.Cos(angle) - direction.Y * Mathf.Sin(angle);
 				float yRotated = direction.X * Mathf.Sin(angle) + direction.Y * Mathf.Cos(angle);
 
 				direction = new Vector2(xRotated, yRotated);
 
-				direction *= Mathf.Clamp((float)m_Random.NextDouble() * 1.4f, 0.9f, 1.4f);
+				direction *= 0.8f;
 
 				ShootBullet(direction);
 			}
 
-			m_BulletShot = true;
+			BulletShot = true;
+
+			m_IsBulletAnimating = true;
 		}
-		private void MouseFollowCrosshair(float ts)
+		private void OnMouseFollowCrosshair()
 		{
 			var translation = m_Crosshair.Transform.Translation;
 			translation.XY = m_WorldMousePosition;
 			m_Crosshair.Transform.Translation = translation;
 		}
 
-		private void RotateToCrosshair(float ts)
+		private void OnRotateToCrosshair()
 		{
 			Vector3 playerPos = m_Player.Transform.Translation;
 
@@ -109,38 +108,28 @@ namespace GunNRun
 
 			if (m_ShootDirection.X >= 0.0f)
 			{
-				//rotation.X = 0;
-				scale.Y = Mathf.Abs(scale.X);
+				scale.Y = Mathf.Abs(scale.Y);
 				rotation.Z = angle;
 			}
 			else
 			{
-				//rotation.X = Mathf.PI;
-				scale.Y = -Mathf.Abs(scale.X);
+				scale.Y = -Mathf.Abs(scale.Y);
 				rotation.Z = angle + Mathf.PI;
 			}
 
-			/*if (rotation.Z > 0.0 && rotation.Z < Mathf.PI)
-			{
-				var translation = m_Gun.Transform.Translation;
-				translation.Z = 0.9f;
-				m_Gun.Transform.Translation = translation;
-			}
-*/
-
 			m_Gun.Transform.Scale = scale;
 			m_Gun.Transform.Rotation = rotation;
-			//m_Gun.Transform.Rotation = Mathf.Lerp(m_Gun.Transform.Rotation, rotation, 10.0f * ts);
 		}
 
-		private void FollowPlayer(float ts)
+		private void OnFollowPlayer()
 		{
 			Vector3 translation = m_Player.Transform.Translation;
 			Vector3 rotation = m_Gun.Transform.Rotation;
+			float lerpMagnifier = 20.0f;
 
 			if (rotation.Z > Mathf.PI / 2 && rotation.Z < Mathf.PI * 1.5f)
 			{
-				translation.X -= (m_GunInitialPos.X - m_PlayerInitialInitialPos.X);
+				translation.X -= m_GunInitialPos.X - m_PlayerInitialInitialPos.X;
 			}
 			else
 			{
@@ -149,12 +138,13 @@ namespace GunNRun
 
 			translation.Y += (m_GunInitialPos.Y - m_PlayerInitialInitialPos.Y);
 
-			if (m_BulletShot)
+			if (m_IsBulletAnimating)
 			{
-				translation.XY -= (m_ShootDirection * 0.7f) * (m_ShootCooldowm - m_ShootCooldowmTimer);
+				translation.XY -= (m_ShootDirection * 0.7f) * m_ShootCoolDown.Delta;
+				lerpMagnifier *= 2.0f;
 			}
 
-			m_Gun.Transform.Translation = Mathf.Lerp(m_Gun.Transform.Translation, translation, 20.0f * ts);
+			m_Gun.Transform.Translation = Mathf.Lerp(m_Gun.Transform.Translation, translation, lerpMagnifier * Frame.TimeStep);
 		}
 	}
 }

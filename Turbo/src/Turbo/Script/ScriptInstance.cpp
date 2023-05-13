@@ -20,7 +20,7 @@ namespace Turbo
         Ref<ScriptClass> baseClass = m_ScriptClass->GetBaseClass() ? m_ScriptClass->GetBaseClass() : Script::GetEntityBaseClass();
 
         m_Constructor = baseClass->GetMethod(".ctor", 1);
-       
+
         m_Instance = mono_object_new(Script::GetAppDomain(), m_ScriptClass->GetMonoClass());
 
         // Call default constructor
@@ -28,9 +28,16 @@ namespace Turbo
 
         //m_GCHandle = mono_gchandle_new_v2(m_Instance, false);
 
-        // Gets overriden methods
-        m_OnCreateMethod = scriptClass->GetMethod("OnCreate", 0);
-        m_OnUpdateMethod = scriptClass->GetMethod("OnUpdate", 1);
+
+        // TODO: Maybe there is a better solution?
+        // Prevert crash from client not specifing OnCreate or OnUpdate methods
+        {
+            MonoMethod* onCreate = scriptClass->GetMethod("OnCreate", 0);
+            MonoMethod* onUpdate = scriptClass->GetMethod("OnUpdate", 0);
+            // Gets overriden methods
+            m_OnCreateMethod = onCreate != nullptr ? onCreate : baseClass->GetMethod("OnCreate", 0);
+            m_OnUpdateMethod = onUpdate != nullptr ? onUpdate : baseClass->GetMethod("OnUpdate", 0);
+        }
 
         // Physics2D
         m_OnCollision2DBeginMethod = baseClass->GetMethod("OnCollisionBegin2D_Internal", 1);
@@ -72,7 +79,7 @@ namespace Turbo
         m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod, &m_Exception);
     }
 
-    void ScriptInstance::InvokeOnUpdate(FTime ts)
+    void ScriptInstance::InvokeOnUpdate()
     {
         if (m_Exception)
         {
@@ -90,7 +97,7 @@ namespace Turbo
         // With mono_runtime_invoke, this works
         // TODO: Find out how to show exception to a client in his opened editor
 
-        m_OnUpdateMethodFP(m_Instance, ts, &m_Exception);
+        m_OnUpdateMethodFP(m_Instance, &m_Exception);
 
 #else
         void* params = &ts;

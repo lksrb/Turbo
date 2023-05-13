@@ -1,0 +1,64 @@
+Prefab: 0
+Entities:
+  - Entity: 5342186540803250279
+    Parent: 0
+    Children:
+      - UUID: 17285425761718094563
+    TagComponent:
+      Tag: Shooter
+    TransformComponent:
+      Translation: [-2.74060059, -0.209236205, 0.400000006]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\ShooterSpriteSheet.png
+      TextureFiltering: Nearest
+      TextureFormat: RGBA_Unorm
+      SpriteCoords: [2, 1]
+      SpriteSize: [20, 20]
+    ScriptComponent:
+      ClassName: GunNRun.ShooterEnemy
+      Fields:
+        - Name: Speed
+          Type: Float
+          Data: 5
+        - Name: IdleAnimation
+          Type: Float
+          Data: 0.150000006
+        - Name: RunningAnimation
+          Type: Float
+          Data: 0.100000001
+        - Name: MinDistanceFromPlayer
+          Type: Float
+          Data: 5
+    Rigidbody2DComponent:
+      BodyType: Dynamic
+      FixedRotation: true
+      GravityScale: 0
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, -0.0500000007]
+      Size: [0.300000012, 0.349999994]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 17285425761718094563
+    Parent: 5342186540803250279
+    Children:
+      []
+    TagComponent:
+      Tag: ShooterGun
+    TransformComponent:
+      Translation: [-2.64099121, -0.449999988, 0.449999988]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Guns.png
+      TextureFiltering: Nearest
+      TextureFormat: RGBA_Unorm
+      SpriteCoords: [5, 1]
+      SpriteSize: [20, 20]

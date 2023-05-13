@@ -151,17 +151,11 @@ namespace Turbo
         b2FixtureUserData data;
         data.pointer = (u64)entity.GetUUID();
         fixtureDef.userData = data;
-        /*   if(entity.GetName() == "Player") {
-               fixtureDef.filter.categoryBits = CATEGORY_PLAYER;
-               fixtureDef.filter.maskBits = CATEGORY_WALL;
-               fixtureDef.filter.groupIndex = 0;
-           }
-           else if (entity.GetName() == "Hitbox-Horizontal")
-           {
-               fixtureDef.filter.categoryBits = CATEGORY_WALL;
-               fixtureDef.filter.maskBits = CATEGORY_ENEMY | CATEGORY_PLAYER;
-               fixtureDef.filter.groupIndex = 0;
-           }*/
+
+        fixtureDef.filter.categoryBits = bc2d.CollisionCategory;
+        fixtureDef.filter.maskBits = bc2d.CollisionMask;
+        fixtureDef.filter.groupIndex = 0; // TODO: Think if this has any usage
+
         body->CreateFixture(&fixtureDef);
     }
 

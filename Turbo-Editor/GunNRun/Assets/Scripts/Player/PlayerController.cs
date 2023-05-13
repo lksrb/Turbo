@@ -17,7 +17,7 @@ namespace GunNRun
 			m_Rigidbody2D = m_Player.GetComponent<Rigidbody2DComponent>();
 		}
 
-		internal void OnUpdate(float ts)
+		internal void OnUpdate()
 		{
 			m_Velocity = Vector2.Zero;
 

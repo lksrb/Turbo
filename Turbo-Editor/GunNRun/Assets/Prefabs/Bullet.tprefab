@@ -1,13 +1,13 @@
 Prefab: 0
 Entities:
-  - Entity: 10939603787342373122
+  - Entity: 345924482548781070
     Parent: 0
     Children:
       []
     TagComponent:
       Tag: Bullet
     TransformComponent:
-      Translation: [0.729400694, -0.149810731, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     SpriteRendererComponent:
@@ -20,21 +20,19 @@ Entities:
     ScriptComponent:
       ClassName: GunNRun.Bullet
       Fields:
-        - Name: Speed
-          Type: Float
-          Data: 10
         - Name: DestroyOnImpact
           Type: Bool
-          Data: false
+          Data: true
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true
       GravityScale: 0
+      IsBullet: true
     BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
+      Offset: [0, 0.0199999996]
+      Size: [0.5, 0.300000012]
       Density: 1
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-      IsSensor: true
+      IsSensor: false

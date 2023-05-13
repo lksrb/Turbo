@@ -179,6 +179,8 @@ namespace Turbo
         f32 Restitution = 0.0f;
         f32 RestitutionThreshold = 0.5f;
         bool IsSensor = false;
+        u16 CollisionCategory = 0x0001; // What category is this entity
+        u16 CollisionMask = 0xFFFF; // What other categories will this collide with
 
         BoxCollider2DComponent() = default;
         BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
@@ -194,6 +196,8 @@ namespace Turbo
         f32 Restitution = 0.0f;
         f32 RestitutionThreshold = 0.5f;
         bool IsSensor = false;
+        u16 CollisionCategory = 0x0001; // What category is this entity
+        u16 CollisionMask = 0xFFFF; // What other categories will this collide with
 
         CircleCollider2DComponent() = default;
         CircleCollider2DComponent(const CircleCollider2DComponent&) = default;

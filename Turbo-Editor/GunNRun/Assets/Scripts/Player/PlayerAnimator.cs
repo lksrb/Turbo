@@ -49,7 +49,7 @@ namespace GunNRun
 			m_Animator.ChangeAnimation(PlayerAnimation.Idle);
 		}
 
-		internal void OnUpdate(float ts)
+		internal void OnUpdate()
 		{
 			if(m_Player.Velocity.Length != 0.0f)
 			{
@@ -60,7 +60,7 @@ namespace GunNRun
 				m_Animator.ChangeAnimation(PlayerAnimation.Idle);
 			}
 
-			m_Animator.OnUpdate(ts);
+			m_Animator.OnUpdate(Frame.TimeStep);
 		}
 	}
 }

@@ -141,6 +141,10 @@ namespace Turbo
         bool ProjectAssemblyDirty = false;
 
         bool MonoDebugging = true;
+
+        // Time static class
+        MonoClassField* FrameTimeStepField = nullptr;
+        MonoVTable* FrameVTable = nullptr;
     };
 
     void Script::Init()
@@ -267,7 +271,7 @@ namespace Turbo
         instance->InvokeOnCreate();
     }
 
-    void Script::InvokeEntityOnUpdate(Entity entity, FTime ts)
+    void Script::InvokeEntityOnUpdate(Entity entity)
     {
         auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
@@ -278,7 +282,7 @@ namespace Turbo
             return;
         }
 
-        instance->InvokeOnUpdate(ts);
+        instance->InvokeOnUpdate();
     }
 
     void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor)
@@ -477,6 +481,11 @@ namespace Turbo
 
         s_Data->EntityBaseClass = Ref<ScriptClass>::Create("Turbo", "Entity");
 
+        // Retrieve static class Time 
+        MonoClass* klass = mono_class_from_name(s_Data->ScriptCoreAssemblyImage, "Turbo", "Frame");
+        s_Data->FrameTimeStepField = mono_class_get_field_from_name(klass, "TimeStep");
+        s_Data->FrameVTable = mono_class_vtable(s_Data->AppDomain, klass);
+
         Utils::PrintAssembly(s_Data->ScriptCoreAssembly);
     }
 
@@ -555,6 +564,36 @@ namespace Turbo
     MonoDomain* Script::GetAppDomain()
     {
         return s_Data->AppDomain;
+    }
+
+    void Script::OnNewFrame(FTime ts)
+    {
+        // TODO: Abstract this
+        mono_field_static_set_value(s_Data->FrameVTable, s_Data->FrameTimeStepField, (void*)&ts);
+    }
+
+    void Script::CopyScriptClassFields(Entity source, Entity destination)
+    {
+        UUID sourceUUID = source.GetUUID();
+        UUID destinationUUID = destination.GetUUID();
+
+        auto& it = s_Data->EntityScriptFieldInstances.find(sourceUUID);
+
+        TBO_ENGINE_ASSERT(it != s_Data->EntityScriptFieldInstances.end());
+
+        const auto& srcScriptFields = GetEntityFieldMap(sourceUUID);
+        auto& dstScriptFields = GetEntityFieldMap(destinationUUID);
+
+        const auto& scriptComponent = source.GetComponent<ScriptComponent>();
+        Ref<ScriptClass> scriptClass = FindEntityClass(scriptComponent.ClassName);
+
+        const auto& scriptClassFields = scriptClass->GetFields();
+        for (const auto& [srcName, srcField] : srcScriptFields)
+        {
+            ScriptFieldInstance& dstField = dstScriptFields[srcName];
+            dstField.Field = scriptClassFields.at(srcName);
+            dstField.SetValue(srcField);
+        }
     }
 
     const Script::ScriptClassMap& Script::GetScriptClassMap()
