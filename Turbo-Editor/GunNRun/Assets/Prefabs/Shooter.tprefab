@@ -15,7 +15,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\ShooterSpriteSheet.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [2, 1]
+      SpriteCoords: [0, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.ShooterEnemy
@@ -36,7 +36,7 @@ Entities:
       BodyType: Dynamic
       FixedRotation: true
       GravityScale: 0
-      IsBullet: false
+      IsBullet: true
     BoxCollider2DComponent:
       Offset: [0, -0.0500000007]
       Size: [0.300000012, 0.349999994]

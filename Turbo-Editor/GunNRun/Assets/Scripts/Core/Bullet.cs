@@ -1,15 +1,15 @@
-﻿using System;
-using Turbo;
+﻿using Turbo;
 
 namespace GunNRun
 {
 	public class Bullet : Entity
 	{
-		public bool DestroyOnImpact = false;
+		public readonly bool DestroyOnImpact = false;
+
+		public Entity ShooterEntity { get; private set; }
 
 		private Timer m_DeathTimer = new Timer(1.0f, false);
 
-		private Entity m_ShooterEntity;
 		private float m_Speed = 0.0f;
 		private bool m_Destroy = false;
 
@@ -54,7 +54,7 @@ namespace GunNRun
 				return;
 			}
 
-			m_ShooterEntity = shooter;
+			ShooterEntity = shooter;
 			m_Speed = speed;
 
 			m_Rigidbody2D.Velocity = direction * m_Speed * Random.Float(1.0f, 1.5f);
@@ -76,7 +76,9 @@ namespace GunNRun
 				return;
 			}
 
-			if (m_ShooterEntity.Name == other.Name || other.Name == "Bullet")
+			Log.Info(other.Name);
+
+			if (ShooterEntity == other || other.Name == "Bullet")
 				return;
 
 			m_Destroy = DestroyOnImpact;

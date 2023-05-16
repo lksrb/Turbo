@@ -458,6 +458,15 @@ namespace Turbo::Ed
             {
                 auto& config = Project::GetActive()->GetConfig();
 
+                if (ImGui::MenuItem("Open C# Project"))
+                {
+                    // Open specific script
+                    if (!Platform::Execute(L"cmd /C start devenv.exe", config.ProjectDirectory / (config.Name + ".sln")))
+                    {
+                        TBO_ERROR("Failed to open C# script!");
+                    }
+                }
+
                 if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_SceneMode == Mode::SceneEdit))
                 {
                     Script::ReloadAssemblies();

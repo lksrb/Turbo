@@ -16,6 +16,7 @@ namespace GunNRun
 		internal Vector2 Velocity => Controller.Velocity;
 		internal SpriteRendererComponent SpriteRenderer => GetComponent<SpriteRendererComponent>();
 		private CollisionFilter m_Filter = new CollisionFilter();
+
 		protected override void OnCreate()
 		{
 			m_Filter.CollisionCategory = (ushort)GameCategory.Player;

@@ -40,12 +40,14 @@ namespace Turbo
 
         Entity CreateEntity(const std::string& tag = "");
         Entity CreateEntityWithUUID(UUID uuid, const  std::string& tag = "");
-        void DestroyEntity(Entity entity);
+        void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
         Entity DuplicateEntity(Entity entity);
         void CopyEntity(Entity src, Entity dst);
 
         void SetViewportOffset(u32 x, u32 y);
         void SetViewportSize(u32 width, u32 height);
+
+        auto& GetPostUpdateFuncs() { return m_PostUpdateFuncs; }
 
         // Editor only
         u32 GetViewportX() const { return m_ViewportX; }

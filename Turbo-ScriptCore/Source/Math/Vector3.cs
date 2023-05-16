@@ -17,10 +17,7 @@ namespace Turbo
 		public float Length => Mathf.Sqrt(Mathf.Dot(this, this));
 		public void Normalize() => this *= 1.0f / Length;
 
-		public override string ToString()
-		{
-			return $"(x: {X}, y: {Y}, z: {Z})";
-		}
+		public override string ToString() => $"(x: {X}, y: {Y}, z: {Z})";
 
 		public static Vector3 Zero => new Vector3(0.0f, 0.0f, 0.0f);
 		public static Vector3 Up => new Vector3(0.0f, 1.0f, 0.0f);

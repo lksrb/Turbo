@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System;
 
 namespace GunNRun
 {
@@ -85,9 +86,9 @@ namespace GunNRun
 		{
 			m_ShooterEnemy = enemy;
 			m_Player = player;
-			m_Gun = m_ShooterEnemy.FindEntityByName("ShooterGun");
+			m_Gun = m_ShooterEnemy.GetChildren()[0];
 
-			m_GunShooterOffset = m_Gun.Transform.Translation - m_ShooterEnemy.Translation;
+			m_GunShooterOffset = new Vector2(-2.74f + 2.64f, -0.45f + 0.21f);
 		}
 
 		internal void OnUpdate()
@@ -154,10 +155,12 @@ namespace GunNRun
 		private Timer m_WaitAfterPlayerDistance = new Timer(3.0f);
 		private Timer m_DeltaShootTimer = new Timer(0.1f);
 
+		private bool m_Destroy;
+
 		// Animation
 		private ShooterAnimator m_Animator = new ShooterAnimator();
 		private ShooterGun m_Gun = new ShooterGun();
-		
+
 		protected override void OnCreate()
 		{
 			Translation = Transform.Translation;
@@ -176,6 +179,8 @@ namespace GunNRun
 
 			m_Animator.Init(this);
 			m_Gun.Init(this, m_Player);
+
+			OnCollisionBegin2D += OnTakeHit;
 		}
 
 		protected override void OnUpdate()
@@ -187,6 +192,12 @@ namespace GunNRun
 			m_Gun.OnUpdate();
 			OnEnemyLogic();
 			m_Animator.OnUpdate();
+
+			if (m_Destroy)
+			{
+				m_Destroy = false;
+				Scene.DestroyEntity(this);
+			}
 		}
 
 		bool SquareCollision(Vector3 enemyDistance, float maxDistance) => Mathf.Abs(enemyDistance.X) < maxDistance && Mathf.Abs(enemyDistance.Y) < maxDistance;
@@ -198,20 +209,21 @@ namespace GunNRun
 
 			bool collided = false;
 
-			foreach (var enemy in m_EnemyManager.Enemies)
-			{
-				if (enemy.Name == "Shooter" && enemy != this)
+			/*	foreach (var enemy in m_EnemyManager.Enemies)
 				{
-					Vector3 enemyDistance = enemy.Transform.Translation - Translation;
-
-					if (enemyDistance.Length < 2.0f)
+					if (enemy.Name == "Shooter" && enemy != this)
 					{
-						Log.Info("asdasd");
-						collided = true;
-						break;
+						Vector3 enemyDistance = enemy.Transform.Translation - Translation;
+
+						if (!SquareCollision(enemyDistance, 3.0f))
+						{
+							//Log.Info("asdasd");
+							collided = true;
+							break;
+						}
 					}
 				}
-			}
+	*/
 
 			if (!SquareCollision(distance, MinDistanceFromPlayer) && !collided && m_CanMove)
 			{
@@ -247,5 +259,19 @@ namespace GunNRun
 				m_DeltaShootTimer.Reset();
 			}
 		}
+
+		private void OnTakeHit(Entity other)
+		{
+			if (other.Name == "Bullet")
+			{
+				Bullet bullet = other.As<Bullet>();
+
+				if (bullet.ShooterEntity.Name == "Shooter")
+					return;
+
+				m_Destroy = true;
+			}
+		}
+
 	}
 }

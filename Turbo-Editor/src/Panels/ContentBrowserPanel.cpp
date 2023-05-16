@@ -11,18 +11,7 @@
 
 namespace Turbo::Ed
 {
-    static void OpenVisualStudio(const std::filesystem::path& basePath)
-    {
-        std::filesystem::path pathToSolution = basePath.parent_path() / Project::GetProjectName();
-        pathToSolution.concat(".sln");
-
-        // Currently opening specific files is not supported due to Visual Studio being Visual Studio
-        if (!Platform::Execute(L"cmd /C start devenv.exe", pathToSolution))
-        {
-            TBO_ERROR("Failed to open visual studio!");
-        }
-    }
-
+ 
     ContentBrowserPanel::ContentBrowserPanel()
     {
         m_DirectoryIcon = Texture2D::Create("Resources/Icons/DirectoryIcon.png");
@@ -123,9 +112,13 @@ namespace Turbo::Ed
                 }
                 else
                 {
-                    if (path.extension() == ".cs" || path.extension() == ".sln")
+                    if (path.extension() == ".cs")
                     {
-                        OpenVisualStudio(m_BasePath);
+                        // Open specific script
+                        if (!Platform::Execute(L"cmd /C start devenv.exe /Edit", path))
+                        {
+                            TBO_ERROR("Failed to open C# script!");
+                        }
                     }
                 }
             }
@@ -144,10 +137,6 @@ namespace Turbo::Ed
         {
             static const char* s_PlatformFileExplorerName = "Open in Explorer";
 
-            if (ImGui::MenuItem("Open solution"))
-            {
-                OpenVisualStudio(m_BasePath);
-            }
             ImGui::Separator();
             if (ImGui::MenuItem(s_PlatformFileExplorerName))
             {

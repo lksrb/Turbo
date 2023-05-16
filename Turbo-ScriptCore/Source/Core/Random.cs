@@ -1,6 +1,4 @@
-﻿using Turbo;
-
-namespace GunNRun
+﻿namespace Turbo
 {
 	public class Random
 	{

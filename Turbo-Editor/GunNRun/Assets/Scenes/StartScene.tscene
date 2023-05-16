@@ -17,6 +17,16 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [400, 400]
+  - Entity: 1060594242302620842
+    Parent: 5240512203980104604
+    Children:
+      []
+    TagComponent:
+      Tag: SpawnBottomBoundary
+    TransformComponent:
+      Translation: [0, -10.2424393, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 4508532295251490996
     Parent: 7088181304825687220
     Children:
@@ -43,7 +53,11 @@ Entities:
   - Entity: 5240512203980104604
     Parent: 0
     Children:
-      []
+      - UUID: 10853154627007332081
+      - UUID: 1060594242302620842
+      - UUID: 5920344936207139370
+      - UUID: 8007937047254291705
+      - UUID: 11197279293249931595
     TagComponent:
       Tag: GameManager
     TransformComponent:
@@ -99,6 +113,16 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
       IsSensor: false
+  - Entity: 5920344936207139370
+    Parent: 5240512203980104604
+    Children:
+      []
+    TagComponent:
+      Tag: SpawnTopBoundary
+    TransformComponent:
+      Translation: [0, 9.57763672, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 5981385862843799727
     Parent: 6826732556068052498
     Children:
@@ -106,7 +130,7 @@ Entities:
     TagComponent:
       Tag: Gun
     TransformComponent:
-      Translation: [-0.128698185, -0.233774304, 2]
+      Translation: [0.870000005, -0.233774304, 2]
       Rotation: [0, 0, 0]
       Scale: [2, 2, 1]
     SpriteRendererComponent:
@@ -116,15 +140,28 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [40, 40]
+  - Entity: 6105241741959459881
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: ParticleSystem
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: GunNRun.ParticleSystem
+      Fields:
+        []
   - Entity: 6826732556068052498
     Parent: 0
     Children:
       - UUID: 5981385862843799727
-      - UUID: 10853154627007332081
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [0, 0, 1]
+      Translation: [1, 0, 1]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -132,7 +169,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\PlayerSpriteSheet2.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [0, 1]
+      SpriteCoords: [2, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.Player
@@ -176,6 +213,16 @@ Entities:
       ClassName: GunNRun.MapManager
       Fields:
         []
+  - Entity: 8007937047254291705
+    Parent: 5240512203980104604
+    Children:
+      []
+    TagComponent:
+      Tag: SpawnLeftBoundary
+    TransformComponent:
+      Translation: [-12.4638577, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 10742243965363763042
     Parent: 7088181304825687220
     Children:
@@ -200,7 +247,7 @@ Entities:
       RestitutionThreshold: 0.5
       IsSensor: false
   - Entity: 10853154627007332081
-    Parent: 6826732556068052498
+    Parent: 5240512203980104604
     Children:
       []
     TagComponent:
@@ -216,6 +263,16 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [16, 16]
+  - Entity: 11197279293249931595
+    Parent: 5240512203980104604
+    Children:
+      []
+    TagComponent:
+      Tag: SpawnRightBoundary
+    TransformComponent:
+      Translation: [10.9052839, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 11489430405062822331
     Parent: 0
     Children:

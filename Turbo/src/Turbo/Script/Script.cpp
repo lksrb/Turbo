@@ -1,4 +1,4 @@
-#include "tbopch.h"
+﻿#include "tbopch.h"
 #include "Script.h"
 
 #include "InternalCalls.h"
@@ -237,7 +237,9 @@ namespace Turbo
                     instance->SetFieldValueInternal(name, fieldInstance.Buffer);
                 }
             }
+            TBO_ENGINE_TRACE("Currently used {} bytes", mono_gc_get_used_size());
         }
+
     }
 
     void Script::DestroyScriptInstance(Entity entity)
@@ -491,16 +493,11 @@ namespace Turbo
 
     void Script::CollectGarbage()
     {
-        return;
-
         TBO_ENGINE_WARN("Collecting garbage...");
-
-        int generation = mono_gc_max_generation();
-        TBO_ENGINE_WARN("Generation: {}", generation);
 
         // Collect garbage 
         // FIXME: For some reasion throws seg fault
-        mono_gc_collect(generation);
+        mono_gc_collect(mono_gc_max_generation());
 
         // Block until finalized
         while (mono_gc_pending_finalizers());

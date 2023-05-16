@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using Turbo;
+﻿using Turbo;
 
 namespace GunNRun
 {
@@ -59,6 +57,7 @@ namespace GunNRun
 			translation.Y += 0.1f;
 			translation.Z = 0.5f;
 			Bullet bullet = m_Player.InstantiateChild(m_BulletPrefab, translation).As<Bullet>();
+			bullet.Transform.Scale *= 0.5f;
 			bullet.Init(m_Player, direction);
 		}
 
@@ -67,7 +66,7 @@ namespace GunNRun
 			if (m_IsBulletAnimating)
 				return;
 
-			for (int i = -4; i <= 4; i++)
+			for (int i = 0; i <= 0; i++)
 			{
 				Vector2 direction = m_ShootDirection;
 

@@ -278,7 +278,7 @@ namespace Turbo
         Script::OnNewFrame(ts);
 
         ClearEntities();
-
+        
         // Update 2D Physics
         {
             auto& world = m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
@@ -359,12 +359,6 @@ namespace Turbo
             Entity entity = { e, this };
             Script::InvokeEntityOnUpdate(entity);
         }
-
-        // Post-Update for physics actors creation, ...
-        for (auto& func : m_PostUpdateFuncs)
-            func();
-
-        m_PostUpdateFuncs.clear();
     }
 
     void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
@@ -521,25 +515,33 @@ namespace Turbo
         return entity;
     }
 
-    void Scene::DestroyEntity(Entity entity)
+    void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     {
         UUID uuid = entity.GetUUID();
         TBO_ENGINE_ASSERT(m_EntityIDMap.find(uuid) != m_EntityIDMap.end());
 
-        Entity parent = entity.GetParent();
-        if (parent)
-            parent.RemoveChild(entity);
-
-        m_DestroyedEntities.push_back(entity);
-
-        auto& relationship = entity.GetComponent<RelationshipComponent>();
-        for (auto entityUUID : relationship.Children)
+        if (!excludeChildren)
         {
-            TBO_ENGINE_ASSERT(m_EntityIDMap.find(entityUUID) != m_EntityIDMap.end());
-
-            Entity entity = { m_EntityIDMap.at(entityUUID), this };
-            DestroyEntity(entity);
+            for (size_t i = 0; i < entity.GetChildren().size(); i++)
+            {
+                UUID childUUID = entity.GetChildren()[i];
+                TBO_ENGINE_ASSERT(m_EntityIDMap.find(childUUID) != m_EntityIDMap.end());
+                Entity child = { m_EntityIDMap.at(childUUID), this };
+                DestroyEntity(child, excludeChildren, false);
+            }
         }
+
+        if (first)
+        {
+            if (Entity parent = entity.GetParent(); parent)
+            {
+                parent.RemoveChild(entity);
+            }
+        }
+
+        m_EntityIDMap.erase(uuid);
+        m_Registry.destroy(entity);
+        m_UUIDMap.erase(entity);
     }
 
     Entity Scene::DuplicateEntity(Entity entity)
@@ -624,6 +626,12 @@ namespace Turbo
 
     void Scene::ClearEntities()
     {
+        // Post-Update for physics actors creation, ...
+        for (auto& func : m_PostUpdateFuncs)
+            func();
+
+        m_PostUpdateFuncs.clear();
+
         for (auto entity : m_DestroyedEntities)
         {
             UUID uuid = m_Registry.get<IDComponent>(entity).ID;

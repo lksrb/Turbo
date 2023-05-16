@@ -5,13 +5,13 @@ namespace GunNRun
 	public class Timer
 	{
 		private float Current;
-		private readonly float Max;
+		private readonly float Duration;
 		private readonly bool AutoReset;
 
-		public Timer(float max, bool autoReset = true)
+		public Timer(float duration, bool autoReset = true)
 		{
 			Current = 0.0f;
-			Max = max;
+			Duration = duration;
 			AutoReset = autoReset;
 		}
 
@@ -19,7 +19,7 @@ namespace GunNRun
 		{
 			timer.Current += Frame.TimeStep;
 
-			if (timer.Current > timer.Max)
+			if (timer.Current > timer.Duration)
 			{
 				if (timer.AutoReset)
 					timer.Reset();
@@ -29,7 +29,7 @@ namespace GunNRun
 			return false;
 		}
 
-		public float Delta => Max - Current;
+		public float Delta => Duration - Current;
 
 		public void Reset()
 		{

@@ -30,9 +30,9 @@ namespace GunNRun
 			m_PrefabPaths[(uint)EnemyType.RPG] = "Assets/Prefabs/RPG.tprefab";
 		}
 
-		internal void SpawnEnemy(Vector3 translation, EnemyType type)
+		internal void SpawnEnemy(Vector2 translation, EnemyType type)
 		{
-			Entity enemy = m_GameManager.Instantiate(m_PrefabPaths[(uint)type], translation);
+			Entity enemy = m_GameManager.Instantiate(m_PrefabPaths[(uint)type], new Vector3(translation, 0.40f));
 			m_Enemies.Add(enemy);
 		}
 

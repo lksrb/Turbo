@@ -46,7 +46,7 @@ namespace Turbo
             SetFieldValueInternal(name, value);
         }
 
-        MonoObject* GetMonoInstance() const { return m_Instance; }
+        MonoObject* GetMonoInstance() const;
 
         Ref<ScriptClass> GetScriptClass() const { return m_ScriptClass; }
     private:
@@ -72,7 +72,6 @@ namespace Turbo
         
         OnUpdateMethodFP m_OnUpdateMethodFP = nullptr;
 
-        MonoObject* m_Instance = nullptr;
         MonoObject* m_Exception = nullptr;
         u64 m_Entity;
         Ref<ScriptClass> m_ScriptClass;

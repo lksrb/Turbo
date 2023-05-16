@@ -21,13 +21,12 @@ namespace Turbo
 
         m_Constructor = baseClass->GetMethod(".ctor", 1);
 
-        m_Instance = mono_object_new(Script::GetAppDomain(), m_ScriptClass->GetMonoClass());
+        MonoObject* instance = mono_object_new(Script::GetAppDomain(), m_ScriptClass->GetMonoClass());
 
         // Call default constructor
-        mono_runtime_object_init(m_Instance);
+        mono_runtime_object_init(instance);
 
-        //m_GCHandle = mono_gchandle_new_v2(m_Instance, false);
-
+        m_GCHandle = mono_gchandle_new_v2(instance, false);
 
         // TODO: Maybe there is a better solution?
         // Prevert crash from client not specifing OnCreate or OnUpdate methods
@@ -47,7 +46,7 @@ namespace Turbo
 
         // Invoke base class constructor and assign it the entity id
         void* params = &m_Entity;
-        m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, nullptr, &params);
+        m_ScriptClass->InvokeMethod(instance, m_Constructor, nullptr, &params);
 
 #if TBO_USE_MANAGED_THUNKS
         // Managed thunks
@@ -61,7 +60,7 @@ namespace Turbo
 
     ScriptInstance::~ScriptInstance()
     {
-        //mono_gchandle_free_v2(m_GCHandle);
+        mono_gchandle_free_v2(m_GCHandle);
     }
 
     void ScriptInstance::InvokeOnCreate()
@@ -76,7 +75,7 @@ namespace Turbo
             return;
         }
 
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod, &m_Exception);
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnCreateMethod, &m_Exception);
     }
 
     void ScriptInstance::InvokeOnUpdate()
@@ -97,11 +96,10 @@ namespace Turbo
         // With mono_runtime_invoke, this works
         // TODO: Find out how to show exception to a client in his opened editor
 
-        m_OnUpdateMethodFP(m_Instance, &m_Exception);
+        m_OnUpdateMethodFP(GetMonoInstance(), &m_Exception);
 
 #else
-        void* params = &ts;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod, &m_Exception, &params);
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnUpdateMethod, &m_Exception);
 #endif
     }
 
@@ -118,11 +116,11 @@ namespace Turbo
         }
 
 #if TBO_USE_MANAGED_THUNKS
-        m_OnCollisionBegin2DFP(m_Instance, otherEntity, &m_Exception);
+        m_OnCollisionBegin2DFP(GetMonoInstance(), otherEntity, &m_Exception);
 
 #else
         void* params = &otherEntity;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollision2DBeginMethod, &m_Exception, &params);
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnCollision2DBeginMethod, &m_Exception, &params);
 #endif
     }
 
@@ -138,10 +136,10 @@ namespace Turbo
         }
 
 #if TBO_USE_MANAGED_THUNKS
-        m_OnCollisionEnd2DFP(m_Instance, otherEntity, &m_Exception);
+        m_OnCollisionEnd2DFP(GetMonoInstance(), otherEntity, &m_Exception);
 #else
         void* params = &otherEntity;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnCollision2DEndMethod, &m_Exception, &params);
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnCollision2DEndMethod, &m_Exception, &params);
 #endif
     }
 
@@ -157,10 +155,10 @@ namespace Turbo
         }
 
 #if TBO_USE_MANAGED_THUNKS
-        m_OnTriggerBegin2DFP(m_Instance, otherEntity, &m_Exception);
+        m_OnTriggerBegin2DFP(GetMonoInstance(), otherEntity, &m_Exception);
 #else
         void* params = &otherEntity;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnTriggerBegin2DMethod, &m_Exception, &params);
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnTriggerBegin2DMethod, &m_Exception, &params);
 #endif
     }
 
@@ -176,11 +174,16 @@ namespace Turbo
         }
 
 #if TBO_USE_MANAGED_THUNKS
-        m_OnTriggerEnd2DFP(m_Instance, otherEntity, &m_Exception);
+        m_OnTriggerEnd2DFP(GetMonoInstance(), otherEntity, &m_Exception);
 #else
         void* params = &otherEntity;
-        m_ScriptClass->InvokeMethod(m_Instance, m_OnTriggerEnd2DMethod, &m_Exception, &params);
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnTriggerEnd2DMethod, &m_Exception, &params);
 #endif
+    }
+
+    MonoObject* ScriptInstance::GetMonoInstance() const
+    {
+        return mono_gchandle_get_target_v2(m_GCHandle);
     }
 
     bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
@@ -191,7 +194,7 @@ namespace Turbo
             return false;
 
         const ScriptField& field = it->second;
-        mono_field_get_value(m_Instance, field.MonoField, buffer);
+        mono_field_get_value(GetMonoInstance(), field.MonoField, buffer);
 
         return true;
     }
@@ -204,7 +207,7 @@ namespace Turbo
             return false;
 
         const ScriptField& field = it->second;
-        mono_field_set_value(m_Instance, field.MonoField, (void*)value);
+        mono_field_set_value(GetMonoInstance(), field.MonoField, (void*)value);
 
         return true;
 

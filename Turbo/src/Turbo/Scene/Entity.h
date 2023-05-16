@@ -11,23 +11,10 @@ namespace Turbo
     {
     public:
         Entity() = default;
-        Entity(const Entity& other)
-            : m_Handle(other.m_Handle), m_Scene(other.m_Scene)
-        {
-        }
-
-        Entity(entt::entity handle, Scene* scene)
-            : m_Handle(handle), m_Scene(scene)
-        {
-        }
-
-        Entity(Entity&& other) noexcept
-        {
-            m_Handle = std::move(other.m_Handle);
-            m_Scene = std::move(other.m_Scene);
-        }
-
-        ~Entity() {}
+        Entity(const Entity& other);
+        Entity(entt::entity handle, Scene* scene);
+        Entity(Entity&& other) noexcept;
+        ~Entity() = default;
 
         template<typename Component, typename... Args>
         Component& AddComponent(Args&&... args)
@@ -79,28 +66,9 @@ namespace Turbo
             return m_Scene->m_Registry.all_of<Component...>(m_Handle);
         }
 
-        void SetParent(Entity newParent)
-        {
-            Entity currentParent = GetParent();
-            if (newParent == currentParent)
-                return;
-
-            // Entity has a parent => remove it from parent's children list
-            if (currentParent)
-                currentParent.RemoveChild(*this);
-
-            // Inform child entity that his parent has changed
-            SetParentUUID(newParent.GetUUID());
-
-            newParent.GetChildren().push_back(GetUUID());
-        }
-
-        void RemoveChild(Entity childEntity)
-        {
-            auto& children = GetChildren();
-            auto& it = std::find(children.begin(), children.end(), childEntity.GetUUID());
-            children.erase(it);
-        }
+        void SetParent(Entity newParent);
+        void RemoveChild(Entity child);
+        void UnParent();
 
         UUID GetUUID() { return GetComponent<IDComponent>().ID; }
         void SetParentUUID(UUID parentUUID) { GetComponent<RelationshipComponent>().Parent = parentUUID; }
@@ -128,7 +96,7 @@ namespace Turbo
             return *this;
         }
 
-        operator bool() const { return m_Handle != entt::null && m_Scene != nullptr; }
+        operator bool() const { return IsValid(); }
         operator uint32_t() const { return (uint32_t)m_Handle; }
         operator entt::entity() const { return m_Handle; }
 

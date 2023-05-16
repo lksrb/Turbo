@@ -873,7 +873,7 @@ namespace Turbo
 
         if (entityDestroyed)
         {
-            m_Context->DestroyEntity(entity);
+            m_Context->GetPostUpdateFuncs().push_back([this, entity]() { m_Context->DestroyEntity(entity); });
             if (m_SelectedEntity == entity)
                 m_SelectedEntity = {};
         }

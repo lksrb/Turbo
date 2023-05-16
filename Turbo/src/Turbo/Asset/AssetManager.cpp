@@ -20,6 +20,31 @@ namespace YAML
         }
         return Load(fin);
     }
+
+    template<>
+    struct convert<glm::vec3>
+    {
+        static Node encode(const glm::vec3& rhs)
+        {
+            Node node;
+            node.push_back(rhs.x);
+            node.push_back(rhs.y);
+            node.push_back(rhs.z);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+
+        static bool decode(const Node& node, glm::vec3& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 3)
+                return false;
+
+            rhs.x = node[0].as<Turbo::f32>();
+            rhs.y = node[1].as<Turbo::f32>();
+            rhs.z = node[2].as<Turbo::f32>();
+            return true;
+        }
+    };
 }
 
 namespace Turbo
@@ -65,7 +90,7 @@ namespace Turbo
                 {
                     // Load file 
                     YAML::Node node = YAML::LoadFile(filepath);
-
+#if 0
                     auto entities = node["Entities"];
 
                     // Deserialize parent entity
@@ -73,14 +98,19 @@ namespace Turbo
                     Entity cacheParentEntity = s_CacheScene->CreateEntity();
                     SceneSerializer::DeserializeEntity(*it, cacheParentEntity);
 
+                    // Because we create new entities every time, we need to clear relationship compoment
+                    // and establish new one with new UUIDs
+
+                    auto& children = cacheParentEntity.GetChildren();
+
                     while (++it != entities.end())
                     {
                         auto& it = entities.begin();
                         Entity child = s_CacheScene->CreateEntity();
                         SceneSerializer::DeserializeEntity(*it, child);
                     }
-
-                    cachedNode = { node, lastTimeWrite, cacheParentEntity };
+#endif
+                    cachedNode = { node, lastTimeWrite };
                 }
             }
             catch (YAML::Exception e)
@@ -149,7 +179,7 @@ namespace Turbo
     {
         //Debug::ScopeTimer timer("Prefab Deserialization");
 
-#if 0
+#if 1
         const auto& data = Utils::LoadOrGetNode(filepath).Node;
 
         if (!Utils::PrefabErrorCheck(data, filepath))
@@ -158,18 +188,30 @@ namespace Turbo
         auto entities = data["Entities"];
         auto& it = entities.begin();
 
-        // Top entity
+        // Parent entity
         Entity parent = scene->CreateEntity();
         parent.Transform().Translation = translation;
         SceneSerializer::DeserializeEntity(*it, parent, false);
 
-        //  Children
+        // Clear the children list because it doesnt mean anything
+        parent.GetChildren().clear();
+
+        // Children
         while (++it != entities.end())
         {
-            u64 uuid = (*it)["Entity"].as<u64>();
-            Entity child = scene->CreateEntityWithUUID(uuid);
-            child.Transform().Translation = translation; // Temporary
-            SceneSerializer::DeserializeEntity(*it, child, false);
+#if 0
+            // Look at transform to calculate the offset from parent entity
+            glm::vec3 childTranslation = (*it)["TransformComponent"]["Translation"].as<glm::vec3>();
+            glm::vec3 parentOldTranslation = parentEntityNode["TransformComponent"]["Translation"].as<glm::vec3>();
+            glm::vec3 offset = childTranslation - parentOldTranslation;
+            newChild.Transform().Translation = translation + offset; // Temporary
+#endif
+
+            Entity newChild = scene->CreateEntity();
+            newChild.Transform().Translation = translation;
+            SceneSerializer::DeserializeEntity(*it, newChild, false);
+            newChild.SetParentUUID(0);
+            newChild.SetParent(parent);
         }
         return parent;
 #else
@@ -190,6 +232,9 @@ namespace Turbo
 
         scene->CopyEntity(cachedPrefabEntity, parent);
 
+        // Clear the children list because it doesnt mean anything since we create UUIDs on fly
+        parent.GetChildren().clear();
+
         // Copy children
         const auto& cachedChildren = cachedPrefabEntity.GetChildren();
         for (UUID childUUID : cachedChildren)
@@ -197,12 +242,16 @@ namespace Turbo
             Entity cachedChild = s_CacheScene->FindEntityByUUID(childUUID);
             cachedChild.Transform().Translation = translation;
 
-            Entity child = scene->CreateEntity();
+            Entity newChild = scene->CreateEntity();
 
             if (cachedPrefabEntity.HasComponent<ScriptComponent>())
-                Script::CopyScriptClassFields(cachedChild, child);
+                Script::CopyScriptClassFields(cachedChild, newChild);
 
-            scene->CopyEntity(cachedChild, child);
+            scene->CopyEntity(cachedChild, newChild);
+
+            newChild.Transform().Translation = translation;
+            newChild.SetParentUUID(0);
+            newChild.SetParent(parent);
         }
 
         return parent;

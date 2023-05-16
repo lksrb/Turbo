@@ -52,10 +52,10 @@ namespace Turbo
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);
         static Ref<ScriptClass> GetEntityBaseClass();
+        static void CollectGarbage();
     private:
         static void InitMono();
         static void ShutdownMono();
-        static void CollectGarbage();
         static void LoadCoreAssembly(const std::filesystem::path& path);
         static void ReflectProjectAssembly();
         static void OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent event);

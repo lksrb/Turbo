@@ -27,13 +27,16 @@ namespace Turbo
     {
         Scene* context = Script::GetCurrentScene();
         Entity entity = context->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+
+        if (!entity)
+            TBO_CONSOLE_ERROR("Entity doesnt exist!");
+
         return entity;
     }
     static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
     static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
 
-    #pragma region Application
+#pragma region Application
 
     static u32 Application_GetWidth()
     {
@@ -49,7 +52,7 @@ namespace Turbo
 
 #pragma endregion
 
-    #pragma region Logging
+#pragma region Logging
 
     static void Log_String(u32 level, MonoString* string)
     {
@@ -89,7 +92,7 @@ namespace Turbo
 
 #pragma endregion
 
-    #pragma region Input
+#pragma region Input
 
     static bool Input_IsKeyPressed(u32 key)
     {
@@ -120,7 +123,7 @@ namespace Turbo
 
 #pragma endregion
 
-    #pragma region Physics2D
+#pragma region Physics2D
 
     static u64 Physics2D_RayCast(glm::vec2 a, glm::vec2 b)
     {
@@ -137,7 +140,7 @@ namespace Turbo
 
 #pragma endregion
 
-    #pragma region Scene
+#pragma region Scene
 
     static u64 Scene_CreateEntity(MonoString* name)
     {
@@ -155,7 +158,7 @@ namespace Turbo
     {
         Entity entity = GetEntity(uuid);
         Scene* context = Script::GetCurrentScene();
-        context->DestroyEntity(entity);
+        context->GetPostUpdateFuncs().push_back([context, entity]() { context->DestroyEntity(entity); });
     }
 
     // TODO: MOVE! WHERE??????????????
@@ -199,7 +202,7 @@ namespace Turbo
 
 #pragma endregion
 
-    #pragma region Entity
+#pragma region Entity
 
     static u64 Entity_FindEntityByName(MonoString* string)
     {
@@ -279,7 +282,7 @@ namespace Turbo
     }
 
     // FIXME: Temporary
-    static void InvokeOnCreateRecursively(Entity entity)
+    static void TryInvokeOnCreateRecursively(Entity entity)
     {
         Scene* context = Script::GetCurrentScene();
 
@@ -294,7 +297,7 @@ namespace Turbo
         {
             Entity child = context->FindEntityByUUID(childUUID);
             TBO_ENGINE_ASSERT(child);
-            InvokeOnCreateRecursively(child);
+            TryInvokeOnCreateRecursively(child);
         }
     }
 
@@ -309,7 +312,7 @@ namespace Turbo
 
         if (entity)
         {
-            InvokeOnCreateRecursively(entity);
+            TryInvokeOnCreateRecursively(entity);
 
             return entity.GetUUID();
         }
@@ -320,30 +323,40 @@ namespace Turbo
 
     static u64 Entity_InstantiateChildPrefabWithTranslation(u64 uuid, MonoString* monoString, glm::vec3* translation)
     {
-        u64 childID = Entity_InstantiatePrefabWithTranslation(monoString, translation);
+        Scene* context = Script::GetCurrentScene();
+        char* cString = mono_string_to_utf8(monoString);
+        std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
+        mono_free(cString);
 
-        if (childID)
+        Entity child = AssetManager::DeserializePrefab(prefabPath, context, *translation);
+
+        if (child)
         {
             Entity parent = GetEntity(uuid);
-            Entity child = GetEntity(childID);
             child.SetParent(parent);
+
+            TryInvokeOnCreateRecursively(child);
+
+            return child.GetUUID();
         }
 
-        return childID;
+        TBO_ENGINE_ERROR("Could not instantiate prefab!");
+        return 0;
     }
 #pragma endregion
 
-    #pragma region Components
+#pragma region Components
 
 #pragma region TransformComponent
 
-// Translation
-// Translation
-// Translation
+    // Translation
+    // Translation
+    // Translation
     static void Component_Transform_Get_Translation(UUID uuid, glm::vec3* outTranslation)
     {
         Entity entity = GetEntity(uuid);
-        *outTranslation = entity.GetComponent<TransformComponent>().Translation;
+        if (entity)
+            *outTranslation = entity.GetComponent<TransformComponent>().Translation;
     }
 
     static void Component_Transform_Set_Translation(UUID uuid, glm::vec3* translation)
@@ -358,13 +371,15 @@ namespace Turbo
     static void Component_Transform_Get_Rotation(UUID uuid, glm::vec3* outRotation)
     {
         Entity entity = GetEntity(uuid);
-        *outRotation = entity.GetComponent<TransformComponent>().Rotation;
+        if (entity)
+            *outRotation = entity.GetComponent<TransformComponent>().Rotation;
     }
 
     static void Component_Transform_Set_Rotation(UUID uuid, glm::vec3* rotation)
     {
         Entity entity = GetEntity(uuid);
-        entity.GetComponent<TransformComponent>().Rotation = *rotation;
+        if (entity)
+            entity.GetComponent<TransformComponent>().Rotation = *rotation;
     }
 
     // Scale
@@ -373,13 +388,15 @@ namespace Turbo
     static void Component_Transform_Get_Scale(UUID uuid, glm::vec3* outScale)
     {
         Entity entity = GetEntity(uuid);
-        *outScale = entity.GetComponent<TransformComponent>().Scale;
+        if (entity)
+            *outScale = entity.GetComponent<TransformComponent>().Scale;
     }
 
     static void Component_Transform_Set_Scale(UUID uuid, glm::vec3* scale)
     {
         Entity entity = GetEntity(uuid);
-        entity.GetComponent<TransformComponent>().Scale = *scale;
+        if (entity)
+            entity.GetComponent<TransformComponent>().Scale = *scale;
     }
 
 #pragma endregion
