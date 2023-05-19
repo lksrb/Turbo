@@ -459,6 +459,20 @@ namespace Turbo
         MonoString* monoString = mono_string_new(appDomain, text.c_str());
         return monoString;
     }
+
+    static void Component_Text_Get_Color(UUID uuid, glm::vec4* outColor)
+    {
+        Entity entity = GetEntity(uuid);
+
+        *outColor = entity.GetComponent<TextComponent>().Color;
+    }
+    static void Component_Text_Set_Color(UUID uuid, glm::vec4* color)
+    {
+        Entity entity = GetEntity(uuid);
+
+        entity.GetComponent<TextComponent>().Color = *color;
+    }
+
 #pragma endregion
 
 #pragma region AudioSourceComponent
@@ -933,6 +947,8 @@ namespace Turbo
         // Text
         TBO_REGISTER_FUNCTION(Component_Text_Set_Text);
         TBO_REGISTER_FUNCTION(Component_Text_Get_Text);
+        TBO_REGISTER_FUNCTION(Component_Text_Get_Color);
+        TBO_REGISTER_FUNCTION(Component_Text_Set_Color);
 
         // Audio Source
         TBO_REGISTER_FUNCTION(Component_AudioSource_Get_Gain);

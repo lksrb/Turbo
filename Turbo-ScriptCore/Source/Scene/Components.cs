@@ -62,6 +62,19 @@ namespace Turbo
 			get => InternalCalls.Component_Text_Get_Text(Entity.ID);
 			set => InternalCalls.Component_Text_Set_Text(Entity.ID, value);
 		}
+
+		public Vector4 Color
+		{
+			get
+			{
+				InternalCalls.Component_Text_Get_Color(Entity.ID, out Vector4 color);
+				return color;
+			}
+			set
+			{
+				InternalCalls.Component_Text_Set_Color(Entity.ID, ref value);
+			}
+		}
 	}
 
 	// Audio

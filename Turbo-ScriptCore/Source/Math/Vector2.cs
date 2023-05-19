@@ -13,25 +13,16 @@ namespace Turbo
 		public Vector2(Vector3 other) : this(other.X, other.Y) { }
 		public Vector2(Vector4 other) : this(other.X, other.Y) { }
 
-		public float Length
-		{
-			get => Mathf.Sqrt(Mathf.Dot(this, this));
-		}
+		public float Length => Mathf.Sqrt(Mathf.Dot(this, this));
+		public void Normalize() => this *= 1.0f / Length;
 
-		public void Normalize()
-		{
-			this *= 1.0f / Length;
-		}
-
-		public override string ToString()
-		{
-			return $"(x: {X}, y: {Y})";
-		}
+		public override string ToString() => $"(x: {X}, y: {Y})";
 
 		public override bool Equals(object obj) => base.Equals(obj);
 		public override int GetHashCode() => base.GetHashCode();
 
 		public static Vector2 Zero => new Vector2(0.0f, 0.0f);
+
 		public static Vector2 Up => new Vector2(0.0f, 1.0f);
 		public static Vector2 Right => new Vector2(1.0f, 0.0f);
 

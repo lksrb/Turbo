@@ -66,7 +66,7 @@ namespace GunNRun
 			if (m_IsBulletAnimating)
 				return;
 
-			for (int i = 0; i <= 0; i++)
+			for (int i = -2; i <= 2; i++)
 			{
 				Vector2 direction = m_ShootDirection;
 

@@ -40,7 +40,7 @@ namespace Turbo
         void OnDrawUI();
         void OnEvent(Event& e);
     private:
-        std::unordered_map<size_t, Ref<EditorPanel>> m_Panels;
+        std::map<size_t, Ref<EditorPanel>> m_Panels;
     };
 
 }

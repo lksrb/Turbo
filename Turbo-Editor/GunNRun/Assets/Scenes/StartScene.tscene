@@ -58,6 +58,7 @@ Entities:
       - UUID: 5920344936207139370
       - UUID: 8007937047254291705
       - UUID: 11197279293249931595
+      - UUID: 15084772350231344687
     TagComponent:
       Tag: GameManager
     TransformComponent:
@@ -83,7 +84,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\ShooterSpriteSheet.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [2, 1]
+      SpriteCoords: [0, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.ShooterEnemy
@@ -140,20 +141,6 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [40, 40]
-  - Entity: 6105241741959459881
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: ParticleSystem
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    ScriptComponent:
-      ClassName: GunNRun.ParticleSystem
-      Fields:
-        []
   - Entity: 6826732556068052498
     Parent: 0
     Children:
@@ -169,7 +156,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\PlayerSpriteSheet2.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [2, 1]
+      SpriteCoords: [0, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.Player
@@ -326,6 +313,21 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
       IsSensor: false
+  - Entity: 15084772350231344687
+    Parent: 5240512203980104604
+    Children:
+      []
+    TagComponent:
+      Tag: LevelText
+    TransformComponent:
+      Translation: [0, 0, 2]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextComponent:
+      Text: LEVEL 1
+      Color: [0.843137264, 0.223183408, 0.223183408, 1]
+      KerningOffset: 0
+      LineSpacing: 0
   - Entity: 17285425761718094563
     Parent: 5342186540803250279
     Children:

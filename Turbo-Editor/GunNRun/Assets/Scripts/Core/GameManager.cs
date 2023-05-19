@@ -13,37 +13,40 @@ namespace GunNRun
 
 	internal class GameManager : Entity
 	{
-		private Entity m_SpawnTopBoundary, m_SpawnBottomBoundary, m_SpawnLeftBoundary, m_SpawnRightBoundary;
-		private Timer m_AnotherWaveTimer = new Timer(4.0f);
-
 		internal EnemyManager Enemies = new EnemyManager();
+		private LevelManager m_LevelManager = new LevelManager();
+		private Entity m_LevelText;
+		private TextComponent m_LevelTextComponent;
+		private Entity m_Camera;
+		private Timer m_ShowLevelText = new Timer(4.0f, false);
 
 		protected override void OnCreate()
 		{
-			m_SpawnTopBoundary = FindEntityByName("SpawnTopBoundary");
-			m_SpawnBottomBoundary = FindEntityByName("SpawnBottomBoundary");
-			m_SpawnLeftBoundary = FindEntityByName("SpawnLeftBoundary");
-			m_SpawnRightBoundary = FindEntityByName("SpawnRightBoundary");
-
 			// Input.SetCursorMode(CursorMode.Hidden);
 
 			Enemies.Init(this);
+			m_LevelManager.Init(this);
 
-			SpawnAtRandomLocation(EnemyType.Shooter);
+			m_LevelText = FindEntityByName("LevelText");
+			m_Camera = FindEntityByName("Camera");
+
+			m_LevelTextComponent = m_LevelText.GetComponent<TextComponent>();
 		}
 
 		protected override void OnUpdate()
 		{
+			if (!m_ShowLevelText)
+			{
+				Vector3 translation = new Vector3(m_Camera.Transform.Translation.XY, 2.0f);
+				translation.X -= 1.5f;
+				m_LevelText.Transform.Translation = translation;
+			}
+			else
+			{
+				m_LevelTextComponent.Color = new Vector4(m_LevelTextComponent.Color.XYZ, 0.0f);
+			}
 
-		}
-
-		private void SpawnAtRandomLocation(EnemyType type)
-		{
-			Vector2 random = Vector2.Zero;
-			random.X = Random.Float(m_SpawnLeftBoundary.Transform.Translation.X, m_SpawnRightBoundary.Transform.Translation.X);
-			random.Y = Random.Float(m_SpawnTopBoundary.Transform.Translation.Y, m_SpawnBottomBoundary.Transform.Translation.Y);
-
-			Enemies.SpawnEnemy(random, type);
+			m_LevelManager.OnUpdate();
 		}
 	}
 }

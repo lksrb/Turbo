@@ -736,13 +736,22 @@ namespace Turbo
 
         Utils::DrawComponent<ScriptComponent>("Script Component", entity, [&entity, m_Context = m_Context](auto& component)
         {
-            if (ImGui::BeginCombo("Scripts", component.ClassName.c_str()))
+            if (ImGui::BeginCombo("Scripts", component.ClassName.empty() ? "<No Script>" : component.ClassName.c_str()))
             {
                 const auto& scriptClassMap = Script::GetScriptClassMap();
 
+                bool isSelected = component.ClassName.empty();
+                if (ImGui::Selectable("<No Script>", isSelected))
+                {
+                    component.ClassName.clear();
+                }
+
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+
                 for (auto& [className, _] : scriptClassMap)
                 {
-                    bool isSelected = component.ClassName == className;
+                    isSelected = component.ClassName == className;
                     if (ImGui::Selectable(className.c_str(), isSelected))
                     {
                         component.ClassName = className;

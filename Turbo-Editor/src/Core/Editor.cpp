@@ -23,9 +23,8 @@
 #include <filesystem>
 #include <sstream>
 
-#define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
-
 #ifdef TBO_PLATFORM_WIN32
+    #define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
     #define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
 #endif
 

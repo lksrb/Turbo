@@ -139,6 +139,12 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Text_Set_Text(ulong uuid, string text);
 
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Text_Get_Color(ulong uuid, out Vector4 color);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Text_Set_Color(ulong uuid, ref Vector4 color);
+
 		#endregion
 
 		#region AudioSourceComponent

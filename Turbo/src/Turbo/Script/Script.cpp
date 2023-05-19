@@ -266,7 +266,7 @@ namespace Turbo
 
         if (!instance)
         {
-            TBO_CONSOLE_ERROR("Could not find script class! ({0})", script.ClassName);
+            //TBO_CONSOLE_ERROR("Could not find script class! ({0})", script.ClassName);
             return;
         }
 
@@ -280,7 +280,7 @@ namespace Turbo
 
         if (!instance)
         {
-            TBO_CONSOLE_ERROR("Could not find script class! ({0})", script.ClassName);
+            //TBO_CONSOLE_ERROR("Could not find script class! ({0})", script.ClassName);
             return;
         }
 
