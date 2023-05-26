@@ -237,7 +237,7 @@ namespace Turbo
                     instance->SetFieldValueInternal(name, fieldInstance.Buffer);
                 }
             }
-            TBO_ENGINE_TRACE("Currently used {} bytes", mono_gc_get_used_size());
+            //TBO_ENGINE_TRACE("Currently used {} bytes", mono_gc_get_used_size());
         }
 
     }

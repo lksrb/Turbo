@@ -100,6 +100,8 @@ namespace GunNRun
 			OnMoveToPlayer();
 			OnRotateToPlayer();
 
+			m_Translation.Z = 0.40f;
+
 			// Set modified variables
 			m_Gun.Transform.Translation = m_Translation;
 			m_Gun.Transform.Rotation = m_Rotation;
@@ -148,12 +150,12 @@ namespace GunNRun
 
 		// Movement
 		private Player m_Player;
-		private EnemyManager m_EnemyManager;
 		private Rigidbody2DComponent m_Rigidbody2D;
 		private bool m_IsMoving = true;
 		private bool m_CanMove = true;
 		private Timer m_WaitAfterPlayerDistance = new Timer(3.0f);
-		private Timer m_DeltaShootTimer = new Timer(0.1f);
+		private Timer m_DeltaShootTimer = new Timer(0.05f);
+		private SingleUseTimer m_DeathTimer = new SingleUseTimer(0.1f);
 
 		private bool m_Destroy;
 
@@ -161,19 +163,21 @@ namespace GunNRun
 		private ShooterAnimator m_Animator = new ShooterAnimator();
 		private ShooterGun m_Gun = new ShooterGun();
 
+		private LevelManager m_LevelManager;
+
 		protected override void OnCreate()
 		{
 			Translation = Transform.Translation;
 			Scale = Transform.Scale;
 			m_Player = FindEntityByName("Player").As<Player>();
 			m_Rigidbody2D = GetComponent<Rigidbody2DComponent>();
-
-			m_EnemyManager = FindEntityByName("GameManager").As<GameManager>().Enemies;
+			m_LevelManager = FindEntityByName("GameManager").As<GameManager>().GetLevelManager();
 
 			// Setup filter categories
 			CollisionFilter filter = new CollisionFilter();
-			filter.CollisionCategory = (ushort)GameCategory.Enemy;
-			filter.CollisionMask = (ushort)GameCategory.Enemy | (ushort)GameCategory.Bullet | (ushort)GameCategory.Wall;
+
+			filter.CollisionCategory = (ushort)EntityCategory.Enemy;
+			filter.CollisionMask = (ushort)EntityCategory.Enemy | (ushort)EntityCategory.Bullet | (ushort)EntityCategory.Wall;
 
 			GetComponent<BoxCollider2DComponent>().Filter = filter;
 
@@ -195,8 +199,12 @@ namespace GunNRun
 
 			if (m_Destroy)
 			{
-				m_Destroy = false;
-				Scene.DestroyEntity(this);
+				if (m_DeathTimer)
+				{
+					m_Destroy = false;
+					m_LevelManager.OnEnemyDestroyed(this);
+					Scene.DestroyEntity(this);
+				}
 			}
 		}
 
@@ -209,21 +217,20 @@ namespace GunNRun
 
 			bool collided = false;
 
-			/*	foreach (var enemy in m_EnemyManager.Enemies)
+			foreach (Entity enemy in m_LevelManager.CurrentEnemies)
+			{
+				if (enemy != this)
 				{
-					if (enemy.Name == "Shooter" && enemy != this)
-					{
-						Vector3 enemyDistance = enemy.Transform.Translation - Translation;
+					Vector3 enemyDistance = enemy.Transform.Translation - Translation;
 
-						if (!SquareCollision(enemyDistance, 3.0f))
-						{
-							//Log.Info("asdasd");
-							collided = true;
-							break;
-						}
+					if (CircleCollision(enemyDistance, 2.0f))
+					{
+						Log.Info("Shooter enemies collided!");
+						collided = true;
+						break;
 					}
 				}
-	*/
+			}
 
 			if (!SquareCollision(distance, MinDistanceFromPlayer) && !collided && m_CanMove)
 			{
@@ -269,9 +276,9 @@ namespace GunNRun
 				if (bullet.ShooterEntity.Name == "Shooter")
 					return;
 
+
 				m_Destroy = true;
 			}
 		}
-
 	}
 }

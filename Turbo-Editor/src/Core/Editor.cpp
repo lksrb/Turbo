@@ -546,6 +546,13 @@ namespace Turbo::Ed
         Renderer2D::Statistics stats = m_SceneRenderer->GetRenderer2D()->GetStatistics();
         ImGui::Text("Quad Count: %d", stats.QuadCount);
         ImGui::Text("Drawcalls: %d", stats.DrawCalls);
+        ImGui::Separator();
+
+        Scene::Statistics sceneStats = m_CurrentScene->GetStatistics();
+
+        ImGui::Text("Scene: ");
+        ImGui::Text("Max Entities %d", sceneStats.MaxEntities);
+        ImGui::Text("Current Entities %d", sceneStats.CurrentEntities);
         ImGui::End();
 
         // End dockspace

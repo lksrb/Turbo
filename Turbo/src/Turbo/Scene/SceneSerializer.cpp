@@ -573,7 +573,7 @@ namespace Turbo
             deserializedEntity.GetComponent<TagComponent>().Tag = name;
         }
 
-        TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
+        //TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
         auto& relationshipComponent = deserializedEntity.GetComponent<RelationshipComponent>();
         u64 parent = entity["Parent"].as<u64>();

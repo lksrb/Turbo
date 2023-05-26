@@ -8,8 +8,8 @@ namespace GunNRun
 		protected override void OnCreate()
 		{
 			CollisionFilter filter = new CollisionFilter();
-			filter.CollisionCategory = (ushort)GameCategory.Wall;
-			filter.CollisionMask = (ushort)GameCategory.Everything;
+			filter.CollisionCategory = (ushort)EntityCategory.Wall;
+			filter.CollisionMask = (ushort)EntityCategory.Everything;
 
 			var children = GetChildren();
 			foreach (var child in children)

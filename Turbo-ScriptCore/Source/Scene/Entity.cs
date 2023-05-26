@@ -104,7 +104,7 @@ namespace Turbo
 		private void OnTriggerEnd2D_Internal(ulong id) => OnTriggerEnd2D?.Invoke(new Entity(id));
 
 		public override string ToString() => Name;
-		public override bool Equals(object obj) => base.Equals(obj);
-		public override int GetHashCode() => base.GetHashCode();
+		public override bool Equals(object obj) => (obj is Entity) ? (obj as Entity) == this : base.Equals(obj);
+		public override int GetHashCode() => (int)ID;
 	}
 }

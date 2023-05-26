@@ -14,35 +14,36 @@ namespace Turbo
     {
         if (s_Initialized)
             return;
-        spdlog::sink_ptr log_sinks[2] =
+
+        spdlog::sink_ptr logSinks[2] =
         {
             std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
             std::make_shared<spdlog::sinks::basic_file_sink_mt>("Turbo.log", true)
         };
 
-        spdlog::sink_ptr editor_sinks[1] =
+        spdlog::sink_ptr editorSinks[1] =
         {
             std::make_shared<EditorConsoleSink>(),
             //std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
         };
 
-        log_sinks[0]->set_pattern("%^[%T] %n: %v%$");
-        log_sinks[1]->set_pattern("[%T] [%l] %n: %v");
+        logSinks[0]->set_pattern("%^[%T] %n: %v%$");
+        logSinks[1]->set_pattern("[%T] [%l] %n: %v");
 
-        editor_sinks[0]->set_pattern("%^[%T] %n: %v%$");
-        //editor_sinks[1]->set_pattern("%^[%T] %n: %v%$");
+        editorSinks[0]->set_pattern("%^[%T] %n: %v%$");
+        //editorSinks[1]->set_pattern("%^[%T] %n: %v%$");
 
-        s_EngineLogger = std::make_shared<spdlog::logger>("Turbo", begin(log_sinks), end(log_sinks));
+        s_EngineLogger = std::make_shared<spdlog::logger>("Turbo", begin(logSinks), end(logSinks));
         spdlog::register_logger(s_EngineLogger);
         s_EngineLogger->set_level(spdlog::level::trace);
         s_EngineLogger->flush_on(spdlog::level::trace);
 
-        s_ClientLogger = std::make_shared<spdlog::logger>("App", begin(log_sinks), end(log_sinks));
+        s_ClientLogger = std::make_shared<spdlog::logger>("App", begin(logSinks), end(logSinks));
         spdlog::register_logger(s_ClientLogger);
         s_ClientLogger->set_level(spdlog::level::trace);
         s_ClientLogger->flush_on(spdlog::level::trace);
 
-        s_EditorConsoleLogger = std::make_shared<spdlog::logger>("Console", begin(editor_sinks), end(editor_sinks));
+        s_EditorConsoleLogger = std::make_shared<spdlog::logger>("Console", begin(editorSinks), end(editorSinks));
         s_EditorConsoleLogger->set_level(spdlog::level::trace);
 
         s_Initialized = true;

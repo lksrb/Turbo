@@ -17,12 +17,19 @@ namespace GunNRun
 		internal SpriteRendererComponent SpriteRenderer => GetComponent<SpriteRendererComponent>();
 		private CollisionFilter m_Filter = new CollisionFilter();
 
+		private ParticleSystem m_ParticleSystem;
+
 		protected override void OnCreate()
 		{
-			m_Filter.CollisionCategory = (ushort)GameCategory.Player;
-			m_Filter.CollisionMask = (ushort)GameCategory.Everything;
+			m_Filter.CollisionCategory = (ushort)EntityCategory.Player;
+			m_Filter.CollisionMask = (ushort)EntityCategory.Everything;
 
 			GetComponent<BoxCollider2DComponent>().Filter = m_Filter;
+
+			m_ParticleSystem = ParticleSystem.Setup().
+				SetColorRange(Vector4.Red).
+				SetDurationRange(0.25f, 0.5f).
+				Build(this, 20);
 
 			Controller.Init(this);
 			Animator.Init(this);
@@ -36,10 +43,12 @@ namespace GunNRun
 			Animator.OnUpdate();
 			Gun.OnUpdate();
 
-			if(Input.IsShootMouseButtonPressed)
+			if (Input.IsShootMouseButtonPressed)
 			{
 				Gun.Shoot();
 			}
+
+			m_ParticleSystem.OnUpdate();
 		}
 	}
 }

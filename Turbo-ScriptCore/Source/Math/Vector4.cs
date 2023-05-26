@@ -37,6 +37,7 @@ namespace Turbo
 
 		public static Vector4 Zero => new Vector4(0.0f);
 
+		// Temporary
 		public static Vector4 Red => new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 		public static Vector4 Green => new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
 		public static Vector4 Blue => new Vector4(0.0f, 0.0f, 1.0f, 1.0f);

@@ -47,7 +47,7 @@ namespace Turbo
 		#region Scene
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static ulong Scene_CreateEntity(string name);
+		internal extern static ulong Scene_CreateEntity(ulong parentUUID, string name);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Scene_DestroyEntity(ulong uuid);

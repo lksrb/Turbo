@@ -22,6 +22,12 @@ namespace Turbo
     class Scene
     {
     public:
+        struct Statistics
+        {
+            u32 MaxEntities = 0;
+            u32 CurrentEntities = 0;
+        };
+
         Scene();
         ~Scene();
 
@@ -81,10 +87,10 @@ namespace Turbo
 
         PhysicsWorld2D* GetPhysicsWorld2D();
 
+        Scene::Statistics GetStatistics() const { return m_Statistics; }
+
         bool IsRunning() const { return m_Running; }
     private:
-        void ClearEntities();
-
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
         void OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity);
@@ -107,11 +113,11 @@ namespace Turbo
         EntityMap m_EntityIDMap;
         UUIDMap m_UUIDMap;
 
-        std::vector<entt::entity> m_DestroyedEntities;
-
         std::vector<std::function<void()>> m_PostUpdateFuncs;
 
         bool m_Running = false;
+
+        Scene::Statistics m_Statistics;
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
         u32 m_ViewportX = 0, m_ViewportY = 0;

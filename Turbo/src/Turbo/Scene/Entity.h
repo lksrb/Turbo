@@ -106,6 +106,8 @@ namespace Turbo
         entt::entity m_Handle = entt::null;
         Scene* m_Scene = nullptr;
 
+        friend class Scene;
+
         // FIXME: Maybe not ideal
         friend class AssetManager;
     };

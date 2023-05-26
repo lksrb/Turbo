@@ -33,6 +33,7 @@ namespace Turbo
 
         return entity;
     }
+
     static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
     static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
 
@@ -142,15 +143,19 @@ namespace Turbo
 
 #pragma region Scene
 
-    static u64 Scene_CreateEntity(MonoString* name)
+    static u64 Scene_CreateEntity(u64 parentUUID, MonoString* name)
     {
         char* cString = mono_string_to_utf8(name);
         Scene* context = Script::GetCurrentScene();
         Entity entity = context->CreateEntity(cString);
-
         TBO_ENGINE_ASSERT(entity);
-        mono_free(cString);
 
+        Entity parent = GetEntity(parentUUID);
+        if (!parent)
+            return 0;
+
+        entity.SetParent(parent);
+        mono_free(cString);
         return entity.GetUUID();
     }
 
@@ -362,7 +367,9 @@ namespace Turbo
     static void Component_Transform_Set_Translation(UUID uuid, glm::vec3* translation)
     {
         Entity entity = GetEntity(uuid);
-        entity.GetComponent<TransformComponent>().Translation = *translation;
+
+        if (entity)
+            entity.GetComponent<TransformComponent>().Translation = *translation;
     }
 
     // Rotation

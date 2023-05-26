@@ -28,13 +28,18 @@ namespace Turbo
             return;
 
         // Unparent from current parent
-        UnParent();
+        if (currentParent)
+            currentParent.RemoveChild(*this);
 
         // Inform child entity that his parent has changed
-        UUID newParentUUID = newParent.GetUUID();
-        SetParentUUID(newParentUUID);
-        auto& children = newParent.GetChildren();
-        children.push_back(GetUUID());
+        SetParentUUID(newParent.GetUUID());
+
+        if (newParent)
+        {
+            auto& children = newParent.GetChildren();
+            if (std::find(children.begin(), children.end(), GetUUID()) == children.end())
+                children.emplace_back(GetUUID());
+        }
     }
 
     void Entity::UnParent()

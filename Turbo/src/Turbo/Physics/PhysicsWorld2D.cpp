@@ -238,8 +238,8 @@ namespace Turbo
 
     void PhysicsWorld2D::Step(FTime ts)
     {
-        constexpr i32 velocityIterations = 6;
-        constexpr i32 positionIterations = 2;
+        constexpr i32 velocityIterations = 1;
+        constexpr i32 positionIterations = 1;
 
         m_Box2DWorld->Step(ts, velocityIterations, positionIterations);
     }

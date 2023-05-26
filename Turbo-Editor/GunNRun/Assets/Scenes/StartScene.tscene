@@ -22,9 +22,9 @@ Entities:
     Children:
       []
     TagComponent:
-      Tag: SpawnBottomBoundary
+      Tag: SpawnBottomRightBoundary
     TransformComponent:
-      Translation: [0, -10.2424393, 0]
+      Translation: [10.6652203, -10.2424393, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 4508532295251490996
@@ -56,8 +56,6 @@ Entities:
       - UUID: 10853154627007332081
       - UUID: 1060594242302620842
       - UUID: 5920344936207139370
-      - UUID: 8007937047254291705
-      - UUID: 11197279293249931595
       - UUID: 15084772350231344687
     TagComponent:
       Tag: GameManager
@@ -69,59 +67,14 @@ Entities:
       ClassName: GunNRun.GameManager
       Fields:
         []
-  - Entity: 5342186540803250279
-    Parent: 0
-    Children:
-      - UUID: 17285425761718094563
-    TagComponent:
-      Tag: Shooter
-    TransformComponent:
-      Translation: [-2.74060059, -0.209236205, 0.400000006]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\ShooterSpriteSheet.png
-      TextureFiltering: Nearest
-      TextureFormat: RGBA_Unorm
-      SpriteCoords: [0, 1]
-      SpriteSize: [20, 20]
-    ScriptComponent:
-      ClassName: GunNRun.ShooterEnemy
-      Fields:
-        - Name: Speed
-          Type: Float
-          Data: 5
-        - Name: IdleAnimation
-          Type: Float
-          Data: 0.150000006
-        - Name: RunningAnimation
-          Type: Float
-          Data: 0.100000001
-        - Name: MinDistanceFromPlayer
-          Type: Float
-          Data: 5
-    Rigidbody2DComponent:
-      BodyType: Dynamic
-      FixedRotation: true
-      GravityScale: 0
-      IsBullet: true
-    BoxCollider2DComponent:
-      Offset: [0, -0.0500000007]
-      Size: [0.300000012, 0.349999994]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-      IsSensor: false
   - Entity: 5920344936207139370
     Parent: 5240512203980104604
     Children:
       []
     TagComponent:
-      Tag: SpawnTopBoundary
+      Tag: SpawnTopLeftBoundary
     TransformComponent:
-      Translation: [0, 9.57763672, 0]
+      Translation: [-11.9347858, 9.29260254, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 5981385862843799727
@@ -156,7 +109,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\PlayerSpriteSheet2.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [0, 1]
+      SpriteCoords: [2, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.Player
@@ -200,16 +153,6 @@ Entities:
       ClassName: GunNRun.MapManager
       Fields:
         []
-  - Entity: 8007937047254291705
-    Parent: 5240512203980104604
-    Children:
-      []
-    TagComponent:
-      Tag: SpawnLeftBoundary
-    TransformComponent:
-      Translation: [-12.4638577, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
   - Entity: 10742243965363763042
     Parent: 7088181304825687220
     Children:
@@ -250,16 +193,6 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [16, 16]
-  - Entity: 11197279293249931595
-    Parent: 5240512203980104604
-    Children:
-      []
-    TagComponent:
-      Tag: SpawnRightBoundary
-    TransformComponent:
-      Translation: [10.9052839, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
   - Entity: 11489430405062822331
     Parent: 0
     Children:
@@ -328,23 +261,6 @@ Entities:
       Color: [0.843137264, 0.223183408, 0.223183408, 1]
       KerningOffset: 0
       LineSpacing: 0
-  - Entity: 17285425761718094563
-    Parent: 5342186540803250279
-    Children:
-      []
-    TagComponent:
-      Tag: ShooterGun
-    TransformComponent:
-      Translation: [-2.64099121, -0.449999988, 0.449999988]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Guns.png
-      TextureFiltering: Nearest
-      TextureFormat: RGBA_Unorm
-      SpriteCoords: [5, 1]
-      SpriteSize: [20, 20]
   - Entity: 17906007892390790693
     Parent: 7088181304825687220
     Children:

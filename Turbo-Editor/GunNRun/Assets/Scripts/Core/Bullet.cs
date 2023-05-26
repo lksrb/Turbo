@@ -15,14 +15,15 @@ namespace GunNRun
 
 		private Rigidbody2DComponent m_Rigidbody2D;
 		private bool m_Init = false;
+		private int m_DestroyCalled = 0;
 
 		protected override void OnCreate()
 		{
 			m_Rigidbody2D = GetComponent<Rigidbody2DComponent>();
 
 			CollisionFilter filter = new CollisionFilter();
-			filter.CollisionCategory = (ushort)GameCategory.Bullet;
-			filter.CollisionMask = (ushort)GameCategory.Player | (ushort)GameCategory.Enemy | (ushort)GameCategory.Wall;
+			filter.CollisionCategory = (ushort)EntityCategory.Bullet;
+			filter.CollisionMask = (ushort)EntityCategory.Player | (ushort)EntityCategory.Enemy | (ushort)EntityCategory.Wall;
 			GetComponent<BoxCollider2DComponent>().Filter = filter;
 
 			OnCollisionBegin2D += OnDestroy;
@@ -38,11 +39,16 @@ namespace GunNRun
 				return;
 			}
 
-			m_Rigidbody2D.Velocity = Mathf.Lerp(m_Rigidbody2D.Velocity, Vector3.Zero, 3.0f * Frame.TimeStep);
+			m_Rigidbody2D.Velocity = Mathf.Lerp(m_Rigidbody2D.Velocity, Vector3.Zero, 1.0f * Frame.TimeStep);
 
 			if (m_DeathTimer || m_Destroy)
 			{
-				Scene.DestroyEntity(this);
+				m_DestroyCalled++;
+
+				m_Destroy = false;
+
+				if(m_DestroyCalled == 1)
+					Scene.DestroyEntity(this);
 			}
 		}
 

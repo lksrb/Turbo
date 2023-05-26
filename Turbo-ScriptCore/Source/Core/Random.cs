@@ -1,4 +1,6 @@
-﻿namespace Turbo
+﻿using System;
+
+namespace Turbo
 {
 	public class Random
 	{
@@ -18,6 +20,18 @@
 		public static Vector2 Float2(float min = 0.0f, float max = 1.0f) => new Vector2(Float(min, max), Float(min, max));
 		public static Vector3 Float3(float min = 0.0f, float max = 1.0f) => new Vector3(Float(min, max), Float(min, max), Float(min, max));
 		public static Vector4 Float4(float min = 0.0f, float max = 1.0f) => new Vector4(Float(min, max), Float(min, max), Float(min, max), Float(min, max));
+
+		public static Vector2 Box(Vector2 min, Vector2 max)
+		{
+			Vector2 result = new Vector2()
+			{
+				X = Float(min.X, max.X),
+				Y = Float(min.Y, max.Y)
+			};
+			return result;
+		}
+
+		public static int Int(int min = 0, int max = 1) => s_Instance.m_RandomGenerator.Next(min, max);
 
 		public static Vector2 InsideUnitCircle() => Float2(-1.0f, 1.0f);
 	}

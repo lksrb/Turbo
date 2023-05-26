@@ -4,7 +4,13 @@
 	{
 		public static Entity CreateEntity(string name)
 		{
-			ulong id = InternalCalls.Scene_CreateEntity(name);
+			ulong id = InternalCalls.Scene_CreateEntity(0, name);
+			return new Entity(id);
+		}
+
+		public static Entity CreateChildEntity(Entity parent, string name)
+		{
+			ulong id = InternalCalls.Scene_CreateEntity(parent.ID, name);
 			return new Entity(id);
 		}
 

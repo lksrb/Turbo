@@ -82,6 +82,8 @@ namespace Turbo
         m_Registry.on_construct<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentConstruct>(this);
         m_Registry.on_update<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentUpdate>(this);
         m_Registry.on_destroy<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentDestroy>(this);
+
+        m_Registry.reserve(200);
     }
 
     Scene::~Scene()
@@ -97,7 +99,11 @@ namespace Turbo
 
     void Scene::OnEditorUpdate(FTime ts)
     {
-        ClearEntities();
+        // Post-Update for physics actors creation, ...
+        for (auto& func : m_PostUpdateFuncs)
+            func();
+
+        m_PostUpdateFuncs.clear();
     }
 
     void Scene::OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editorCamera)
@@ -276,8 +282,6 @@ namespace Turbo
     void Scene::OnRuntimeUpdate(FTime ts)
     {
         Script::OnNewFrame(ts);
-
-        ClearEntities();
         
         // Update 2D Physics
         {
@@ -359,6 +363,12 @@ namespace Turbo
             Entity entity = { e, this };
             Script::InvokeEntityOnUpdate(entity);
         }
+
+        // Post-Update for physics actors creation, ...
+        for (auto& func : m_PostUpdateFuncs)
+            func();
+
+        m_PostUpdateFuncs.clear();
     }
 
     void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
@@ -501,6 +511,8 @@ namespace Turbo
 
     Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& tag)
     {
+        //TBO_ENGINE_ASSERT(m_Statistics.CurrentEntities != 150);
+
         Entity entity = { m_Registry.create(), this };
         entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
@@ -512,17 +524,23 @@ namespace Turbo
         m_EntityIDMap[uuid] = (entt::entity)entity;
         m_UUIDMap[(entt::entity)entity] = uuid;
 
+        m_Statistics.CurrentEntities++;
+        m_Statistics.MaxEntities = (u32)m_Registry.size();
+
         return entity;
     }
 
     void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     {
-        UUID uuid = entity.GetUUID();
-        TBO_ENGINE_ASSERT(m_EntityIDMap.find(uuid) != m_EntityIDMap.end());
+        if (!m_Registry.valid(entity))
+        {
+            // FIXME: For some reason we are destroying entities that are no longer valid, this is weeeeeeeeeeeeeeeeeeird
+            return;
+        }
 
         if (!excludeChildren)
         {
-            for (size_t i = 0; i < entity.GetChildren().size(); i++)
+            for (size_t i = 0; i < entity.GetChildren().size(); ++i)
             {
                 UUID childUUID = entity.GetChildren()[i];
                 TBO_ENGINE_ASSERT(m_EntityIDMap.find(childUUID) != m_EntityIDMap.end());
@@ -539,9 +557,11 @@ namespace Turbo
             }
         }
 
-        m_EntityIDMap.erase(uuid);
-        m_Registry.destroy(entity);
+        m_EntityIDMap.erase(entity.GetUUID());
+        m_Registry.destroy(entity.m_Handle);
         m_UUIDMap.erase(entity);
+
+        m_Statistics.CurrentEntities--;
     }
 
     Entity Scene::DuplicateEntity(Entity entity)
@@ -622,25 +642,6 @@ namespace Turbo
     PhysicsWorld2D* Scene::GetPhysicsWorld2D()
     {
         return m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World.get();
-    }
-
-    void Scene::ClearEntities()
-    {
-        // Post-Update for physics actors creation, ...
-        for (auto& func : m_PostUpdateFuncs)
-            func();
-
-        m_PostUpdateFuncs.clear();
-
-        for (auto entity : m_DestroyedEntities)
-        {
-            UUID uuid = m_Registry.get<IDComponent>(entity).ID;
-            m_EntityIDMap.erase(uuid);
-            m_Registry.destroy(entity);
-            m_UUIDMap.erase(entity);
-        }
-
-        m_DestroyedEntities.clear();
     }
 
     Entity Scene::FindEntityByUUID(UUID uuid)
