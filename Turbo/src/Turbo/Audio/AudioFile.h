@@ -22,15 +22,23 @@ namespace Turbo
 
         // Data
         u32 DataOffset = 0;
-        Buffer AudioData;
+        Buffer Data;
 
         AudioFile() = default;
-        AudioFile(std::string_view filepath);
+        AudioFile(const AudioFile& other) = default;
+        explicit AudioFile(std::string_view filepath);
+        AudioFile& AudioFile::operator=(AudioFile&& other) noexcept;
+        AudioFile(AudioFile&& other) noexcept;
+
         ~AudioFile();
 
         void Load(std::string_view filepath);
         void LoadFromMemory(const Buffer& buffer);
 
-        inline operator bool() const { return (bool)AudioData; }
+        void Release();
+
+        inline operator bool() const { return (bool)Data; }
+    private:
+        void Move(AudioFile&& other);
     };
 }

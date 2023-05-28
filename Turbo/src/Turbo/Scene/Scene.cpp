@@ -7,6 +7,7 @@
 
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Core/KeyCodes.h"
+#include "Turbo/Debug/ScopeTimer.h"
 #include "Turbo/Script/Script.h"
 
 #include "Turbo/Physics/Physics2D.h" // <-- TODO: Remove
@@ -72,6 +73,8 @@ namespace Turbo
         m_SceneEntity = m_Registry.create();
         m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
 
+        m_Registry.on_construct<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentConstruct>(this);
+        m_Registry.on_destroy<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentDestroy>(this);
         m_Registry.on_construct<ScriptComponent>().connect<&Scene::OnScriptComponentConstruct>(this);
         m_Registry.on_destroy<ScriptComponent>().connect<&Scene::OnScriptComponentDestroy>(this);
         m_Registry.on_construct<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentConstruct>(this);
@@ -92,6 +95,9 @@ namespace Turbo
 
         m_Registry.on_construct<ScriptComponent>().disconnect(this);
         m_Registry.on_destroy<ScriptComponent>().disconnect(this);
+
+        m_Registry.on_construct<AudioSourceComponent>().disconnect(this);
+        m_Registry.on_destroy<AudioSourceComponent>().disconnect(this);
 
         m_Registry.on_construct<Rigidbody2DComponent>().disconnect(this);
         m_Registry.on_destroy<Rigidbody2DComponent>().disconnect(this);
@@ -233,11 +239,10 @@ namespace Turbo
         }
 
         Audio::OnRuntimeStart(this);
-
         Script::OnRuntimeStart(this);
 
         // Instantiate script instances and sets field instances
-        auto& scripts = GetAllEntitiesWith<ScriptComponent, IDComponent>();
+        auto& scripts = GetAllEntitiesWith<IDComponent, ScriptComponent>();
         for (auto& e : scripts)
         {
             Entity entity = { e, this };
@@ -256,16 +261,14 @@ namespace Turbo
         if (audioListener)
         {
             // Send event to every audio source that scene has started
-            auto& audioSourcesView = GetAllEntitiesWith<AudioSourceComponent>();
+            auto& audioSourcesView = GetAllEntitiesWith<IDComponent, AudioSourceComponent>();
             for (auto& e : audioSourcesView)
             {
-                auto& audioSource = audioSourcesView.get<AudioSourceComponent>(e);
+                auto& [id, audioSource] = audioSourcesView.get<IDComponent, AudioSourceComponent>(e);
 
-                const auto& audioClip = audioSource.Clip;
-
-                if (audioClip && audioSource.PlayOnStart)
+                if (audioSource.PlayOnAwake)
                 {
-                    Audio::Play(audioClip, audioSource.Loop);
+                    Audio::Play(id.ID, audioSource.Loop);
                 }
             }
         }
@@ -282,7 +285,7 @@ namespace Turbo
     void Scene::OnRuntimeUpdate(FTime ts)
     {
         Script::OnNewFrame(ts);
-        
+
         // Update 2D Physics
         {
             auto& world = m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
@@ -330,12 +333,13 @@ namespace Turbo
             {
                 Entity entity = { e, this };
 
-                auto& [transform, audioSourceComponent] = entity.GetComponents<TransformComponent, AudioSourceComponent>();
-                if (!audioSourceComponent.Clip)
+                auto& [id, transform, audioSourceComponent] = entity.GetComponents<IDComponent, TransformComponent, AudioSourceComponent>();
+
+                if (audioSourceComponent.AudioPath.empty())
                     continue;
 
                 // Update volume/gain for each source
-                Audio::SetGain(audioSourceComponent.Clip, audioSourceComponent.Gain);
+                Audio::SetGain(id.ID, audioSourceComponent.Gain);
 
                 // If audio is not spatial, skip
                 if (!audioSourceComponent.Spatial)
@@ -352,7 +356,7 @@ namespace Turbo
                     velocity = { linearVelocity.x, linearVelocity.y, 0.0f };
                 }
 
-                Audio::CalculateSpatial(audioSourceComponent.Clip, transform.Translation, transform.Rotation, velocity);
+                Audio::CalculateSpatial(id.ID, transform.Translation, transform.Rotation, velocity);
             }
         }
 
@@ -365,10 +369,13 @@ namespace Turbo
         }
 
         // Post-Update for physics actors creation, ...
-        for (auto& func : m_PostUpdateFuncs)
-            func();
+        {
+            //Debug::ScopeTimer timer("Post update funcs");
+            for (auto& func : m_PostUpdateFuncs)
+                func();
 
-        m_PostUpdateFuncs.clear();
+            m_PostUpdateFuncs.clear();
+        }
     }
 
     void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
@@ -661,7 +668,7 @@ namespace Turbo
         if (it != m_UUIDMap.end())
             return m_UUIDMap.at(entity);
 
-        return UUID::Null;
+        return 0;
     }
 
     Entity Scene::FindEntityByName(const std::string& name)
@@ -696,6 +703,29 @@ namespace Turbo
 
         Entity scriptEntity = { entity, this };
         Script::DestroyScriptInstance(scriptEntity);
+    }
+
+    void Scene::OnAudioSourceComponentConstruct(entt::registry& registry, entt::entity entity)
+    {
+        auto& audioSource = registry.get<AudioSourceComponent>(entity);
+        auto& uuid = registry.get<IDComponent>(entity).ID;
+
+        Audio::Register(uuid, audioSource.AudioPath);
+
+        if (!m_Running)
+            return;
+
+        if (audioSource.PlayOnAwake)
+        {
+            Audio::Play(uuid, audioSource.Loop);
+        }
+    }
+
+    void Scene::OnAudioSourceComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        auto& audioSource = registry.get<AudioSourceComponent>(entity);
+        UUID uuid = FindUUIDByEntity(entity);
+        Audio::UnRegister(uuid);
     }
 
     void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity)

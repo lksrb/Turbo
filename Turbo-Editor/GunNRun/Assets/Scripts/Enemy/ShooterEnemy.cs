@@ -1,8 +1,5 @@
 ﻿using Turbo;
 using System.Collections.Generic;
-using System.Threading;
-using System.Runtime.InteropServices;
-using System;
 
 namespace GunNRun
 {
@@ -82,6 +79,12 @@ namespace GunNRun
 		private Vector3 m_Scale;
 		private Vector3 m_Rotation;
 
+		private AudioSourceComponent m_RifleShootAudio;
+		private Timer m_DeltaShootTimer = new Timer(0.05f);
+		private Timer m_TimeBetweenBurstShot = new Timer(1.7f, false);
+		private bool m_CanShoot = false;
+		private bool m_StartBurst = true;
+
 		internal void Init(ShooterEnemy enemy, Player player)
 		{
 			m_ShooterEnemy = enemy;
@@ -89,6 +92,8 @@ namespace GunNRun
 			m_Gun = m_ShooterEnemy.GetChildren()[0];
 
 			m_GunShooterOffset = new Vector2(-2.74f + 2.64f, -0.45f + 0.21f);
+
+			m_RifleShootAudio = m_Gun.GetComponent<AudioSourceComponent>();
 		}
 
 		internal void OnUpdate()
@@ -102,13 +107,57 @@ namespace GunNRun
 
 			m_Translation.Z = 0.40f;
 
+			if (m_CanShoot && m_StartBurst && m_DeltaShootTimer)
+			{
+				ShootBullet();
+			}
+
+			if (m_CanShoot && m_TimeBetweenBurstShot)
+			{
+				m_TimeBetweenBurstShot.Reset();
+				m_StartBurst = !m_StartBurst;
+			}
+
+
+			if (m_CanShoot && m_StartBurst)
+			{
+				m_RifleShootAudio.Play();
+			}
+			else
+			{
+				m_RifleShootAudio.Stop();
+			}
+
 			// Set modified variables
 			m_Gun.Transform.Translation = m_Translation;
 			m_Gun.Transform.Rotation = m_Rotation;
 			m_Gun.Transform.Scale = m_Scale;
 		}
 
-		internal void Shoot()
+		internal void StartShooting()
+		{
+			if(!m_CanShoot)
+			{
+				m_StartBurst = true;
+			}
+
+			m_CanShoot = true;
+		}
+
+		internal void StopShooting()
+		{
+			if (m_CanShoot)
+			{
+				m_StartBurst = false;
+				m_DeltaShootTimer.Reset();
+				m_TimeBetweenBurstShot.Reset();
+			}
+
+			m_CanShoot = false;
+		}
+
+
+		private void ShootBullet()
 		{
 			var bulletTranslation = m_Translation + m_ShootDirection * 0.45f;
 			bulletTranslation.Y += 0.1f;
@@ -154,8 +203,7 @@ namespace GunNRun
 		private bool m_IsMoving = true;
 		private bool m_CanMove = true;
 		private Timer m_WaitAfterPlayerDistance = new Timer(3.0f);
-		private Timer m_DeltaShootTimer = new Timer(0.05f);
-		private SingleUseTimer m_DeathTimer = new SingleUseTimer(0.1f);
+		private SingleTickTimer m_DeathTimer = new SingleTickTimer(0.1f);
 
 		private bool m_Destroy;
 
@@ -163,6 +211,8 @@ namespace GunNRun
 		private ShooterAnimator m_Animator = new ShooterAnimator();
 		private ShooterGun m_Gun = new ShooterGun();
 
+		// Particles
+		private ParticleSystem m_DeathParticles;
 		private LevelManager m_LevelManager;
 
 		protected override void OnCreate()
@@ -173,9 +223,23 @@ namespace GunNRun
 			m_Rigidbody2D = GetComponent<Rigidbody2DComponent>();
 			m_LevelManager = FindEntityByName("GameManager").As<GameManager>().GetLevelManager();
 
+			m_DeathParticles = ParticleSystem.Setup()
+					.SetName("EnemyDeathParticles")
+					.AddColor(Color.Red / 1.6f)
+					.AddColor(Color.Red / 1.4f)
+					.AddColor(Color.Red / 1.2f)
+					.AddColor(Color.Red / 1.2f)
+					.AddColor(Color.Red / 1.2f)
+					.AddColor(Color.Red / 1.2f)
+					.AddColor(Color.Red / 1.0f)
+					.SetDurationRange(0.25f, 0.50f)
+					.SetVelocityRange(5.0f, 10.0f)
+					.SetRotationVelocityRange(-10.0f, 10.0f)
+					.SetScale(0.15f, 0.15f)
+					.Build(25);
+
 			// Setup filter categories
 			CollisionFilter filter = new CollisionFilter();
-
 			filter.CollisionCategory = (ushort)EntityCategory.Enemy;
 			filter.CollisionMask = (ushort)EntityCategory.Enemy | (ushort)EntityCategory.Bullet | (ushort)EntityCategory.Wall;
 
@@ -201,6 +265,10 @@ namespace GunNRun
 			{
 				if (m_DeathTimer)
 				{
+					// Death sound effect
+					Instantiate("Assets/Prefabs/EnemyDeathSoundEffect.tprefab", Translation);
+
+					m_DeathParticles.Start(Transform.Translation);
 					m_Destroy = false;
 					m_LevelManager.OnEnemyDestroyed(this);
 					Scene.DestroyEntity(this);
@@ -243,7 +311,7 @@ namespace GunNRun
 			}
 
 			Vector3 scale = Scale;
-			scale.X = distance.X > 0 ? Mathf.Abs(scale.X) : -Mathf.Abs(scale.X);
+			scale.X = distance.X > 0.0f ? Mathf.Abs(scale.X) : -Mathf.Abs(scale.X);
 			Scale = scale;
 
 			m_IsMoving = Velocity.Length != 0.0f;
@@ -256,14 +324,11 @@ namespace GunNRun
 		{
 			if (!m_IsMoving)
 			{
-				if (m_DeltaShootTimer)
-				{
-					m_Gun.Shoot();
-				}
+				m_Gun.StartShooting();
 			}
 			else
 			{
-				m_DeltaShootTimer.Reset();
+				m_Gun.StopShooting();
 			}
 		}
 

@@ -513,30 +513,6 @@ namespace Turbo::Ed
             ImGui::End();
         }
 
-        // Audio clip configuration
-        {
-            ImGui::Begin("Audio Clip");
-
-            if (m_CurrentScene)
-            {
-                auto& view = m_CurrentScene->GetAllEntitiesWith<AudioSourceComponent>();
-
-                for (auto& e : view)
-                {
-                    auto& audioSource = view.get<AudioSourceComponent>(e);
-
-                    if (audioSource.Clip && audioSource.PlayOnStart)
-                    {
-                        if (ImGui::Button("Play"))
-                            Audio::Play(audioSource.Clip, audioSource.Loop);
-                        ImGui::NewLine();
-                    }
-                }
-            }
-
-            ImGui::End();
-        }
-
         ImGui::Begin("Statistics & Renderer2D");
         ImGui::Text("Timestep: %.5f ms", Time.DeltaTime.ms());
         ImGui::Text("StartTime: %.5f ms", Time.TimeSinceStart.ms());
@@ -732,7 +708,7 @@ namespace Turbo::Ed
         // Opens platform specific 
         if (configFilePath.empty())
         {
-            configFilePath = Platform::OpenFileDialog("Open Project", "Turbo Project(*.tproject)\0 * .tproject\0");
+            configFilePath = Platform::OpenFileDialog(L"Open Project", L"Turbo Project (*.tproject)\0*.tproject\0");
 
             if (configFilePath.empty())
                 return;
@@ -847,7 +823,7 @@ namespace Turbo::Ed
 
         if (scenePath.empty())
         {
-            scenePath = Platform::OpenFileDialog("Open Scene", "Turbo Scene(*.tscene)\0 * .tscene\0");
+            scenePath = Platform::OpenFileDialog(L"Open Scene", L"Turbo Scene (*.tscene)\0*.tscene\0");
             if (scenePath.empty())
                 return; // No scene selected
 
@@ -937,12 +913,12 @@ namespace Turbo::Ed
     {
         m_SceneMode = Mode::SceneEdit;
 
-        m_RuntimeScene->OnRuntimeStop();
-
         // Copy some scene settings
         // FIXME: Should not be a scene setting anyway -> Rendering
         m_EditorScene->ShowPhysics2DColliders = m_RuntimeScene->ShowPhysics2DColliders;
-        m_RuntimeScene = m_EditorScene;
+
+        m_RuntimeScene->OnRuntimeStop();
+        m_RuntimeScene.Reset();
 
         // Set current scene
         m_CurrentScene = m_EditorScene;
@@ -967,8 +943,10 @@ namespace Turbo::Ed
 
     void Editor::Close()
     {
-        if (m_RuntimeScene)
+        if (m_SceneMode == Mode::ScenePlay)
+        {
             OnSceneStop();
+        }
         
         // TODO: Editor settings
         SaveProject();

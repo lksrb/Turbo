@@ -82,13 +82,16 @@ namespace GunNRun
 		private Entity m_Camera;
 
 		// Wave timer
-		private SingleUseTimer m_NewWaveTimer = new SingleUseTimer(4.0f);
+		private SingleTickTimer m_NewWaveTimer = new SingleTickTimer(4.0f);
+
+		private AudioSourceComponent m_BackgroundMusic;
 		
 		protected override void OnCreate()
 		{
 			// Input.SetCursorMode(CursorMode.Hidden);
 
 			m_LevelManager = m_ModuleManager.AddModule<LevelManager>();
+			m_ModuleManager.AddModule<AudioManager>();
 			m_LevelManager.OnChangeLevelState += OnChangeLevelState;
 
 			m_ModuleManager.InitModules(this);
@@ -97,8 +100,9 @@ namespace GunNRun
 			m_Camera = FindEntityByName("Camera");
 
 			m_LevelTextComponent = m_LevelText.GetComponent<TextComponent>();
-
 			m_DefaultTextColor = m_LevelTextComponent.Color;
+
+			m_BackgroundMusic = GetComponent<AudioSourceComponent>();
 		}
 
 		private void OnChangeLevelState(LevelState state)
@@ -112,6 +116,7 @@ namespace GunNRun
 					m_LevelTextComponent.Text = "Level " + m_LevelManager.CurrentLevel.ToString();
 					break;
 				case LevelState.Wave:
+					m_BackgroundMusic.Play();
 					m_TextFollowsCamera = false;
 					break;
 				case LevelState.WaveFinished:

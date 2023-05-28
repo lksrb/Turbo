@@ -1,13 +1,13 @@
 Prefab: 0
 Entities:
-  - Entity: 5342186540803250279
+  - Entity: 6480899968746747965
     Parent: 0
     Children:
-      - UUID: 17285425761718094563
+      - UUID: 16080592392643581209
     TagComponent:
       Tag: Shooter
     TransformComponent:
-      Translation: [-2.74060059, -0.209236205, 0.400000006]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -45,14 +45,14 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
       IsSensor: false
-  - Entity: 17285425761718094563
-    Parent: 5342186540803250279
+  - Entity: 16080592392643581209
+    Parent: 6480899968746747965
     Children:
       []
     TagComponent:
       Tag: ShooterGun
     TransformComponent:
-      Translation: [-2.64099121, -0.449999988, 0.449999988]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -62,3 +62,9 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [5, 1]
       SpriteSize: [20, 20]
+    AudioSourceComponent:
+      AudioPath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Audio\MachineGun.wav
+      Gain: 0.400000006
+      Spatial: false
+      PlayOnStart: false
+      Loop: false

@@ -37,7 +37,7 @@ namespace Turbo
     XAudio2AudioBackend::XAudio2AudioBackend()
     {
         // Create COM
-        TBO_XA2_CHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+        TBO_XA2_CHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED)); // COINIT_APARTMENTTHREADED for single threading?
 
         // Create audio engine instance
         TBO_XA2_CHECK(XAudio2Create(&m_XInstance, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR));
@@ -60,23 +60,6 @@ namespace Turbo
 
     XAudio2AudioBackend::~XAudio2AudioBackend()
     {
-        // Release source voices
-        for (auto& [_, source] : m_AudioSources)
-        {
-            // Wait for thread to clean up
-#if 0
-            while (source->StreamData.IsStreaming)
-            {
-            }
-
-            SourceVoiceCallback* callback = (SourceVoiceCallback*)source->StreamData.StreamCallback;
-            CEAL_DELETE(SourceVoiceCallback, callback);
-#endif
-            TBO_XA2_CHECK(source.SourceVoice->Stop());
-            TBO_XA2_CHECK(source.SourceVoice->FlushSourceBuffers());
-            source.SourceVoice->DestroyVoice();
-        }
-
         m_XMasterVoice->DestroyVoice();
         m_XMasterVoice = nullptr;
 
@@ -90,28 +73,117 @@ namespace Turbo
         TBO_ENGINE_INFO("XAudio2 backend successfully shutdown!");
     }
 
+    IXAudio2SourceVoice* XAudio2AudioBackend::TryFindSourceWithUUID(UUID uuid)
+    {
+        auto& it = m_AudioData.find(uuid);
+
+        if (it == m_AudioData.end())
+            return nullptr;
+
+        return it->second.SourceVoice;
+    }
+
+    void XAudio2AudioBackend::SetupXA2Debugging()
+    {
+        XAUDIO2_DEBUG_CONFIGURATION debugConf = {};
+        debugConf.LogFunctionName = true;
+
+        // XAUDIO2_LOG_WARNINGS also enables XAUDIO2_LOG_ERRORS
+        debugConf.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS |
+            XAUDIO2_LOG_INFO | XAUDIO2_LOG_DETAIL;
+        m_XInstance->SetDebugConfiguration(&debugConf);
+
+        // Perfomance data
+        XAUDIO2_PERFORMANCE_DATA performanceData;
+        m_XInstance->GetPerformanceData(&performanceData);
+
+        TBO_XA2_CHECK(m_XInstance->RegisterForCallbacks(&m_Debugger));
+    }
+
     void XAudio2AudioBackend::OnRuntimeStart()
     {
-        // Stop all running voices
-        // For example if we try to listen to clip and suddenly play a scene, ofc. stop everything 
-        StopAndClearAll();
+        // FIXME: Maybe not necessary?
     }
 
     void XAudio2AudioBackend::OnRuntimeStop()
     {
-        // Stop all running voices
-        StopAndClearAll();
+        for (auto& [uuid, source] : m_AudioData)
+        {
+            TBO_XA2_CHECK(source.SourceVoice->Stop());
+            TBO_XA2_CHECK(source.SourceVoice->FlushSourceBuffers());
+            source.SourceVoice->DestroyVoice();
+        }
+
+        m_AudioData.clear();
     }
 
-
-    void XAudio2AudioBackend::RegisterAudioClip(Ref<AudioClip> audioClip)
+    void XAudio2AudioBackend::Play(UUID uuid, bool loop)
     {
-        if (m_AudioSources.find(audioClip.Get()) != m_AudioSources.end())
+        auto& [sourceVoice, audioBuffer, _] = m_AudioData.at(uuid);
+
+        audioBuffer.LoopCount = loop ? XAUDIO2_LOOP_INFINITE : 0;
+
+        // Submit buffer to source
+        TBO_XA2_CHECK(sourceVoice->SubmitSourceBuffer(&audioBuffer));
+
+        // Start
+        TBO_XA2_CHECK(sourceVoice->Start(0, XAUDIO2_COMMIT_NOW));
+    }
+
+    void XAudio2AudioBackend::Resume(UUID uuid)
+    {
+        IXAudio2SourceVoice* sourceVoice = TryFindSourceWithUUID(uuid);
+
+        TBO_XA2_CHECK(sourceVoice->Start());
+    }
+
+    void XAudio2AudioBackend::Pause(UUID uuid)
+    {
+        IXAudio2SourceVoice* sourceVoice = TryFindSourceWithUUID(uuid);
+
+        TBO_XA2_CHECK(sourceVoice->Stop());
+    }
+
+    void XAudio2AudioBackend::Stop(UUID uuid)
+    {
+        IXAudio2SourceVoice* sourceVoice = TryFindSourceWithUUID(uuid);
+
+        if (!sourceVoice)
+            return;
+
+        TBO_XA2_CHECK(sourceVoice->Stop());
+        TBO_XA2_CHECK(sourceVoice->FlushSourceBuffers());
+    }
+
+    bool XAudio2AudioBackend::IsPlaying(UUID uuid)
+    {
+        IXAudio2SourceVoice* sourceVoice = TryFindSourceWithUUID(uuid);
+
+        XAUDIO2_VOICE_STATE state;
+        sourceVoice->GetState(&state);
+        return state.BuffersQueued != 0;
+    }
+
+    void XAudio2AudioBackend::SetGain(UUID uuid, f32 gain)
+    {
+        IXAudio2SourceVoice* sourceVoice = TryFindSourceWithUUID(uuid);
+
+        TBO_XA2_CHECK(sourceVoice->SetVolume(gain));
+    }
+
+    void XAudio2AudioBackend::Register(UUID uuid, const std::string& filepath)
+    {
+        if (m_AudioData.find(uuid) != m_AudioData.end())
         {
             TBO_ENGINE_WARN("Already registered!");
             return;
         }
-        const AudioFile& audioFile = audioClip->GetAudioFile();
+
+        // MEMORY LEAK!!!!!!!!!
+        AudioFile audioFile(filepath);
+
+        if (!audioFile)
+            return;
 
         // Populating WAVEFORMATEX structure
         WAVEFORMATEX wfx = { 0 };
@@ -129,24 +201,31 @@ namespace Turbo
 
         // Create buffer
         XAUDIO2_BUFFER buffer = {};
-        buffer.AudioBytes = static_cast<u32>(audioFile.AudioData.Size);	// Size of the audio buffer in bytes
-        buffer.pAudioData = audioFile.AudioData.Data;		// Buffer containing audio data
+        buffer.AudioBytes = static_cast<u32>(audioFile.Data.Size);	// Size of the audio buffer in bytes
+        buffer.pAudioData = audioFile.Data.Data;		// Buffer containing audio data
         buffer.Flags = XAUDIO2_END_OF_STREAM;      // Tell the source voice not to expect any data after this buffer
-        m_AudioSources[audioClip.Get()] = { sourceVoice, buffer };
+
+        AudioData& file = m_AudioData[uuid];
+        file.SourceVoice = sourceVoice;
+        file.Buffer = buffer;
+        file.Data = std::move(audioFile);
     }
 
-    void XAudio2AudioBackend::Play(Ref<AudioClip> audioClip, bool loop)
+    void XAudio2AudioBackend::UnRegister(UUID uuid)
     {
-        auto& [sourceVoice, audioBuffer] = m_AudioSources.at(audioClip.Get());
+        auto& it = m_AudioData.find(uuid);
 
-        audioBuffer.LoopCount = loop ? XAUDIO2_LOOP_INFINITE : 0;
+        if (it == m_AudioData.end())
+        {
+            TBO_ENGINE_ERROR("Failed to find clip to unregister!");
+            return;
+        }
 
-        // Submit buffer to source
-        TBO_XA2_CHECK(sourceVoice->SubmitSourceBuffer(&audioBuffer));
-
-        // Start
-        TBO_XA2_CHECK(sourceVoice->Start(0, XAUDIO2_COMMIT_NOW));
+        Stop(uuid);
+        it->second.SourceVoice->DestroyVoice();
+        m_AudioData.erase(it);
     }
+
     static const bool s_2D = false; // TODO: Figure out where this belongs
 
     void XAudio2AudioBackend::UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
@@ -187,10 +266,10 @@ namespace Turbo
         orientTop.x = sinf(rotation.x) * cosf(rotation.y);
 
         m_AudioListener.OrientFront = { orientFront.x, orientFront.y, orientFront.z };
-        m_AudioListener.OrientTop = { orientTop.x, orientTop.y, orientTop.z };   
+        m_AudioListener.OrientTop = { orientTop.x, orientTop.y, orientTop.z };
     }
 
-    void XAudio2AudioBackend::CalculateSpatial(Ref<AudioClip> audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
+    void XAudio2AudioBackend::CalculateSpatial(UUID uuid, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
     {
         f32 outputMatrix[TBO_MAX_CHANNELS * TBO_MAX_CHANNELS]{ 1.0f };
 
@@ -204,7 +283,7 @@ namespace Turbo
         orientTop.x = cosf(rotation.x);
         orientTop.x = sinf(rotation.x) * cosf(rotation.y);
 
-        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
+        auto& sourceVoice = m_AudioData.at(uuid).SourceVoice;
 
         XAUDIO2_VOICE_DETAILS details;
         sourceVoice->GetVoiceDetails(&details);
@@ -212,7 +291,7 @@ namespace Turbo
         u32 masterInputChannels = m_MasteringVoiceDetails.InputChannels;
 
         X3DAUDIO_EMITTER sourceEmitter;
-        
+
         // Omnidirectionality - TODO: Cone support for more detailed 3D sounds
         sourceEmitter.pCone = NULL;
         //sourceEmitter.pCone = (X3DAUDIO_CONE*)&X3DAudioDefault_DirectionalCone;
@@ -263,53 +342,5 @@ namespace Turbo
 
         // TBO_XA2_CHECK(sourceVoice->SetVolume(1.0f)); 
         TBO_XA2_CHECK(sourceVoice->SetOutputMatrix(NULL, sourceInputChannels, m_MasteringVoiceDetails.InputChannels, outputMatrix));
-    }
-
-    void XAudio2AudioBackend::SetGain(Ref<AudioClip> audioClip, f32 gain)
-    {
-        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
-
-        TBO_XA2_CHECK(sourceVoice->SetVolume(gain));
-    }
-
-    void XAudio2AudioBackend::Pause(Ref<AudioClip> audioClip)
-    {
-        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
-        
-        TBO_XA2_CHECK(sourceVoice->Stop());
-    }
-
-    void XAudio2AudioBackend::StopAndClear(Ref<AudioClip> audioClip)
-    {
-        auto& [sourceVoice, _] = m_AudioSources.at(audioClip.Get());
-
-        TBO_XA2_CHECK(sourceVoice->Stop());
-        TBO_XA2_CHECK(sourceVoice->FlushSourceBuffers());
-    }
-
-    void XAudio2AudioBackend::StopAndClearAll()
-    {
-        for (auto& [_, source] : m_AudioSources)
-        {
-            TBO_XA2_CHECK(source.SourceVoice->Stop());
-            TBO_XA2_CHECK(source.SourceVoice->FlushSourceBuffers());
-        }
-    }
-
-    void XAudio2AudioBackend::SetupXA2Debugging()
-    {
-        XAUDIO2_DEBUG_CONFIGURATION debugConf = {};
-        debugConf.LogFunctionName = true;
-
-        // XAUDIO2_LOG_WARNINGS also enables XAUDIO2_LOG_ERRORS
-        debugConf.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS |
-            XAUDIO2_LOG_INFO | XAUDIO2_LOG_DETAIL;
-        m_XInstance->SetDebugConfiguration(&debugConf);
-
-        // Perfomance data
-        XAUDIO2_PERFORMANCE_DATA performanceData;
-        m_XInstance->GetPerformanceData(&performanceData);
-
-        TBO_XA2_CHECK(m_XInstance->RegisterForCallbacks(&m_Debugger));
     }
 }

@@ -3,23 +3,33 @@ using Turbo;
 
 namespace GunNRun
 {
-	internal class ParticleSystem
+	public class ParticleSystem : Entity
 	{
-		private struct Particle
+		private class Particle
 		{
 			private Entity Handle;
 			private Vector2 Velocity;
 			private float RotationVelocity;
+			private Vector4 Color;
+			private SpriteRendererComponent Sprite;
+			private bool Shown;
 
-			internal Particle(Entity handle, Vector2 velocity, float rotationVelocity)
+			internal Particle(Entity handle, Vector4 color, Vector2 velocity, float rotationVelocity)
 			{
 				Handle = handle;
 				Velocity = velocity;
 				RotationVelocity = rotationVelocity;
+				Color = color;
+				Sprite = Handle.AddComponent<SpriteRendererComponent>();
+				Sprite.SpriteColor = Vector4.Zero;
+				Shown = false;
 			}
 
 			internal void OnUpdate(float ts)
 			{
+				if (!Shown)
+					return;
+
 				Vector3 translation = Handle.Transform.Translation;
 				Vector3 rotation = Handle.Transform.Rotation;
 				translation.XY += Velocity * ts;
@@ -28,21 +38,64 @@ namespace GunNRun
 				Handle.Transform.Rotation = rotation;
 			}
 
-			internal void Kill()
+			internal void Hide()
 			{
-				Scene.DestroyEntity(Handle);
+				if (!Shown)
+					return;
+
+				Color color = Sprite.SpriteColor;
+				color.A = 0.0f;
+				Sprite.SpriteColor = color;
+
+				Shown = false;
+			}
+
+			internal void Show()
+			{
+				if (Shown)
+					return;
+
+				Sprite.SpriteColor = Color;
+
+				Shown = true;
+			}
+
+			internal void SetStartPosition(Vector2 startPosition)
+			{
+				Vector3 pos = Handle.Transform.Translation;
+				pos.XY = startPosition;
+				pos.Z = 1.0f;
+				Handle.Transform.Translation = pos;
 			}
 		}
 
 		internal class Builder
 		{
 			private Vector2 m_DurationRange = new Vector2(0.0f, 1.0f);
-			private Vector4 m_ColorRange = Vector4.Blue;
-			private Entity m_Parent;
+			private Vector2 m_VelocityRange = new Vector2(0.0f, 1.0f);
+			private Vector2 m_RotationVelocityRange = new Vector2(0.0f, 1.0f);
+			private Vector2 m_Scale = new Vector2(1.0f, 1.0f);
+			private List<Color> m_ColorRange = new List<Color>();
+			private string Name = "ParticleSystem";
 
-			internal Builder SetColorRange(Vector4 range)
+			internal Builder SetName(string name)
 			{
-				m_ColorRange = range;
+				Name = name;
+				return this;
+			}
+
+			internal Builder AddColorRange(List<Vector4> range)
+			{
+				foreach (var color in range)
+				{
+					m_ColorRange.Add(color);
+				}
+				return this;
+			}
+
+			internal Builder AddColor(Color color)
+			{
+				m_ColorRange.Add(color);
 				return this;
 			}
 
@@ -52,61 +105,89 @@ namespace GunNRun
 				return this;
 			}
 
-			internal ParticleSystem Build(Entity parent,  int particleAmount)
+			internal Builder SetVelocityRange(float min, float max)
 			{
-				ParticleSystem particleSystem = new ParticleSystem(parent);
-				particleSystem.SetColorRange(Vector4.Red);
-				particleSystem.SetDurationRange(m_DurationRange.X,m_DurationRange.Y);
-				particleSystem.Init(particleAmount);
+				m_VelocityRange = new Vector2(min, max);
+				return this;
+			}
+
+			internal Builder SetRotationVelocityRange(float min, float max)
+			{
+				m_RotationVelocityRange = new Vector2(min, max);
+				return this;
+			}
+
+			internal Builder SetScale(float x, float y)
+			{
+				m_Scale = new Vector2(x, y);
+				return this;
+			}
+
+			internal ParticleSystem Build(int particleAmount, bool autoDestroy = true)
+			{
+				if (m_ColorRange.Count == 0)
+					AddColor(Color.Blue);
+
+				ParticleSystem particleSystem = Scene.InstantiateEntity("Assets/Prefabs/ParticleSystem.tprefab", Vector3.Zero).As<ParticleSystem>();
+				particleSystem.Init(Name, particleAmount, m_Scale, m_ColorRange, m_DurationRange, m_VelocityRange, m_RotationVelocityRange, autoDestroy);
 				return particleSystem;
 			}
 		}
 
 		private int m_MaxParticles;
 		private List<Particle> m_Particles;
-		private List<SingleUseTimer> m_DeathTimers;
+		private List<SingleTickTimer> m_DeathTimers;
+		private Vector2 m_DurationRange;
+		private List<Color> m_ColorRange;
+		private bool m_AutoDestroy;
 
-		private Vector2 m_DurationRange = new Vector2(0.0f, 1.0f);
-		private Vector4 m_ColorRange = Vector4.Blue;
-		private Entity m_Parent;
+		private bool m_Start = false;
 
-		internal void Init(int amount)
+		private Vector4 RandomColorFromRange()
 		{
-			m_MaxParticles = amount;
-			m_Particles = new List<Particle>(m_MaxParticles);
-			m_DeathTimers = new List<SingleUseTimer>(m_MaxParticles);
+			int randomColorIndex = Random.Int(0, m_ColorRange.Count);
+			return m_ColorRange[randomColorIndex];
+		}
 
-			Vector3 translation = m_Parent.Transform.Translation;
+		private void Init(string name, int particleAmount, Vector2 scale, List<Color> colorRange, Vector2 durationRange, Vector2 velocityRange, Vector2 rotationVelocityRange, bool autoDestroy)
+		{
+			m_MaxParticles = particleAmount;
+			m_ColorRange = colorRange;
+			m_DurationRange = durationRange;
+			m_AutoDestroy = autoDestroy;
+
+			m_Particles = new List<Particle>(m_MaxParticles);
+			m_DeathTimers = new List<SingleTickTimer>(m_MaxParticles);
+
+			// Set name
+			Name = name;
+
 			for (int i = 0; i < m_MaxParticles; i++)
 			{
-				Entity entity = Scene.CreateChildEntity(m_Parent, "Particle");
-				entity.Transform.Scale *= 0.3f;
-				entity.Transform.Translation = new Vector3(translation.XY, 1.0f);
-				var src = entity.AddComponent<SpriteRendererComponent>();
-				src.Color = m_ColorRange;
+				Entity entity = Scene.CreateChildEntity(this, "Particle");
+				entity.Transform.Scale = new Vector3(scale, 1.0f);
 
 				Vector2 randomDirection = Random.InsideUnitCircle();
 				randomDirection.Normalize();
-				randomDirection *= Random.Float(5, 10);
-
-				m_Particles.Add(new Particle(entity, randomDirection, Random.Float(-10.0f,10.0f)));
+				randomDirection *= Mathf.Abs(Random.Float(velocityRange.X, velocityRange.Y));
+				Vector4 color = RandomColorFromRange();
+				float rotationVelocity = Random.Float(rotationVelocityRange.Y, rotationVelocityRange.Y);
+				m_Particles.Add(new Particle(entity, color, randomDirection, rotationVelocity));
 			}
 
 			for (int i = 0; i < m_MaxParticles; i++)
 			{
-				m_DeathTimers.Add(new SingleUseTimer(Random.Float(m_DurationRange.X, m_DurationRange.Y)));
+				m_DeathTimers.Add(new SingleTickTimer(Random.Float(m_DurationRange.X, m_DurationRange.Y)));
 			}
 		}
 
-		internal ParticleSystem(Entity parent)
+		protected override void OnUpdate()
 		{
-			m_Parent = parent;
-		}
+			if (!m_Start)
+				return;
 
-		internal void OnUpdate()
-		{
 			for (int i = 0; i < m_Particles.Count; i++)
-			{ 
+			{
 				m_Particles[i].OnUpdate(Frame.TimeStep);
 			}
 
@@ -115,21 +196,40 @@ namespace GunNRun
 				if (m_DeathTimers[i])
 				{
 					Particle particle = m_Particles[i];
-					particle.Kill();
+					particle.Hide();
 					m_Particles.RemoveAt(i);
 					m_DeathTimers.RemoveAt(i);
 				}
 			}
+
+			if (m_AutoDestroy && m_Particles.Count == 0)
+			{
+				Scene.DestroyEntity(this);
+			}
 		}
 
-		internal void SetColorRange(Vector4 range)
+		internal void Start(Vector3 position)
 		{
-			m_ColorRange = range;
-		}
+			if (m_Start)
+				return;
 
-		internal void SetDurationRange(float min, float max)
+			m_Start = true;
+
+			foreach (var particle in m_Particles)
+			{
+				particle.SetStartPosition(position);
+				particle.Show();
+			}
+		}
+		internal void Reset()
 		{
-			m_DurationRange = new Vector2(min, max);
+			if (!m_Start)
+				return;
+
+			foreach (var particle in m_Particles)
+			{
+				particle.Hide();
+			}
 		}
 
 		internal static ParticleSystem.Builder Setup() => new ParticleSystem.Builder();

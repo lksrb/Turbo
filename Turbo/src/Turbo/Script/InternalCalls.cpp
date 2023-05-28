@@ -7,6 +7,7 @@
 #include "Turbo/Physics/Physics2D.h"
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
+#include "Turbo/Audio/Audio.h"
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Core/Input.h"
@@ -36,6 +37,7 @@ namespace Turbo
 
     static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
     static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
+    static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityRemoveComponentFuncs;
 
 #pragma region Application
 
@@ -136,7 +138,7 @@ namespace Turbo
         if (hitEntity)
             return hitEntity.GetUUID();
 
-        return UUID::Null;
+        return 0;
     }
 
 #pragma endregion
@@ -149,13 +151,12 @@ namespace Turbo
         Scene* context = Script::GetCurrentScene();
         Entity entity = context->CreateEntity(cString);
         TBO_ENGINE_ASSERT(entity);
-
-        Entity parent = GetEntity(parentUUID);
-        if (!parent)
-            return 0;
-
-        entity.SetParent(parent);
         mono_free(cString);
+
+        Entity parent = context->FindEntityByUUID(parentUUID);
+        if (parent)
+            entity.SetParent(parent);
+
         return entity.GetUUID();
     }
 
@@ -237,6 +238,9 @@ namespace Turbo
     {
         Entity entity = GetEntity(uuid);
 
+        if (!entity)
+            return false;
+
         MonoType* component_type = mono_reflection_type_get_type(reflectionType);
         TBO_ENGINE_ASSERT(s_EntityHasComponentFuncs.find(component_type) != s_EntityHasComponentFuncs.end());
 
@@ -247,10 +251,26 @@ namespace Turbo
     {
         Entity entity = GetEntity(uuid);
 
+        if (!entity)
+            return;
+
         MonoType* componentType = mono_reflection_type_get_type(reflectionType);
 
         TBO_ENGINE_ASSERT(s_EntityAddComponentFuncs.find(componentType) != s_EntityAddComponentFuncs.end());
         s_EntityAddComponentFuncs.at(componentType)(entity);
+    }
+
+    static void Entity_Remove_Component(u64 uuid, MonoReflectionType* reflectionType)
+    {
+        Entity entity = GetEntity(uuid);
+
+        if (!entity)
+            return;
+
+        MonoType* componentType = mono_reflection_type_get_type(reflectionType);
+
+        TBO_ENGINE_ASSERT(s_EntityRemoveComponentFuncs.find(componentType) != s_EntityRemoveComponentFuncs.end());
+        s_EntityRemoveComponentFuncs.at(componentType)(entity);
     }
 
     static MonoArray* Entity_Get_Children(u64 uuid)
@@ -279,11 +299,26 @@ namespace Turbo
     {
         Entity entity = GetEntity(uuid);
 
+        if (!entity)
+            return nullptr;
+
         MonoDomain* appDomain = Script::GetAppDomain();
 
         MonoString* monoString = mono_string_new(appDomain, entity.GetName().c_str());
         TBO_ENGINE_ASSERT(monoString);
         return monoString;
+    }
+
+    static void Entity_Set_Name(UUID uuid, MonoString* name)
+    {
+        Entity entity = GetEntity(uuid);
+
+        if (!entity)
+            return;
+
+        char* cString = mono_string_to_utf8(name);
+        entity.SetName(cString);
+        mono_free(cString);
     }
 
     // FIXME: Temporary
@@ -505,15 +540,15 @@ namespace Turbo
         Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        return audioSourceComponent.PlayOnStart;
+        return audioSourceComponent.PlayOnAwake;
     }
 
-    static void Component_AudioSource_Set_PlayOnStart(u64 uuid, bool playOnStart)
+    static void Component_AudioSource_Set_PlayOnStart(u64 uuid, bool playOnAwake)
     {
         Entity entity = GetEntity(uuid);
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        audioSourceComponent.PlayOnStart = playOnStart;
+        audioSourceComponent.PlayOnAwake = playOnAwake;
     }
 
     static bool Component_AudioSource_Get_Loop(u64 uuid)
@@ -530,6 +565,80 @@ namespace Turbo
 
         auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
         audioSourceComponent.Loop = loop;
+    }
+
+    static void Component_AudioSource_Play(u64 uuid)
+    {
+        Entity entity = GetEntity(uuid);
+        if (!entity)
+            return;
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+
+        if (audioSourceComponent.AudioPath.empty())
+            return;
+
+        // If its already playing, do not play it again
+        if (Audio::IsPlaying(uuid))
+            return;
+
+        Audio::Play(uuid, audioSourceComponent.Loop);
+    }
+
+    static void Component_AudioSource_Stop(u64 uuid)
+    {
+        Entity entity = GetEntity(uuid);
+        if (!entity)
+            return;
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+
+        if (audioSourceComponent.AudioPath.empty())
+            return;
+
+        Audio::Stop(uuid);
+    }
+
+    static void Component_AudioSource_Pause(u64 uuid)
+    {
+        Entity entity = GetEntity(uuid);
+        if (!entity)
+            return;
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+
+        if (audioSourceComponent.AudioPath.empty())
+            return;
+
+        Audio::Pause(uuid);
+    }
+
+    static void Component_AudioSource_Resume(u64 uuid)
+    {
+        Entity entity = GetEntity(uuid);
+        if (!entity)
+            return;
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+
+        if (audioSourceComponent.AudioPath.empty())
+            return;
+
+        Audio::Resume(uuid);
+    }
+
+    static bool Component_AudioSource_IsPlaying(u64 uuid)
+    {
+        Entity entity = GetEntity(uuid);
+        if (!entity)
+            return false;
+
+        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+
+        if (audioSourceComponent.AudioPath.empty())
+            return false;
+
+        return Audio::IsPlaying(uuid);
     }
 
 #pragma endregion
@@ -920,8 +1029,10 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Entity_FindEntityByName);
         TBO_REGISTER_FUNCTION(Entity_Get_Instance);
         TBO_REGISTER_FUNCTION(Entity_Get_Name);
+        TBO_REGISTER_FUNCTION(Entity_Set_Name);
         TBO_REGISTER_FUNCTION(Entity_Has_Component);
         TBO_REGISTER_FUNCTION(Entity_Add_Component);
+        TBO_REGISTER_FUNCTION(Entity_Remove_Component);
         TBO_REGISTER_FUNCTION(Entity_Get_Children);
 
         // Prefab
@@ -964,6 +1075,11 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_AudioSource_Set_PlayOnStart);
         TBO_REGISTER_FUNCTION(Component_AudioSource_Set_Loop);
         TBO_REGISTER_FUNCTION(Component_AudioSource_Get_Loop);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Play);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Stop);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Resume);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_Pause);
+        TBO_REGISTER_FUNCTION(Component_AudioSource_IsPlaying);
 
         // Audio Listener
         TBO_REGISTER_FUNCTION(Component_AudioListener_Get_IsPrimary);
@@ -1029,6 +1145,7 @@ namespace Turbo
 
             s_EntityHasComponentFuncs[type] = [](Entity entity) { return entity.HasComponent<Component>(); };
             s_EntityAddComponentFuncs[type] = [](Entity entity) { entity.AddComponent<Component>(); };
+            s_EntityRemoveComponentFuncs[type] = [](Entity entity) { entity.RemoveComponent<Component>(); };
         }(), ...);
     }
 

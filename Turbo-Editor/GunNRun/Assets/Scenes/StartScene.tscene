@@ -60,13 +60,19 @@ Entities:
     TagComponent:
       Tag: GameManager
     TransformComponent:
-      Translation: [100, 0, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     ScriptComponent:
       ClassName: GunNRun.GameManager
       Fields:
         []
+    AudioSourceComponent:
+      AudioPath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Audio\AdhesiveWombat Night Shade NO COPYRIGHT 8bit Music.wav
+      Gain: 0.649999976
+      Spatial: false
+      PlayOnStart: false
+      Loop: true
   - Entity: 5920344936207139370
     Parent: 5240512203980104604
     Children:
@@ -123,6 +129,14 @@ Entities:
         - Name: RunningAnimation
           Type: Float
           Data: 0.100000001
+    AudioSourceComponent:
+      AudioPath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Audio\shotgun.wav
+      Gain: 0.75
+      Spatial: false
+      PlayOnStart: false
+      Loop: false
+    AudioListenerComponent:
+      Primary: true
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: true
@@ -222,7 +236,13 @@ Entities:
           Data: true
         - Name: LerpMagnifier
           Type: Float
-          Data: 3
+          Data: 1.5
+        - Name: ShakeMagnitude
+          Type: Float
+          Data: 0.569999993
+        - Name: ShakeDuration
+          Type: Float
+          Data: 0.219999999
   - Entity: 11693970229941093422
     Parent: 7088181304825687220
     Children:

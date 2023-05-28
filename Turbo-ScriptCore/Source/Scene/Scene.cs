@@ -18,5 +18,16 @@
 		{
 			InternalCalls.Scene_DestroyEntity(entity.ID);
 		}
+
+		// TODO: Think about where this goes
+		// FIXME: Now duplicated (in Entity.cs)
+		public static Entity InstantiateEntity(string prefabPath, Vector3 translation)
+		{
+			ulong entityID = InternalCalls.Entity_InstantiatePrefabWithTranslation(prefabPath, ref translation);
+			if (entityID == 0)
+				return null;
+
+			return new Entity(entityID);
+		}
 	}
 }

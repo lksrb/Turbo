@@ -1,6 +1,8 @@
 #include "tbopch.h"
 #include "SceneHierarchyPanel.h"
 
+#include "Turbo/Core/Platform.h"
+
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Script/Script.h"
@@ -245,7 +247,7 @@ namespace Turbo
 
                 }
 #endif
-        };
+            };
 
             if (fieldType == ScriptFieldType::Entity)
                 return;
@@ -256,7 +258,7 @@ namespace Turbo
             if (type < s_TypeFunctionsNSR.size())
                 s_TypeFunctionsNSR[type](name, instance);
 
-    }
+        }
         static void CallTypeSpecificFunctionSceneRunning(ScriptFieldType fieldType, const std::string& name, Ref<ScriptInstance> instance)
         {
             static std::array<std::function<void(const std::string& name, Ref<ScriptInstance>& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsSR =
@@ -298,7 +300,7 @@ namespace Turbo
             if (type < s_TypeFunctionsSR.size())
                 s_TypeFunctionsSR[type](name, instance);
         }
-}
+    }
 
     SceneHierarchyPanel::SceneHierarchyPanel()
     {
@@ -435,7 +437,7 @@ namespace Turbo
         ImGui::SameLine();
         ImGui::PushItemWidth(-1);
 
-        if (ImGui::Button("Add Component"))
+        if (!m_Context->IsRunning() && ImGui::Button("Add Component"))
             ImGui::OpenPopup("AddComponent");
 
         if (ImGui::BeginPopup("AddComponent"))
@@ -671,39 +673,27 @@ namespace Turbo
             ImGui::Checkbox("Is Bullet", &component.IsBullet);
             ImGui::DragFloat("Gravity Scale", &component.GravityScale, 0.1f);
         });
-        Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [](auto& component)
+        Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [&entity](auto& component)
         {
-            static bool s_IsValidAudioFile = true; // FIXME: static in class is not ideal
+            static std::filesystem::path s_AudioSourcePath;
 
-            // Audio clip
-            char s_AudioSourcePath[128];
-            bool changed = false;
-            memset(s_AudioSourcePath, 0, sizeof(s_AudioSourcePath));
+            s_AudioSourcePath = component.AudioPath;
 
-            const auto& clipPath = component.Clip->GetFilepath();
-            if (component.Clip && !changed && s_IsValidAudioFile)
+            ImGui::InputText("Audio Path", &s_AudioSourcePath.filename().string(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::SameLine();
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 2.0f);
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2.0f);
+            if (ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f }))
             {
-                strncpy_s(s_AudioSourcePath, sizeof(s_AudioSourcePath), clipPath.c_str(), sizeof(s_AudioSourcePath));
-            }
-
-            {
-                UI::ScopedStyleColor textColor(ImGuiCol_Text, { 0.9f, 0.2f, 0.3f, 1.0f }, !s_IsValidAudioFile);
-                ImGui::InputText("Clip Path", s_AudioSourcePath, sizeof(s_AudioSourcePath));
-
-                changed = strcmp(s_AudioSourcePath, clipPath.c_str()) != 0;
-
-                s_IsValidAudioFile = std::filesystem::exists(s_AudioSourcePath)
-                    && std::filesystem::path(s_AudioSourcePath).extension() == ".wav";
-
-                if (changed && s_IsValidAudioFile && ImGui::Button("Load"))
-                {
-                    component.Clip = Audio::CreateAndRegisterClip(s_AudioSourcePath);
-                }
+                s_AudioSourcePath = Platform::OpenFileDialog(L"Open Audio File", L"WAV File (*.wav)\0*.wav\0");
+                component.AudioPath = s_AudioSourcePath.string();
+                Audio::Register(entity.GetUUID(), component.AudioPath);
             }
 
             ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 10.0f);
             ImGui::Checkbox("Spatial", &component.Spatial);
-            ImGui::Checkbox("PlayOnStart", &component.PlayOnStart);
+            ImGui::Checkbox("Play On Awake", &component.PlayOnAwake);
             ImGui::Checkbox("Loop", &component.Loop);
         });
 
@@ -712,7 +702,7 @@ namespace Turbo
             ImGui::Checkbox("Primary", &component.IsPrimary);
         });
 
-        Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [this](auto& component)
+        Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
         {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
             ImGui::DragFloat2("Size", glm::value_ptr(component.Size));

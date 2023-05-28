@@ -93,6 +93,8 @@ namespace Turbo
     private:
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
+        void OnAudioSourceComponentConstruct(entt::registry& registry, entt::entity entity);
+        void OnAudioSourceComponentDestroy(entt::registry& registry, entt::entity entity);
         void OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity);
         void OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity);

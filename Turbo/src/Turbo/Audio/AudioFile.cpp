@@ -10,14 +10,33 @@ namespace Turbo
         Load(filepath);
     }
 
+    AudioFile::AudioFile(AudioFile&& other) noexcept
+    {
+        Move(std::move(other));
+    }
+
     AudioFile::~AudioFile()
     {
-        AudioData.Release();
+        Data.Release();
+    }
+
+    AudioFile& AudioFile::operator=(AudioFile&& other) noexcept
+    {
+        Move(std::move(other));
+
+        return *this;
     }
 
     void AudioFile::Load(std::string_view filepath)
     {
         Buffer buffer = FileSystem::ReadBinary(filepath);
+
+        if (!buffer)
+        {
+            TBO_ENGINE_ERROR("Could not load audio file! {}", filepath);
+            return;
+        }
+
         LoadFromMemory(buffer);
         buffer.Release();
     }
@@ -33,6 +52,8 @@ namespace Turbo
         memcpy(format, &buffer[8], 4);                      // Format
         memcpy(fmtSection, &buffer[12], 4);                 // FMT section
         memcpy(&dataSection, &buffer[36], 4);               // Data section
+
+        // strcmp(dataSection, "data")
 
         // Checking if the buffer is valid WAVE
         if (strcmp(headerChunkID, "RIFF") + strcmp(format, "WAVE") + strcmp(fmtSection, "fmt ") + strcmp(dataSection, "data") != 0)
@@ -52,9 +73,31 @@ namespace Turbo
 
         u32 audioDataSize;
         memcpy(&audioDataSize, &buffer[40], 4);                  
-        AudioData.Allocate(audioDataSize);
-        AudioData.CopySection(&buffer[44], audioDataSize);
+        Data.Allocate(audioDataSize);
+        Data.CopySection(&buffer[44], audioDataSize);
     }
 
+    void AudioFile::Release()
+    {
+        Data.Release();
+    }
+
+    void AudioFile::Move(AudioFile&& other)
+    {
+        Data = std::move(other.Data);
+        ChunkSize = other.ChunkSize;
+        FmtSize = other.FmtSize;
+        AudioFormat = other.AudioFormat;
+        NumChannels = other.NumChannels;
+        SampleRate = other.SampleRate;
+        ByteRate = other.ByteRate;
+        BlockAlign = other.BlockAlign;
+        BitsPerSample = other.BitsPerSample;
+        ExtraParamSize = ExtraParamSize;
+        DataOffset = other.DataOffset;
+
+        // Reset whole audio file
+        memset(&other, 0, sizeof(AudioFile));
+    }
 
 }

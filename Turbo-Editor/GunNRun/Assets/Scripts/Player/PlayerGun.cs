@@ -11,13 +11,17 @@ namespace GunNRun
 		private Entity m_Gun;
 		private Vector2 m_GunInitialPos;
 
+		// Audio
+		private AudioSourceComponent m_AudioSource;
+
 		// Bullet
 		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
 		private Vector2 m_ShootDirection = Vector2.Zero;
 		private bool m_IsBulletAnimating = false;
 
-		private Timer m_ShootCoolDown = new Timer(0.7f);
-		internal bool BulletShot { get; private set; } = false;
+		private Timer m_ShootCoolDown = new Timer(1.1f); // Audio length...
+		private bool m_BulletShot = false;
+		internal bool BulletShot { get => m_BulletShot; }
 
 		// Cursor
 		private Entity m_Crosshair;
@@ -32,6 +36,8 @@ namespace GunNRun
 			m_GunInitialPos = new Vector2(m_Gun.Transform.Translation);
 
 			m_Crosshair = m_Player.FindEntityByName("Crosshair");
+
+			m_AudioSource = player.GetComponent<AudioSourceComponent>();
 		}
 
 		internal void OnUpdate()
@@ -47,7 +53,7 @@ namespace GunNRun
 				m_IsBulletAnimating = false;
 			}
 
-			BulletShot = false;
+			m_BulletShot = false;
 		}
 
 		private void ShootBullet(Vector2 direction)
@@ -82,8 +88,10 @@ namespace GunNRun
 				ShootBullet(direction);
 			}
 
-			BulletShot = true;
+			// Plays shotgun audio (shoot and reload)
+			m_AudioSource.Play();
 
+			m_BulletShot = true;
 			m_IsBulletAnimating = true;
 		}
 		private void OnMouseFollowCrosshair()
@@ -139,7 +147,7 @@ namespace GunNRun
 
 			if (m_IsBulletAnimating)
 			{
-				translation.XY -= (m_ShootDirection * 0.7f) * m_ShootCoolDown.Delta;
+				translation.XY -= (m_ShootDirection * 0.4f) * m_ShootCoolDown.Delta;
 				lerpMagnifier *= 2.0f;
 			}
 

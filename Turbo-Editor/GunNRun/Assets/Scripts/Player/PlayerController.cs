@@ -21,7 +21,7 @@ namespace GunNRun
 		{
 			m_Velocity = Vector2.Zero;
 
-			if (m_Player.Input.IsLeftKeyPressed)
+			if (m_Player.PlayerInput.IsLeftKeyPressed)
 			{
 				Vector3 rotatedScale = m_Player.Transform.Scale;
 				rotatedScale.X = -Mathf.Abs(rotatedScale.X);
@@ -30,19 +30,19 @@ namespace GunNRun
 				m_Velocity.X = -m_Player.Speed;
 			}
 
-			if (m_Player.Input.IsRightKeyPressed)
+			if (m_Player.PlayerInput.IsRightKeyPressed)
 			{
 				m_Player.Transform.Scale = Mathf.Abs(m_Player.Transform.Scale);
 
 				m_Velocity.X = m_Player.Speed;
 			}
 
-			if (m_Player.Input.IsUpKeyPressed)
+			if (m_Player.PlayerInput.IsUpKeyPressed)
 			{
 				m_Velocity.Y = m_Player.Speed;
 			}
 
-			if (m_Player.Input.IsDownKeyPressed)
+			if (m_Player.PlayerInput.IsDownKeyPressed)
 			{
 				m_Velocity.Y = -m_Player.Speed;
 			}

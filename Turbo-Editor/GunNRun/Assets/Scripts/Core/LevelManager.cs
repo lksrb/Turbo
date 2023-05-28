@@ -18,7 +18,7 @@ namespace GunNRun
 		private LevelState m_CurrentState = LevelState.WaitingForNextWave;
 		private List<Entity> m_CurrentEnemies = new List<Entity>(10);
 		private int m_CurrentLevel = 1;
-		private SingleUseTimer m_AfterWaveClearedTimer = new SingleUseTimer(1.0f);
+		private SingleTickTimer m_AfterWaveClearedTimer = new SingleTickTimer(1.0f);
 
 		internal event Action<LevelState> OnChangeLevelState;
 
@@ -56,6 +56,9 @@ namespace GunNRun
 		void IGameManagerModule.OnNewWave()
 		{
 			EnemySpawner.BeginSpawn(m_SpawnTopLeftBoundary, m_SpawnBottomRightBoundary);
+			EnemySpawner.SpawnEnemyRandom(m_GameManager);
+			EnemySpawner.SpawnEnemyRandom(m_GameManager);
+			EnemySpawner.SpawnEnemyRandom(m_GameManager);
 			EnemySpawner.SpawnEnemyRandom(m_GameManager);
 			EnemySpawner.SpawnEnemyRandom(m_GameManager);
 			EnemySpawner.SpawnEnemyRandom(m_GameManager);

@@ -490,10 +490,10 @@ namespace Turbo
             out << YAML::BeginMap;
 
             auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-            out << YAML::Key << "AudioClipPath" << YAML::Value << audioSourceComponent.Clip->GetFilepath();
+            out << YAML::Key << "AudioPath" << YAML::Value << (audioSourceComponent.AudioPath.size() ? audioSourceComponent.AudioPath : "None");
             out << YAML::Key << "Gain" << YAML::Value << audioSourceComponent.Gain;
             out << YAML::Key << "Spatial" << YAML::Value << audioSourceComponent.Spatial;
-            out << YAML::Key << "PlayOnStart" << YAML::Value << audioSourceComponent.PlayOnStart;
+            out << YAML::Key << "PlayOnStart" << YAML::Value << audioSourceComponent.PlayOnAwake; // TODO: Rename
             out << YAML::Key << "Loop" << YAML::Value << audioSourceComponent.Loop;
 
             out << YAML::EndMap;
@@ -726,14 +726,16 @@ namespace Turbo
         auto audioSourceComponent = entity["AudioSourceComponent"];
         if (audioSourceComponent)
         {
-            auto& as = deserializedEntity.AddComponent<AudioSourceComponent>();
-
-            const auto& audioClipFilepath = audioSourceComponent["AudioClipPath"].as<std::string>();
-            as.Clip = Audio::CreateAndRegisterClip(audioClipFilepath);
+            AudioSourceComponent as = {};
+            const std::string& audioPath = audioSourceComponent["AudioPath"].as<std::string>();
+            as.AudioPath = audioPath != "None" ? audioPath : "";
             as.Gain = audioSourceComponent["Gain"].as<f32>();
             as.Spatial = audioSourceComponent["Spatial"].as<bool>();
-            as.PlayOnStart = audioSourceComponent["PlayOnStart"].as<bool>();
+            as.PlayOnAwake = audioSourceComponent["PlayOnStart"].as<bool>();
             as.Loop = audioSourceComponent["Loop"].as<bool>();
+
+            // Registers new audio object
+            deserializedEntity.AddComponent<AudioSourceComponent>(as);
         }
 
         auto audioListenerComponent = entity["AudioListenerComponent"];

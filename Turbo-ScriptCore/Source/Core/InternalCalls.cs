@@ -69,6 +69,9 @@ namespace Turbo
 		internal extern static void Entity_Add_Component(ulong uuid, Type componentType);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Entity_Remove_Component(ulong uuid, Type componentType);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_FindEntityByName(string name);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -76,6 +79,9 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static string Entity_Get_Name(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Entity_Set_Name(ulong uuid, string name);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static Entity[] Entity_Get_Children(ulong uuid);
@@ -166,6 +172,21 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static string Component_AudioSource_Set_Loop(ulong uuid, bool loop);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_AudioSource_Play(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_AudioSource_Pause(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_AudioSource_Resume(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_AudioSource_Stop(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool Component_AudioSource_IsPlaying(ulong uuid);
 
 		#endregion
 

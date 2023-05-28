@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Turbo
+﻿namespace Turbo
 {
 	public abstract class Component
 	{
@@ -86,18 +78,26 @@ namespace Turbo
 			set => InternalCalls.Component_AudioSource_Set_Gain(Entity.ID, value);
 		}
 
-		public bool PlayOnStart
+		// This can only be changed in OnCreate
+		public bool PlayOnAwake
 		{
 			get => InternalCalls.Component_AudioSource_Get_PlayOnStart(Entity.ID);
 			set => InternalCalls.Component_AudioSource_Set_PlayOnStart(Entity.ID, value);
 		}
 
-		// Can onlybe changed in OnStart
+		// FIXME: This can only be changed in OnCreate
 		public bool Loop
 		{
 			get => InternalCalls.Component_AudioSource_Get_Loop(Entity.ID);
 			set => InternalCalls.Component_AudioSource_Set_Loop(Entity.ID, value);
 		}
+
+		public bool IsPlaying => InternalCalls.Component_AudioSource_IsPlaying(Entity.ID);
+
+		public void Play() => InternalCalls.Component_AudioSource_Play(Entity.ID);
+		public void Stop() => InternalCalls.Component_AudioSource_Stop(Entity.ID);
+		public void Resume() => InternalCalls.Component_AudioSource_Resume(Entity.ID);
+		public void Pause() => InternalCalls.Component_AudioSource_Resume(Entity.ID);
 	}
 
 	public class AudioListenerComponent : Component
@@ -285,7 +285,7 @@ namespace Turbo
 
 	public class SpriteRendererComponent : Component
 	{
-		public Vector4 Color
+		public Vector4 SpriteColor
 		{
 			get
 			{

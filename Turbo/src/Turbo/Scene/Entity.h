@@ -78,6 +78,7 @@ namespace Turbo
         bool HasChildren() { return GetChildren().size() != 0; }
 
         const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
+        void SetName(const std::string& name) { GetComponent<TagComponent>().Tag = name; }
         TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
         bool IsValid() const { return m_Handle != entt::null && m_Scene != nullptr; }
 

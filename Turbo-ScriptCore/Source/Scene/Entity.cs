@@ -6,7 +6,13 @@ namespace Turbo
 	{
 		public readonly ulong ID;
 		public TransformComponent Transform;
-		public string Name;
+
+		// TODO: Maybe should be a function like SetName(...)?
+		public string Name
+		{
+			get => InternalCalls.Entity_Get_Name(ID);
+			set => InternalCalls.Entity_Set_Name(ID, value);
+		}
 
 		// Collision callbacks
 		protected event Action<Entity> OnCollisionBegin2D;
@@ -23,7 +29,6 @@ namespace Turbo
 			ID = id;
 
 			Transform = GetComponent<TransformComponent>();
-			Name = InternalCalls.Entity_Get_Name(ID);
 		}
 
 		public bool HasComponent<T>() where T : Component, new()
@@ -60,7 +65,36 @@ namespace Turbo
 			return component;
 		}
 
-		public static bool operator ==(Entity a, Entity b) => a.ID == b.ID;
+		public void RemoveComponent<T>() where T : Component, new()
+		{
+			Type componentType = typeof(T);
+
+			if (HasComponent<T>() == false)
+			{
+				Log.Error($"Entity doesn't have this component! { componentType.Name }");
+				return;
+			}
+
+			InternalCalls.Entity_Remove_Component(ID, componentType);
+		}
+
+		public static bool operator ==(Entity a, Entity b)
+		{
+			// Check if both objects are null
+			if (a is null && b is null)
+			{
+				return true;
+			}
+
+			// Check if either object is null
+			if (a is null || b is null)
+			{
+				return false;
+			}
+
+			return a.ID == b.ID;
+		}
+
 		public static bool operator !=(Entity a, Entity b) => !(a == b);
 
 		public Entity[] GetChildren() => InternalCalls.Entity_Get_Children(ID);

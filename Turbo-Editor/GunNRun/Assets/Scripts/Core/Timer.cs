@@ -37,18 +37,18 @@ namespace GunNRun
 		}
 	}
 
-	public class SingleUseTimer
+	public class SingleTickTimer
 	{
 		private Timer m_Timer;
 		private bool m_Once;
 
-		public SingleUseTimer(float duration)
+		public SingleTickTimer(float duration)
 		{
 			m_Timer = new Timer(duration);
 			m_Once = false;
 		}
 
-		public static implicit operator bool(SingleUseTimer timer)
+		public static implicit operator bool(SingleTickTimer timer)
 		{
 			if(!timer.m_Once && timer.m_Timer)
 			{

@@ -74,27 +74,17 @@ namespace Turbo
         return (static_cast<f32>(timerValue - s_PlatformData->Timer.Offset) / (s_PlatformData->Timer.Frequency));
     }
 
-    std::filesystem::path Platform::OpenFileDialog(const char* title, const char* filter)
+    std::filesystem::path Platform::OpenFileDialog(const wchar_t* title, const wchar_t* filter)
     {
-        // Title conversion
-        size_t title_size = strlen(title) + 1;
-        WCHAR wtitle[TBO_MAX_CHARS] = {};
-        mbstowcs_s(NULL, &wtitle[0], title_size, title, title_size - 1);
-
-        // Filter conversion
-        size_t filter_size = strlen(filter) + 1;
-        WCHAR wfilter[TBO_MAX_CHARS] = {};
-        mbstowcs_s(NULL, &wfilter[0], filter_size, filter, filter_size);
-
         OPENFILENAME ofn = {};
         WCHAR szFile[MAX_PATH] = { 0 };
         ofn.lStructSize = sizeof(OPENFILENAME);
         ofn.hwndOwner = dynamic_cast<Win32_Window*>(Engine::Get().GetViewportWindow())->GetHandle();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = sizeof(szFile);
-        ofn.lpstrFilter = wfilter;
+        ofn.lpstrFilter = filter;
         ofn.nFilterIndex = 1;
-        ofn.lpstrTitle = wtitle;
+        ofn.lpstrTitle = title;
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_DONTADDTORECENT | OFN_NOCHANGEDIR;
         if (::GetOpenFileName(&ofn) == TRUE)
         {

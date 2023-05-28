@@ -9,15 +9,15 @@
 namespace Turbo
 {
     // Global platform agnostic data, probably for storing global settings
-    struct Audio::Data
+    struct AudioData
     {
-        BackendType AudioBackendType = BackendType::XAudio2;
+        Audio::BackendType AudioBackendType = Audio::BackendType::XAudio2;
         Ref<AudioBackend> CurrentAudioBackend;
 
         Scene* Context = nullptr;
     };
 
-    static Audio::Data s_Data;
+    static AudioData s_Data;
 
     void Audio::Init()
     {
@@ -44,37 +44,44 @@ namespace Turbo
         s_Data.Context = nullptr;
     }
 
-    void Audio::Play(const Ref<AudioClip>& audioClip, bool loop)
+    void Audio::Play(UUID uuid, bool loop)
     {
-        s_Data.CurrentAudioBackend->Play(audioClip, loop);
+        s_Data.CurrentAudioBackend->Play(uuid, loop);
     }
 
-    void Audio::Pause(const Ref<AudioClip>& audioClip)
+    void Audio::Resume(UUID uuid)
     {
-        s_Data.CurrentAudioBackend->Pause(audioClip);
+        s_Data.CurrentAudioBackend->Resume(uuid);
     }
 
-    void Audio::SetGain(const Ref<AudioClip>& audioClip, f32 gain)
+    void Audio::Pause(UUID uuid)
     {
-        s_Data.CurrentAudioBackend->SetGain(audioClip, gain);
+        s_Data.CurrentAudioBackend->Pause(uuid);
     }
 
-    void Audio::StopAndClear(const Ref<AudioClip>& audioClip)
+    void Audio::Stop(UUID uuid)
     {
-        s_Data.CurrentAudioBackend->StopAndClear(audioClip);
+        s_Data.CurrentAudioBackend->Stop(uuid);
     }
 
-    Ref<AudioClip> Audio::CreateAndRegisterClip(const std::string& filepath)
+    bool Audio::IsPlaying(UUID uuid)
     {
-        Ref<AudioClip> audioClip = Ref<AudioClip>::Create(filepath);
-        if (audioClip->m_AudioFile)
-        {
-            Audio::RegisterAudioClip(audioClip);
-            return audioClip;
-        }
+        return s_Data.CurrentAudioBackend->IsPlaying(uuid);
+    }
 
-        TBO_ENGINE_ERROR("Could not create audioclip! {}", filepath.data());
-        return nullptr;
+    void Audio::SetGain(UUID uuid, f32 gain)
+    {
+        s_Data.CurrentAudioBackend->SetGain(uuid, gain);
+    }
+
+    void Audio::Register(UUID uuid, const std::string& filepath)
+    {
+        s_Data.CurrentAudioBackend->Register(uuid, filepath);
+    }
+
+    void Audio::UnRegister(UUID uuid)
+    {
+        s_Data.CurrentAudioBackend->UnRegister(uuid);
     }
 
     void Audio::UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
@@ -82,14 +89,9 @@ namespace Turbo
         s_Data.CurrentAudioBackend->UpdateAudioListener(position, rotation, velocity);
     }
 
-    void Audio::CalculateSpatial(const Ref<AudioClip>& audioClip, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
+    void Audio::CalculateSpatial(UUID uuid, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
     {
-        s_Data.CurrentAudioBackend->CalculateSpatial(audioClip, position, rotation, velocity);
-    }
-
-    void Audio::RegisterAudioClip(const Ref<AudioClip>& audioClip)
-    {
-        s_Data.CurrentAudioBackend->RegisterAudioClip(audioClip);
+        s_Data.CurrentAudioBackend->CalculateSpatial(uuid, position, rotation, velocity);
     }
 
     Audio::BackendType Audio::GetAudioBackend()

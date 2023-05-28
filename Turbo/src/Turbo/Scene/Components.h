@@ -73,10 +73,11 @@ namespace Turbo
 
     struct AudioSourceComponent
     {
-        Ref<AudioClip> Clip;
+        std::string AudioPath; // TODO: Put this in asset manager in the future
+
         f32 Gain = 1.0f;
         bool Spatial = false;
-        bool PlayOnStart = true;
+        bool PlayOnAwake = false;
         bool Loop = false;
 
         AudioSourceComponent() = default;
@@ -99,15 +100,6 @@ namespace Turbo
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent&) = default;
-    };
-
-    struct CategoryComponent
-    {
-        u16 Category = 0x0001;
-        u16 Mask = 0xFFFF;
-
-        CategoryComponent() = default;
-        CategoryComponent(const CategoryComponent&) = default;
     };
 
     struct SpriteRendererComponent

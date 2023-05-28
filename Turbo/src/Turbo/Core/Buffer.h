@@ -14,6 +14,26 @@ namespace Turbo
             Allocate(size);
         }
 
+        Buffer(Buffer&& other) noexcept
+        {
+            Data = other.Data;
+            Size = other.Size;
+
+            other.Data = nullptr;
+            other.Size = 0;
+        }
+
+        Buffer& operator=(Buffer&& other) noexcept
+        {
+            Data = other.Data;
+            Size = other.Size;
+
+            other.Data = nullptr;
+            other.Size = 0;
+
+            return *this;
+        }
+
         void Allocate(u64 size)
         {
             Release();

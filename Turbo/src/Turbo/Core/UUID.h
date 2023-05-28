@@ -14,8 +14,6 @@ namespace Turbo
         UUID(u64 uuid);
         UUID(const UUID&) = default;
 
-        constexpr static inline u64 Null = 0;
-
         operator u64() const { return m_UUID; }
     private:
         u64 m_UUID;
