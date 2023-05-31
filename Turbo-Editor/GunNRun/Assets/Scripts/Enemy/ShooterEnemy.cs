@@ -206,6 +206,7 @@ namespace GunNRun
 		private SingleTickTimer m_DeathTimer = new SingleTickTimer(0.1f);
 
 		private bool m_Destroy;
+		private System.Action<Entity> m_OnDestroyCallback;
 
 		// Animation
 		private ShooterAnimator m_Animator = new ShooterAnimator();
@@ -213,7 +214,6 @@ namespace GunNRun
 
 		// Particles
 		private ParticleSystem m_DeathParticles;
-		private LevelManager m_LevelManager;
 
 		protected override void OnCreate()
 		{
@@ -221,7 +221,6 @@ namespace GunNRun
 			Scale = Transform.Scale;
 			m_Player = FindEntityByName("Player").As<Player>();
 			m_Rigidbody2D = GetComponent<Rigidbody2DComponent>();
-			m_LevelManager = FindEntityByName("GameManager").As<GameManager>().GetLevelManager();
 
 			m_DeathParticles = ParticleSystem.Setup()
 					.SetName("EnemyDeathParticles")
@@ -268,9 +267,9 @@ namespace GunNRun
 					// Death sound effect
 					Instantiate("Assets/Prefabs/EnemyDeathSoundEffect.tprefab", Translation);
 
+					m_OnDestroyCallback?.Invoke(this);
 					m_DeathParticles.Start(Transform.Translation);
 					m_Destroy = false;
-					m_LevelManager.OnEnemyDestroyed(this);
 					Scene.DestroyEntity(this);
 				}
 			}
@@ -279,26 +278,18 @@ namespace GunNRun
 		bool SquareCollision(Vector3 enemyDistance, float maxDistance) => Mathf.Abs(enemyDistance.X) < maxDistance && Mathf.Abs(enemyDistance.Y) < maxDistance;
 		bool CircleCollision(Vector3 enemyDistance, float maxDistance) => enemyDistance.Length < maxDistance;
 
+		internal void SetOnDestroyCallback(System.Action<Entity> onDestroyCallback)
+		{
+			m_OnDestroyCallback = onDestroyCallback;
+		}
+
 		private void OnMovement()
 		{
 			Vector3 distance = m_Player.Transform.Translation - Translation;
 
 			bool collided = false;
 
-			foreach (Entity enemy in m_LevelManager.CurrentEnemies)
-			{
-				if (enemy != this)
-				{
-					Vector3 enemyDistance = enemy.Transform.Translation - Translation;
-
-					if (CircleCollision(enemyDistance, 2.0f))
-					{
-						Log.Info("Shooter enemies collided!");
-						collided = true;
-						break;
-					}
-				}
-			}
+			// Enemy collisions
 
 			if (!SquareCollision(distance, MinDistanceFromPlayer) && !collided && m_CanMove)
 			{

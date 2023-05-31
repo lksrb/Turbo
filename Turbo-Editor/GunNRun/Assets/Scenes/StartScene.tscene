@@ -69,7 +69,7 @@ Entities:
         []
     AudioSourceComponent:
       AudioPath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Audio\AdhesiveWombat Night Shade NO COPYRIGHT 8bit Music.wav
-      Gain: 0.649999976
+      Gain: 0.5
       Spatial: false
       PlayOnStart: false
       Loop: true

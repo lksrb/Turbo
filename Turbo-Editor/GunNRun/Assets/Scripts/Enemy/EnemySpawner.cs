@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Turbo;
+﻿using Turbo;
 
 namespace GunNRun
 {
@@ -14,76 +13,95 @@ namespace GunNRun
 
 	internal class EnemySpawner
 	{
-		private struct SpawnStack
-		{
-			public Vector2 Min;
-			public Vector2 Max;
-		}
-
-		private static EnemySpawner s_Instance = null;
-		internal static EnemySpawner Instance
-		{
-			get
-			{
-				if (s_Instance == null)
-					s_Instance = new EnemySpawner();
-
-				return s_Instance;
-			}
-		}
-
 		private string[] m_PrefabPaths;
 
 		private bool m_BeginCalled = false;
-		private SpawnStack m_SpawnStack;
+		private System.Action<Entity> m_OnSpawnEntity, m_OnDestroyEntity;
 
-		private EnemySpawner()
+		private Vector2 m_Min = Vector2.Zero;
+		private Vector2 m_Max = Vector2.Zero;
+
+		public EnemySpawner(System.Action<Entity> onSpawnEntity, System.Action<Entity> onDestroyEntity)
 		{
+			m_OnSpawnEntity = onSpawnEntity;
+			m_OnDestroyEntity = onDestroyEntity;
+
 			m_PrefabPaths = new string[(uint)EnemyType.Count];
 			m_PrefabPaths[(uint)EnemyType.Suicider] = "Assets/Prefabs/Suicider.tprefab";
 			m_PrefabPaths[(uint)EnemyType.Shooter] = "Assets/Prefabs/Shooter.tprefab";
 			m_PrefabPaths[(uint)EnemyType.RPG] = "Assets/Prefabs/RPG.tprefab";
 		}
 
-		internal static void BeginSpawn(Vector2 min, Vector2 max)
+		internal void SetBounds(Vector2 min, Vector2 max)
 		{
-			Instance.m_BeginCalled = true;
+			m_BeginCalled = true;
 
-			Instance.m_SpawnStack.Min = min;
-			Instance.m_SpawnStack.Max = max;
+			m_Min = min;
+			m_Max = max;
 		}
 
-		internal static void EndSpawn()
+		internal void SpawnEnemyRandom(uint count = 1)
 		{
-			Instance.m_BeginCalled = false;
-		}
-
-		internal static Entity SpawnEnemy(GameManager manager, Vector2 translation, EnemyType type)
-		{
-			Entity entity = manager.Instantiate(Instance.m_PrefabPaths[(uint)type], new Vector3(translation, 0.35f));
-			manager.GetLevelManager().OnEnemyCreated(entity);
-			return entity;
-		}
-
-		internal static Entity SpawnEnemyRandom(GameManager manager, EnemyType type = EnemyType.Count)
-		{
-			if(!Instance.m_BeginCalled)
+			if (!m_BeginCalled)
 			{
 				Log.Info("Call BeginSpawn()!");
-				return null;
+				return;
 			}
 
-			if(type == EnemyType.Count)
+			for (uint i = 0; i < count; ++i)
 			{
-				type = (EnemyType)Random.Int((int)EnemyType.Suicider, (int)EnemyType.Count);
+				EnemyType type = (EnemyType)Random.Int((int)EnemyType.Suicider, (int)EnemyType.Count);
+
+				Vector2 randomLocation = Vector2.Zero;
+				randomLocation.X = Random.Float(m_Min.X, m_Max.X);
+				randomLocation.Y = Random.Float(m_Min.Y, m_Max.Y);
+
+				SpawnEnemy(randomLocation, type);
+			}
+		}
+
+		internal void SpawnEnemyRandom(Vector2 translation)
+		{
+			EnemyType type = (EnemyType)Random.Int((int)EnemyType.Suicider, (int)EnemyType.Count);
+			SpawnEnemy(translation, type);
+		}
+
+		internal void SpawnEnemyRandom(EnemyType type, uint count = 1)
+		{
+			for (uint i = 0; i < count; ++i)
+			{
+				Vector2 randomLocation = Vector2.Zero;
+				randomLocation.X = Random.Float(m_Min.X, m_Max.X);
+				randomLocation.Y = Random.Float(m_Min.Y, m_Max.Y);
+
+				SpawnEnemy(randomLocation, type);
+			}
+		}
+
+		internal void SpawnEnemy(Vector2 translation, EnemyType type)
+		{
+			type = EnemyType.Shooter; // TODO: REMOVE
+
+			if(type >= EnemyType.Count)
+			{
+				Log.Error("Out of bounds enemy type!");
+				return;
 			}
 
-			type = EnemyType.Shooter;
-				
-			Vector2 randomLocation = Vector2.Zero;
-			randomLocation.X = Random.Float(Instance.m_SpawnStack.Min.X, Instance.m_SpawnStack.Max.X);
-			randomLocation.Y = Random.Float(Instance.m_SpawnStack.Min.Y, Instance.m_SpawnStack.Max.Y);
-			return SpawnEnemy(manager, randomLocation, type);
+			Entity entity = Scene.InstantiateEntity(m_PrefabPaths[(uint)type], new Vector3(translation, 0.35f));
+
+			switch (type)
+			{
+				case EnemyType.Suicider:
+					break;
+				case EnemyType.Shooter:
+					entity.As<ShooterEnemy>().SetOnDestroyCallback(m_OnDestroyEntity);
+					break;
+				case EnemyType.RPG:
+					break;
+			}
+
+			m_OnSpawnEntity?.Invoke(entity);
 		}
 	}
 }

@@ -71,18 +71,14 @@ namespace GunNRun
 			}
 		}
 
-		private ModuleManager m_ModuleManager = new ModuleManager();
-		private LevelManager m_LevelManager;
+		private WaveManager m_WaveManager;
 		
 		// Text
 		private Entity m_LevelText;
 		private TextComponent m_LevelTextComponent;
 		private Vector4 m_DefaultTextColor;
 		private bool m_TextFollowsCamera = true;
-		private Entity m_Camera;
-
-		// Wave timer
-		private SingleTickTimer m_NewWaveTimer = new SingleTickTimer(4.0f);
+		private TransformComponent m_CameraTransform;
 
 		private AudioSourceComponent m_BackgroundMusic;
 		
@@ -90,14 +86,11 @@ namespace GunNRun
 		{
 			// Input.SetCursorMode(CursorMode.Hidden);
 
-			m_LevelManager = m_ModuleManager.AddModule<LevelManager>();
-			m_ModuleManager.AddModule<AudioManager>();
-			m_LevelManager.OnChangeLevelState += OnChangeLevelState;
-
-			m_ModuleManager.InitModules(this);
+			m_WaveManager = new WaveManager(this);
+			m_WaveManager.OnChangeWaveState += OnChangeWaveState;
 
 			m_LevelText = FindEntityByName("LevelText");
-			m_Camera = FindEntityByName("Camera");
+			m_CameraTransform = FindEntityByName("Camera").Transform;
 
 			m_LevelTextComponent = m_LevelText.GetComponent<TextComponent>();
 			m_DefaultTextColor = m_LevelTextComponent.Color;
@@ -105,43 +98,35 @@ namespace GunNRun
 			m_BackgroundMusic = GetComponent<AudioSourceComponent>();
 		}
 
-		private void OnChangeLevelState(LevelState state)
+		private void OnChangeWaveState(WaveState state)
 		{
 			switch (state)
 			{
-				case LevelState.WaitingForNextWave:
-					m_NewWaveTimer.Reset();
+				case WaveState.WaitingForNextWave:
 					m_TextFollowsCamera = true;
 					m_LevelTextComponent.Color = m_DefaultTextColor;
-					m_LevelTextComponent.Text = "Level " + m_LevelManager.CurrentLevel.ToString();
+					m_LevelTextComponent.Text = "Wave " + m_WaveManager.CurrentWave.ToString();
 					break;
-				case LevelState.Wave:
+				case WaveState.Wave:
 					m_BackgroundMusic.Play();
 					m_TextFollowsCamera = false;
+					m_LevelTextComponent.Color = new Vector4(m_LevelTextComponent.Color.XYZ, 0.0f);
 					break;
-				case LevelState.WaveFinished:
+				case WaveState.WaveFinished:
 					break;
 			}
 		}
 
 		protected override void OnUpdate()
 		{
-			if (m_NewWaveTimer)
-			{
-				m_LevelTextComponent.Color = new Vector4(m_LevelTextComponent.Color.XYZ, 0.0f);
-				m_ModuleManager.OnNewWave();
-			}
-
 			if (m_TextFollowsCamera)
 			{
-				Vector3 translation = new Vector3(m_Camera.Transform.Translation.XY, 2.0f);
+				Vector3 translation = new Vector3(m_CameraTransform.Translation.XY, 2.0f);
 				translation.X -= 1.5f;
 				m_LevelText.Transform.Translation = translation;
 			}
 
-			m_ModuleManager.OnUpdate();
+			m_WaveManager.OnUpdate();
 		}
-
-		internal LevelManager GetLevelManager() => m_LevelManager;
 	}
 }
