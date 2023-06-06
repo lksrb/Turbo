@@ -263,10 +263,11 @@ namespace Turbo::Ed
             windowFlags |= ImGuiWindowFlags_NoTitleBar;
             windowFlags |= ImGuiWindowFlags_NoMove;
 
-            ImGuiWindowClass window_class;
-            window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+            ImGuiWindowClass windowClass;
+            windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-            ImGui::SetNextWindowClass(&window_class);
+            ImGui::SetNextWindowClass(&windowClass);
+
             ImGui::Begin("Viewport");
             ImGui::PopStyleVar();
 
@@ -283,7 +284,7 @@ namespace Turbo::Ed
             ImVec2 windowSize = ImGui::GetWindowSize();
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
-            m_CurrentScene->SetViewportOffset((u32)viewportOffset.x, (u32)viewportOffset.y);
+            m_CurrentScene->SetViewportOffset((i32)viewportOffset.x, (i32)viewportOffset.y);
 
             if (m_ViewportWidth != windowSize.x || m_ViewportHeight != windowSize.y)
             {
@@ -731,7 +732,7 @@ namespace Turbo::Ed
 
         // Building assemblies
         {
-            // Execute premake and wait for it to finish
+            // Execute premake and wait for it to finish"
             Platform::Execute(config.ProjectDirectory / TBO_GEN_SOLUTION_FILE, Utils::GetIDEToString(m_CurrentIDE), config.ProjectDirectory, true);
 
             if (m_CurrentIDE == IDE::VisualStudio2022)
@@ -830,6 +831,7 @@ namespace Turbo::Ed
         }
 
         m_EditorScene = Ref<Scene>::Create();
+        m_EditorScene->SetEditorScene(true);
 
         // Set current scene
         m_CurrentScene = m_EditorScene;

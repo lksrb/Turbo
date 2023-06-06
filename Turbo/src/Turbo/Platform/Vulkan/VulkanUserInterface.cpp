@@ -227,7 +227,7 @@ namespace Turbo
 #pragma endregion
 
 #ifdef TBO_PLATFORM_WIN32
-    static int ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewport, ImU64 vkInstance, const void* vk_allocator, ImU64* out_vk_surface)
+    static int ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewport, ImU64 vkInstance, const void* vkAllocator, ImU64* outVkSurface)
     {
         ImGuiIO& io = ImGui::GetIO();
         VkWin32SurfaceCreateInfoKHR createInfo{};
@@ -235,7 +235,7 @@ namespace Turbo
         createInfo.hinstance = ::GetModuleHandle(NULL);
         createInfo.hwnd = (HWND)viewport->PlatformHandleRaw;
 
-        VkResult err = vkCreateWin32SurfaceKHR((VkInstance)vkInstance, &createInfo, (const VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
+        VkResult err = vkCreateWin32SurfaceKHR((VkInstance)vkInstance, &createInfo, (const VkAllocationCallbacks*)vkAllocator, (VkSurfaceKHR*)outVkSurface);
         return err;
         return -1;
     }

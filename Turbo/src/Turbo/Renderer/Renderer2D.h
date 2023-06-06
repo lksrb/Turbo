@@ -148,7 +148,7 @@ namespace Turbo
         LineVertex* m_LineVertexBufferBase = nullptr;
         LineVertex* m_LineVertexBufferPointer = nullptr;
         u32 m_LineVertexCount = 0;
-        f32 m_LineWidth = 2.0;
+        f32 m_LineWidth = 2.0f;
 
         Ref<VertexBuffer> m_LineVertexBuffer;
 

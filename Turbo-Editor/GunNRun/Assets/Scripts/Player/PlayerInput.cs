@@ -25,15 +25,15 @@ namespace GunNRun
 		internal void OnUpdate()
 		{
 			// ---- Moving ----
-			IsLeftKeyPressed = Input.IsKeyPressed(m_MoveLeftKeyCode);
-			IsRightKeyPressed = Input.IsKeyPressed(m_MoveRightKeyCode);
-			IsUpKeyPressed = Input.IsKeyPressed(m_MoveUpKeyCode);
-			IsDownKeyPressed = Input.IsKeyPressed(m_MoveDownKeyCode);
+			IsLeftKeyPressed = Input.IsKeyDown(m_MoveLeftKeyCode);
+			IsRightKeyPressed = Input.IsKeyDown(m_MoveRightKeyCode);
+			IsUpKeyPressed = Input.IsKeyDown(m_MoveUpKeyCode);
+			IsDownKeyPressed = Input.IsKeyDown(m_MoveDownKeyCode);
 
 			// ---- Shooting ----
 			m_WasShootMouseButtonPressed = m_IsShootKeyReleased;
-			m_IsShootMouseButtonPressed = Input.IsMouseButtonPressed(m_ShootMouseCode);
-			m_IsShootKeyReleased = Input.IsMouseButtonReleased(m_ShootMouseCode);
+			m_IsShootMouseButtonPressed = Input.IsMouseButtonDown(m_ShootMouseCode);
+			m_IsShootKeyReleased = Input.IsMouseButtonUp(m_ShootMouseCode);
 		}
 	}
 }

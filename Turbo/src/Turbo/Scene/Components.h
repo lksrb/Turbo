@@ -102,6 +102,16 @@ namespace Turbo
         CameraComponent(const CameraComponent&) = default;
     };
 
+    struct LineRendererComponent
+    {
+        glm::vec3 Position0{ 0.0f };
+        glm::vec3 Position1{ 0.0f };
+        glm::vec4 Color{ 1.0f };
+
+        LineRendererComponent() = default;
+        LineRendererComponent(const LineRendererComponent&) = default;
+    };
+
     struct SpriteRendererComponent
     {
         glm::vec4 Color{ 1.0f };
@@ -202,6 +212,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent,
+        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, LineRendererComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent,
         AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

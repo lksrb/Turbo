@@ -13,6 +13,9 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static uint Application_GetHeight();
 
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Application_Close();
+
 		#endregion
 
 		#region Logging
@@ -25,16 +28,16 @@ namespace Turbo
 		#region Input
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Input_IsKeyPressed(KeyCode code);
+		internal extern static bool Input_IsKeyDown(KeyCode code);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Input_IsKeyReleased(KeyCode code);
+		internal extern static bool Input_IsKeyUp(KeyCode code);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Input_IsMouseButtonPressed(MouseCode code);
+		internal extern static bool Input_IsMouseButtonDown(MouseCode code);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Input_IsMouseButtonReleased(MouseCode code);
+		internal extern static bool Input_IsMouseButtonUp(MouseCode code);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Input_SetCursorMode(CursorMode mode);
@@ -124,13 +127,35 @@ namespace Turbo
 		internal extern static void Component_Transform_Set_Scale(ulong uuid, ref Vector3 scale);
 		#endregion
 
+		#region LineRendererComponent
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_LineRenderer_Get_Color(ulong uuid, out Color color);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_LineRenderer_Set_Color(ulong uuid, ref Color color);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_LineRenderer_Get_Position0(ulong uuid, out Vector3 position0);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_LineRenderer_Set_Position0(ulong uuid, ref Vector3 position0);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_LineRenderer_Get_Position1(ulong uuid, out Vector3 position1);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_LineRenderer_Set_Position1(ulong uuid, ref Vector3 position1);
+
+		#endregion
+
 		#region SpriteRendererComponent
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_SpriteRenderer_Get_Color(ulong uuid, out Vector4 color);
+		internal extern static void Component_SpriteRenderer_Get_Color(ulong uuid, out Color color);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_SpriteRenderer_Set_Color(ulong uuid, ref Vector4 color);
+		internal extern static void Component_SpriteRenderer_Set_Color(ulong uuid, ref Color color);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_SpriteRenderer_SetSpriteBounds(ulong uuid, Vector2 position, Vector2 size);

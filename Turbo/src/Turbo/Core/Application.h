@@ -25,6 +25,8 @@ namespace Turbo
             bool Resizable;
             bool EnableUI;
         };
+
+        const Config& GetConfig() const { return m_Config; }
     protected:
         Application(const Application::Config& config);
         virtual ~Application() = default;
@@ -35,6 +37,7 @@ namespace Turbo
         virtual void OnDraw() {};
         virtual void OnEvent(Event& event) {};
         virtual void OnDrawUI() {}
+
     protected:
         Turbo::Time Time;
 

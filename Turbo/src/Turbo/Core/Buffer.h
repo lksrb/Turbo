@@ -25,11 +25,14 @@ namespace Turbo
 
         Buffer& operator=(Buffer&& other) noexcept
         {
-            Data = other.Data;
-            Size = other.Size;
+            if (this != &other)
+            {
+                Data = other.Data;
+                Size = other.Size;
 
-            other.Data = nullptr;
-            other.Size = 0;
+                other.Data = nullptr;
+                other.Size = 0;
+            }
 
             return *this;
         }

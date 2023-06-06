@@ -50,14 +50,14 @@ namespace Turbo
         Entity DuplicateEntity(Entity entity);
         void CopyEntity(Entity src, Entity dst);
 
-        void SetViewportOffset(u32 x, u32 y);
+        void SetViewportOffset(i32 x, i32 y);
         void SetViewportSize(u32 width, u32 height);
 
         auto& GetPostUpdateFuncs() { return m_PostUpdateFuncs; }
 
         // Editor only
-        u32 GetViewportX() const { return m_ViewportX; }
-        u32 GetViewportY() const { return m_ViewportY; }
+        i32 GetViewportX() const { return m_ViewportX; }
+        i32 GetViewportY() const { return m_ViewportY; }
 
         u32 GetViewportWidth() const { return m_ViewportWidth; }
         u32 GetViewportHeight() const { return m_ViewportHeight; }
@@ -90,6 +90,9 @@ namespace Turbo
         Scene::Statistics GetStatistics() const { return m_Statistics; }
 
         bool IsRunning() const { return m_Running; }
+
+        void SetEditorScene(bool editorScene) { m_IsEditorScene = editorScene; }
+        bool IsEditorScene() const { return m_IsEditorScene; }
     private:
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
@@ -118,11 +121,12 @@ namespace Turbo
         std::vector<std::function<void()>> m_PostUpdateFuncs;
 
         bool m_Running = false;
+        bool m_IsEditorScene = false;
 
         Scene::Statistics m_Statistics;
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
-        u32 m_ViewportX = 0, m_ViewportY = 0;
+        i32 m_ViewportX = 0, m_ViewportY = 0;
 
         friend class Entity;
         friend class SceneSerializer;

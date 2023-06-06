@@ -112,6 +112,7 @@ namespace Turbo
             TBO_XA2_CHECK(source.SourceVoice->Stop());
             TBO_XA2_CHECK(source.SourceVoice->FlushSourceBuffers());
             source.SourceVoice->DestroyVoice();
+            source.Data.Release();
         }
 
         m_AudioData.clear();
@@ -171,6 +172,7 @@ namespace Turbo
         TBO_XA2_CHECK(sourceVoice->SetVolume(gain));
     }
 
+    // TODO: REWORK
     void XAudio2AudioBackend::Register(UUID uuid, const std::string& filepath)
     {
         if (m_AudioData.find(uuid) != m_AudioData.end())
@@ -179,7 +181,6 @@ namespace Turbo
             return;
         }
 
-        // MEMORY LEAK!!!!!!!!!
         AudioFile audioFile(filepath);
 
         if (!audioFile)
@@ -207,8 +208,8 @@ namespace Turbo
 
         AudioData& file = m_AudioData[uuid];
         file.SourceVoice = sourceVoice;
-        file.Buffer = buffer;
-        file.Data = std::move(audioFile);
+        file.BufferInfo = buffer;
+        file.Data = std::move(audioFile.Data);
     }
 
     void XAudio2AudioBackend::UnRegister(UUID uuid)
@@ -223,6 +224,7 @@ namespace Turbo
 
         Stop(uuid);
         it->second.SourceVoice->DestroyVoice();
+        it->second.Data.Release();
         m_AudioData.erase(it);
     }
 

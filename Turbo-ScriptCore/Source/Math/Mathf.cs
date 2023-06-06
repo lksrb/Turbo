@@ -13,6 +13,14 @@ namespace Turbo
 			return (float)Math.Abs(value);
 		}
 
+		public static Vector2 Abs(Vector2 value)
+		{
+			Vector2 result = value;
+			result.X = Abs(result.X);
+			result.Y = Abs(result.Y);
+			return result;
+		}
+
 		public static Vector3 Abs(Vector3 value)
 		{
 			Vector3 result = value;
@@ -20,6 +28,11 @@ namespace Turbo
 			result.Y = Abs(result.Y);
 			result.Z = Abs(result.Z);
 			return result;
+		}
+
+		public static float Normalize(float value, float min, float max)
+		{
+			return (value - min) / (max - min);
 		}
 
 		public static Vector2 Normalize(Vector2 value)
@@ -51,10 +64,10 @@ namespace Turbo
 		{
 			return (float)Math.Pow(value, power);
 		}
-		
+
 		public static float Sqrt(float value)
 		{
-			if(value < 0.0f)
+			if (value < 0.0f)
 			{
 				Log.Fatal("Mathf.Sqrt(); value cannot be less than zero!");
 				return value;
@@ -79,10 +92,26 @@ namespace Turbo
 
 		public static float Max(float value1, float value2)
 		{
-			if (value1 < value2)
-				return value2;
+			if (value1 > value2)
+				return value1;
 
-			return value1;
+			return value2;
+		}
+
+		public static int Max(int value1, int value2)
+		{
+			if (value1 > value2)
+				return value1;
+
+			return value2;
+		}
+
+		public static int Min(int value1, int value2)
+		{
+			if (value1 < value2)
+				return value1;
+
+			return value2;
 		}
 
 		public static float Min(float value1, float value2)
@@ -167,7 +196,7 @@ namespace Turbo
 			Vector3 distance = end - start;
 
 			// Removes unnecessary approximation
-			if(distance.Length < maxDistanceDelta) 
+			if (distance.Length < maxDistanceDelta)
 				return end;
 
 			return start + distance * maxDistanceDelta;
@@ -193,6 +222,10 @@ namespace Turbo
 
 			return start + Sign(direction) * maxDistanceDelta;
 		}
+
+		public static float Length(Vector2 value) => Sqrt(Dot(value, value));
+		public static float Length(Vector3 value) => Sqrt(Dot(value, value));
+		public static float Length(Vector4 value) => Sqrt(Dot(value, value));
 
 		public static float Dot(Vector2 a, Vector2 b)
 		{
@@ -221,11 +254,11 @@ namespace Turbo
 		#endregion
 
 		#region Inverse trigonometric functions
-		
+
 		public static float Asin(float value) => (float)Math.Asin(value);
 		public static float Acos(float value) => (float)Math.Acos(value);
 		public static float Atan(float value) => (float)Math.Atan(value);
-		
+
 		#endregion
 	}
 }

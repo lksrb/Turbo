@@ -125,7 +125,7 @@ namespace Turbo
             config.Shader = m_LineShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Line;
-            config.DepthTesting = false;
+            config.DepthTesting = true;
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();
@@ -580,8 +580,6 @@ namespace Turbo
                 m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
 
                 Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
-
-                m_Statistics.DrawCalls++;
             }
 
             // Circles
@@ -591,8 +589,6 @@ namespace Turbo
                 m_CircleVertexBuffer->SetData(m_CircleVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
 
                 Renderer::DrawIndexed(m_RenderCommandBuffer, m_CircleVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_CirclePipeline, m_CircleShader, m_CircleIndexCount);
-
-                m_Statistics.DrawCalls++;
             }
 
             // Lines
@@ -603,8 +599,6 @@ namespace Turbo
 
                 Renderer::SetLineWidth(m_RenderCommandBuffer, m_LineWidth);
                 Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
-
-                m_Statistics.DrawCalls++;
             }
 
             // Text
@@ -623,14 +617,17 @@ namespace Turbo
                 m_TextVertexBuffer->SetData(m_TextVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
 
                 Renderer::DrawIndexed(m_RenderCommandBuffer, m_TextVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_TextPipeline, m_TextShader, m_TextIndexCount);
-
-                m_Statistics.DrawCalls++;
             }
 
             Renderer::EndRenderPass(m_RenderCommandBuffer);
             m_RenderCommandBuffer->End();
             m_RenderCommandBuffer->Submit();
         });
+
+        if (m_QuadIndexCount) m_Statistics.DrawCalls++;
+        if (m_CircleIndexCount) m_Statistics.DrawCalls++;
+        if (m_LineVertexCount) m_Statistics.DrawCalls++;
+        if (m_TextIndexCount) m_Statistics.DrawCalls++;
     }
 
 }

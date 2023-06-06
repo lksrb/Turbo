@@ -2,106 +2,150 @@
 
 namespace GunNRun
 {
-	internal enum EnemyType : uint
+	internal enum EnemyType : int
 	{
 		Suicider = 0,
 		Shooter,
-		RPG,
+		Sniper,
 
 		Count
 	}
 
 	internal class EnemySpawner
 	{
-		private string[] m_PrefabPaths;
+		private readonly string[] m_PrefabPaths = new string[(int)EnemyType.Count]
+		{
+			"Assets/Prefabs/Suicider.tprefab",
+			"Assets/Prefabs/Shooter.tprefab",
+			"Assets/Prefabs/Sniper.tprefab",
+		};
 
-		private bool m_BeginCalled = false;
 		private System.Action<Entity> m_OnSpawnEntity, m_OnDestroyEntity;
 
 		private Vector2 m_Min = Vector2.Zero;
 		private Vector2 m_Max = Vector2.Zero;
+		private float m_Distance = 0.0f;
+		private Vector3 m_PlayerTranslation = Vector3.Zero;
+		private float m_PlayerDistance = 0.0f;
 
 		public EnemySpawner(System.Action<Entity> onSpawnEntity, System.Action<Entity> onDestroyEntity)
 		{
 			m_OnSpawnEntity = onSpawnEntity;
 			m_OnDestroyEntity = onDestroyEntity;
-
-			m_PrefabPaths = new string[(uint)EnemyType.Count];
-			m_PrefabPaths[(uint)EnemyType.Suicider] = "Assets/Prefabs/Suicider.tprefab";
-			m_PrefabPaths[(uint)EnemyType.Shooter] = "Assets/Prefabs/Shooter.tprefab";
-			m_PrefabPaths[(uint)EnemyType.RPG] = "Assets/Prefabs/RPG.tprefab";
 		}
 
 		internal void SetBounds(Vector2 min, Vector2 max)
 		{
-			m_BeginCalled = true;
-
 			m_Min = min;
 			m_Max = max;
 		}
 
-		internal void SpawnEnemyRandom(uint count = 1)
+		internal void SetPlayer(Vector3 translation, float distance)
 		{
-			if (!m_BeginCalled)
+			m_PlayerTranslation = translation;
+			m_PlayerDistance = distance;
+		}
+
+		internal void SetMinDistance(float distance)
+		{
+			m_Distance = distance;
+		}
+
+		internal void SpawnEnemyRandom(int count = 1)
+		{
+			var randomLocations = GenerateRandomLocations(count);
+
+			for (int i = 0; i < count; ++i)
 			{
-				Log.Info("Call BeginSpawn()!");
-				return;
-			}
-
-			for (uint i = 0; i < count; ++i)
-			{
-				EnemyType type = (EnemyType)Random.Int((int)EnemyType.Suicider, (int)EnemyType.Count);
-
-				Vector2 randomLocation = Vector2.Zero;
-				randomLocation.X = Random.Float(m_Min.X, m_Max.X);
-				randomLocation.Y = Random.Float(m_Min.Y, m_Max.Y);
-
-				SpawnEnemy(randomLocation, type);
+				SpawnEnemyRandom(randomLocations[i]);
 			}
 		}
 
-		internal void SpawnEnemyRandom(Vector2 translation)
+		internal void SpawnEnemyRandom(Vector2 translation, int count = 1)
 		{
-			EnemyType type = (EnemyType)Random.Int((int)EnemyType.Suicider, (int)EnemyType.Count);
-			SpawnEnemy(translation, type);
+			for (int i = 0; i < count; ++i)
+			{
+				SpawnEnemy(translation, RandomType());
+			}
 		}
 
-		internal void SpawnEnemyRandom(EnemyType type, uint count = 1)
+		internal void SpawnEnemyRandom(EnemyType type, int count = 1)
 		{
-			for (uint i = 0; i < count; ++i)
-			{
-				Vector2 randomLocation = Vector2.Zero;
-				randomLocation.X = Random.Float(m_Min.X, m_Max.X);
-				randomLocation.Y = Random.Float(m_Min.Y, m_Max.Y);
+			var randomLocations = GenerateRandomLocations(count);
 
-				SpawnEnemy(randomLocation, type);
+			for (int i = 0; i < count; ++i)
+			{
+				SpawnEnemy(randomLocations[i], type);
 			}
 		}
 
 		internal void SpawnEnemy(Vector2 translation, EnemyType type)
 		{
-			type = EnemyType.Shooter; // TODO: REMOVE
-
-			if(type >= EnemyType.Count)
+			if (type >= EnemyType.Count)
 			{
 				Log.Error("Out of bounds enemy type!");
 				return;
 			}
 
-			Entity entity = Scene.InstantiateEntity(m_PrefabPaths[(uint)type], new Vector3(translation, 0.35f));
+			Entity entity = Scene.InstantiateEntity(m_PrefabPaths[(int)type], new Vector3(translation, 0.35f));
 
 			switch (type)
 			{
 				case EnemyType.Suicider:
+					entity.As<SuiciderEnemy>().SetOnDestroyCallback(m_OnDestroyEntity);
 					break;
 				case EnemyType.Shooter:
 					entity.As<ShooterEnemy>().SetOnDestroyCallback(m_OnDestroyEntity);
 					break;
-				case EnemyType.RPG:
+				case EnemyType.Sniper:
+					entity.As<SniperEnemy>().SetOnDestroyCallback(m_OnDestroyEntity);
 					break;
 			}
 
 			m_OnSpawnEntity?.Invoke(entity);
+		}
+
+		private EnemyType RandomType(EnemyType minType = EnemyType.Suicider, EnemyType maxType = EnemyType.Count)
+		{
+			return (EnemyType)Random.Int((int)minType, (int)maxType);
+		}
+
+		private Vector2[] GenerateRandomLocations(int count)
+		{
+			Vector2[] randomLocations = new Vector2[count];
+
+			for (int i = 0; i < count; ++i)
+			{
+				Vector2 randomLocation = Vector2.Zero;
+				randomLocation.X = Random.Float(m_Min.X, m_Max.X);
+				randomLocation.Y = Random.Float(m_Min.Y, m_Max.Y);
+
+				bool foundCollision = false;
+				for (int j = 0; j < i; ++j)
+				{
+					if (Mathf.Length(randomLocations[j] - randomLocation) < m_Distance)
+					{
+						foundCollision = true;
+						break;
+					}
+				}
+
+				float length = Mathf.Length(m_PlayerTranslation - randomLocation);
+				if (length < m_PlayerDistance)
+				{
+					foundCollision = true;
+				}
+
+				if (foundCollision)
+				{
+					i--;
+					continue;
+				}
+
+				randomLocations[i] = randomLocation;
+			}
+
+			return randomLocations;
 		}
 	}
 }

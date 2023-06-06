@@ -422,8 +422,6 @@ namespace Turbo
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-
-
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
             strncpy_s(buffer, sizeof(buffer), tag.c_str(), sizeof(buffer));
@@ -444,6 +442,7 @@ namespace Turbo
         {
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+            DisplayAddComponentEntry<LineRendererComponent>("Line Renderer");
             DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             DisplayAddComponentEntry<AudioSourceComponent>("Audio Source Component");
             DisplayAddComponentEntry<AudioListenerComponent>("Audio Listener Component");
@@ -524,6 +523,14 @@ namespace Turbo
 
                 ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
             }
+        });
+
+
+        Utils::DrawComponent<LineRendererComponent>("Line Renderer", entity, [](auto& component)
+        {
+            ImGui::DragFloat3("Position 0", glm::value_ptr(component.Position0), 0.5f);
+            ImGui::DragFloat3("Position 1", glm::value_ptr(component.Position1), 0.5f);
+            ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
         });
 
         Utils::DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [&m_AssetsPath = m_AssetsPath](auto& component)
@@ -630,7 +637,6 @@ namespace Turbo
             ImGui::PushItemWidth(-1);
             ImGui::DragFloat("##tilingDragFloat", &component.Tiling, 0.1f, 0.0f, 100.0f);
             ImGui::PopItemWidth();
-
         });
 
         Utils::DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)

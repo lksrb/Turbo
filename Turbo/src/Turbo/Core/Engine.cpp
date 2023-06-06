@@ -82,12 +82,13 @@ namespace Turbo
     {
         m_Initialized = false;
 
-        Audio::Shutdown();
-        Script::Shutdown();
         RendererContext::WaitIdle();
 
         delete m_ViewportWindow;
         delete m_Application;
+
+        Script::Shutdown();
+        Audio::Shutdown();
 
         Renderer::Shutdown();
         m_UI.Reset();

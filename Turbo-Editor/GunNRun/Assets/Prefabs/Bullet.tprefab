@@ -1,6 +1,6 @@
 Prefab: 0
 Entities:
-  - Entity: 345924482548781070
+  - Entity: 4211281218923584481
     Parent: 0
     Children:
       []
@@ -35,4 +35,4 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-      IsSensor: false
+      IsSensor: true

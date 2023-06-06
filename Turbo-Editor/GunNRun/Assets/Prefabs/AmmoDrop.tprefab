@@ -1,0 +1,23 @@
+Prefab: 0
+Entities:
+  - Entity: 12707905754424312693
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: AmmoDrop
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Drops.png
+      TextureFiltering: Nearest
+      TextureFormat: RGBA_Unorm
+      SpriteCoords: [1, 0]
+      SpriteSize: [20, 20]
+    ScriptComponent:
+      ClassName: GunNRun.DropItem
+      Fields:
+        []

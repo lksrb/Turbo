@@ -363,6 +363,19 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<LineRendererComponent>())
+        {
+            out << YAML::Key << "LineRendererComponent";
+            out << YAML::BeginMap;
+
+            auto& lineRendererComponent = entity.GetComponent<LineRendererComponent>();
+            out << YAML::Key << "Position0" << YAML::Value << lineRendererComponent.Position0;
+            out << YAML::Key << "Position1" << YAML::Value << lineRendererComponent.Position1;
+            out << YAML::Key << "Color" << YAML::Value << lineRendererComponent.Color;
+
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<SpriteRendererComponent>())
         {
             out << YAML::Key << "SpriteRendererComponent";
@@ -617,6 +630,15 @@ namespace Turbo
 
             cc.IsPrimary = cameraComponent["Primary"].as<bool>();
             cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+        }
+
+        auto lineRendererComponent = entity["LineRendererComponent"];
+        if (lineRendererComponent)
+        {
+            auto& lrc = deserializedEntity.AddComponent<LineRendererComponent>();
+            lrc.Position0 = lineRendererComponent["Position0"].as<glm::vec3>();
+            lrc.Position1 = lineRendererComponent["Position1"].as<glm::vec3>();
+            lrc.Color = lineRendererComponent["Color"].as<glm::vec4>();
         }
 
         auto spriteRendererComponent = entity["SpriteRendererComponent"];

@@ -217,7 +217,7 @@ namespace Turbo
 
         if (!s_DefaultFont)
         {
-            s_DefaultFont = Ref<Font>::Create("Assets/Fonts/OpenSans/OpenSans-Regular.ttf");
+            s_DefaultFont = Ref<Font>::Create("Assets/Fonts/BruceForever/BruceForever-Regular.ttf");
         }
 
         return s_DefaultFont;

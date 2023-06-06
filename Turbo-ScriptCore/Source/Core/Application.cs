@@ -10,5 +10,6 @@ namespace Turbo
 	{
 		public static uint GetWidth() => InternalCalls.Application_GetWidth();
 		public static uint GetHeight() => InternalCalls.Application_GetHeight();
+		public static void Close() => InternalCalls.Application_Close();
 	}
 }

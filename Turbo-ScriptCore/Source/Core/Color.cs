@@ -30,7 +30,7 @@ namespace Turbo
 		public Color(float scalar) : this(scalar, scalar, scalar, scalar) { }
 
 		public override string ToString() => $"Color (r: {R}, g: {G}, b: {B}, a: {A})";
-		public override bool Equals(object obj) => base.Equals(obj);
+		public override bool Equals(object obj) => base.Equals(obj); // TODO:
 		public override int GetHashCode() => base.GetHashCode();
 
 		public Vector2 RG
@@ -182,6 +182,7 @@ namespace Turbo
 		public static Color White => new Color(1.0f);
 		public static Color Clear => new Color(0.0f);
 
+		public static Color Orange => new Color(1.0f, 0.5f, 0.0f, 1.0f);
 		public static Color Cyan => new Color(0.0f, 1.0f, 1.0f, 1.0f);
 		public static Color Gray => new Color(0.5f, 0.5f, 0.5f, 1.0f);
 		public static Color Magenta => new Color(1.0f, 0.0f, 1.0f, 1.0f);

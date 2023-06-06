@@ -4,15 +4,15 @@ namespace GunNRun
 {
 	public class CameraManager : Entity
 	{
-		public readonly bool FollowsPlayer;
+		public bool FollowsPlayer;
 		public readonly float LerpMagnifier;
 		public readonly float ShakeDuration = 0.3f; // Duration of the shake effect
 		public readonly float ShakeMagnitude = 0.1f; // Intensity of the shake effect
 
 		private Player m_Player;
-		private Entity m_TopBoundary;
-		private Entity m_BottomBoundary;
 		private TransformComponent m_PlayerTransform;
+
+		private bool m_CameraShake = true;
 
 		// Camera shake
 		private Vector3 m_BeforeShakeTranslation = Vector3.Zero;
@@ -20,13 +20,17 @@ namespace GunNRun
 		private float m_CurrentShakeDuration = 0.0f; // Current duration of the shake effect
 		private float m_CurrentShakeMagnitude = 0.0f; // Current intensity of the shake effect
 
+		private GameManager m_GameManager;
+
+		// Camera extend
+		private Entity m_Crosshair;
+
 		protected override void OnCreate()
 		{
 			Log.Info("Hello from camera!");
 
 			m_Player = FindEntityByName("Player").As<Player>();
-			//m_TopBoundary = FindEntityByName("TopBoundary");
-			//m_BottomBoundary = FindEntityByName("BottomBoundary");
+			m_Crosshair = FindEntityByName("Crosshair");
 
 			m_PlayerTransform = m_Player.Transform;
 
@@ -34,10 +38,17 @@ namespace GunNRun
 			{
 				Transform.Translation = new Vector3(m_PlayerTransform.Translation.XY, Transform.Translation.Z);
 			}
+
+			m_GameManager = FindEntityByName("GameManager").As<GameManager>();
 		}
 
 		protected override void OnUpdate()
 		{
+			if (m_GameManager.CurrentGameState == GameState.GameOver)
+			{
+				FollowsPlayer = false;
+			}
+
 			// Camera moving
 			if (FollowsPlayer)
 			{
@@ -47,20 +58,17 @@ namespace GunNRun
 				}
 				else
 				{
-					Vector3 playerTranslation = new Vector3(m_PlayerTransform.Translation.XY, Transform.Translation.Z);
+					Vector3 player = new Vector3(m_PlayerTransform.Translation.XY);
+					Vector3 crosshair = m_Crosshair.Transform.Translation;
 
-					/*	float topY = m_TopBoundary.Transform.Translation.Y;
-						float bottomY = m_BottomBoundary.Transform.Translation.Y;
+					Vector3 distance = player + (crosshair - player) * 0.3f;
 
-						// This is the center offset
-						topY += -13f;
-						bottomY += 13f;
-						playerTranslation.Y = Mathf.Clamp(playerTranslation.Y, bottomY, topY);*/
-					m_BeforeShakeTranslation = Transform.Translation = Mathf.Lerp(Transform.Translation, playerTranslation, LerpMagnifier * Frame.TimeStep);
+					distance.Z = Transform.Translation.Z;
+					m_BeforeShakeTranslation = Transform.Translation = Mathf.Lerp(Transform.Translation, distance, LerpMagnifier * Frame.TimeStep);
 				}
 			}
 
-			if(m_Player.Gun.BulletShot)
+			if (m_CameraShake && m_Player.Gun.BulletShot)
 			{
 				m_CurrentShakeDuration = ShakeDuration;
 				m_CurrentShakeMagnitude = ShakeMagnitude;
@@ -74,13 +82,6 @@ namespace GunNRun
 
 			m_CurrentShakeDuration -= Frame.TimeStep;
 			m_CurrentShakeMagnitude = Mathf.Lerp(0.0f, ShakeMagnitude, m_CurrentShakeDuration / ShakeDuration);
-		}
-
-		private void AdvancedCameraShake()
-		{
-			Vector2 offset = Random.InsideUnitCircle() * m_CurrentShakeMagnitude;
-			Transform.Translation = m_BeforeShakeTranslation + offset;
-			m_CurrentShakeDuration -= Frame.TimeStep;
 		}
 	}
 }

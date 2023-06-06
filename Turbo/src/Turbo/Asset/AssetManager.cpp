@@ -180,6 +180,14 @@ namespace Turbo
         //Debug::ScopeTimer timer("Prefab Deserialization");
 
 #if 1
+        if (!std::filesystem::exists(filepath))
+        {
+            if(s_CachedNodes.find(filepath) != s_CachedNodes.end())
+                s_CachedNodes.erase(filepath);
+
+            return {};
+        }
+
         const auto& data = Utils::LoadOrGetNode(filepath).Node;
 
         if (!Utils::PrefabErrorCheck(data, filepath))

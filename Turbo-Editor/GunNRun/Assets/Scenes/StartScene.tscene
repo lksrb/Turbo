@@ -27,6 +27,36 @@ Entities:
       Translation: [10.6652203, -10.2424393, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+  - Entity: 2365815170304624310
+    Parent: 8732007825106414573
+    Children:
+      []
+    TagComponent:
+      Tag: Score-Text
+    TransformComponent:
+      Translation: [0.126564085, 3.43463135, 1]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    TextComponent:
+      Text: "Score\n\n"
+      Color: [1, 1, 1, 1]
+      KerningOffset: 0
+      LineSpacing: 0
+  - Entity: 3147637197745841316
+    Parent: 8732007825106414573
+    Children:
+      []
+    TagComponent:
+      Tag: HP-Text
+    TransformComponent:
+      Translation: [-7.36026001, -4.54598999, 1.39999998]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextComponent:
+      Text: 100
+      Color: [1, 0, 0, 1]
+      KerningOffset: 0
+      LineSpacing: 0
   - Entity: 4508532295251490996
     Parent: 7088181304825687220
     Children:
@@ -56,7 +86,7 @@ Entities:
       - UUID: 10853154627007332081
       - UUID: 1060594242302620842
       - UUID: 5920344936207139370
-      - UUID: 15084772350231344687
+      - UUID: 8732007825106414573
     TagComponent:
       Tag: GameManager
     TransformComponent:
@@ -67,12 +97,6 @@ Entities:
       ClassName: GunNRun.GameManager
       Fields:
         []
-    AudioSourceComponent:
-      AudioPath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Audio\AdhesiveWombat Night Shade NO COPYRIGHT 8bit Music.wav
-      Gain: 0.5
-      Spatial: false
-      PlayOnStart: false
-      Loop: true
   - Entity: 5920344936207139370
     Parent: 5240512203980104604
     Children:
@@ -115,7 +139,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\PlayerSpriteSheet2.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [2, 1]
+      SpriteCoords: [1, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.Player
@@ -143,8 +167,8 @@ Entities:
       GravityScale: 0
       IsBullet: true
     BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.349999994, 0.400000006]
+      Offset: [-0.0500000007, 0]
+      Size: [0.300000012, 0.349999994]
       Density: 1
       Friction: 0.5
       Restitution: 0
@@ -167,6 +191,36 @@ Entities:
       ClassName: GunNRun.MapManager
       Fields:
         []
+  - Entity: 7617446521766824974
+    Parent: 8732007825106414573
+    Children:
+      []
+    TagComponent:
+      Tag: Ammo-Text
+    TransformComponent:
+      Translation: [7.03158522, -4.81696367, 1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextComponent:
+      Text: 60
+      Color: [1, 0.558823526, 0, 1]
+      KerningOffset: 0
+      LineSpacing: 0
+  - Entity: 8732007825106414573
+    Parent: 5240512203980104604
+    Children:
+      - UUID: 3147637197745841316
+      - UUID: 7617446521766824974
+      - UUID: 15084772350231344687
+      - UUID: 2365815170304624310
+    TagComponent:
+      Tag: GameUI
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: GunNRun.GameUI
   - Entity: 10742243965363763042
     Parent: 7088181304825687220
     Children:
@@ -236,7 +290,7 @@ Entities:
           Data: true
         - Name: LerpMagnifier
           Type: Float
-          Data: 1.5
+          Data: 3.54999995
         - Name: ShakeMagnitude
           Type: Float
           Data: 0.569999993
@@ -267,17 +321,17 @@ Entities:
       RestitutionThreshold: 0.5
       IsSensor: false
   - Entity: 15084772350231344687
-    Parent: 5240512203980104604
+    Parent: 8732007825106414573
     Children:
       []
     TagComponent:
-      Tag: LevelText
+      Tag: Wave-Text
     TransformComponent:
-      Translation: [0, 0, 2]
+      Translation: [0, 5.02978516, 2]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [0.75, 0.75, 1]
     TextComponent:
-      Text: LEVEL 1
+      Text: WAVE 1
       Color: [0.843137264, 0.223183408, 0.223183408, 1]
       KerningOffset: 0
       LineSpacing: 0

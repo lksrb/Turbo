@@ -2,11 +2,14 @@
 #include "Turbo/Core/Input.h"
 
 #include "Turbo/Core/Engine.h"
+#include "Turbo/UI/UI.h"
 
 #include "Win32_Window.h"
 #include "Win32_Utils.h"
 
 #include <WinUser.h>
+
+#define TBO_HOLD 0x8000
 
 namespace Turbo
 {
@@ -27,36 +30,45 @@ namespace Turbo
 
     static InputData s_Data;
 
-    bool Input::IsKeyPressed(const KeyCode keyCode)
+    namespace Utils
     {
-        bool focused = Engine::Get().GetViewportWindow()->IsFocused();
+        static bool IsViewportFocused()
+        {
+            bool enableUI = Engine::Get().GetApplication()->GetConfig().EnableUI;
 
-        Win32Code win32Code = Utils::GetWin32CodeFromKeyCode(keyCode);
+            if (!enableUI)
+            {
+                return Engine::Get().GetViewportWindow()->IsFocused();
+            }
 
-        return focused && (::GetAsyncKeyState(win32Code) & 0x8000) != 0;
+            ImGuiContext* context = ImGui::GetCurrentContext();
+            return context->NavWindow != nullptr;
+        }
     }
 
-    bool Input::IsKeyReleased(const KeyCode keyCode)
-    {
-        bool focused = Engine::Get().GetViewportWindow()->IsFocused();
 
+    bool Input::IsKeyPressed(const KeyCode keyCode)
+    {
         Win32Code win32Code = Utils::GetWin32CodeFromKeyCode(keyCode);
 
-        return focused && (::GetAsyncKeyState(win32Code) & 0x8000) == 0;
+        return Utils::IsViewportFocused() && (::GetAsyncKeyState(win32Code) & TBO_HOLD) != 0;
+
+    }
+    bool Input::IsKeyReleased(const KeyCode keyCode)
+    {
+        Win32Code win32Code = Utils::GetWin32CodeFromKeyCode(keyCode);
+
+        return Utils::IsViewportFocused() && (::GetAsyncKeyState(win32Code) & TBO_HOLD) == 0;
     }
 
     bool Input::IsMouseButtonPressed(const MouseCode mouseCode)
     {
-        bool focused = Engine::Get().GetViewportWindow()->IsFocused();
-
-        return focused && (::GetAsyncKeyState(static_cast<int>(mouseCode)) & 0x8000) != 0;
+        return  Utils::IsViewportFocused() && (::GetAsyncKeyState(static_cast<int>(mouseCode)) & TBO_HOLD) != 0;
     }
 
     bool Input::IsMouseButtonReleased(const MouseCode mouseCode)
     {
-        bool focused = Engine::Get().GetViewportWindow()->IsFocused();
-
-        return focused && (::GetAsyncKeyState(static_cast<int>(mouseCode)) & 0x8000) == 0;
+        return Utils::IsViewportFocused() && (::GetAsyncKeyState(static_cast<int>(mouseCode)) & TBO_HOLD) == 0;
     }
 
     void Input::SetCursorMode(CursorMode cursorMode)

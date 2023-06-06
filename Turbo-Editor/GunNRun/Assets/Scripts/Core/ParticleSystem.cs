@@ -93,9 +93,13 @@ namespace GunNRun
 				return this;
 			}
 
-			internal Builder AddColor(Color color)
+			internal Builder AddColor(Color color, uint count = 1)
 			{
-				m_ColorRange.Add(color);
+				for (uint i = 0; i < count; i++)
+				{
+					m_ColorRange.Add(color);
+				}
+
 				return this;
 			}
 

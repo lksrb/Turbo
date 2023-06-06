@@ -26,7 +26,7 @@ namespace GunNRun
 			filter.CollisionMask = (ushort)EntityCategory.Player | (ushort)EntityCategory.Enemy | (ushort)EntityCategory.Wall;
 			GetComponent<BoxCollider2DComponent>().Filter = filter;
 
-			OnCollisionBegin2D += OnDestroy;
+			OnTriggerBegin2D += OnDestroy;
 
 			Log.Info("Hello from bullet!");
 		}

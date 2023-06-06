@@ -12,17 +12,64 @@ namespace Turbo
 
     AudioFile::AudioFile(AudioFile&& other) noexcept
     {
-        Move(std::move(other));
+        Data = std::move(other.Data);
+        ChunkSize = other.ChunkSize;
+        FmtSize = other.FmtSize;
+        AudioFormat = other.AudioFormat;
+        NumChannels = other.NumChannels;
+        SampleRate = other.SampleRate;
+        ByteRate = other.ByteRate;
+        BlockAlign = other.BlockAlign;
+        BitsPerSample = other.BitsPerSample;
+        ExtraParamSize = ExtraParamSize;
+        DataOffset = other.DataOffset;
+
+        // NOTE: memset does not work I assume?
+        other.ChunkSize = 0;
+        other.FmtSize = 0;
+        other.AudioFormat = 0;
+        other.NumChannels = 0;
+        other.SampleRate = 0;
+        other.ByteRate = 0;
+        other.BlockAlign = 0;
+        other.BitsPerSample = 0;
+        other.ExtraParamSize = 0;
+        other.DataOffset = 0;
     }
 
     AudioFile::~AudioFile()
     {
-        Data.Release();
+        Release();
     }
 
     AudioFile& AudioFile::operator=(AudioFile&& other) noexcept
     {
-        Move(std::move(other));
+        if (this != &other)
+        {
+            Data = std::move(other.Data);
+            ChunkSize = other.ChunkSize;
+            FmtSize = other.FmtSize;
+            AudioFormat = other.AudioFormat;
+            NumChannels = other.NumChannels;
+            SampleRate = other.SampleRate;
+            ByteRate = other.ByteRate;
+            BlockAlign = other.BlockAlign;
+            BitsPerSample = other.BitsPerSample;
+            ExtraParamSize = ExtraParamSize;
+            DataOffset = other.DataOffset;
+
+            // NOTE: memset does not work I assume?
+            other.ChunkSize = 0;
+            other.FmtSize = 0;
+            other.AudioFormat = 0;
+            other.NumChannels = 0;
+            other.SampleRate = 0;
+            other.ByteRate = 0;
+            other.BlockAlign = 0;
+            other.BitsPerSample = 0;
+            other.ExtraParamSize = 0;
+            other.DataOffset = 0;
+        }
 
         return *this;
     }
@@ -62,7 +109,7 @@ namespace Turbo
             return;
         }
 
-        memcpy(&ChunkSize, &buffer[4], 4);                  
+        memcpy(&ChunkSize, &buffer[4], 4);
         memcpy(&FmtSize, &buffer[16], 4);
         memcpy(&AudioFormat, &buffer[20], 2);
         memcpy(&NumChannels, &buffer[22], 2);
@@ -72,7 +119,7 @@ namespace Turbo
         memcpy(&BitsPerSample, &buffer[34], 2);
 
         u32 audioDataSize;
-        memcpy(&audioDataSize, &buffer[40], 4);                  
+        memcpy(&audioDataSize, &buffer[40], 4);
         Data.Allocate(audioDataSize);
         Data.CopySection(&buffer[44], audioDataSize);
     }
@@ -96,8 +143,17 @@ namespace Turbo
         ExtraParamSize = ExtraParamSize;
         DataOffset = other.DataOffset;
 
-        // Reset whole audio file
-        memset(&other, 0, sizeof(AudioFile));
+        // NOTE: memset does not work I assume?
+        other.ChunkSize = 0;
+        other.FmtSize = 0;
+        other.AudioFormat = 0;
+        other.NumChannels = 0;
+        other.SampleRate = 0;
+        other.ByteRate = 0;
+        other.BlockAlign = 0;
+        other.BitsPerSample = 0;
+        other.ExtraParamSize = 0;
+        other.DataOffset = 0;
     }
 
 }

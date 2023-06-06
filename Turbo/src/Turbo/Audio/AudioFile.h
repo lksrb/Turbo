@@ -25,9 +25,8 @@ namespace Turbo
         Buffer Data;
 
         AudioFile() = default;
-        AudioFile(const AudioFile& other) = default;
         explicit AudioFile(std::string_view filepath);
-        AudioFile& AudioFile::operator=(AudioFile&& other) noexcept;
+        AudioFile& operator=(AudioFile&& other) noexcept;
         AudioFile(AudioFile&& other) noexcept;
 
         ~AudioFile();

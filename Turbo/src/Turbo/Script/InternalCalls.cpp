@@ -53,6 +53,12 @@ namespace Turbo
         return context->GetViewportHeight();
     }
 
+    static void Application_Close()
+    {
+        Scene* context = Script::GetCurrentScene();
+        Engine::Get().Close();
+    }
+
 #pragma endregion
 
 #pragma region Logging
@@ -97,19 +103,19 @@ namespace Turbo
 
 #pragma region Input
 
-    static bool Input_IsKeyPressed(u32 key)
+    static bool Input_IsKeyDown(u32 key)
     {
         return Input::IsKeyPressed(key);
     }
-    static bool Input_IsKeyReleased(u32 key)
+    static bool Input_IsKeyUp(u32 key)
     {
         return Input::IsKeyReleased(key);
     }
-    static bool Input_IsMouseButtonPressed(u32 key)
+    static bool Input_IsMouseButtonDown(u32 key)
     {
         return Input::IsMouseButtonPressed(key);
     }
-    static bool Input_IsMouseButtonReleased(u32 key)
+    static bool Input_IsMouseButtonUp(u32 key)
     {
         return Input::IsMouseButtonReleased(key);
     }
@@ -443,13 +449,62 @@ namespace Turbo
 
 #pragma endregion
 
-#pragma region SpriteRendererComponent
+#pragma region LineRendererComponent
 
-    static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* out_color)
+    static void Component_LineRenderer_Get_Position0(UUID uuid, glm::vec3* position0)
+    {
+        Entity entity = GetEntity(uuid);
+        if (entity)
+            *position0 = entity.GetComponent<LineRendererComponent>().Position0;
+    }
+
+    static void Component_LineRenderer_Set_Position0(UUID uuid, glm::vec3* position0)
     {
         Entity entity = GetEntity(uuid);
 
-        *out_color = entity.GetComponent<SpriteRendererComponent>().Color;
+        if (entity)
+            entity.GetComponent<LineRendererComponent>().Position0 = *position0;
+    }
+
+    static void Component_LineRenderer_Get_Position1(UUID uuid, glm::vec3* position1)
+    {
+        Entity entity = GetEntity(uuid);
+        if (entity)
+            *position1 = entity.GetComponent<LineRendererComponent>().Position1;
+    }
+
+    static void Component_LineRenderer_Set_Position1(UUID uuid, glm::vec3* position1)
+    {
+        Entity entity = GetEntity(uuid);
+
+        if (entity)
+            entity.GetComponent<LineRendererComponent>().Position1 = *position1;
+    }
+
+    static void Component_LineRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
+    {
+        Entity entity = GetEntity(uuid);
+
+        if (entity)
+            *outColor = entity.GetComponent<LineRendererComponent>().Color;
+    }
+    static void Component_LineRenderer_Set_Color(UUID uuid, glm::vec4* color)
+    {
+        Entity entity = GetEntity(uuid);
+
+        if (entity)
+            entity.GetComponent<LineRendererComponent>().Color = *color;
+    }
+
+#pragma endregion
+
+#pragma region SpriteRendererComponent
+
+    static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
+    {
+        Entity entity = GetEntity(uuid);
+
+        *outColor = entity.GetComponent<SpriteRendererComponent>().Color;
     }
     static void Component_SpriteRenderer_Set_Color(UUID uuid, glm::vec4* color)
     {
@@ -1015,6 +1070,7 @@ namespace Turbo
         // Application
         TBO_REGISTER_FUNCTION(Application_GetWidth);
         TBO_REGISTER_FUNCTION(Application_GetHeight);
+        TBO_REGISTER_FUNCTION(Application_Close);
 
         // Logging
         TBO_REGISTER_FUNCTION(Log_String);
@@ -1040,10 +1096,10 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Entity_InstantiateChildPrefabWithTranslation);
 
         // Input
-        TBO_REGISTER_FUNCTION(Input_IsKeyPressed);
-        TBO_REGISTER_FUNCTION(Input_IsKeyReleased);
-        TBO_REGISTER_FUNCTION(Input_IsMouseButtonPressed);
-        TBO_REGISTER_FUNCTION(Input_IsMouseButtonReleased);
+        TBO_REGISTER_FUNCTION(Input_IsKeyUp);
+        TBO_REGISTER_FUNCTION(Input_IsKeyDown);
+        TBO_REGISTER_FUNCTION(Input_IsMouseButtonUp);
+        TBO_REGISTER_FUNCTION(Input_IsMouseButtonDown);
         TBO_REGISTER_FUNCTION(Input_GetMousePosition);
         TBO_REGISTER_FUNCTION(Input_SetCursorMode);
 
@@ -1055,7 +1111,16 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Transform_Get_Scale);
         TBO_REGISTER_FUNCTION(Component_Transform_Set_Scale);
 
-        // SpriteRenderer
+        // Line Renderer
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Position0);
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Position0);
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Position1);
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Position1);
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Color);
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Color);
+
+
+        // Sprite Renderer
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Get_Color);
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Set_Color);
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_SetSpriteBounds);

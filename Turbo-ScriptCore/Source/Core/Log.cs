@@ -10,30 +10,16 @@
 	}
 	public static class Log
 	{
-		public static void Info(int value) => Info($"{value}");
-		public static void Info(float value) => Info($"{value}");
-		public static void Info(Vector2 value) => Info($"{value}");
-		public static void Info(Vector3 value) => Info($"{value}");
-		public static void Info(Vector4 value) => Info($"{value}");
+		public static void Trace(object value) => Trace(value.ToString());
+		public static void Info(object value) => Info(value.ToString());
+		public static void Warn(object value) => Warn(value.ToString());
+		public static void Error(object value) => Error(value.ToString());
+		public static void Fatal(object value) => Fatal(value.ToString());
 
-		public static void Info(string message)
-		{
-			InternalCalls.Log_String(LogLevel.Info, message);
-		}
-
-		public static void Warn(string message)
-		{
-			InternalCalls.Log_String(LogLevel.Warn, message);
-		}
-
-		public static void Error(string message)
-		{
-			InternalCalls.Log_String(LogLevel.Error, message);
-		}
-
-		public static void Fatal(string message)
-		{
-			InternalCalls.Log_String(LogLevel.Fatal, message);
-		}
+		public static void Trace(string message) => InternalCalls.Log_String(LogLevel.Trace, message);
+		public static void Info(string message) => InternalCalls.Log_String(LogLevel.Info, message);
+		public static void Warn(string message) => InternalCalls.Log_String(LogLevel.Warn, message);
+		public static void Error(string message) => InternalCalls.Log_String(LogLevel.Error, message);
+		public static void Fatal(string message) => InternalCalls.Log_String(LogLevel.Fatal, message);
 	}
 }

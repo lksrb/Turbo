@@ -49,6 +49,8 @@ namespace Turbo
         }
 
         bool IsClosing() const { return !m_Running; }
+
+        Application* GetApplication() const { return m_Application; }
     private:
         Engine(ApplicationCreateCallback callback);
 

@@ -60,8 +60,8 @@ namespace Turbo
     struct AudioData
     {
         IXAudio2SourceVoice* SourceVoice;
-        XAUDIO2_BUFFER Buffer;
-        AudioFile Data;
+        XAUDIO2_BUFFER BufferInfo;
+        Buffer Data;
     };
 
     class XAudio2AudioBackend : public AudioBackend
@@ -92,7 +92,7 @@ namespace Turbo
     private:
         X3DAUDIO_LISTENER m_AudioListener;
 
-        std::map<UUID, AudioData> m_AudioData;
+        std::unordered_map<UUID, AudioData> m_AudioData;
 
         IXAudio2* m_XInstance = nullptr;
         DWORD m_ChannelMask;

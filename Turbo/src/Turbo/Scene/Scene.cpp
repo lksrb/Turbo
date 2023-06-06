@@ -157,6 +157,17 @@ namespace Turbo
                     }
                 }
 
+                // Lines
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
+
+                    for (auto entity : view)
+                    {
+                        auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
+                        renderer2d->DrawLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
+                    }
+                }
+
                 // Debug lines
                 if (ShowPhysics2DColliders)
                 {
@@ -439,6 +450,17 @@ namespace Turbo
                 }
             }
 
+            // Lines
+            {
+                auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
+                    renderer2d->DrawLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
+                }
+            }
+
             // Debug lines
             if (ShowPhysics2DColliders)
             {
@@ -589,7 +611,7 @@ namespace Turbo
             parent.GetChildren().push_back(dst.GetUUID());
     }
 
-    void Scene::SetViewportOffset(u32 x, u32 y)
+    void Scene::SetViewportOffset(i32 x, i32 y)
     {
         m_ViewportX = x;
         m_ViewportY = y;

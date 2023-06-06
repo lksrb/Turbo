@@ -47,6 +47,85 @@
 		}
 	}
 
+	public enum ProjectionType : uint
+	{
+		Orthographics = 0,
+		Perspective
+	}
+
+	public class CameraComponent : Component
+	{
+		public ProjectionType Projection
+		{
+			get => ProjectionType.Orthographics; // TODO:
+		}
+	}
+
+	public class LineRendererComponent : Component
+	{
+		// Range [0.0f, 1.0f]
+		public Color LineColor
+		{
+			get
+			{
+				InternalCalls.Component_LineRenderer_Get_Color(Entity.ID, out Color color);
+				return color;
+			}
+			set
+			{
+				InternalCalls.Component_LineRenderer_Set_Color(Entity.ID, ref value);
+			}
+		}
+
+		public Vector3 Position0
+		{
+			get
+			{
+				InternalCalls.Component_LineRenderer_Get_Position0(Entity.ID, out Vector3 position0);
+				return position0;
+			}
+			set
+			{
+				InternalCalls.Component_LineRenderer_Set_Position0(Entity.ID, ref value);
+			}
+		}
+
+		public Vector3 Position1
+		{
+			get
+			{
+				InternalCalls.Component_LineRenderer_Get_Position1(Entity.ID, out Vector3 position1);
+				return position1;
+			}
+			set
+			{
+				InternalCalls.Component_LineRenderer_Set_Position1(Entity.ID, ref value);
+			}
+		}
+	}
+
+	public class SpriteRendererComponent : Component
+	{
+		// Range [0.0f, 1.0f]
+		public Color SpriteColor
+		{
+			get
+			{
+				InternalCalls.Component_SpriteRenderer_Get_Color(Entity.ID, out Color color);
+				return color;
+			}
+			set
+			{
+				InternalCalls.Component_SpriteRenderer_Set_Color(Entity.ID, ref value);
+			}
+		}
+
+		public void SetSpriteBounds(Vector2 position, Vector2 size)
+		{
+			InternalCalls.Component_SpriteRenderer_SetSpriteBounds(Entity.ID, position, size);
+		}
+	}
+
 	public class TextComponent : Component
 	{
 		public string Text
@@ -266,41 +345,6 @@
 			{
 				InternalCalls.Component_CircleCollider2D_Set_CollisionFilter(Entity.ID, value.CollisionCategory, value.CollisionMask);
 			}
-		}
-	}
-
-	public enum ProjectionType : uint
-	{
-		Orthographics = 0,
-		Perspective
-	}
-
-	public class CameraComponent : Component
-	{
-		public ProjectionType Projection
-		{
-			get => ProjectionType.Orthographics; // TODO:
-		}
-	}
-
-	public class SpriteRendererComponent : Component
-	{
-		public Vector4 SpriteColor
-		{
-			get
-			{
-				InternalCalls.Component_SpriteRenderer_Get_Color(Entity.ID, out Vector4 color);
-				return color;
-			}
-			set
-			{
-				InternalCalls.Component_SpriteRenderer_Set_Color(Entity.ID, ref value);
-			}
-		}
-
-		public void SetSpriteBounds(Vector2 position, Vector2 size)
-		{
-			InternalCalls.Component_SpriteRenderer_SetSpriteBounds(Entity.ID, position, size);
 		}
 	}
 }

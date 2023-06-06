@@ -11,15 +11,12 @@ namespace GunNRun
 		private Entity m_Gun;
 		private Vector2 m_GunInitialPos;
 
-		// Audio
-		private AudioSourceComponent m_AudioSource;
-
 		// Bullet
 		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
 		private Vector2 m_ShootDirection = Vector2.Zero;
 		private bool m_IsBulletAnimating = false;
 
-		private Timer m_ShootCoolDown = new Timer(1.1f); // Audio length...
+		private Timer m_ShootCoolDown = new Timer(1.1f); // Audio length
 		private bool m_BulletShot = false;
 		internal bool BulletShot { get => m_BulletShot; }
 
@@ -36,8 +33,6 @@ namespace GunNRun
 			m_GunInitialPos = new Vector2(m_Gun.Transform.Translation);
 
 			m_Crosshair = m_Player.FindEntityByName("Crosshair");
-
-			m_AudioSource = player.GetComponent<AudioSourceComponent>();
 		}
 
 		internal void OnUpdate()
@@ -69,14 +64,14 @@ namespace GunNRun
 
 		internal void Shoot()
 		{
-			if (m_IsBulletAnimating)
+			if (m_IsBulletAnimating || m_Player.AmmoCount <= 0)
 				return;
 
 			for (int i = -2; i <= 2; i++)
 			{
 				Vector2 direction = m_ShootDirection;
 
-				float angle = (Mathf.PI / 64) * Random.Float() * i;
+				float angle = (Mathf.PI / 64.0f) * Random.Float() * i;
 
 				float xRotated = direction.X * Mathf.Cos(angle) - direction.Y * Mathf.Sin(angle);
 				float yRotated = direction.X * Mathf.Sin(angle) + direction.Y * Mathf.Cos(angle);
@@ -88,12 +83,22 @@ namespace GunNRun
 				ShootBullet(direction);
 			}
 
-			// Plays shotgun audio (shoot and reload)
-			m_AudioSource.Play();
+			m_Player.AmmoCount--;
+
+			SoundEffect.Play(Effect.Shotgun, m_Gun.Transform.Translation);
 
 			m_BulletShot = true;
 			m_IsBulletAnimating = true;
 		}
+
+		internal void Hide()
+		{
+			var src = m_Gun.GetComponent<SpriteRendererComponent>();
+			var color = src.SpriteColor;
+			color.A = 0.0f;
+			src.SpriteColor = color;
+		}
+
 		private void OnMouseFollowCrosshair()
 		{
 			var translation = m_Crosshair.Transform.Translation;
@@ -132,7 +137,6 @@ namespace GunNRun
 		{
 			Vector3 translation = m_Player.Transform.Translation;
 			Vector3 rotation = m_Gun.Transform.Rotation;
-			float lerpMagnifier = 20.0f;
 
 			if (rotation.Z > Mathf.PI / 2 && rotation.Z < Mathf.PI * 1.5f)
 			{
@@ -148,10 +152,9 @@ namespace GunNRun
 			if (m_IsBulletAnimating)
 			{
 				translation.XY -= (m_ShootDirection * 0.4f) * m_ShootCoolDown.Delta;
-				lerpMagnifier *= 2.0f;
 			}
 
-			m_Gun.Transform.Translation = Mathf.Lerp(m_Gun.Transform.Translation, translation, lerpMagnifier * Frame.TimeStep);
+			m_Gun.Transform.Translation = translation;
 		}
 	}
 }
