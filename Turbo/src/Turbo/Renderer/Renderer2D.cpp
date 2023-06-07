@@ -125,7 +125,7 @@ namespace Turbo
             config.Shader = m_LineShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Line;
-            config.DepthTesting = true;
+            config.DepthTesting = false; // TODO: debug lines should be drawn separately
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();
@@ -150,7 +150,7 @@ namespace Turbo
             config.Shader = m_TextShader;
             config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Triangle;
-            config.DepthTesting = true;
+            config.DepthTesting = false;
             config.TargetFramebuffer = m_TargetFramebuffer;
             m_TextPipeline = GraphicsPipeline::Create(config);
             m_TextPipeline->Invalidate();

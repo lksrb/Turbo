@@ -1,6 +1,6 @@
 Prefab: 0
 Entities:
-  - Entity: 4211281218923584481
+  - Entity: 7859803998535365966
     Parent: 0
     Children:
       []
@@ -9,7 +9,7 @@ Entities:
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
+      Scale: [0.25, 0.25, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\Bullet.png

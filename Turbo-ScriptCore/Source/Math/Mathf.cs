@@ -168,12 +168,30 @@ namespace Turbo
 
 		#region Linear Algebra
 
+		public static Vector2 Clamp(Vector2 value, Vector2 min, Vector2 max)
+		{
+			Vector2 result = value;
+			result.X = Clamp(result.X, min.X, max.X);
+			result.Y = Clamp(result.Y, min.Y, max.Y);
+
+			return result;
+		}
 		public static Vector3 Clamp(Vector3 value, Vector3 min, Vector3 max)
 		{
 			Vector3 result = value;
 			result.X = Clamp(result.X, min.X, max.X);
 			result.Y = Clamp(result.Y, min.Y, max.Y);
 			result.Z = Clamp(result.Z, min.Z, max.Z);
+
+			return result;
+		}
+		public static Vector4 Clamp(Vector4 value, Vector4 min, Vector4 max)
+		{
+			Vector4 result = value;
+			result.X = Clamp(result.X, min.X, max.X);
+			result.Y = Clamp(result.Y, min.Y, max.Y);
+			result.Z = Clamp(result.Z, min.Z, max.Z);
+			result.W = Clamp(result.W, min.W, max.W);
 
 			return result;
 		}
@@ -191,9 +209,10 @@ namespace Turbo
 			float z = Sign(value.Z);
 			return new Vector3(x, y, z);
 		}
-		public static Vector3 Lerp(Vector3 start, Vector3 end, float maxDistanceDelta)
+
+		public static Vector2 Lerp(Vector2 start, Vector2 end, float maxDistanceDelta)
 		{
-			Vector3 distance = end - start;
+			Vector2 distance = end - start;
 
 			// Removes unnecessary approximation
 			if (distance.Length < maxDistanceDelta)
@@ -201,9 +220,9 @@ namespace Turbo
 
 			return start + distance * maxDistanceDelta;
 		}
-		public static Vector2 Lerp(Vector2 start, Vector2 end, float maxDistanceDelta)
+		public static Vector3 Lerp(Vector3 start, Vector3 end, float maxDistanceDelta)
 		{
-			Vector2 distance = end - start;
+			Vector3 distance = end - start;
 
 			// Removes unnecessary approximation
 			if (distance.Length < maxDistanceDelta)

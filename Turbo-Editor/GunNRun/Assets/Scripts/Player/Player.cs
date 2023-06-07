@@ -4,35 +4,37 @@ namespace GunNRun
 {
 	public class Player : Entity
 	{
+		// Set in editor
 		public readonly float Speed;
 		public readonly float IdleAnimation;
 		public readonly float RunningAnimation;
 
-		internal readonly PlayerInput PlayerInput = new PlayerInput();
-		internal readonly PlayerController Controller = new PlayerController();
-		internal readonly PlayerAnimator Animator = new PlayerAnimator();
-		internal readonly PlayerGun Gun = new PlayerGun();
+		// Player components
+		internal PlayerInput PlayerInput { get; private set; }
+		internal PlayerController Controller { get; private set; }
+		internal PlayerAnimator Animator { get; private set; }
+		internal PlayerGun Gun { get; private set; }
 
+		// Stats
+		internal int AmmoCount { get; private set; } = 60;
+		internal int HP { get; private set; } = 100;
+		internal int ScoreCount { get; private set; } = 0;
 		internal Vector2 Velocity => Controller.Velocity;
-		internal SpriteRendererComponent SpriteRenderer => GetComponent<SpriteRendererComponent>();
-
-		internal int HP => m_HP;
-		internal int AmmoCount { get => m_AmmoCount; set { m_AmmoCount = value; } }
-		internal int ScoreCount => m_ScoreCount;
 
 		private GameManager m_GameManager;
 		private ParticleSystem m_DeathParticles;
-		private int m_HP = 100, m_AmmoCount = 60, m_ScoreCount = 0;
-		private CollisionFilter m_Filter = new CollisionFilter();
 
 		protected override void OnCreate()
 		{
 			m_GameManager = FindEntityByName("GameManager").As<GameManager>();
 
-			Controller.Init(this);
-			Animator.Init(this);
-			Gun.Init(this);
+			// Collision masking
+			CollisionFilter filter = new CollisionFilter();
+			filter.CollisionCategory = (ushort)EntityCategory.Player;
+			filter.CollisionMask = (ushort)EntityCategory.Everything;
+			GetComponent<BoxCollider2DComponent>().Filter = filter;
 
+			// Creating particle for later
 			m_DeathParticles = ParticleSystem.Setup()
 				.SetName("PlayerDeathParticles")
 				.AddColor(Color.Red / 1.6f)
@@ -49,17 +51,22 @@ namespace GunNRun
 				.SetScale(0.15f, 0.15f)
 				.Build(35);
 
-			m_Filter.CollisionCategory = (ushort)EntityCategory.Player;
-			m_Filter.CollisionMask = (ushort)EntityCategory.Everything;
-			GetComponent<BoxCollider2DComponent>().Filter = m_Filter;
+			// Initializing player components
+			PlayerInput = new PlayerInput();
+			Controller = new PlayerController(this);
+			Animator = new PlayerAnimator(this);
+			Gun = new PlayerGun(this);
 
-			OnCollisionBegin2D += OnTakeHit;
+			OnCollisionBegin2D += OnBulletHit;
+
+			Log.Warn("Player initialized!");
 		}
 
 		protected override void OnUpdate()
 		{
 			if (m_GameManager.CurrentGameState == GameState.GameOver)
 			{
+				m_DeathParticles.Start(Transform.Translation);
 				GetComponent<SpriteRendererComponent>().SpriteColor = Color.Clear;
 				Gun.Hide();
 				return;
@@ -70,24 +77,11 @@ namespace GunNRun
 			Animator.OnUpdate();
 			Gun.OnUpdate();
 
-			if (PlayerInput.IsShootMouseButtonPressed)
+			if (AmmoCount > 0 && Gun.IsReady && PlayerInput.IsShootMouseButtonPressed)
 			{
+				AmmoCount--;
+
 				Gun.Shoot();
-			}
-		}
-
-		private void OnTakeHit(Entity other)
-		{
-			if (other.Name == "Bullet")
-			{
-				Bullet bullet = other.As<Bullet>();
-
-				if (bullet.ShooterEntity.Name == "Player")
-					return;
-				else if(bullet.ShooterEntity.Name == "Shooter")
-					TakeDamage(1);
-				else if (bullet.ShooterEntity.Name == "Sniper")
-					TakeDamage(20);
 			}
 		}
 
@@ -95,35 +89,71 @@ namespace GunNRun
 		{
 			if (item.Name == "HpDrop")
 			{
-				m_HP = Mathf.Min(m_HP + 15, 100);
+				HP = Mathf.Min(HP + 15, 100);
 				SoundEffect.Play(Effect.PickHP, Transform.Translation);
 			}
 			else if (item.Name == "AmmoDrop")
 			{
-				m_AmmoCount = Mathf.Min(m_AmmoCount + 5, 60);
+				AmmoCount = Mathf.Min(AmmoCount + 5, 60);
 				SoundEffect.Play(Effect.PickAmmo, Transform.Translation);
 			}
 		}
 
-		internal void TakeDamage(int damage)
+		internal void AddScore(Entity enemy)
 		{
-			if (damage == 0 || m_HP <= 0)
-				return;
+			int score = 0;
 
-			m_HP = Mathf.Max(m_HP - damage, 0);
-
-			if (m_HP == 0)
+			switch (enemy.Name)
 			{
-				m_DeathParticles.Start(Transform.Translation);
+				case "Suicider": score = 25; break;
+				case "Shooter": score = 70; break;
+				case "Sniper": score = 45; break;
 			}
+
+			AddScore(score);
 		}
 
-		internal void AddScore(int score)
+		internal void TakeDamage(Entity enemy)
+		{
+			int damage = 0;
+
+			switch (enemy.Name)
+			{
+				case "Suicider": damage = 15; break;
+				case "Shooter": damage = 1; break;
+				case "Sniper": damage = 20; break;
+			}
+
+			TakeDamage(damage);
+		}
+
+		private void OnBulletHit(Entity other)
+		{
+			if (other.Name != "Bullet")
+				return;
+
+			Bullet bullet = other.As<Bullet>();
+
+			if (bullet.ShooterEntity.Name == "Player")
+				return;
+
+			TakeDamage(bullet.ShooterEntity);
+		}
+
+		private void TakeDamage(int damage)
+		{
+			if (damage <= 0 || HP <= 0)
+				return;
+
+			HP = Mathf.Max(HP - damage, 0);
+		}
+
+		private void AddScore(int score)
 		{
 			if (score <= 0)
 				return;
 
-			m_ScoreCount += score;
+			ScoreCount += score;
 		}
 	}
 }

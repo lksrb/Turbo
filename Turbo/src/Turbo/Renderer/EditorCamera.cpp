@@ -66,12 +66,12 @@ namespace Turbo
             glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
             m_InitialMousePosition = mouse;
 
-            if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
-                MouseRotate(delta);
-            else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
                 MousePan(delta);
             else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
                 MouseZoom(delta.y);
+        /*    else if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
+                MouseRotate(delta);*/
         }
 
         UpdateView();

@@ -4,7 +4,7 @@ namespace GunNRun
 {
 	internal class SniperGun
 	{
-		private SniperEnemy m_RPGEnemy;
+		private SniperEnemy m_SniperEnemy;
 		private Entity m_Player;
 
 		private Entity m_Gun;
@@ -15,13 +15,11 @@ namespace GunNRun
 		private Vector3 m_Scale;
 		private Vector3 m_Rotation;
 
-		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
-
 		internal Vector3 Translation => m_Translation;
 
 		internal SniperGun(SniperEnemy enemy)
 		{
-			m_RPGEnemy = enemy;
+			m_SniperEnemy = enemy;
 
 			m_Gun = enemy.FindEntityByName("SniperGun");
 			m_EnemyGunOffset = new Vector2(0.0f, -0.2f);
@@ -32,7 +30,7 @@ namespace GunNRun
 		internal void OnUpdate()
 		{
 			// Reducing the amount of dll calls
-			m_Translation = m_RPGEnemy.Transform.Translation + m_EnemyGunOffset;
+			m_Translation = m_SniperEnemy.Transform.Translation + m_EnemyGunOffset;
 			m_Scale = m_Gun.Transform.Scale;
 
 			m_Gun.Transform.Translation = m_Translation;
@@ -68,10 +66,9 @@ namespace GunNRun
 			translation.XY += direction * 0.85f;
 			//translation.Y += 0.1f;
 			translation.Z = 0.5f;
-			Bullet bullet = m_Player.InstantiateChild(m_BulletPrefab, translation).As<Bullet>();
+
+			Bullet bullet = Bullet.Create(m_SniperEnemy, translation, direction, 35);
 			bullet.GetComponent<SpriteRendererComponent>().SpriteColor = Color.Orange;
-			bullet.Transform.Scale *= 0.5f;
-			bullet.Init(m_RPGEnemy, direction, 35);
 		}
 
 	}

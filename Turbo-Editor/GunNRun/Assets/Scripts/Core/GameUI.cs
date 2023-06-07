@@ -5,7 +5,6 @@ namespace GunNRun
 	public class GameUI
 	{
 		private Player m_Player;
-		private bool m_WaveTextFollowCamera = true;
 		private GameManager m_GameManager;
 		private TransformComponent m_CameraTransform;
 
@@ -53,10 +52,7 @@ namespace GunNRun
 			}
 
 			// Wave text
-			if (m_WaveTextFollowCamera)
-			{
-				m_WaveText.Transform.Translation = m_CameraTransform.Translation + m_WaveTextOffset;
-			}
+			m_WaveText.Transform.Translation = m_CameraTransform.Translation + m_WaveTextOffset;
 
 			// Ammo & HP text
 			m_PlayerHP.Transform.Translation = m_CameraTransform.Translation + m_PlayerHPOffset;
@@ -75,12 +71,10 @@ namespace GunNRun
 			switch (state)
 			{
 				case WaveState.WaitingForNextWave:
-					m_WaveTextFollowCamera = true;
 					m_WaveTextComponent.Color = m_DefaultTextWaveColor;
 					m_WaveTextComponent.Text = "Wave " + m_GameManager.WaveManager.CurrentWave.ToString();
 					break;
 				case WaveState.Wave:
-					m_WaveTextFollowCamera = false;
 					m_WaveTextComponent.Color = new Vector4(m_WaveTextComponent.Color.XYZ, 0.0f);
 					break;
 				case WaveState.WaveFinished:

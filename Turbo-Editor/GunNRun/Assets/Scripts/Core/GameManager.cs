@@ -32,26 +32,12 @@ namespace GunNRun
 
 		protected override void OnCreate()
 		{
-			// Input.SetCursorMode(CursorMode.Hidden);
+			Input.SetCursorMode(CursorMode.Hidden);
 			m_Player = FindEntityByName("Player").As<Player>();
 
 			WaveManager = new WaveManager(this);
-			WaveManager.OnChangeWaveState += OnChangeState;
 
 			m_GameUI = new GameUI(this);
-		}
-
-		private void OnChangeState(WaveState state)
-		{
-			switch (state)
-			{
-				case WaveState.WaitingForNextWave:
-					break;
-				case WaveState.Wave:
-					break;
-				case WaveState.WaveFinished:
-					break;
-			}
 		}
 
 		protected override void OnUpdate()

@@ -6,16 +6,17 @@ namespace GunNRun
 	{
 		public readonly bool DestroyOnImpact = false;
 
+		private static readonly string s_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
+
 		public Entity ShooterEntity { get; private set; }
 
-		private Timer m_DeathTimer = new Timer(1.0f, false);
+		private Timer m_DeathTimer;
 
-		private float m_Speed = 0.0f;
+		private float m_SpeedDecentFactor = 1.0f; 
 		private bool m_Destroy = false;
 
 		private Rigidbody2DComponent m_Rigidbody2D;
 		private bool m_Init = false;
-		private int m_DestroyCalled = 0;
 
 		protected override void OnCreate()
 		{
@@ -27,8 +28,6 @@ namespace GunNRun
 			GetComponent<BoxCollider2DComponent>().Filter = filter;
 
 			OnTriggerBegin2D += OnDestroy;
-
-			Log.Info("Hello from bullet!");
 		}
 
 		protected override void OnUpdate()
@@ -39,39 +38,36 @@ namespace GunNRun
 				return;
 			}
 
-			m_Rigidbody2D.Velocity = Mathf.Lerp(m_Rigidbody2D.Velocity, Vector3.Zero, 1.0f * Frame.TimeStep);
+			m_Rigidbody2D.Velocity = Mathf.Lerp(m_Rigidbody2D.Velocity, Vector3.Zero, m_SpeedDecentFactor * Frame.TimeStep);
 
 			if (m_DeathTimer || m_Destroy)
 			{
-				m_DestroyCalled++;
-
-				m_Destroy = false;
-
-				if(m_DestroyCalled == 1)
-					Scene.DestroyEntity(this);
+				Scene.DestroyEntity(this);
 			}
 		}
-
-		internal void Init(Entity shooter, Vector2 direction, float speed = 20.0f)
+		
+		internal static Bullet Create(Entity shooter, Vector3 translation, Vector2 direction, float speed = 20.0f, float lifeSpan = 1.0f, float speedDecentFactor = 1.0f)
 		{
-			if (m_Init)
-			{
-				Log.Error("Bullet is already initialized!");
-				return;
-			}
+			Bullet bullet = shooter.InstantiateChild(s_BulletPrefab, translation).As<Bullet>();
 
-			ShooterEntity = shooter;
-			m_Speed = speed;
+			bullet.ShooterEntity = shooter;
 
-			m_Rigidbody2D.Velocity = direction * m_Speed * Random.Float(1.0f, 1.5f);
+			bullet.m_Rigidbody2D.Velocity = direction * speed * Random.Float(1.0f, 1.5f);
 
 			// Rotate respectively
 			float angle = Mathf.Atan(direction.Y / direction.X); // [-90,90]
-			Vector3 rotation = Transform.Rotation;
+			Vector3 rotation = bullet.Transform.Rotation;
 			rotation.Z = angle;
-			Transform.Rotation = rotation;
+			bullet.Transform.Rotation = rotation;
 
-			m_Init = true;
+			bullet.m_SpeedDecentFactor = speedDecentFactor;
+			bullet.m_DeathTimer = new Timer(lifeSpan, false);
+
+			bullet.m_Init = true;
+
+			Log.Warn("Bullet initialized!");
+
+			return bullet;
 		}
 
 		private void OnDestroy(Entity other)

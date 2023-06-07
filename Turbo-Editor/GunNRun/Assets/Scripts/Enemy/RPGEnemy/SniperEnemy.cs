@@ -128,7 +128,6 @@ namespace GunNRun
 				{
 					SoundEffect.Play(Effect.EnemyDeath, m_Translation);
 
-					m_Player.AddScore(70);
 					m_OnDestroyCallback?.Invoke(this);
 					m_DeathParticles.Start(Transform.Translation);
 					m_Destroy = false;
@@ -151,7 +150,7 @@ namespace GunNRun
 			{
 				Bullet bullet = other.As<Bullet>();
 
-				if (bullet.ShooterEntity.Name == "Sniper")
+				if (bullet.ShooterEntity.Name == "Sniper" || bullet.ShooterEntity.Name == "Shooter")
 					return;
 
 				m_Destroy = true;

@@ -2,7 +2,7 @@
 
 namespace GunNRun
 {
-	internal enum EnemyType : int
+	internal enum EnemyType
 	{
 		Suicider = 0,
 		Shooter,
@@ -25,35 +25,20 @@ namespace GunNRun
 		private Vector2 m_Min = Vector2.Zero;
 		private Vector2 m_Max = Vector2.Zero;
 		private float m_Distance = 0.0f;
-		private Vector3 m_PlayerTranslation = Vector3.Zero;
 		private float m_PlayerDistance = 0.0f;
+		private Entity m_Player;
 
-		public EnemySpawner(System.Action<Entity> onSpawnEntity, System.Action<Entity> onDestroyEntity)
+		public EnemySpawner(Entity player, System.Action<Entity> onSpawnEntity, System.Action<Entity> onDestroyEntity)
 		{
 			m_OnSpawnEntity = onSpawnEntity;
 			m_OnDestroyEntity = onDestroyEntity;
-		}
 
-		internal void SetBounds(Vector2 min, Vector2 max)
-		{
-			m_Min = min;
-			m_Max = max;
-		}
-
-		internal void SetPlayer(Vector3 translation, float distance)
-		{
-			m_PlayerTranslation = translation;
-			m_PlayerDistance = distance;
-		}
-
-		internal void SetMinDistance(float distance)
-		{
-			m_Distance = distance;
+			m_Player = player;
 		}
 
 		internal void SpawnEnemyRandom(int count = 1)
 		{
-			var randomLocations = GenerateRandomLocations(count);
+			Vector2[] randomLocations = GenerateRandomLocations(count);
 
 			for (int i = 0; i < count; ++i)
 			{
@@ -71,7 +56,7 @@ namespace GunNRun
 
 		internal void SpawnEnemyRandom(EnemyType type, int count = 1)
 		{
-			var randomLocations = GenerateRandomLocations(count);
+			Vector2[] randomLocations = GenerateRandomLocations(count);
 
 			for (int i = 0; i < count; ++i)
 			{
@@ -105,6 +90,22 @@ namespace GunNRun
 			m_OnSpawnEntity?.Invoke(entity);
 		}
 
+		internal void SetBounds(Vector2 min, Vector2 max)
+		{
+			m_Min = min;
+			m_Max = max;
+		}
+
+		internal void SetMinPlayerDistance(float distance)
+		{
+			m_PlayerDistance = distance;
+		}
+
+		internal void SetMinDistance(float distance)
+		{
+			m_Distance = distance;
+		}
+
 		private EnemyType RandomType(EnemyType minType = EnemyType.Suicider, EnemyType maxType = EnemyType.Count)
 		{
 			return (EnemyType)Random.Int((int)minType, (int)maxType);
@@ -130,7 +131,7 @@ namespace GunNRun
 					}
 				}
 
-				float length = Mathf.Length(m_PlayerTranslation - randomLocation);
+				float length = Mathf.Length(m_Player.Transform.Translation - randomLocation);
 				if (length < m_PlayerDistance)
 				{
 					foundCollision = true;

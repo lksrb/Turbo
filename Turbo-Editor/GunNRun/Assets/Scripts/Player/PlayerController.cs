@@ -11,7 +11,7 @@ namespace GunNRun
 
 		internal Vector2 Velocity => m_Velocity;
 
-		internal void Init(Player player)
+		internal PlayerController(Player player)
 		{
 			m_Player = player;
 			m_Rigidbody2D = m_Player.GetComponent<Rigidbody2DComponent>();
@@ -53,8 +53,6 @@ namespace GunNRun
 			}
 
 			m_Rigidbody2D.Velocity = m_Velocity;
-
-			//m_Rigidbody2D.Velocity = m_Velocity.Length != 0 ? Mathf.Lerp(m_Rigidbody2D.Velocity, m_Velocity * m_Player.Speed, ts * 10.0f) : m_Velocity;
 		}
 
 		private void ChangeDirection()

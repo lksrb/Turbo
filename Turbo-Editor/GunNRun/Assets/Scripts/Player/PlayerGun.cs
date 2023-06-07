@@ -4,69 +4,43 @@ namespace GunNRun
 {
 	internal class PlayerGun
 	{
-		private Player m_Player;
-		private Vector2 m_PlayerInitialInitialPos;
+		private Entity m_Gun, m_Player;
+		private Vector2 m_PlayerInitialInitialPos, m_GunInitialPos;
 
-		// Gun
-		private Entity m_Gun;
-		private Vector2 m_GunInitialPos;
-
-		// Bullet
-		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
 		private Vector2 m_ShootDirection = Vector2.Zero;
-		private bool m_IsBulletAnimating = false;
+		private Entity m_Crosshair; // Crosshair to follow
 
+		private bool m_IsGunAnimating = false;
 		private Timer m_ShootCoolDown = new Timer(1.1f); // Audio length
-		private bool m_BulletShot = false;
-		internal bool BulletShot { get => m_BulletShot; }
 
-		// Cursor
-		private Entity m_Crosshair;
-		private Vector3 m_WorldMousePosition;
+		internal bool BulletShot { get; private set; } = false;
+		internal bool IsReady => !m_IsGunAnimating;
 
-		internal void Init(Player player)
+		internal PlayerGun(Player player)
 		{
 			m_Player = player;
-			m_PlayerInitialInitialPos = new Vector2(m_Player.Transform.Translation);
-
 			m_Gun = m_Player.FindEntityByName("Gun");
-			m_GunInitialPos = new Vector2(m_Gun.Transform.Translation);
-
 			m_Crosshair = m_Player.FindEntityByName("Crosshair");
+
+			m_PlayerInitialInitialPos = m_Player.Transform.Translation;
+			m_GunInitialPos = m_Gun.Transform.Translation;
 		}
 
 		internal void OnUpdate()
 		{
-			m_WorldMousePosition = Camera.ScreenToWorldPosition(Input.MousePosition);
+			FollowPlayer();
+			RotateToCrosshair();
 
-			OnFollowPlayer();
-			OnMouseFollowCrosshair();
-			OnRotateToCrosshair();
-
-			if (m_IsBulletAnimating && m_ShootCoolDown)
+			if (m_IsGunAnimating && m_ShootCoolDown)
 			{
-				m_IsBulletAnimating = false;
+				m_IsGunAnimating = false;
 			}
 
-			m_BulletShot = false;
-		}
-
-		private void ShootBullet(Vector2 direction)
-		{
-			Vector3 translation = m_Gun.Transform.Translation;
-			translation.XY += direction * 1.1f;
-			translation.Y += 0.1f;
-			translation.Z = 0.5f;
-			Bullet bullet = m_Player.InstantiateChild(m_BulletPrefab, translation).As<Bullet>();
-			bullet.Transform.Scale *= 0.5f;
-			bullet.Init(m_Player, direction);
+			BulletShot = false;
 		}
 
 		internal void Shoot()
 		{
-			if (m_IsBulletAnimating || m_Player.AmmoCount <= 0)
-				return;
-
 			for (int i = -2; i <= 2; i++)
 			{
 				Vector2 direction = m_ShootDirection;
@@ -77,18 +51,15 @@ namespace GunNRun
 				float yRotated = direction.X * Mathf.Sin(angle) + direction.Y * Mathf.Cos(angle);
 
 				direction = new Vector2(xRotated, yRotated);
-
 				direction *= 0.8f;
 
 				ShootBullet(direction);
 			}
 
-			m_Player.AmmoCount--;
-
 			SoundEffect.Play(Effect.Shotgun, m_Gun.Transform.Translation);
 
-			m_BulletShot = true;
-			m_IsBulletAnimating = true;
+			BulletShot = true;
+			m_IsGunAnimating = true;
 		}
 
 		internal void Hide()
@@ -99,18 +70,19 @@ namespace GunNRun
 			src.SpriteColor = color;
 		}
 
-		private void OnMouseFollowCrosshair()
+		private void ShootBullet(Vector2 direction)
 		{
-			var translation = m_Crosshair.Transform.Translation;
-			translation.XY = m_WorldMousePosition;
-			m_Crosshair.Transform.Translation = translation;
+			Vector3 translation = m_Gun.Transform.Translation;
+			translation.XY += direction * 1.1f;
+			translation.Y += 0.1f;
+			translation.Z = 0.5f;
+
+			Bullet.Create(m_Player, translation, direction, 25.0f, 0.7f, 2.0f);
 		}
 
-		private void OnRotateToCrosshair()
+		private void RotateToCrosshair()
 		{
-			Vector3 playerPos = m_Player.Transform.Translation;
-
-			m_ShootDirection = m_Crosshair.Transform.Translation - playerPos;
+			m_ShootDirection = m_Crosshair.Transform.Translation - m_Player.Transform.Translation;
 			m_ShootDirection.Normalize();
 
 			float angle = Mathf.Atan(m_ShootDirection.Y / m_ShootDirection.X); // [-90,90]
@@ -133,12 +105,12 @@ namespace GunNRun
 			m_Gun.Transform.Rotation = rotation;
 		}
 
-		private void OnFollowPlayer()
+		private void FollowPlayer()
 		{
 			Vector3 translation = m_Player.Transform.Translation;
 			Vector3 rotation = m_Gun.Transform.Rotation;
 
-			if (rotation.Z > Mathf.PI / 2 && rotation.Z < Mathf.PI * 1.5f)
+			if (rotation.Z > Mathf.PI / 2.0f && rotation.Z < Mathf.PI * 1.5f)
 			{
 				translation.X -= m_GunInitialPos.X - m_PlayerInitialInitialPos.X;
 			}
@@ -149,9 +121,9 @@ namespace GunNRun
 
 			translation.Y += (m_GunInitialPos.Y - m_PlayerInitialInitialPos.Y);
 
-			if (m_IsBulletAnimating)
+			if (m_IsGunAnimating)
 			{
-				translation.XY -= (m_ShootDirection * 0.4f) * m_ShootCoolDown.Delta;
+				translation.XY -= (m_ShootDirection * 0.25f) * m_ShootCoolDown.Delta;
 			}
 
 			m_Gun.Transform.Translation = translation;

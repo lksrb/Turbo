@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Turbo;
+﻿using Turbo;
 
 namespace GunNRun
 {
@@ -16,10 +15,6 @@ namespace GunNRun
 			{
 				child.GetComponent<BoxCollider2DComponent>().Filter = filter;
 			} 
-		}
-
-		protected override void OnUpdate()
-		{
 		}
 	}
 }

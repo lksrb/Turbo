@@ -1,22 +1,5 @@
 Scene: StartScene
 Entities:
-  - Entity: 1005935115105008621
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Background
-    TransformComponent:
-      Translation: [-0.730434418, -0.238189697, 0]
-      Rotation: [0, 0, 0]
-      Scale: [25, 25, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\background2.png
-      TextureFiltering: Nearest
-      TextureFormat: RGBA_Unorm
-      SpriteCoords: [0, 0]
-      SpriteSize: [400, 400]
   - Entity: 1060594242302620842
     Parent: 5240512203980104604
     Children:
@@ -25,6 +8,16 @@ Entities:
       Tag: SpawnBottomRightBoundary
     TransformComponent:
       Translation: [10.6652203, -10.2424393, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1930765583784885590
+    Parent: 5240512203980104604
+    Children:
+      []
+    TagComponent:
+      Tag: CameraTopRightBoundary
+    TransformComponent:
+      Translation: [4, 6.55999994, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 2365815170304624310
@@ -57,6 +50,29 @@ Entities:
       Color: [1, 0, 0, 1]
       KerningOffset: 0
       LineSpacing: 0
+  - Entity: 3686109575342735932
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [10.5709486, 9.72337341, 0.000976156734]
+      Rotation: [0, 0, 0]
+      Scale: [0.83624965, 0.927929997, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 4508532295251490996
     Parent: 7088181304825687220
     Children:
@@ -64,9 +80,42 @@ Entities:
     TagComponent:
       Tag: Wall-Hitbox
     TransformComponent:
-      Translation: [-0.74582386, -11.7630854, 0]
+      Translation: [0.000125169754, -11.3883829, 0]
       Rotation: [0, 0, 0]
       Scale: [24.9701786, 0.558862865, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 4796247169296063510
+    Parent: 5240512203980104604
+    Children:
+      []
+    TagComponent:
+      Tag: CameraBottomLeft
+    TransformComponent:
+      Translation: [-4, -6.30000019, 0.0009765625]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 4843022014143257417
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [1.30802727, 10.911561, -0.000977101969]
+      Rotation: [0, 0, 0]
+      Scale: [2.01553726, 1.15665269, 1]
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -87,6 +136,8 @@ Entities:
       - UUID: 1060594242302620842
       - UUID: 5920344936207139370
       - UUID: 8732007825106414573
+      - UUID: 4796247169296063510
+      - UUID: 1930765583784885590
     TagComponent:
       Tag: GameManager
     TransformComponent:
@@ -104,7 +155,7 @@ Entities:
     TagComponent:
       Tag: SpawnTopLeftBoundary
     TransformComponent:
-      Translation: [-11.9347858, 9.29260254, 0]
+      Translation: [-10.0059509, 7.88037252, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
   - Entity: 5981385862843799727
@@ -139,7 +190,7 @@ Entities:
       TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\PlayerSpriteSheet2.png
       TextureFiltering: Nearest
       TextureFormat: RGBA_Unorm
-      SpriteCoords: [1, 1]
+      SpriteCoords: [2, 1]
       SpriteSize: [20, 20]
     ScriptComponent:
       ClassName: GunNRun.Player
@@ -181,12 +232,26 @@ Entities:
       - UUID: 10742243965363763042
       - UUID: 11693970229941093422
       - UUID: 4508532295251490996
+      - UUID: 8024785906708137355
+      - UUID: 10260045504971721267
+      - UUID: 17919757404526166553
+      - UUID: 10798261933681194434
+      - UUID: 3686109575342735932
+      - UUID: 4843022014143257417
+      - UUID: 11796998971401408731
     TagComponent:
       Tag: Map
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [25, 25, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: C:\dev\.cpp\Turbo\Turbo-Editor\GunNRun\Assets\Sprites\background.png
+      TextureFiltering: Nearest
+      TextureFormat: RGBA_Unorm
+      SpriteCoords: [0, 0]
+      SpriteSize: [400, 400]
     ScriptComponent:
       ClassName: GunNRun.MapManager
       Fields:
@@ -206,6 +271,29 @@ Entities:
       Color: [1, 0.558823526, 0, 1]
       KerningOffset: 0
       LineSpacing: 0
+  - Entity: 8024785906708137355
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [-11.5486727, -9.45302963, -0.00097666739]
+      Rotation: [0, 0, 0]
+      Scale: [0.962681592, 0.927929997, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 8732007825106414573
     Parent: 5240512203980104604
     Children:
@@ -221,6 +309,29 @@ Entities:
       Scale: [1, 1, 1]
     ScriptComponent:
       ClassName: GunNRun.GameUI
+  - Entity: 10260045504971721267
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [-10.4479008, -9.82309818, -0.00195323001]
+      Rotation: [0, 0, 0]
+      Scale: [0.962681592, 0.927929997, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
   - Entity: 10742243965363763042
     Parent: 7088181304825687220
     Children:
@@ -228,9 +339,32 @@ Entities:
     TagComponent:
       Tag: Wall-Hitbox
     TransformComponent:
-      Translation: [11.6217899, -0.661072254, 0]
+      Translation: [12.3339481, -0.661072254, 0]
       Rotation: [0, 0, 1.57079637]
-      Scale: [23.9078884, 0.300364256, 1]
+      Scale: [23.9073677, 0.30035612, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 10798261933681194434
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [11.627284, 8.65950012, 0.000976156734]
+      Rotation: [0, 0, 0]
+      Scale: [0.83624965, 0.927929997, 1]
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -261,6 +395,10 @@ Entities:
       TextureFormat: RGBA_Unorm
       SpriteCoords: [0, 0]
       SpriteSize: [16, 16]
+    ScriptComponent:
+      ClassName: GunNRun.Crosshair
+      Fields:
+        []
   - Entity: 11489430405062822331
     Parent: 0
     Children:
@@ -304,9 +442,32 @@ Entities:
     TagComponent:
       Tag: Wall-Hitbox
     TransformComponent:
-      Translation: [-13.0726452, -0.661072254, 0]
+      Translation: [-12.3482199, -0.661072254, 0]
       Rotation: [0, 0, 1.57079637]
-      Scale: [23.9061737, 0.300337464, 1]
+      Scale: [23.9037647, 0.300299823, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 11796998971401408731
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [-11.7401018, 10.6051264, 0.000975603063]
+      Rotation: [0, 0, 0]
+      Scale: [1.80658579, 1.56679106, 1]
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
@@ -342,9 +503,32 @@ Entities:
     TagComponent:
       Tag: Wall-Hitbox
     TransformComponent:
-      Translation: [-0.74582386, 10.9952993, 0]
+      Translation: [-0.032292366, 11.2014761, 0]
       Rotation: [0, 0, 0]
       Scale: [24.9701786, 0.558862865, 1]
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 17919757404526166553
+    Parent: 7088181304825687220
+    Children:
+      []
+    TagComponent:
+      Tag: Wall-Hitbox
+    TransformComponent:
+      Translation: [-9.99826145, -10.7560568, -2.78232619e-07]
+      Rotation: [0, 0, 0]
+      Scale: [0.962681592, 0.927929997, 1]
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false

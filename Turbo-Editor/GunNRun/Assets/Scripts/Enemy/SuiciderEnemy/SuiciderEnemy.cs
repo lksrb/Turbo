@@ -78,7 +78,6 @@ namespace GunNRun
 			OnMovement();
 			m_Animator.OnUpdate();
 
-
 			if (m_Destroy)
 			{
 				if (m_DeathTimer)
@@ -89,10 +88,8 @@ namespace GunNRun
 
 					if(distance.Length < m_HitRadius)
 					{
-						m_Player.TakeDamage(15);
+						m_Player.TakeDamage(this);
 					}
-
-					m_Player.AddScore(25);
 
 					m_DeathParticles.Start(m_Translation);
 					m_OnDestroyCallback?.Invoke(this);
@@ -136,7 +133,7 @@ namespace GunNRun
 			{
 				Bullet bullet = other.As<Bullet>();
 
-				if (bullet.ShooterEntity.Name == "Shooter")
+				if (bullet.ShooterEntity.Name == "Shooter" || bullet.ShooterEntity.Name == "Sniper")
 					return;
 
 				m_Destroy = true;

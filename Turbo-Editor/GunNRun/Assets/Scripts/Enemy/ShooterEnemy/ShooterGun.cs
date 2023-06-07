@@ -9,8 +9,6 @@ namespace GunNRun
 		private Vector2 m_GunShooterOffset;
 		private Vector2 m_ShootDirection;
 
-		private readonly string m_BulletPrefab = "Assets/Prefabs/Bullet.tprefab";
-
 		private Player m_Player;
 
 		private Vector3 m_Translation;
@@ -97,12 +95,11 @@ namespace GunNRun
 
 		private void ShootBullet()
 		{
-			var bulletTranslation = m_Translation + m_ShootDirection * 0.45f;
-			bulletTranslation.Y += 0.1f;
-			bulletTranslation.Z = 0.5f;
-			Bullet bullet = m_ShooterEnemy.InstantiateChild(m_BulletPrefab, bulletTranslation).As<Bullet>();
-			bullet.Transform.Scale *= 0.5f;
-			bullet.Init(m_ShooterEnemy, m_ShootDirection);
+			Vector3 translation = m_Translation + m_ShootDirection * 0.45f;
+			translation.Y += 0.1f;
+			translation.Z = 0.5f;
+
+			Bullet.Create(m_ShooterEnemy, translation, m_ShootDirection);
 		}
 
 		private void OnMoveToPlayer()
