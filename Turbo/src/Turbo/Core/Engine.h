@@ -14,7 +14,9 @@
 
 namespace Turbo 
 {
-    class Engine 
+    using ApplicationCreateCallback = Application* (*)();
+
+    class Engine
     {
     public:
         static Turbo::Engine* Create(ApplicationCreateCallback callback)
@@ -38,7 +40,7 @@ namespace Turbo
         void Close();
 
         Window* GetViewportWindow() const { return m_ViewportWindow; }
-        Ref<UserInterface> GetUI() const { return m_UI; }
+        Ref<UserInterface> GetUserInterface() const { return m_UserInterface; }
 
         template<typename F>
         void SubmitToMainThread(F&& func)
@@ -70,21 +72,14 @@ namespace Turbo
         std::vector<std::function<void()>> m_MainThreadQueue;
         std::mutex m_MainThreadQueueMutex;
 
-        Ref<UserInterface> m_UI;
-        Ref<Renderer> m_Renderer;
+        Ref<UserInterface> m_UserInterface;
 
         // User
         Application* m_Application = nullptr;
         ApplicationCreateCallback m_ApplicationCreateCallback;
 
         Window* m_ViewportWindow = nullptr;
-
     private:
         static inline Turbo::Engine* s_Instance;
-
-        friend class Window;
-#ifdef TBO_PLATFORM_WIN32
-        friend class Win32_Window;
-#endif
     };
 }

@@ -32,7 +32,7 @@ namespace Turbo
 
     void Engine::Initialize()
     {
-        TBO_ASSERT(m_Initialized == false);
+        TBO_ENGINE_ASSERT(m_Initialized == false);
 
         // Call client function
         m_Application = m_ApplicationCreateCallback();
@@ -71,7 +71,7 @@ namespace Turbo
         Audio::Init();
 
         if (m_Application->m_Config.EnableUI)
-            m_UI = UserInterface::Create();
+            m_UserInterface = UserInterface::Create();
 
         m_Initialized = true;
 
@@ -91,7 +91,7 @@ namespace Turbo
         Audio::Shutdown();
 
         Renderer::Shutdown();
-        m_UI.Reset();
+        m_UserInterface.Reset();
 
         RendererContext::Shutdown();
 
@@ -137,9 +137,9 @@ namespace Turbo
                 // Render UI
                 if (m_Application->m_Config.EnableUI)
                 {
-                    Renderer::Submit([this]() { m_UI->BeginUI(); });
+                    Renderer::Submit([this]() { m_UserInterface->BeginUI(); });
                     Renderer::Submit([this]() { m_Application->OnDrawUI(); });
-                    Renderer::Submit([this]() { m_UI->EndUI(); });
+                    Renderer::Submit([this]() { m_UserInterface->EndUI(); });
                 }
 
                 // TODO: To be on render thread
@@ -164,7 +164,7 @@ namespace Turbo
         dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Engine::WindowClosed));
 
         if (m_Application->m_Config.EnableUI)
-            m_UI->OnEvent(e);
+            m_UserInterface->OnEvent(e);
 
         if (e.Handled == false)
             m_Application->OnEvent(e);
@@ -186,11 +186,13 @@ namespace Turbo
         {
             TBO_ENGINE_TRACE("Window resized! {0}, {1}", e.GetWidth(), e.GetHeight());
         }
+
         return false;
     }
 
     bool Engine::WindowClosed(WindowCloseEvent& e)
     {
+
         Close();
         return false;
     }

@@ -45,12 +45,10 @@ namespace Turbo
     struct SwapchainSupportDetails;
     struct QueueFamilyIndices;
     
-    using SubmitCallback = void(*)(VkCommandBuffer);
-
     class RendererContext
     {
     public:
-        static void Init(bool validationLayer = true, u32 framesInFlight = 3);
+        static void Init();
         static void Shutdown();
 
         static bool ValidationLayerEnabled();
@@ -96,6 +94,4 @@ namespace Turbo
         static void CreateInstance();
         static void CreateDebugger();
     };
-
-
 }

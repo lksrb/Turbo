@@ -8,7 +8,6 @@ namespace Turbo {
 
     GPUDevice::GPUDevice()
     {
-        memset(this, 0, sizeof(*this));
     }
 
     GPUDevice::~GPUDevice()

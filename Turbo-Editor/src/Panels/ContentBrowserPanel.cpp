@@ -137,7 +137,6 @@ namespace Turbo::Ed
         {
             static const char* s_PlatformFileExplorerName = "Open in Explorer";
 
-            ImGui::Separator();
             if (ImGui::MenuItem(s_PlatformFileExplorerName))
             {
                 Platform::OpenFileExplorer(m_CurrentDirectory);

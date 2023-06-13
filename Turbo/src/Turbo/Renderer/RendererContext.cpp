@@ -69,24 +69,22 @@ namespace Turbo
 
     struct RendererContextInternal
     {
-        VkInstance                  Instance;
-        VkSurfaceKHR                Surface;
-        VkDebugUtilsMessengerEXT    DebugMessenger; // TODO: Replace vulkan function calls with function pointers.(Vulkan loader)
-        GPUDevice                   Device;
+        // TODO: Replace vulkan function calls with function pointers (Vulkan loaders)
+        VkInstance Instance = VK_NULL_HANDLE;
+        VkSurfaceKHR Surface = VK_NULL_HANDLE;
+        VkDebugUtilsMessengerEXT DebugMessenger = VK_NULL_HANDLE;
+        GPUDevice Device;
 
-        ResourceQueue               RuntimeResourceQueue;          
-        bool                        ValidationLayerEnabled;
-        u32                         FramesInFlight;
+        ResourceQueue RuntimeResourceQueue;
+        bool ValidationLayerEnabled = true;
+        u32 FramesInFlight = 3;
     };
 
-    static RendererContextInternal* s_PlatformData;
+    static RendererContextInternal* s_RendererContext;
 
-    void RendererContext::Init(bool validationLayer, u32 framesInFlight)
+    void RendererContext::Init()
     {
-        s_PlatformData = new RendererContextInternal{ };
-
-        s_PlatformData->ValidationLayerEnabled = validationLayer;
-        s_PlatformData->FramesInFlight = framesInFlight;
+        s_RendererContext = new RendererContextInternal();
 
         CreateInstance();
         CreateDebugger();
@@ -98,63 +96,63 @@ namespace Turbo
     {
         GetResourceQueue().Execute(ExecutionOrder::Free);
 
-        vkDestroySurfaceKHR(s_PlatformData->Instance, s_PlatformData->Surface, nullptr);
+        vkDestroySurfaceKHR(s_RendererContext->Instance, s_RendererContext->Surface, nullptr);
 
-        s_PlatformData->Device.Shutdown();
+        s_RendererContext->Device.Shutdown();
 
-        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_PlatformData->Instance, "vkDestroyDebugUtilsMessengerEXT");
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_RendererContext->Instance, "vkDestroyDebugUtilsMessengerEXT");
         TBO_ENGINE_ASSERT(func);
-        func(s_PlatformData->Instance, s_PlatformData->DebugMessenger, nullptr);
+        func(s_RendererContext->Instance, s_RendererContext->DebugMessenger, nullptr);
 
-        vkDestroyInstance(s_PlatformData->Instance, nullptr);
+        vkDestroyInstance(s_RendererContext->Instance, nullptr);
 
-        delete s_PlatformData;
+        delete s_RendererContext;
     }
 
     bool RendererContext::ValidationLayerEnabled()
     {
-        return s_PlatformData->ValidationLayerEnabled;
+        return s_RendererContext->ValidationLayerEnabled;
     }
 
     VkInstance RendererContext::GetInstance()
     {
-        return s_PlatformData->Instance;
+        return s_RendererContext->Instance;
     }
 
     VkDevice RendererContext::GetDevice()
     {
-        return s_PlatformData->Device.GetDevice();
+        return s_RendererContext->Device.GetDevice();
     }
 
     VkPhysicalDevice RendererContext::GetPhysicalDevice()
     {
-        return s_PlatformData->Device.GetPhysicalDevice();
+        return s_RendererContext->Device.GetPhysicalDevice();
     }
 
     VkCommandPool RendererContext::GetCommandPool()
     {
-        return s_PlatformData->Device.GetCommandPool();
+        return s_RendererContext->Device.GetCommandPool();
     }
 
     VkSurfaceKHR RendererContext::GetSurface()
     {
-        TBO_ENGINE_ASSERT(s_PlatformData->Surface, "VkSurfaceKHR is nullptr! Call SetWindowContext first")
-        return s_PlatformData->Surface;
+        TBO_ENGINE_ASSERT(s_RendererContext->Surface, "VkSurfaceKHR is nullptr! Call SetWindowContext first")
+        return s_RendererContext->Surface;
     }
 
     VkQueue RendererContext::GetPresentQueue()
     {
-        return s_PlatformData->Device.GetPresentQueue();
+        return s_RendererContext->Device.GetPresentQueue();
     }
 
     VkQueue RendererContext::GetGraphicsQueue()
     {
-        return s_PlatformData->Device.GetGraphicsQueue();
+        return s_RendererContext->Device.GetGraphicsQueue();
     }
 
     void RendererContext::WaitIdle()
     {
-        s_PlatformData->Device.WaitIdle();
+        s_RendererContext->Device.WaitIdle();
     }
 
     VkCommandBuffer RendererContext::CreateCommandBuffer(bool begin)
@@ -163,11 +161,11 @@ namespace Turbo
 
         VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
         cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        cmdBufAllocateInfo.commandPool = s_PlatformData->Device.GetCommandPool();
+        cmdBufAllocateInfo.commandPool = s_RendererContext->Device.GetCommandPool();
         cmdBufAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         cmdBufAllocateInfo.commandBufferCount = 1;
 
-        TBO_VK_ASSERT(vkAllocateCommandBuffers(s_PlatformData->Device.GetDevice(), &cmdBufAllocateInfo, &cmdBuffer));
+        TBO_VK_ASSERT(vkAllocateCommandBuffers(s_RendererContext->Device.GetDevice(), &cmdBufAllocateInfo, &cmdBuffer));
 
         // If requested, also start the new command buffer
         if (begin)
@@ -184,23 +182,23 @@ namespace Turbo
     {
         VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
         cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        cmdBufAllocateInfo.commandPool = s_PlatformData->Device.GetCommandPool();
+        cmdBufAllocateInfo.commandPool = s_RendererContext->Device.GetCommandPool();
         cmdBufAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
         cmdBufAllocateInfo.commandBufferCount = count;
 
-        TBO_VK_ASSERT(vkAllocateCommandBuffers(s_PlatformData->Device.GetDevice(), &cmdBufAllocateInfo, commandbuffers));
+        TBO_VK_ASSERT(vkAllocateCommandBuffers(s_RendererContext->Device.GetDevice(), &cmdBufAllocateInfo, commandbuffers));
     }
 
     void RendererContext::FlushCommandBuffer(VkCommandBuffer commandBuffer)
     {
-        FlushCommandBuffer(commandBuffer, s_PlatformData->Device.GetGraphicsQueue());
+        FlushCommandBuffer(commandBuffer, s_RendererContext->Device.GetGraphicsQueue());
     }
 
     void RendererContext::FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue)
     {
         TBO_ENGINE_ASSERT(commandBuffer != VK_NULL_HANDLE);
 
-        VkDevice device = s_PlatformData->Device.GetDevice();
+        VkDevice device = s_RendererContext->Device.GetDevice();
 
         TBO_VK_ASSERT(vkEndCommandBuffer(commandBuffer));
 
@@ -223,7 +221,7 @@ namespace Turbo
         TBO_VK_ASSERT(vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX));
 
         vkDestroyFence(device, fence, nullptr);
-        vkFreeCommandBuffers(device, s_PlatformData->Device.GetCommandPool(), 1, &commandBuffer);
+        vkFreeCommandBuffers(device, s_RendererContext->Device.GetCommandPool(), 1, &commandBuffer);
     }
 
     void RendererContext::SetWindowContext(Window* window)
@@ -235,52 +233,54 @@ namespace Turbo
         createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
         createInfo.hinstance = win32->GetInstance();
         createInfo.hwnd = win32->GetHandle();
-        TBO_VK_ASSERT(vkCreateWin32SurfaceKHR(RendererContext::GetInstance(), &createInfo, nullptr, &s_PlatformData->Surface));
+        TBO_VK_ASSERT(vkCreateWin32SurfaceKHR(RendererContext::GetInstance(), &createInfo, nullptr, &s_RendererContext->Surface));
 #endif
-        s_PlatformData->Device.Initialize();
+        s_RendererContext->Device.Initialize();
 
         window->InitializeSwapchain();
     }
 
     u32 RendererContext::FramesInFlight()
     {
-        return s_PlatformData->FramesInFlight;
+        return s_RendererContext->FramesInFlight;
     }
 
     ResourceQueue& RendererContext::GetResourceQueue()
     {
-        return s_PlatformData->RuntimeResourceQueue;
+        return s_RendererContext->RuntimeResourceQueue;
     }
 
     const SwapchainSupportDetails& RendererContext::GetSwapchainSupportDetails()
     {
-        return (const SwapchainSupportDetails&)s_PlatformData->Device.GetSwapchainSupportDetails();
+        return s_RendererContext->Device.GetSwapchainSupportDetails();
     }
 
     const QueueFamilyIndices& RendererContext::GetQueueFamilyIndices()
     {
-        return (const QueueFamilyIndices&)s_PlatformData->Device.GetQueueFamilyIndices();
+        return s_RendererContext->Device.GetQueueFamilyIndices();
     }
 
     void RendererContext::CreateInstance()
     {
+        const auto& appConfig = Engine::Get().GetApplication()->GetConfig();
+
         // App info
-        VkApplicationInfo appInfo{};
+        VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Turbo Editor";
+        appInfo.pApplicationName = appConfig.Title.c_str();
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "Turbo Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.apiVersion = VK_API_VERSION_1_3;
 
         // Vulkan Instance
-        VkInstanceCreateInfo createInfo{};
+        VkInstanceCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
         createInfo.enabledLayerCount = 0;
         createInfo.pNext = nullptr;
 
-        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 
         std::vector<const char*> extensions;
         extensions.push_back("VK_KHR_surface");
@@ -289,15 +289,14 @@ namespace Turbo
 #endif
         std::vector<const char*> validationLayers;
 
-        if (s_PlatformData->ValidationLayerEnabled)
+        if (s_RendererContext->ValidationLayerEnabled)
         {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             extensions.push_back("VK_EXT_debug_report");
 
             // Validation layers
-            validationLayers = {
-                "VK_LAYER_KHRONOS_validation",
-            };
+            validationLayers.push_back("VK_LAYER_KHRONOS_validation");
+
             createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
 
@@ -315,16 +314,16 @@ namespace Turbo
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
-        TBO_VK_ASSERT(vkCreateInstance(&createInfo, nullptr, &s_PlatformData->Instance));
+        TBO_VK_ASSERT(vkCreateInstance(&createInfo, nullptr, &s_RendererContext->Instance));
     }
 
     void RendererContext::CreateDebugger()
     {
-        if (s_PlatformData->ValidationLayerEnabled == false)
+        if (s_RendererContext->ValidationLayerEnabled == false)
             return;
-        std::vector<const char*> validationLayers = {
-            "VK_LAYER_KHRONOS_validation"
-        };
+
+        std::vector<const char*> validationLayers;
+        validationLayers.push_back("VK_LAYER_KHRONOS_validation");
 
         TBO_ENGINE_ASSERT(Utils::CheckValidationLayerSupport(validationLayers));
 
@@ -335,8 +334,8 @@ namespace Turbo
         createInfo.pfnUserCallback = DebugCallback;
         createInfo.pUserData = nullptr; // Optional
 
-        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_PlatformData->Instance, "vkCreateDebugUtilsMessengerEXT");
+        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(s_RendererContext->Instance, "vkCreateDebugUtilsMessengerEXT");
         TBO_ENGINE_ASSERT(func);
-        TBO_VK_ASSERT(func(s_PlatformData->Instance, &createInfo, nullptr, &s_PlatformData->DebugMessenger));
+        TBO_VK_ASSERT(func(s_RendererContext->Instance, &createInfo, nullptr, &s_RendererContext->DebugMessenger));
     }
 }

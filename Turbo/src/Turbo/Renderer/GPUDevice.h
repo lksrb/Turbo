@@ -63,12 +63,12 @@ namespace Turbo
         VkPresentModeKHR ChooseSwapchainPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         bool IsDeviceSuitable(VkPhysicalDevice device);
     private:
-        VkDevice m_Device;
-        VkPhysicalDevice m_PhysicalDevice;
-        VkCommandPool m_CommandPool;
+        VkDevice m_Device = VK_NULL_HANDLE;
+        VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
+        VkCommandPool m_CommandPool = VK_NULL_HANDLE;
 
-        VkQueue m_GraphicsQueue;
-        VkQueue m_PresentQueue;
+        VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
+        VkQueue m_PresentQueue = VK_NULL_HANDLE;
 
         QueueFamilyIndices m_QueueFamilyIndices;
         SwapchainSupportDetails m_SupportDetails;

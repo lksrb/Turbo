@@ -24,8 +24,8 @@
 #include <sstream>
 
 #ifdef TBO_PLATFORM_WIN32
-    #define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
-    #define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
+#define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
+#define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
 #endif
 
 namespace Turbo::Ed
@@ -177,7 +177,7 @@ namespace Turbo::Ed
     void Editor::OnDrawUI()
     {
         // Dockspace
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+        ImGuiDockNodeFlags dockSpaceFlags = ImGuiDockNodeFlags_None;
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
         // because it would be confusing to have two docking targets within each others.
@@ -194,7 +194,7 @@ namespace Turbo::Ed
 
         // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
         // and handle the pass-thru hole, so we ask Begin() to not render a background.
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+        if (dockSpaceFlags & ImGuiDockNodeFlags_PassthruCentralNode)
             window_flags |= ImGuiWindowFlags_NoBackground;
 
         // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
@@ -218,16 +218,16 @@ namespace Turbo::Ed
         {
             ImGuiID dockspace_id = ImGui::GetID("VulkanAppDockspace");
 
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockSpaceFlags);
         }
         style.WindowMinSize.x = minWinSizeX;
         // --Dockspace
 
         // Toolbar
         {
-            ImGuiWindowClass window_class;
-            window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
-            ImGui::SetNextWindowClass(&window_class);
+            ImGuiWindowClass windowClass;
+            windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+            ImGui::SetNextWindowClass(&windowClass);
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
             ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
@@ -273,7 +273,7 @@ namespace Turbo::Ed
 
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
-            Engine::Get().GetUI()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+            Engine::Get().GetUserInterface()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
             ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
             ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -417,13 +417,15 @@ namespace Turbo::Ed
             {
                 if (ImGui::BeginMenu("New"))
                 {
-                    if (ImGui::MenuItem("Project..."))
+                    bool isInEditMode = m_SceneMode == Mode::SceneEdit;
+
+                    if (ImGui::MenuItem("Project...", nullptr, nullptr, isInEditMode))
                     {
                         m_PanelManager->GetPanel<CreateProjectPopupPanel>()->Open();
                     }
-                    if (ImGui::MenuItem("Scene", nullptr, nullptr, m_SceneMode == Mode::SceneEdit))
+                    if (ImGui::MenuItem("Scene", nullptr, nullptr, isInEditMode))
                     {
-                        CreateScene();
+                        NewScene();
                     }
 
                     ImGui::EndMenu();
@@ -649,7 +651,7 @@ namespace Turbo::Ed
         {
             if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
                 m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_HoveredEntity);
-        }*/ 
+        }*/
         return false;
     }
 
@@ -704,8 +706,6 @@ namespace Turbo::Ed
 
     void Editor::OpenProject(std::filesystem::path configFilePath)
     {
-        using namespace std::chrono_literals;
-
         // Opens platform specific 
         if (configFilePath.empty())
         {
@@ -716,7 +716,7 @@ namespace Turbo::Ed
         }
 
         // Project deserialization
-        Ref<Project> project = Ref<Project>::Create();
+        auto project = Ref<Project>::Create();
         {
             ProjectSerializer serializer(project);
             TBO_VERIFY(serializer.Deserialize(configFilePath), "Project loaded!");
@@ -753,13 +753,13 @@ namespace Turbo::Ed
 
     void Editor::UpdateWindowTitle()
     {
-        auto& project = Project::GetActive();
+        auto project = Project::GetActive();
 
         if (!project || !m_EditorScene)
             return;
 
-        const std::string& sceneName = m_EditorScenePath.stem().string();
-        const std::string& title = fmt::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), sceneName);
+        std::string sceneName = m_EditorScenePath.stem().string();
+        std::string title = fmt::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), sceneName);
         Engine::Get().GetViewportWindow()->SetTitle(title.data());
     }
 
@@ -779,12 +779,12 @@ namespace Turbo::Ed
         SaveScene();
 
         // Save project
-        auto& active = Project::GetActive();
-        ProjectSerializer serializer(active);
-        TBO_VERIFY(serializer.Serialize(Project::GetProjectConfigPath()), "Saving project");
+        auto& project = Project::GetActive();
+        ProjectSerializer serializer(project);
+        TBO_VERIFY(serializer.Serialize(Project::GetProjectConfigPath()), "[Save Project] Successfully serialized project!");
     }
 
-    void Editor::CreateScene()
+    void Editor::NewScene()
     {
         // Save current scene
         SaveScene();
@@ -795,13 +795,21 @@ namespace Turbo::Ed
         newScene->CreateEntity("Start entity!");
 
         SceneSerializer serializer(newScene);
-        TBO_VERIFY(serializer.Serialize(scenePath), "New scene serialization");
+        TBO_VERIFY(serializer.Serialize(scenePath), "[NewScene] Successfully serialized scene!");
 
         OpenScene(scenePath);
     }
 
     void Editor::SaveScene()
     {
+        auto project = Project::GetActive();
+
+        if (!project)
+        {
+            TBO_ERROR("[SaveScene] No project loaded!");
+            return;
+        }
+
         if (m_EditorScenePath.empty())
         {
             SaveSceneAs();
@@ -811,23 +819,24 @@ namespace Turbo::Ed
         SceneSerializer serializer(m_EditorScene);
         if (serializer.Serialize(m_EditorScenePath.string()))
         {
-            TBO_INFO("Successfully serialized \"{0}\"!", m_EditorScenePath.stem().string());
+            TBO_INFO("[SaveScene] Successfully serialized to \"{0}\"!", m_EditorScenePath.stem().string());
             return;
         }
 
-        TBO_ERROR("Could not serialize \"{0}\"!", m_EditorScenePath);
+        TBO_ERROR("[SaveScene] Could not serialize to \"{0}\"!", m_EditorScenePath);
     }
 
-    void Editor::OpenScene(const std::filesystem::path& filepath /*= {}*/)
+    void Editor::OpenScene(std::filesystem::path filepath)
     {
-        std::filesystem::path scenePath = filepath;
-
-        if (scenePath.empty())
+        if (filepath.empty())
         {
-            scenePath = Platform::OpenFileDialog(L"Open Scene", L"Turbo Scene (*.tscene)\0*.tscene\0");
-            if (scenePath.empty())
-                return; // No scene selected
+            filepath = Platform::OpenFileDialog(L"Open Scene", L"Turbo Scene (*.tscene)\0*.tscene\0");
 
+            if (filepath.empty())
+            {
+                TBO_WARN("[OpenScene] No scene selected!");
+                return;
+            }
         }
 
         m_EditorScene = Ref<Scene>::Create();
@@ -837,34 +846,34 @@ namespace Turbo::Ed
         m_CurrentScene = m_EditorScene;
 
         SceneSerializer serializer(m_EditorScene);
-        TBO_ASSERT(serializer.Deserialize(scenePath.string()), "Could not deserialize scene!");
+        TBO_VERIFY(serializer.Deserialize(filepath), "[OpenScene] Successfully deserialized scene!");
 
         m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         m_PanelManager->SetSceneContext(m_EditorScene);
 
-        m_EditorScenePath = scenePath;
+        m_EditorScenePath = filepath;
 
         UpdateWindowTitle();
     }
 
     void Editor::SaveSceneAs()
     {
-        auto& active = Project::GetActive();
+        auto project = Project::GetActive();
 
-        if (!active)
+        if (!project)
         {
-            TBO_ERROR("No project loaded!");
+            TBO_ERROR("[SaveSceneAs] No project loaded!");
             return;
         }
 
         if (!m_EditorScene)
         {
-            TBO_ERROR("No scene loaded!");
+            TBO_ERROR("[SaveSceneAs] No scene loaded!");
             return;
         }
 
-        std::filesystem::path& filepath = Platform::SaveFileDialog("Turbo Scene(*.tscene)\0 * .tscene\0");
+        auto filepath = Platform::SaveFileDialog("Turbo Scene (*.tscene)\0*.tscene\0");
 
         if (!filepath.empty())
         {
@@ -873,14 +882,16 @@ namespace Turbo::Ed
 
             SceneSerializer serializer(m_EditorScene);
 
-            if (serializer.Serialize(filepath.string()))
+            if (serializer.Serialize(filepath))
             {
-                TBO_INFO("Successfully serialized {0}!", filepath);
+                TBO_INFO("[SaveSceneAs] Successfully serialized scene to {0}!", filepath);
                 UpdateWindowTitle();
             }
+
+            return;
         }
 
-        TBO_ERROR("Could not serialize {0}!", filepath);
+        TBO_ERROR("Could not serialize scene to \"{0}\"!", filepath);
     }
 
     void Editor::OnScenePlay()
@@ -949,7 +960,7 @@ namespace Turbo::Ed
         {
             OnSceneStop();
         }
-        
+
         // TODO: Editor settings
         SaveProject();
     }

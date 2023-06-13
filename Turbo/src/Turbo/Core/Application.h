@@ -7,10 +7,7 @@
 
 namespace Turbo
 {
-    class Application;
     class Engine;
-
-    using ApplicationCreateCallback = Application*(*)();
 
     class Application
     {
@@ -37,14 +34,11 @@ namespace Turbo
         virtual void OnDraw() {};
         virtual void OnEvent(Event& event) {};
         virtual void OnDrawUI() {}
-
     protected:
         Turbo::Time Time;
 
         Application::Config m_Config;
 
-        friend class Turbo::Window;
-        friend class Win32_Window;
         friend class Turbo::Engine;
     };
 

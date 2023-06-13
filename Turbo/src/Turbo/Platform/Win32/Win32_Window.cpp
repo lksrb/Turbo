@@ -14,6 +14,8 @@
 
 #include <windowsx.h>
 
+#define TBO_EDITOR_ICON_PATH "Resources\\Icons\\EditorIcon.ico"
+
 // Copy this line into your .cpp file to forward declare the function.
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -59,17 +61,17 @@ namespace Turbo
 
     void Win32_Window::InitializeWindow()
     {
-        std::filesystem::path current_dir = std::filesystem::current_path() / "Resources" / "Icons" / "EditorIcon.ico";
+        std::filesystem::path iconPath = std::filesystem::current_path() / TBO_EDITOR_ICON_PATH;
 
         m_Instance = ::GetModuleHandle(NULL);
-        WNDCLASS wnd_class = {};
-        wnd_class.lpszClassName = s_ClassName;
-        wnd_class.hInstance = m_Instance;
-        wnd_class.hIcon = reinterpret_cast<HICON>(::LoadImage(nullptr, current_dir.c_str(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
-        wnd_class.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-        wnd_class.lpfnWndProc = Win32_Window::Win32Procedure;
+        WNDCLASS wndClass = {};
+        wndClass.lpszClassName = s_ClassName;
+        wndClass.hInstance = m_Instance;
+        wndClass.hIcon = reinterpret_cast<HICON>(::LoadImage(nullptr, iconPath.c_str(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
+        wndClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
+        wndClass.lpfnWndProc = Win32_Window::Win32Procedure;
 
-        RegisterClass(&wnd_class);
+        RegisterClass(&wndClass);
 
         DWORD style = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_BORDER;
 
@@ -147,23 +149,23 @@ namespace Turbo
             }
             case WM_MOUSEWHEEL:
             {
-                f32 delta_x = 0.0f, delta_y = 0.0f;
-                f32 common_delta = std::signbit(static_cast<f32>(GET_WHEEL_DELTA_WPARAM(wParam))) ? -1.0f : 1.0f;
+                f32 deltaX = 0.0f, deltaY = 0.0f;
+                f32 commonDelta = std::signbit(static_cast<f32>(GET_WHEEL_DELTA_WPARAM(wParam))) ? -1.0f : 1.0f;
 
                 // Vertical
                 if (!(wParam & MK_SHIFT))
                 {
-                    delta_x = 0;
+                    deltaX = 0;
 
-                    delta_y = common_delta;
+                    deltaY = commonDelta;
                 }
                 else // Horizontal
                 {
-                    delta_x = common_delta;
-                    delta_y = 0;
+                    deltaX = commonDelta;
+                    deltaY = 0;
                 }
 
-                MouseScrolledEvent e(delta_x, delta_y);
+                MouseScrolledEvent e(deltaX, deltaY);
                 m_Callback(e);
 
                 break;
@@ -305,9 +307,9 @@ namespace Turbo
     {
         m_Config.Title = title;
 
-        size_t title_size = m_Config.Title.size() + 1;
+        size_t titleSize = m_Config.Title.size() + 1;
         WCHAR ws[MAX_PATH] = {};
-        mbstowcs_s(NULL, &ws[0], title_size, m_Config.Title.c_str(), title_size - 1);
+        mbstowcs_s(NULL, &ws[0], titleSize, m_Config.Title.c_str(), titleSize - 1);
 
         ::SetWindowText(m_Handle, ws);
     }
@@ -321,5 +323,4 @@ namespace Turbo
     {
         m_Swapchain->SwapFrame();
     }
-
-    }
+}

@@ -804,7 +804,6 @@ namespace Turbo
         if (!entity)
             return;
 
-        // TODO: Figure out how to save collapse/folding of a tree node
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 
         if (!entity.HasChildren())
@@ -845,19 +844,26 @@ namespace Turbo
         bool entityDestroyed = false;
         if (entity && ImGui::BeginPopupContextItem(0, 1))
         {
+            if (ImGui::MenuItem("New Child Entity"))
+            {
+                Entity child = m_Context->CreateEntity();
+                child.SetParent(entity);
+            }
+
             if (ImGui::MenuItem("Destroy Entity"))
                 entityDestroyed = true;
 
             Entity parent = entity.GetParent();
-            if (ImGui::MenuItem("Unparent entity", "", nullptr, parent))
+            if (parent && ImGui::MenuItem("Unparent Entity"))
             {
-                //GetParent(nullptr); FIXME: Why does scene hierarchy panel have WinUser.h include ???
+                //GetParent(nullptr); FIXME: Why does scene hierarchy panel includes WinUser.h ???
                 auto a = GetParent(nullptr);
 
                 parent.RemoveChild(entity);
                 entity.SetParentUUID(0);
             }
 
+            ImGui::Separator();
             if (ImGui::MenuItem("Copy UUID"))
             {
                 std::string strID = std::to_string(entity.GetUUID());

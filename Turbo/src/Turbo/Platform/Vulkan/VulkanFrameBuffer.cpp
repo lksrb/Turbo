@@ -93,8 +93,8 @@ namespace Turbo
 
     Ref<Image2D> VulkanFrameBuffer::GetColorAttachment() const
     {
-        u32 current_frame = Renderer::GetCurrentFrame();
-        return m_ColorAttachments[current_frame];
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        return m_ColorAttachments[currentFrame];
     }
 
 }

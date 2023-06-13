@@ -45,10 +45,10 @@ namespace Turbo::Ed
         void SaveProject();
         void OpenProject(std::filesystem::path filepath = {});
     private: // Scene
-        void CreateScene();
+        void NewScene();
         void SaveScene();
         void SaveSceneAs();
-        void OpenScene(const std::filesystem::path& filepath = {});
+        void OpenScene(std::filesystem::path filepath = {});
     private: // Editor
         void UpdateWindowTitle();
         void Close();

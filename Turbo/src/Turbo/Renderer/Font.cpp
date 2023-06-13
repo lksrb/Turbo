@@ -190,7 +190,6 @@ namespace Turbo
         msdfgen::Shape shape;
         if (msdfgen::loadGlyph(shape, font, 'C'))
         {
-
             shape.normalize();
             //                      max. angle
             msdfgen::edgeColoringSimple(shape, 3.0);

@@ -51,19 +51,19 @@ namespace Turbo
         } Timer;
     };
 
-    static Win32_Platform* s_PlatformData = nullptr;
+    static Win32_Platform* s_RendererContext = nullptr;
 
     void Platform::Init()
     {
-        s_PlatformData = new Win32_Platform;
+        s_RendererContext = new Win32_Platform;
 
-        ::QueryPerformanceFrequency((LARGE_INTEGER*)&s_PlatformData->Timer.Frequency);
-        ::QueryPerformanceCounter((LARGE_INTEGER*)&s_PlatformData->Timer.Offset);
+        ::QueryPerformanceFrequency((LARGE_INTEGER*)&s_RendererContext->Timer.Frequency);
+        ::QueryPerformanceCounter((LARGE_INTEGER*)&s_RendererContext->Timer.Offset);
     }
 
     void Platform::Shutdown()
     {
-        delete s_PlatformData;
+        delete s_RendererContext;
     }
 
     f32 Platform::GetTime()
@@ -71,7 +71,7 @@ namespace Turbo
         u64 timerValue;
         ::QueryPerformanceCounter((LARGE_INTEGER*)&timerValue);
 
-        return (static_cast<f32>(timerValue - s_PlatformData->Timer.Offset) / (s_PlatformData->Timer.Frequency));
+        return (static_cast<f32>(timerValue - s_RendererContext->Timer.Offset) / (s_RendererContext->Timer.Frequency));
     }
 
     std::filesystem::path Platform::OpenFileDialog(const wchar_t* title, const wchar_t* filter)
@@ -97,13 +97,14 @@ namespace Turbo
 
     std::filesystem::path Platform::OpenBrowseFolderDialog(const char* title, const char* path)
     {
+        WCHAR selectedPath[MAX_PATH];
+
         // Title conversion
-        size_t title_size = strlen(title) + 1;
+        size_t titleSize = strlen(title) + 1;
         WCHAR wtitle[TBO_MAX_CHARS] = {};
-        mbstowcs_s(NULL, &wtitle[0], title_size, title, title_size - 1);
-
-        WCHAR selected_path[MAX_PATH];
-
+        mbstowcs_s(NULL, &wtitle[0], titleSize, title, titleSize - 1);
+        
+        // Open browser folder dialog
         BROWSEINFO bi = { 0 };
         bi.lpszTitle = wtitle;
         bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_STATUSTEXT;
@@ -115,7 +116,7 @@ namespace Turbo
         if (pidl != 0)
         {
             // Get the name of the folder and put it in path
-            ::SHGetPathFromIDList(pidl, selected_path);
+            ::SHGetPathFromIDList(pidl, selectedPath);
 
             // Free memory used
             IMalloc* imalloc = 0;
@@ -125,7 +126,7 @@ namespace Turbo
                 imalloc->Release();
             }
 
-            return selected_path;
+            return selectedPath;
         }
 
         TBO_ENGINE_WARN("[Win32_Platform::OpenBrowseFolderDialog] Cancelled!");
@@ -135,17 +136,17 @@ namespace Turbo
 
     std::filesystem::path Platform::SaveFileDialog(const char* filter, const char* suffix)
     {
+        std::filesystem::path selectedPath;
+
         // Filter conversion
-        size_t filter_size = strlen(filter) + 1;
+        size_t filterSize = strlen(filter) + 1;
         WCHAR wfilter[TBO_MAX_CHARS] = {};
-        mbstowcs_s(NULL, &wfilter[0], filter_size, filter, filter_size);
+        mbstowcs_s(NULL, &wfilter[0], filterSize, filter, filterSize);
 
         // Suffix conversion
-        size_t suffix_size = strlen(suffix) + 1;
+        size_t suffixSize = strlen(suffix) + 1;
         WCHAR wsuffix[TBO_MAX_CHARS] = {};
-        mbstowcs_s(NULL, &wsuffix[0], suffix_size, suffix, suffix_size - 1);
-
-        std::filesystem::path selected_path;
+        mbstowcs_s(NULL, &wsuffix[0], suffixSize, suffix, suffixSize - 1);
 
         // Opening save dialog
         OPENFILENAME ofn;
@@ -160,13 +161,13 @@ namespace Turbo
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
         if (::GetSaveFileName(&ofn) == TRUE)
         {
-            selected_path = ofn.lpstrFile;
-            selected_path.concat(suffix);
-            return selected_path;
+            selectedPath = ofn.lpstrFile;
+            selectedPath.concat(suffix);
+            return selectedPath;
         }
 
         TBO_ENGINE_WARN("[Win32_Platform::SaveFileDialog] Cancelled!");
-        return selected_path;
+        return selectedPath;
     }
 
     bool Platform::OpenFileExplorer(const std::filesystem::path& directory)

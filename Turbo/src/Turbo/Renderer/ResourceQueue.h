@@ -8,7 +8,8 @@
 namespace Turbo {
 
     // In ascending order
-    enum ExecutionPriority : u32 {
+    enum ExecutionPriority : u32 
+    {
         FRAMEBUFFER = 0,
         IMAGEVIEW,
         SWAPCHAIN,
@@ -29,12 +30,14 @@ namespace Turbo {
         INSTANCE
     };
 
-    enum class ExecutionOrder : u32 {
+    enum class ExecutionOrder : u32 
+    {
         Allocate = 0,
         Free,
     };
 
-    struct ResourceCommand {
+    struct ResourceCommand 
+    {
         ExecutionPriority Priority;
         std::function<void()> Function;
 
@@ -49,30 +52,21 @@ namespace Turbo {
         }
     };
 
-    class ResourceQueue {
+    class ResourceQueue 
+    {
     public:
         ResourceQueue();
         ~ResourceQueue();
 
         ResourceQueue(const ResourceQueue&) = delete;
-
         const ResourceQueue& operator=(const ResourceQueue& other) = delete;
-
-        // TODO: Create faster cleanup command queue
-        /*template<class VulkanHandle>
-        void PushBackd(VulkanHandle handle) {
-            //m_Queue.emplace_back(priority, function);
-        }
-        template<>
-        void PushBackd(VkImage handle) {
-            m_ImageDestroyQueue.emplace_back(handle);
-        }*/
 
         template<class F>
         void Submit(ExecutionPriority priority, F&& function)
         {
-            m_Queue.emplace_back(priority, function);
+            m_Queue.emplace_back(priority, std::move(function));
         }
+
         bool Execute(ExecutionOrder order);
 
         size_t Size() const { return m_Queue.size(); }
