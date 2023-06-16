@@ -66,4 +66,3 @@ namespace Turbo
             EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 }
-#undef CreateWindow

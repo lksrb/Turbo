@@ -166,7 +166,7 @@ namespace Turbo
         if (m_Application->m_Config.EnableUI)
             m_UserInterface->OnEvent(e);
 
-        if (e.Handled == false)
+        if (!e.Handled)
             m_Application->OnEvent(e);
     }
 
@@ -192,7 +192,6 @@ namespace Turbo
 
     bool Engine::WindowClosed(WindowCloseEvent& e)
     {
-
         Close();
         return false;
     }
