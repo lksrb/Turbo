@@ -86,14 +86,14 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
-        
+
         const SwapchainSupportDetails& deviceDetails = RendererContext::GetSwapchainSupportDetails();
         const QueueFamilyIndices& indices = RendererContext::GetQueueFamilyIndices();
 
         // Wait for GPU
         vkDeviceWaitIdle(device);
 
-        VkSwapchainCreateInfoKHR createInfo{};
+        VkSwapchainCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         createInfo.surface = RendererContext::GetSurface();
         createInfo.minImageCount = deviceDetails.nMinImageCount;

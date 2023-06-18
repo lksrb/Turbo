@@ -194,7 +194,7 @@ namespace Turbo
 
                 m_Minimized = m_Config.Width == 0 || m_Config.Height == 0;
 
-                if (m_Minimized == false)
+                if (!m_Minimized)
                 {
                     m_Swapchain->Resize(m_Config.Width, m_Config.Height);
                 }

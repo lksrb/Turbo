@@ -129,10 +129,8 @@ namespace Turbo
 
             if (!m_ViewportWindow->IsMinimized())
             {
-                m_Application->OnUpdate();
-
                 Renderer::BeginFrame();
-                Renderer::Submit([this]() { m_Application->OnDraw(); });
+                m_Application->OnUpdate();
 
                 // Render UI
                 if (m_Application->m_Config.EnableUI)

@@ -1,5 +1,5 @@
 ﻿#include "tbopch.h"
-#include "Renderer2D.h"
+#include "DrawList2D.h"
 
 #include "Font-Internal.h"
 
@@ -10,16 +10,16 @@
 
 namespace Turbo
 {
-    Renderer2D::Renderer2D()
+    DrawList2D::DrawList2D()
     {
     }
 
-    Renderer2D::~Renderer2D()
+    DrawList2D::~DrawList2D()
     {
         Shutdown();
     }
 
-    void Renderer2D::Initialize()
+    void DrawList2D::Initialize()
     {
         // Render command buffer
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
@@ -67,10 +67,10 @@ namespace Turbo
             // Graphics pipeline
             GraphicsPipeline::Config config = {};
             config.Shader = m_QuadShader;
-            config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Triangle;
-            config.DepthTesting = m_TargetFramebuffer->GetConfig().EnableDepthTesting;
-            config.TargetFramebuffer = m_TargetFramebuffer;
+            config.Renderpass = m_TargerRenderPass;
+            config.DepthTesting = true;
+            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_QuadPipeline = GraphicsPipeline::Create(config);
             m_QuadPipeline->Invalidate();
 
@@ -95,10 +95,10 @@ namespace Turbo
             // Graphics pipeline
             GraphicsPipeline::Config config = {};
             config.Shader = m_CircleShader;
-            config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Triangle;
-            config.DepthTesting = m_TargetFramebuffer->GetConfig().EnableDepthTesting;
-            config.TargetFramebuffer = m_TargetFramebuffer;
+            config.Renderpass = m_TargerRenderPass;
+            config.DepthTesting = true;
+            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_CirclePipeline = GraphicsPipeline::Create(config);
             m_CirclePipeline->Invalidate();
 
@@ -123,10 +123,10 @@ namespace Turbo
             // Graphics pipeline
             GraphicsPipeline::Config config = {};
             config.Shader = m_LineShader;
-            config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
+            config.Renderpass = m_TargerRenderPass;
             config.Topology = PrimitiveTopology::Line;
-            config.DepthTesting = false; // TODO: debug lines should be drawn separately
-            config.TargetFramebuffer = m_TargetFramebuffer;
+            config.DepthTesting = false;
+            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();
         }
@@ -148,10 +148,10 @@ namespace Turbo
             // Graphics PipeText
             GraphicsPipeline::Config config = {};
             config.Shader = m_TextShader;
-            config.Renderpass = m_TargetFramebuffer->GetConfig().Renderpass;
             config.Topology = PrimitiveTopology::Triangle;
+            config.Renderpass = m_TargerRenderPass;
             config.DepthTesting = false;
-            config.TargetFramebuffer = m_TargetFramebuffer;
+            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_TextPipeline = GraphicsPipeline::Create(config);
             m_TextPipeline->Invalidate();
 
@@ -170,7 +170,7 @@ namespace Turbo
         m_TextureSlots[0] = m_WhiteTexture;
     }
 
-    void Renderer2D::Shutdown()
+    void DrawList2D::Shutdown()
     {
         delete[] m_QuadVertexBufferBase;
         delete[] m_CircleVertexBufferBase;
@@ -178,33 +178,28 @@ namespace Turbo
         delete[] m_TextVertexBufferBase;
     }
 
-    void Renderer2D::Begin2D(const Camera& camera)
+    void DrawList2D::Begin()
     {
-        // Enable drawing
-        m_BeginDraw = true;
+        ResetStatistics();
+        StartBatch();
+    }
 
-        // u_Camera, will be on the set on 0 and bound on 0
-        m_UniformBufferSet->SetData(0, 0, &camera.GetViewProjection());
-
+    void DrawList2D::StartBatch()
+    {
         // Reset texture indexing
         m_TextureSlotsIndex = 1;
+
+        // Reset font texture indexing
+        m_FontTextureSlotsIndex = 0;
 
         // Reset textures
         for (size_t i = 1; i < m_TextureSlots.size(); ++i)
             m_TextureSlots[i] = nullptr;
 
-        // Reset font texture indexing
-        m_FontTextureSlotsIndex = 0;
-
         // Reset font atlas textures
         for (size_t i = 0; i < m_FontTextureSlots.size(); ++i)
             m_FontTextureSlots[i] = nullptr;
 
-        StartBatch();
-    }
-
-    void Renderer2D::StartBatch()
-    {
         // Quads
         m_QuadIndexCount = 0;
         m_QuadVertexBufferPointer = m_QuadVertexBufferBase;
@@ -220,35 +215,99 @@ namespace Turbo
         // Text
         m_TextIndexCount = 0;
         m_TextVertexBufferPointer = m_TextVertexBufferBase;
-
-        // Reset statistics
-        m_Statistics.Reset();
     }
 
-    void Renderer2D::End2D()
+    void DrawList2D::FlushAndReset()
     {
-        Flush();
-
-        m_BeginDraw = false;
+        End();
+        StartBatch();
     }
 
-    void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, f32 rotation, const glm::vec4& color, i32 entity)
+    void DrawList2D::End()
     {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
+        m_RenderCommandBuffer->Begin();
+        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargerRenderPass, m_ClearColor);
 
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-            * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
-            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+        // Quads
+        if (m_QuadIndexCount)
+        {
+            // Texture slots
+            for (u32 i = 0; i < m_TextureSlots.size(); ++i)
+            {
+                if (m_TextureSlots[i])
+                    m_QuadMaterial->Set("u_Textures", m_TextureSlots[i], i);
+                else
+                    m_QuadMaterial->Set("u_Textures", m_WhiteTexture, i);
+            }
 
-        DrawQuad(transform, color, entity);
+            u32 dataSize = (u32)((u8*)m_QuadVertexBufferPointer - (u8*)m_QuadVertexBufferBase);
+            m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize);
+
+            Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
+
+            m_Statistics.DrawCalls++;
+        }
+
+        // Circles
+        if (m_CircleIndexCount)
+        {
+            u32 dataSize = (u32)((u8*)m_CircleVertexBufferPointer - (u8*)m_CircleVertexBufferBase);
+            m_CircleVertexBuffer->SetData(m_CircleVertexBufferBase, dataSize);
+
+            Renderer::DrawIndexed(m_RenderCommandBuffer, m_CircleVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_CirclePipeline, m_CircleShader, m_CircleIndexCount);
+            m_Statistics.DrawCalls++;
+        }
+
+        // Lines
+        if (m_LineVertexCount)
+        {
+            u32 dataSize = (u32)((u8*)m_LineVertexBufferPointer - (u8*)m_LineVertexBufferBase);
+            m_LineVertexBuffer->SetData(m_LineVertexBufferBase, dataSize);
+
+            Renderer::SetLineWidth(m_RenderCommandBuffer, m_LineWidth);
+            Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
+            m_Statistics.DrawCalls++;
+        }
+
+        // Text
+        if (m_TextIndexCount)
+        {
+            // Font texture slots
+            for (u32 i = 0; i < m_FontTextureSlots.size(); ++i)
+            {
+                if (m_FontTextureSlots[i])
+                    m_TextMaterial->Set("u_Textures", m_FontTextureSlots[i], i); // FIXME: Clear descriptors, because textures wont unbound automatically
+                else
+                    m_TextMaterial->Set("u_Textures", Font::GetDefaultFont()->GetAtlasTexture(), i);
+            }
+
+            u32 dataSize = (u32)((u8*)m_TextVertexBufferPointer - (u8*)m_TextVertexBufferBase);
+            m_TextVertexBuffer->SetData(m_TextVertexBufferBase, dataSize);
+
+            Renderer::DrawIndexed(m_RenderCommandBuffer, m_TextVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_TextPipeline, m_TextShader, m_TextIndexCount);
+            m_Statistics.DrawCalls++;
+        }
+
+        Renderer::EndRenderPass(m_RenderCommandBuffer);
+        m_RenderCommandBuffer->End();
+        m_RenderCommandBuffer->Submit();
     }
 
-    void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity)
+    void DrawList2D::SetCameraTransform(const glm::mat4& viewProjection)
     {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
+        // u_Camera, will be on the set on 0 and bound on 0
+        Renderer::Submit([this, viewProjection]()
+        {
+            m_UniformBufferSet->SetData(0, 0, &viewProjection);
+        });
+    }
 
-        /*if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices) // // TODO(Urby): Flushing batch renderer
-            NextBatch();*/
+    void DrawList2D::AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity)
+    {
+        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        {
+            FlushAndReset();
+        }
 
         constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 
@@ -268,10 +327,12 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity /*= -1*/)
+    void DrawList2D::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity /*= -1*/)
     {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-        TBO_ENGINE_ASSERT(m_QuadIndexCount <= Renderer2D::MaxQuadIndices);
+        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        {
+            FlushAndReset();
+        }
 
         u32 textureIndex = 0; // White Texture
         glm::vec2 textureCoords[] = {
@@ -296,7 +357,10 @@ namespace Turbo
             // If the texture is not present in texture stack, add it
             if (textureIndex == 0)
             {
-                TBO_ENGINE_ASSERT(m_TextureSlotsIndex < MaxTextureSlots); // TODO: Flush and reset
+                if (m_TextureSlotsIndex >= DrawList2D::MaxTextureSlots)
+                {
+                    FlushAndReset();
+                } 
 
                 textureIndex = m_TextureSlotsIndex;
                 m_TextureSlots[m_TextureSlotsIndex] = texture;
@@ -320,10 +384,12 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void Renderer2D::DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity)
+    void DrawList2D::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity)
     {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxQuadIndices); // TODO(Urby): Flush and reset
+        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        {
+            FlushAndReset();
+        }
 
         u32 textureIndex = 0; // White Texture
         glm::vec2 textureCoords[] = {
@@ -349,8 +415,11 @@ namespace Turbo
             // If the texture is not present in texture stack, add it
             if (textureIndex == 0)
             {
-                TBO_ENGINE_ASSERT(m_TextureSlotsIndex < MaxTextureSlots); // TODO: Flush and reset
-
+                if (m_TextureSlotsIndex >= DrawList2D::MaxTextureSlots)
+                {
+                    FlushAndReset();
+                }
+                
                 textureIndex = m_TextureSlotsIndex;
                 m_TextureSlots[m_TextureSlotsIndex] = subTexture->GetTexture();
                 m_TextureSlotsIndex++;
@@ -373,10 +442,8 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity /*= -1*/)
+    void DrawList2D::AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity /*= -1*/)
     {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-
         m_LineVertexBufferPointer->Position = p0;
         m_LineVertexBufferPointer->Color = color;
         m_LineVertexBufferPointer->EntityID = entity;
@@ -390,10 +457,12 @@ namespace Turbo
         m_LineVertexCount += 2;
     }
 
-    void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
+    void DrawList2D::AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
     {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-        TBO_ENGINE_ASSERT(m_QuadIndexCount < Renderer2D::MaxQuadIndices);
+        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        {
+            FlushAndReset();
+        }
 
         for (u32 i = 0; i < 4; ++i)
         {
@@ -411,32 +480,19 @@ namespace Turbo
         m_Statistics.CircleCount++;
     }
 
-    void Renderer2D::DrawRect(const glm::vec3& position, const glm::vec2& size, f32 rotation, const glm::vec4& color, i32 entity)
+    void DrawList2D::AddRect(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-            * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
-            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
-
-        DrawRect(transform);
-    }
-
-    void Renderer2D::DrawRect(const glm::mat4& transform, const glm::vec4& color, i32 entity)
-    {
-        TBO_ENGINE_ASSERT(m_BeginDraw, "Call Begin() before issuing a draw command!");
-
         glm::vec3 lineVertices[4];
         for (u32 i = 0; i < 4; ++i)
             lineVertices[i] = transform * m_QuadVertexPositions[i];
 
-        DrawLine(lineVertices[0], lineVertices[1], color, entity);
-        DrawLine(lineVertices[1], lineVertices[2], color, entity);
-        DrawLine(lineVertices[2], lineVertices[3], color, entity);
-        DrawLine(lineVertices[3], lineVertices[0], color, entity);
+        AddLine(lineVertices[0], lineVertices[1], color, entity);
+        AddLine(lineVertices[1], lineVertices[2], color, entity);
+        AddLine(lineVertices[2], lineVertices[3], color, entity);
+        AddLine(lineVertices[3], lineVertices[0], color, entity);
     }
 
-    void Renderer2D::DrawString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity)
+    void DrawList2D::AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity)
     {
         const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
         const auto& metrics = fontGeometry.getMetrics();
@@ -557,77 +613,13 @@ namespace Turbo
         }
     }
 
-    void Renderer2D::Flush()
+    void DrawList2D::OnViewportResize(u32 width, u32 height)
     {
-        Renderer::Submit([this]()
-        {
-            m_RenderCommandBuffer->Begin();
-            Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargetFramebuffer, m_ClearColor);
-
-            // Quads
-            if (m_QuadIndexCount)
-            {
-                // Texture slots
-                for (u32 i = 0; i < m_TextureSlots.size(); ++i)
-                {
-                    if (m_TextureSlots[i])
-                        m_QuadMaterial->Set("u_Textures", m_TextureSlots[i], i);
-                    else
-                        m_QuadMaterial->Set("u_Textures", m_WhiteTexture, i);
-                }
-
-                u32 dataSize = (u32)((u8*)m_QuadVertexBufferPointer - (u8*)m_QuadVertexBufferBase);
-                m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
-
-                Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
-            }
-
-            // Circles
-            if (m_CircleIndexCount)
-            {
-                u32 dataSize = (u32)((u8*)m_CircleVertexBufferPointer - (u8*)m_CircleVertexBufferBase);
-                m_CircleVertexBuffer->SetData(m_CircleVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
-
-                Renderer::DrawIndexed(m_RenderCommandBuffer, m_CircleVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_CirclePipeline, m_CircleShader, m_CircleIndexCount);
-            }
-
-            // Lines
-            if (m_LineVertexCount)
-            {
-                u32 dataSize = (u32)((u8*)m_LineVertexBufferPointer - (u8*)m_LineVertexBufferBase);
-                m_LineVertexBuffer->SetData(m_LineVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
-
-                Renderer::SetLineWidth(m_RenderCommandBuffer, m_LineWidth);
-                Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
-            }
-
-            // Text
-            if (m_TextIndexCount)
-            {
-                // Font texture slots
-                for (u32 i = 0; i < m_FontTextureSlots.size(); ++i)
-                {
-                    if (m_FontTextureSlots[i])
-                        m_TextMaterial->Set("u_Textures", m_FontTextureSlots[i], i); // FIXME: Clear descriptors, because textures wont unbound automatically
-                    else
-                        m_TextMaterial->Set("u_Textures", Font::GetDefaultFont()->GetAtlasTexture(), i);
-                }
-
-                u32 dataSize = (u32)((u8*)m_TextVertexBufferPointer - (u8*)m_TextVertexBufferBase);
-                m_TextVertexBuffer->SetData(m_TextVertexBufferBase, dataSize); // TODO: Figure out how to submit transfering data
-
-                Renderer::DrawIndexed(m_RenderCommandBuffer, m_TextVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_TextPipeline, m_TextShader, m_TextIndexCount);
-            }
-
-            Renderer::EndRenderPass(m_RenderCommandBuffer);
-            m_RenderCommandBuffer->End();
-            m_RenderCommandBuffer->Submit();
-        });
-
-        if (m_QuadIndexCount) m_Statistics.DrawCalls++;
-        if (m_CircleIndexCount) m_Statistics.DrawCalls++;
-        if (m_LineVertexCount) m_Statistics.DrawCalls++;
-        if (m_TextIndexCount) m_Statistics.DrawCalls++;
+        
     }
 
+    void DrawList2D::SetTargetRenderPass(const Ref<RenderPass>& renderPass)
+    {
+        m_TargerRenderPass = renderPass;
+    }
 }

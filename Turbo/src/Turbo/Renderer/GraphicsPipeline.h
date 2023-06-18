@@ -29,6 +29,8 @@ namespace Turbo
         static Ref<GraphicsPipeline> Create(const GraphicsPipeline::Config& config);
         virtual ~GraphicsPipeline();
 
+        const GraphicsPipeline::Config& GetConfig() const { return m_Config; }
+
         virtual void Invalidate() = 0;
     protected:
         GraphicsPipeline(const GraphicsPipeline::Config& config);

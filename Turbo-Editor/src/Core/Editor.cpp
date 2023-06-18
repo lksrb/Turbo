@@ -122,7 +122,7 @@ namespace Turbo::Ed
         m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(Editor::CreateProject));
 
         // Render 
-        m_SceneRenderer = Ref<SceneRenderer>::Create(SceneRenderer::Config{ m_ViewportWidth, m_ViewportHeight, true });
+        m_ViewportDrawList = Ref<SceneDrawList>::Create(SceneDrawList::Config{ m_ViewportWidth, m_ViewportHeight });
 
         m_PlayIcon = Texture2D::Create("Resources/Icons/PlayButton.png");
         m_StopIcon = Texture2D::Create("Resources/Icons/StopButton.png");
@@ -139,6 +139,8 @@ namespace Turbo::Ed
 
     void Editor::OnUpdate()
     {
+        m_ViewportDrawList->Begin();
+
         switch (m_SceneMode)
         {
             case Mode::SceneEdit:
@@ -146,32 +148,20 @@ namespace Turbo::Ed
                 if (m_ViewportHovered)
                     m_EditorCamera.OnUpdate(Time.DeltaTime);
 
-                m_CurrentScene->OnEditorUpdate(Time.DeltaTime);
+                m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, Time.DeltaTime);
                 break;
             }
             case Mode::ScenePlay:
             {
-                m_CurrentScene->OnRuntimeUpdate(Time.DeltaTime);
+                m_CurrentScene->OnRuntimeUpdate(m_ViewportDrawList, Time.DeltaTime);
                 break;
             }
         }
-    }
 
-    void Editor::OnDraw()
-    {
-        switch (m_SceneMode)
-        {
-            case Mode::SceneEdit:
-            {
-                m_CurrentScene->OnEditorRender(m_SceneRenderer, m_EditorCamera);
-                break;
-            }
-            case Mode::ScenePlay:
-            {
-                m_CurrentScene->OnRuntimeRender(m_SceneRenderer);
-                break;
-            }
-        }
+        // Render debug lines
+        OnOverlayRender();
+
+        m_ViewportDrawList->End();
     }
 
     void Editor::OnDrawUI()
@@ -293,7 +283,7 @@ namespace Turbo::Ed
 
             if (m_EditorScene)
             {
-                UI::Image(m_SceneRenderer->GetFinalImage(), { viewportPanelSize.x, viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
+                UI::Image(m_ViewportDrawList->GetFinalImage(), { viewportPanelSize.x, viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
             }
 
             if (ImGui::BeginDragDropTarget())
@@ -511,7 +501,7 @@ namespace Turbo::Ed
         {
             ImGui::Begin("Scene settings");
             if (m_CurrentScene)
-                ImGui::Checkbox("Physics Colliders", &m_CurrentScene->ShowPhysics2DColliders);
+                ImGui::Checkbox("Physics Colliders", &m_ShowPhysics2DColliders);
 
             ImGui::End();
         }
@@ -522,9 +512,9 @@ namespace Turbo::Ed
         ImGui::Separator();
 
         // TODO: Better statistics
-        Renderer2D::Statistics stats = m_SceneRenderer->GetRenderer2D()->GetStatistics();
-        ImGui::Text("Quad Count: %d", stats.QuadCount);
-        ImGui::Text("Drawcalls: %d", stats.DrawCalls);
+        auto stats2d = m_ViewportDrawList->GetStatistics().Statistics2D;
+        ImGui::Text("Quad Count: %d", stats2d.QuadCount);
+        ImGui::Text("Drawcalls: %d", stats2d.DrawCalls);
         ImGui::Separator();
 
         Scene::Statistics sceneStats = m_CurrentScene->GetStatistics();
@@ -771,7 +761,9 @@ namespace Turbo::Ed
         m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         m_EditorCamera.SetViewportSize(width, height);
-        m_SceneRenderer->OnViewportSize(width, height);
+        m_ViewportDrawList->OnViewportResize(width, height);
+
+        TBO_WARN("Viewport resized! {} {}", width, height);
     }
 
     void Editor::SaveProject()
@@ -840,7 +832,6 @@ namespace Turbo::Ed
         }
 
         m_EditorScene = Ref<Scene>::Create();
-        m_EditorScene->SetEditorScene(true);
 
         // Set current scene
         m_CurrentScene = m_EditorScene;
@@ -926,10 +917,6 @@ namespace Turbo::Ed
     {
         m_SceneMode = Mode::SceneEdit;
 
-        // Copy some scene settings
-        // FIXME: Should not be a scene setting anyway -> Rendering
-        m_EditorScene->ShowPhysics2DColliders = m_RuntimeScene->ShowPhysics2DColliders;
-
         m_RuntimeScene->OnRuntimeStop();
         m_RuntimeScene.Reset();
 
@@ -964,4 +951,41 @@ namespace Turbo::Ed
         // TODO: Editor settings
         SaveProject();
     }
+
+    void Editor::OnOverlayRender()
+    {
+        if (m_ShowPhysics2DColliders)
+        {
+            // Box collider
+            auto bview = m_CurrentScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+            for (auto entity : bview)
+            {
+                auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+                glm::vec3 translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
+                glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+
+                glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), translation)
+                    * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
+                    * glm::scale(glm::mat4(1.0f), scale);
+
+                m_ViewportDrawList->AddRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+            }
+
+            // Circle collider
+            auto cview = m_CurrentScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+            for (auto entity : cview)
+            {
+                auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+                glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
+                glm::vec3 scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
+
+                glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale);
+
+                m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
+            }
+        }
+    }
+
 }

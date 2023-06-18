@@ -18,6 +18,8 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
 
+        const auto& frameBufferConfig = m_Config.TargetFrameBuffer->GetConfig();
+
         std::vector<VkAttachmentDescription> attachments;
 
         // Color attachment
@@ -29,11 +31,11 @@ namespace Turbo
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colorAttachment.finalLayout = static_cast<VkImageLayout>(m_Config.DestinationLayout);
+            colorAttachment.initialLayout = m_Config.ClearOnLoad ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
 
-        if (m_Config.EnableDepthTesting)
+        if (frameBufferConfig.EnableDepthTesting)
         {
             // Depth buffer
             auto& depthAttachment = attachments.emplace_back();
@@ -48,16 +50,16 @@ namespace Turbo
         }
 
         // Subpasses and attachment references
-        VkAttachmentReference colorAttachmentRef{};
+        VkAttachmentReference colorAttachmentRef = {};
         colorAttachmentRef.attachment = 0;
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         // Depth buffer attachment reference
-        VkAttachmentReference depthAttachmentRef{};
+        VkAttachmentReference depthAttachmentRef = {};
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        VkSubpassDescription subpassDescription{};
+        VkSubpassDescription subpassDescription = {};
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpassDescription.colorAttachmentCount = 1;
         subpassDescription.pColorAttachments = &colorAttachmentRef;
@@ -66,10 +68,10 @@ namespace Turbo
         subpassDescription.preserveAttachmentCount = 0;
         subpassDescription.pPreserveAttachments = VK_NULL_HANDLE;
         subpassDescription.pResolveAttachments = VK_NULL_HANDLE;
-        subpassDescription.pDepthStencilAttachment = m_Config.EnableDepthTesting ? &depthAttachmentRef : VK_NULL_HANDLE;
+        subpassDescription.pDepthStencilAttachment = frameBufferConfig.EnableDepthTesting ? &depthAttachmentRef : VK_NULL_HANDLE;
 
         // Dependencies
-        VkSubpassDependency dependency{};
+        VkSubpassDependency dependency = {};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -78,7 +80,7 @@ namespace Turbo
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-        if (m_Config.EnableDepthTesting)
+        if (frameBufferConfig.EnableDepthTesting)
         {
             dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -86,7 +88,7 @@ namespace Turbo
         }
 
         // Render pass 
-        VkRenderPassCreateInfo renderPassInfo{};
+        VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
         // Attachments
@@ -102,7 +104,6 @@ namespace Turbo
         //renderPassInfo.pDependencies = &dependency;
 
         TBO_VK_ASSERT(vkCreateRenderPass(device, &renderPassInfo, VK_NULL_HANDLE, &m_RenderPass));
-
 
         // Add it to deletion queue 
         auto& resourceFreeQueue = RendererContext::GetResourceQueue();

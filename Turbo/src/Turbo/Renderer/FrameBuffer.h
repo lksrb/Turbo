@@ -3,7 +3,6 @@
 #include "Turbo/Core/Common.h"
 
 #include "Turbo/Renderer/Image2D.h"
-#include "Turbo/Renderer/RenderPass.h"
 
 namespace Turbo
 {
@@ -46,9 +45,7 @@ namespace Turbo
 
         struct Config
         {
-            Ref<RenderPass> Renderpass;
             Attachment ColorAttachment;
-            Attachment DeptAttachment;
             bool EnableDepthTesting = true;
             u32 Width;
             u32 Height;
@@ -58,6 +55,8 @@ namespace Turbo
 
         static Ref<FrameBuffer> Create(const FrameBuffer::Config& config);
         
+        void SetRenderPass(Ref<RenderPass> renderPass) { m_RenderPass = renderPass; }
+
         const FrameBuffer::Config& GetConfig() const { return m_Config; }
 
         virtual Ref<Image2D> GetColorAttachment() const = 0;
@@ -66,6 +65,7 @@ namespace Turbo
     protected:
         FrameBuffer(const FrameBuffer::Config& config);
 
+        Ref<RenderPass> m_RenderPass;
         Ref<Image2D> m_DepthBuffer;
 
         FrameBuffer::Config m_Config;

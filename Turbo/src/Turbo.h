@@ -21,7 +21,7 @@
 
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"
-#include "Turbo/Scene/SceneRenderer.h"
+#include "Turbo/Scene/SceneDrawList.h"
 
 #include "Turbo/Solution/Project.h"
 

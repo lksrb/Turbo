@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Camera.h"
-
 #include "Font.h"
 #include "RenderCommandBuffer.h"
 #include "Shader.h"
@@ -23,7 +21,7 @@
 
 namespace Turbo
 {
-    class Renderer2D
+    class DrawList2D
     {
     public:
         struct Statistics
@@ -41,36 +39,39 @@ namespace Turbo
             }
         };
 
-        Renderer2D();
-        Renderer2D(const Renderer2D&) = delete;
-        ~Renderer2D();
+        DrawList2D();
+        DrawList2D(const DrawList2D&) = delete;
+        ~DrawList2D();
 
         void Initialize();
-        static Ref<Renderer2D> Create() { return Ref<Renderer2D>::Create(); }
+        static Ref<DrawList2D> Create() { return Ref<DrawList2D>::Create(); }
 
-        void Begin2D(const Camera& camera);
-        void End2D();
+        void Begin();
+        void End();
         
-        void DrawQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
-        void DrawQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
-        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity = -1);
-        void DrawSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity = -1);
+        void SetCameraTransform(const glm::mat4& viewProjection);
 
-        void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity = -1);
-        void DrawCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
-        void DrawRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
-        void DrawRect(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
+        void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity);
+        void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity);
+        void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity);
 
-        void DrawString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset = 0.0f, f32 lineSpacing = 0.0f, i32 entity = -1);
+        void AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity);
+        void AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity);
+        void AddRect(const glm::mat4& transform, const glm::vec4& color, i32 entity);
+
+        void AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity);
 
         Statistics GetStatistics() const { return m_Statistics; }
 
-        void SetRenderTarget(const Ref<FrameBuffer>& frameBuffer) { m_TargetFramebuffer = frameBuffer; }
+        void OnViewportResize(u32 width, u32 height);
+
+        void SetTargetRenderPass(const Ref<RenderPass>& renderPass);
     private:
+        void ResetStatistics() { m_Statistics.Reset(); }
         void Shutdown();
 
         void StartBatch();
-        void Flush();
+        void FlushAndReset();
     private:
         static constexpr u32 MaxQuad = 2000;
         static constexpr u32 MaxQuadVertices = MaxQuad * 4;
@@ -174,7 +175,7 @@ namespace Turbo
         Ref<Texture2D> m_WhiteTexture;
         Ref<UniformBufferSet> m_UniformBufferSet;
 
-        Ref<FrameBuffer> m_TargetFramebuffer;
+        Ref<RenderPass> m_TargerRenderPass;
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
         Statistics m_Statistics;
@@ -189,8 +190,5 @@ namespace Turbo
 
         glm::vec4 m_ClearColor = glm::vec4{ 0.0f };
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
-        bool m_BeginDraw = false;
-
-        friend class SceneRenderer;
     };
 }

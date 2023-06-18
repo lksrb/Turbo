@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RenderCommandQueue.h"
-#include "Renderer2D.h"
+#include "DrawList2D.h"
 
 namespace Turbo 
 {
@@ -37,7 +37,7 @@ namespace Turbo
         static void SetViewport(Ref<RenderCommandBuffer> commandBuffer, i32 x, i32 y, u32 width, u32 height, f32 minDepth = 0.0f, f32 maxDepth = 1.0f);
         static void SetScissor(Ref<RenderCommandBuffer> commandBuffer, i32 x, i32 y, u32 width, u32 height);
 
-        static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<FrameBuffer> frameBuffer, const glm::vec4& clearColor);
+        static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass, const glm::vec4& clearColor);
         static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer);
 
         static void Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 vertexCount);

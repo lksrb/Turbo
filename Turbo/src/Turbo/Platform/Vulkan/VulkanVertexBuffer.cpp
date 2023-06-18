@@ -1,6 +1,7 @@
 #include "tbopch.h"
 #include "VulkanVertexBuffer.h"
 
+#include "Turbo/Renderer/Renderer.h"
 #include "VulkanUtils.h"
 #include "VulkanRenderCommandBuffer.h"
 
@@ -101,13 +102,16 @@ namespace Turbo
     {
         m_TranferCommandBuffer->Begin();
 
-        VkDevice device = RendererContext::GetDevice();
+        Renderer::Submit([this, size]()
+        {
+            VkDevice device = RendererContext::GetDevice();
 
-        VkBufferCopy copyRegion{};
-        copyRegion.srcOffset = 0; // Optional
-        copyRegion.dstOffset = 0; // Optional
-        copyRegion.size = static_cast<VkDeviceSize>(size);
-        vkCmdCopyBuffer(m_TranferCommandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer(), m_StagingBuffer, m_Buffer, 1, &copyRegion);
+            VkBufferCopy copyRegion{};
+            copyRegion.srcOffset = 0; // Optional
+            copyRegion.dstOffset = 0; // Optional
+            copyRegion.size = static_cast<VkDeviceSize>(size);
+            vkCmdCopyBuffer(m_TranferCommandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer(), m_StagingBuffer, m_Buffer, 1, &copyRegion);
+        });
 
         m_TranferCommandBuffer->End();
         m_TranferCommandBuffer->Submit();

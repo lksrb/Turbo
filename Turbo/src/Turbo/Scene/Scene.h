@@ -12,8 +12,8 @@
 namespace Turbo
 {
     class Entity;
-    class SceneRenderer;
-    class Renderer2D;
+    class SceneDrawList;
+    class DrawList2D;
     class PhysicsWorld2D;
 
     using EntityMap = std::unordered_map<UUID, entt::entity>;
@@ -31,16 +31,11 @@ namespace Turbo
         Scene();
         ~Scene();
 
-        // Accessible variables
-        bool ShowPhysics2DColliders = false;
-
-        void OnEditorUpdate(FTime ts);
-        void OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editorCamera);
-
         void OnRuntimeStart();
         void OnRuntimeStop();
-        void OnRuntimeUpdate(FTime ts);
-        void OnRuntimeRender(Ref<SceneRenderer> renderer);
+
+        void OnEditorUpdate(Ref<SceneDrawList> drawList, const Camera& editorCamera, FTime ts);
+        void OnRuntimeUpdate(Ref<SceneDrawList> drawList, FTime ts);
 
         static Ref<Scene> Copy(Ref<Scene> other);
 
@@ -90,9 +85,6 @@ namespace Turbo
         Scene::Statistics GetStatistics() const { return m_Statistics; }
 
         bool IsRunning() const { return m_Running; }
-
-        void SetEditorScene(bool editorScene) { m_IsEditorScene = editorScene; }
-        bool IsEditorScene() const { return m_IsEditorScene; }
     private:
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
@@ -121,7 +113,6 @@ namespace Turbo
         std::vector<std::function<void()>> m_PostUpdateFuncs;
 
         bool m_Running = false;
-        bool m_IsEditorScene = false;
 
         Scene::Statistics m_Statistics;
 

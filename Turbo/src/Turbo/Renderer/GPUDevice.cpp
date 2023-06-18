@@ -177,7 +177,6 @@ namespace Turbo {
 
         // Manage queues
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-
         std::set<u32> uniqueQueueFamilies = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
 
         float queuePriority = 1.0f;

@@ -28,8 +28,6 @@ namespace Turbo::Ed
         void OnEvent(Event& event) override;
         void OnDrawUI() override;
         void OnUpdate() override;
-
-        void OnDraw() override;
     private: // Events
         void OnViewportResize(u32 width, u32 height);
 
@@ -50,6 +48,7 @@ namespace Turbo::Ed
         void SaveSceneAs();
         void OpenScene(std::filesystem::path filepath = {});
     private: // Editor
+        void OnOverlayRender();
         void UpdateWindowTitle();
         void Close();
     private:
@@ -62,7 +61,7 @@ namespace Turbo::Ed
         bool m_ShowPhysics2DColliders = false;
         bool m_ViewportHovered = false, m_ViewportFocused = false;
         Ref<Texture2D> m_PlayIcon, m_StopIcon;
-        Ref<SceneRenderer> m_SceneRenderer;
+        Ref<SceneDrawList> m_ViewportDrawList;
         Mode m_SceneMode = Mode::SceneEdit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
 

@@ -71,7 +71,7 @@ namespace Turbo
             VkFramebufferCreateInfo createInfo = {};
             createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             createInfo.pNext = nullptr;
-            createInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
+            createInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetRenderPass();
             createInfo.width = width;
             createInfo.height = height;
             createInfo.layers = 1;

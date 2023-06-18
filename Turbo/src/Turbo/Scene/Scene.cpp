@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 #include "Entity.h"
-#include "SceneRenderer.h"
+#include "SceneDrawList.h"
 #include "SceneCamera.h"
 
 #include "Turbo/Audio/Audio.h"
@@ -103,115 +103,6 @@ namespace Turbo
         m_Registry.on_destroy<Rigidbody2DComponent>().disconnect(this);
     }
 
-    void Scene::OnEditorUpdate(FTime ts)
-    {
-        // Post-Update for physics actors creation, ...
-        for (auto& func : m_PostUpdateFuncs)
-            func();
-
-        m_PostUpdateFuncs.clear();
-    }
-
-    void Scene::OnEditorRender(Ref<SceneRenderer> renderer, const Camera& editorCamera)
-    {
-        renderer->BeginRender();
-
-        // 2D Rendering
-        {
-            Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
-            {
-                renderer2d->Begin2D(editorCamera);
-
-                // Quads
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                        renderer2d->DrawSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
-
-                    }
-                }
-
-                // Circles
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                        renderer2d->DrawCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
-                    }
-                }
-
-                // Text
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
-                        renderer2d->DrawString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
-                    }
-                }
-
-                // Lines
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
-                        renderer2d->DrawLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
-                    }
-                }
-
-                // Debug lines
-                if (ShowPhysics2DColliders)
-                {
-                    // Box collider
-                    auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                    for (auto entity : bview)
-                    {
-                        auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
-
-                        glm::vec3 translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
-                        glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
-
-                        const glm::mat4& offsetTransform =
-                            glm::translate(glm::mat4(1.0f), translation) *
-                            glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                            glm::scale(glm::mat4(1.0f), scale);
-
-                        renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-                    }
-
-                    // Circle collider
-                    auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                    for (auto entity : cview)
-                    {
-                        auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
-
-                        glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
-                        glm::vec3 scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
-
-                        const glm::mat4& offsetTransform =
-                            glm::translate(glm::mat4(1.0f), translation) *
-                            glm::scale(glm::mat4(1.0f), scale);
-
-                        renderer2d->DrawCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035, 0.005f, (i32)entity);
-                    }
-                }
-
-                renderer2d->End2D();
-            }
-        }
-
-        renderer->EndRender();
-    }
-
     void Scene::OnRuntimeStart()
     {
         m_Running = true;
@@ -293,7 +184,66 @@ namespace Turbo
         m_Running = false;
     }
 
-    void Scene::OnRuntimeUpdate(FTime ts)
+    void Scene::OnEditorUpdate(Ref<SceneDrawList> drawList, const Camera& editorCamera, FTime ts)
+    {
+        // Post-Update for physics actors creation, ...
+        for (auto& func : m_PostUpdateFuncs)
+            func();
+
+        m_PostUpdateFuncs.clear();
+
+        // Render
+        drawList->SetCamera(editorCamera);
+
+        // 2D Rendering
+        {
+            // Quads
+            {
+                auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                    drawList->AddSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
+                }
+            }
+
+            // Circles
+            {
+                auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                    drawList->AddCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                }
+            }
+
+            // Text
+            {
+                auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
+
+                for (auto entity : view)
+                {
+                    auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+                    drawList->AddString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                }
+            }
+
+            // Lines
+            {
+                auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
+                    drawList->AddLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
+                }
+            }
+        }
+    }
+
+    void Scene::OnRuntimeUpdate(Ref<SceneDrawList> drawList, FTime ts)
     {
         Script::OnNewFrame(ts);
 
@@ -387,122 +337,66 @@ namespace Turbo
 
             m_PostUpdateFuncs.clear();
         }
-    }
 
-    void Scene::OnRuntimeRender(Ref<SceneRenderer> renderer)
-    {
-        Entity cameraEntity = FindPrimaryCameraEntity();
-
-        if (!cameraEntity)
-            return;
-
-        SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-        camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-        camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
-
-        renderer->BeginRender();
-
-        // 2D Rendering
+        // Render
         {
-            Ref<Renderer2D> renderer2d = renderer->GetRenderer2D();
-            renderer2d->Begin2D(camera);
+            Entity cameraEntity = FindPrimaryCameraEntity();
 
-            // Sprites
+            if (!cameraEntity)
+                return;
+
+            SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+            camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+            camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
+
+            drawList->SetCamera(camera);
+            // 2D Rendering
             {
-                auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
-
-                for (auto entity : view)
+                // Sprites
                 {
-                    auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                    auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
 
-                    Entity e = { entity, this };
-
-
-                    if (e.GetName() == "Hitbox-Horizontal")
+                    for (auto entity : view)
                     {
-                        TBO_CONSOLE_ERROR(e.GetName());
-                        //    TBO_ENGINE_ASSERT(false);
+                        auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                        drawList->AddSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
                     }
+                }
 
-                    renderer2d->DrawSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
+                // Circles
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
+
+                    for (auto entity : view)
+                    {
+                        auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                        drawList->AddCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                    }
+                }
+
+                // Text
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
+
+                    for (auto entity : view)
+                    {
+                        auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+                        drawList->AddString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                    }
+                }
+
+                // Lines
+                {
+                    auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
+
+                    for (auto entity : view)
+                    {
+                        auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
+                        drawList->AddLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
+                    }
                 }
             }
-
-            // Circles
-            {
-                auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
-
-                for (auto entity : view)
-                {
-                    auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                    renderer2d->DrawCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
-                }
-            }
-
-            // Text
-            {
-                auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
-
-                for (auto entity : view)
-                {
-                    auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
-                    renderer2d->DrawString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
-                }
-            }
-
-            // Lines
-            {
-                auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
-
-                for (auto entity : view)
-                {
-                    auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
-                    renderer2d->DrawLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
-                }
-            }
-
-            // Debug lines
-            if (ShowPhysics2DColliders)
-            {
-                f32 zOffset = camera.GetProjectionType() == Camera::ProjectionType::Perspective ? 0.001f : 0.0f; // TODO: Think about this
-
-                // Box collider
-                auto& bview = GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                for (auto entity : bview)
-                {
-                    auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
-
-                    glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
-
-                    glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), transform.Translation)
-                        * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
-                        * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, zOffset))
-                        * glm::scale(glm::mat4(1.0f), scale);
-
-                    renderer2d->DrawRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-                }
-
-                // Circle collider
-                auto& cview = GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                for (auto entity : cview)
-                {
-                    auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
-
-                    glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, zOffset);
-                    glm::vec3 scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
-
-                    const glm::mat4& offsetTransform =
-                        glm::translate(glm::mat4(1.0f), translation) *
-                        glm::scale(glm::mat4(1.0f), scale);
-
-                    renderer2d->DrawCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035, 0.005f, (i32)entity);
-                }
-            }
-
-            renderer2d->End2D();
         }
-
-        renderer->EndRender();
     }
 
     Ref<Scene> Scene::Copy(Ref<Scene> other)
@@ -526,9 +420,6 @@ namespace Turbo
 
         // Copy components (except IDComponent and TagComponent)
         Utils::CopyComponents(AllComponents{}, newScene->m_Registry, other->m_Registry, newScene->m_EntityIDMap);
-
-        // Copy settings
-        newScene->ShowPhysics2DColliders = other->ShowPhysics2DColliders;
 
         return newScene;
     }

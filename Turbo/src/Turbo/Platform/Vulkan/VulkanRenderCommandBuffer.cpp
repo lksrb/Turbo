@@ -50,38 +50,46 @@ namespace Turbo
 
     void VulkanRenderCommandBuffer::Begin()
     {
-        VkDevice device = RendererContext::GetDevice();
-        u32 currentFrame = Renderer::GetCurrentFrame();
+        Renderer::Submit([this]()
+        {
+            VkDevice device = RendererContext::GetDevice();
+            u32 currentFrame = Renderer::GetCurrentFrame();
 
-        TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_WaitFences[currentFrame], VK_TRUE, UINT64_MAX));
-        TBO_VK_ASSERT(vkResetFences(device, 1, &m_WaitFences[currentFrame]));
+            TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_WaitFences[currentFrame], VK_TRUE, UINT64_MAX));
+            TBO_VK_ASSERT(vkResetFences(device, 1, &m_WaitFences[currentFrame]));
 
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.pNext = nullptr;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        beginInfo.pInheritanceInfo = nullptr;
-        TBO_VK_ASSERT(vkBeginCommandBuffer(m_CommandBuffers[currentFrame], &beginInfo));
+            VkCommandBufferBeginInfo beginInfo = {};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.pNext = nullptr;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            beginInfo.pInheritanceInfo = nullptr;
+            TBO_VK_ASSERT(vkBeginCommandBuffer(m_CommandBuffers[currentFrame], &beginInfo));
+        });
     }
 
     void VulkanRenderCommandBuffer::End()
     {
-        u32 currentFrame = Renderer::GetCurrentFrame();
-
-        TBO_VK_ASSERT(vkEndCommandBuffer(m_CommandBuffers[currentFrame]));
+        Renderer::Submit([this]()
+        {
+            u32 currentFrame = Renderer::GetCurrentFrame();
+            TBO_VK_ASSERT(vkEndCommandBuffer(m_CommandBuffers[currentFrame]));
+        });
     }
 
     void VulkanRenderCommandBuffer::Submit()
     {
-        VkDevice device = RendererContext::GetDevice();
-        u32 currentFrame = Renderer::GetCurrentFrame();
-        VkQueue graphicsQueue = RendererContext::GetGraphicsQueue();
+        Renderer::Submit([this]()
+        {
+            VkDevice device = RendererContext::GetDevice();
+            u32 currentFrame = Renderer::GetCurrentFrame();
+            VkQueue graphicsQueue = RendererContext::GetGraphicsQueue();
 
-        VkSubmitInfo submit_info = {};
-        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.pCommandBuffers = &m_CommandBuffers[currentFrame];
-        submit_info.commandBufferCount = 1;
-        TBO_VK_ASSERT(vkQueueSubmit(graphicsQueue, 1, &submit_info, m_WaitFences[currentFrame]));
+            VkSubmitInfo submit_info = {};
+            submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submit_info.pCommandBuffers = &m_CommandBuffers[currentFrame];
+            submit_info.commandBufferCount = 1;
+            TBO_VK_ASSERT(vkQueueSubmit(graphicsQueue, 1, &submit_info, m_WaitFences[currentFrame]));
+        });
     }
 
 }

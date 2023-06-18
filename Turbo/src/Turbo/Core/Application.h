@@ -3,7 +3,7 @@
 #include "Turbo/Core/Time.h"
 #include "Turbo/Core/Window.h"
 #include "Turbo/Event/Event.h"
-#include "Turbo/Renderer/Renderer2D.h"
+#include "Turbo/Renderer/DrawList2D.h"
 
 namespace Turbo
 {
@@ -31,7 +31,6 @@ namespace Turbo
         virtual void OnInitialize() {};
         virtual void OnShutdown() {};
         virtual void OnUpdate() {};
-        virtual void OnDraw() {};
         virtual void OnEvent(Event& event) {};
         virtual void OnDrawUI() {}
     protected:
