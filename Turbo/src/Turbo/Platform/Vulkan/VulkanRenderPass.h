@@ -12,7 +12,7 @@ namespace Turbo
         VulkanRenderPass(const RenderPass::Config& config);
         ~VulkanRenderPass();
 
-        VkRenderPass GetRenderPass() const { return m_RenderPass; }
+        VkRenderPass GetHandle() const { return m_RenderPass; }
         void Invalidate() override;
     private:
         VkRenderPass m_RenderPass = nullptr;

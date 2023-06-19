@@ -40,6 +40,8 @@ namespace Turbo
         inline f32 GetYaw() const { return m_Yaw; }
 
         bool IsControlling() const { return m_IsControlling; }
+
+        void ResetRotation();
     private:
         void UpdateProjection();
         void UpdateView();

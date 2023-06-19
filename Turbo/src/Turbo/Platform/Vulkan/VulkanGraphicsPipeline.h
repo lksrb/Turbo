@@ -12,8 +12,8 @@ namespace Turbo
         VulkanGraphicsPipeline(const GraphicsPipeline::Config& config);
         ~VulkanGraphicsPipeline();
 
-        VkPipeline GetPipeline() const { return m_Pipeline; }
-        VkPipelineLayout GetPipelineLayout() const { return m_PipelineLayout; }
+        VkPipeline GetPipelineHandle() const { return m_Pipeline; }
+        VkPipelineLayout GetPipelineLayoutHandle() const { return m_PipelineLayout; }
 
         void Invalidate() override;
     private:

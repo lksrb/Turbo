@@ -3,6 +3,9 @@
 #include "Turbo/Renderer/Camera.h"
 #include "Turbo/Renderer/DrawList2D.h"
 
+// Temporary
+#include "Turbo/Renderer/RendererContext.h"
+
 namespace Turbo
 {
     class SceneDrawList
@@ -46,10 +49,31 @@ namespace Turbo
     private:
         void Init();
         void SetCamera(const Camera& camera);
+        void RenderGeometry();
+        void UpdateStatistics();
     private:
-        Ref<RenderCommandBuffer> m_RenderCommandBuffer;
+        struct UBCamera
+        {
+            glm::mat4 ViewProjection;
+        };
 
-        Ref<RenderPass> m_CompositeRenderPass;
+        struct CubeVertex
+        {
+            glm::vec3 Position;
+            //glm::vec4 Color;
+            //i32 EntityID;
+        };
+
+        Ref<RenderCommandBuffer> m_RenderCommandBuffer;
+        Ref<UniformBufferSet> m_UniformBufferSet;
+
+        // Cubes for now
+        Ref<VertexBuffer> m_CubeVertexBuffer;
+        Ref<Shader> m_CubeShader;
+        Ref<GraphicsPipeline> m_CubePipeline;
+        Ref<RenderPass> m_CubeRenderPass;
+
+        Ref<RenderPass> m_FinalRenderPass;
         Ref<DrawList2D> m_DrawList2D;
 
         SceneDrawList::Statistics m_Statistics;

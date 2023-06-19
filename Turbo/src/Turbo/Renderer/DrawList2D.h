@@ -122,6 +122,11 @@ namespace Turbo
             i32 EntityID;
         };
 
+        struct UBCamera
+        {
+            glm::mat4 ViewProjection;
+        };
+
         // Quads
         QuadVertex* m_QuadVertexBufferBase = nullptr;
         QuadVertex* m_QuadVertexBufferPointer = nullptr;
@@ -140,7 +145,6 @@ namespace Turbo
         u32 m_CircleIndexCount = 0;
 
         Ref<VertexBuffer> m_CircleVertexBuffer;
-        // Ref<Material> m_CircleMaterial;
 
         Ref<Shader> m_CircleShader;
         Ref<GraphicsPipeline> m_CirclePipeline;
@@ -166,11 +170,6 @@ namespace Turbo
 
         Ref<Shader> m_TextShader;
         Ref<GraphicsPipeline> m_TextPipeline;
-
-        struct UBCamera
-        {
-            glm::mat4 ViewProjection;
-        };
 
         Ref<Texture2D> m_WhiteTexture;
         Ref<UniformBufferSet> m_UniformBufferSet;

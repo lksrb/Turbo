@@ -126,6 +126,7 @@ namespace Turbo::Ed
 
         m_PlayIcon = Texture2D::Create("Resources/Icons/PlayButton.png");
         m_StopIcon = Texture2D::Create("Resources/Icons/StopButton.png");
+        m_ResetCameraRotationIcon = Texture2D::Create("Resources/Icons/ResetCameraRotationButton.png");
 
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
 
@@ -238,6 +239,13 @@ namespace Turbo::Ed
                     OnScenePlay();
                 else if (m_SceneMode == Mode::ScenePlay)
                     OnSceneStop();
+            }
+
+            ImGui::SameLine();
+
+            if (UI::ImageButton(m_ResetCameraRotationIcon, ImVec2(size, size), ImVec2(0, 1), ImVec2(1, 0), 0))
+            {
+                m_EditorCamera.ResetRotation();
             }
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(3);

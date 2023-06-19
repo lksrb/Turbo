@@ -42,7 +42,7 @@ namespace Turbo
                 auto& info = shaderMap[uniformBuffer.Get()] = {};
 
                 // Buffer
-                info.BufferInfo.buffer = uniformBuffer.As<VulkanUniformBuffer>()->GetBuffer();
+                info.BufferInfo.buffer = uniformBuffer.As<VulkanUniformBuffer>()->GetHandle();
                 info.BufferInfo.offset = 0;
                 info.BufferInfo.range = ubInfo.Size;
 
@@ -121,14 +121,14 @@ namespace Turbo
     {
         Renderer::Submit([=]()
         {
-            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
             vkCmdSetLineWidth(vkCommandBuffer, lineWidth);
         });
     }
 
     void Renderer::SetViewport(Ref<RenderCommandBuffer> commandBuffer, i32 x, i32 y, u32 width, u32 he, f32 min_depth, f32 max_depth)
     {
-        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
         VkViewport viewport = {};
         viewport.x = static_cast<f32>(x);
@@ -142,7 +142,7 @@ namespace Turbo
 
     void Renderer::SetScissor(Ref<RenderCommandBuffer> commandBuffer, i32 x, i32 y, u32 width, u32 height)
     {
-        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+        VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
         VkRect2D scissor = {};
         scissor.offset = { x,y };
@@ -159,9 +159,9 @@ namespace Turbo
             Renderer::SetViewport(commandBuffer, 0, 0, framebufferConfig.Width, framebufferConfig.Height);
             Renderer::SetScissor(commandBuffer, 0, 0, framebufferConfig.Width, framebufferConfig.Height);
 
-            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
-            VkFramebuffer vkFramebuffer = renderPass->GetConfig().TargetFrameBuffer.As<VulkanFrameBuffer>()->GetFrameBuffer();
-            VkRenderPass vkRenderpass = renderPass.As<VulkanRenderPass>()->GetRenderPass();
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
+            VkFramebuffer vkFramebuffer = renderPass->GetConfig().TargetFrameBuffer.As<VulkanFrameBuffer>()->GetHandle();
+            VkRenderPass vkRenderpass = renderPass.As<VulkanRenderPass>()->GetHandle();
 
             VkClearValue clearValues[2]{};
             clearValues[0].color = { { clearColor.x, clearColor.y, clearColor.z, clearColor.w } };
@@ -185,7 +185,7 @@ namespace Turbo
     {
         Renderer::Submit([=]()
         {
-            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
             vkCmdEndRenderPass(vkCommandBuffer);
         });
     }
@@ -194,11 +194,11 @@ namespace Turbo
     {
         Renderer::Submit([=]()
         {
-            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
-            VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetBuffer();
-            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipeline();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayout();
+            VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
 
             Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
             VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
@@ -220,12 +220,12 @@ namespace Turbo
     {
         Renderer::Submit([=]()
         {
-            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetCommandBuffer();
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
-            VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetBuffer();
-            VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetBuffer();
-            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipeline();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayout();
+            VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
+            VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
 
             Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
             VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();

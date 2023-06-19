@@ -16,7 +16,7 @@ namespace Turbo
 
         void SetData(void* data, u32 size) override;
 
-        VkBuffer GetBuffer() const { return m_Buffer; }
+        VkBuffer GetHandle() const { return m_Buffer; }
     private:
         void TransferData(u32 size);
     private:

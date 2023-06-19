@@ -12,7 +12,7 @@ namespace Turbo
         VulkanIndexBuffer(const IndexBuffer::Config& config);
         ~VulkanIndexBuffer();
         
-        VkBuffer GetBuffer() const { return m_Buffer; }
+        VkBuffer GetHandle() const { return m_Buffer; }
     private:
         VkBuffer m_Buffer;
         VkDeviceMemory m_Memory;

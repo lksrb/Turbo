@@ -12,7 +12,7 @@ namespace Turbo
         VulkanFrameBuffer(const FrameBuffer::Config& config);
         ~VulkanFrameBuffer();
 
-        VkFramebuffer GetFrameBuffer() const;
+        VkFramebuffer GetHandle() const;
         void Invalidate(u32 width, u32 height) override;
 
         Ref<Image2D> GetColorAttachment() const override;

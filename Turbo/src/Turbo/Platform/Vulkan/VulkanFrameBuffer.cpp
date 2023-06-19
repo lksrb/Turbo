@@ -18,7 +18,7 @@ namespace Turbo
     {
     }
 
-    VkFramebuffer VulkanFrameBuffer::GetFrameBuffer() const
+    VkFramebuffer VulkanFrameBuffer::GetHandle() const
     {
         u32 currentFrame = Renderer::GetCurrentFrame();
         return m_Framebuffers[currentFrame];
@@ -71,7 +71,7 @@ namespace Turbo
             VkFramebufferCreateInfo createInfo = {};
             createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             createInfo.pNext = nullptr;
-            createInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetRenderPass();
+            createInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetHandle();
             createInfo.width = width;
             createInfo.height = height;
             createInfo.layers = 1;

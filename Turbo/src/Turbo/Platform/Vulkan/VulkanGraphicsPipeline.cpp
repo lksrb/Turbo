@@ -66,20 +66,18 @@ namespace Turbo
         // ###############################################################################################################
         auto& layout = m_Config.Shader.As<VulkanShader>()->GetLayout();
 
+        VkVertexInputBindingDescription bindingDescription = {};
+        bindingDescription.binding = 0;
+        bindingDescription.stride = static_cast<u32>(layout.Stride);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
         VkPipelineVertexInputStateCreateInfo vertexInputState = {};
         vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputState.pNext = VK_NULL_HANDLE;
         vertexInputState.pVertexAttributeDescriptions = (VkVertexInputAttributeDescription*)layout.Descriptions.data();
-        vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(layout.Descriptions.size());
-
-        VkVertexInputBindingDescription bindingDescription = {};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = static_cast<uint32_t>(layout.Stride);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        vertexInputState.vertexBindingDescriptionCount = 1;
-        vertexInputState.pVertexBindingDescriptions = &bindingDescription; // Optional
-        vertexInputState.pVertexBindingDescriptions = &bindingDescription;
-        vertexInputState.vertexBindingDescriptionCount = 1;
+        vertexInputState.vertexAttributeDescriptionCount = static_cast<u32>(layout.Descriptions.size());
+        vertexInputState.vertexBindingDescriptionCount = layout.Descriptions.empty() ? 0 : 1;
+        vertexInputState.pVertexBindingDescriptions = layout.Descriptions.empty() ? nullptr : &bindingDescription;
 
         // ###############################################################################################################
         // ##################                              Index Buffer                                 ##################
@@ -226,7 +224,7 @@ namespace Turbo
         VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
         pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineCreateInfo.pNext = nullptr;
-        pipelineCreateInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
+        pipelineCreateInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetHandle();
 
         pipelineCreateInfo.pStages = shaderStagesCreateInfo;
         pipelineCreateInfo.stageCount = ShaderStage_Max;
@@ -239,8 +237,8 @@ namespace Turbo
         pipelineCreateInfo.pColorBlendState = &colorBlendState;
         pipelineCreateInfo.pDynamicState = &dynamicStatesInfo;
         pipelineCreateInfo.layout = m_PipelineLayout;
-        pipelineCreateInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetRenderPass();
-        pipelineCreateInfo.subpass = 0;
+        pipelineCreateInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetHandle();
+        pipelineCreateInfo.subpass = m_Config.Subpass;
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineCreateInfo.basePipelineIndex = -1; // Optional
         

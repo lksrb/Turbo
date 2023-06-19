@@ -12,7 +12,7 @@ namespace Turbo
         VulkanRenderCommandBuffer();
         ~VulkanRenderCommandBuffer();
 
-        VkCommandBuffer GetCommandBuffer() const;
+        VkCommandBuffer GetHandle() const;
 
         void Begin() override;
         void End() override;

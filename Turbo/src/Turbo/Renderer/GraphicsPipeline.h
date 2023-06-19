@@ -24,6 +24,9 @@ namespace Turbo
             Ref<FrameBuffer> TargetFramebuffer;
             PrimitiveTopology Topology;
             bool DepthTesting;
+
+            // Temporary
+            u32 Subpass = 0;
         };
 
         static Ref<GraphicsPipeline> Create(const GraphicsPipeline::Config& config);

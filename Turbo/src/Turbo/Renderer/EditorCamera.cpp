@@ -34,12 +34,12 @@ namespace Turbo
     std::pair<f32, f32> EditorCamera::PanSpeed() const
     {
         f32 x = std::min(m_ViewportWidth / 1000.0f, 2.4f); // max = 2.4f
-        f32 x_factor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
+        f32 xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
 
         f32 y = std::min(m_ViewportHeight / 1000.0f, 2.4f); // max = 2.4f
-        f32 y_factor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
+        f32 yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
 
-        return { x_factor, y_factor };
+        return { xFactor, yFactor };
     }
 
     f32 EditorCamera::RotationSpeed() const
@@ -66,21 +66,29 @@ namespace Turbo
             glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
             m_InitialMousePosition = mouse;
 
-            if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
                 MousePan(delta);
             else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
                 MouseZoom(delta.y);
-        /*    else if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
-                MouseRotate(delta);*/
-        }
+            else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+                MouseRotate(delta);
 
-        UpdateView();
+            UpdateView();
+        }
     }
 
     void EditorCamera::OnEvent(Event& e)
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(TBO_BIND_FN(EditorCamera::OnMouseScroll));
+    }
+
+    void EditorCamera::ResetRotation()
+    {
+        m_Yaw = 0.0f;
+        m_Pitch = 0.0f;
+
+        UpdateView();
     }
 
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e)
@@ -93,9 +101,9 @@ namespace Turbo
 
     void EditorCamera::MousePan(const glm::vec2& delta)
     {
-        auto [x_speed, y_speed] = PanSpeed();
-        m_FocalPoint += -GetRightDirection() * delta.x * x_speed * m_Distance;
-        m_FocalPoint += GetUpDirection() * delta.y * y_speed * m_Distance;
+        auto [xSpeed, ySpeed] = PanSpeed();
+        m_FocalPoint += -GetRightDirection() * delta.x * xSpeed * m_Distance;
+        m_FocalPoint += GetUpDirection() * delta.y * ySpeed * m_Distance;
     }
 
     void EditorCamera::MouseRotate(const glm::vec2& delta)

@@ -60,7 +60,7 @@ namespace Turbo::Ed
         EditorCamera m_EditorCamera;
         bool m_ShowPhysics2DColliders = false;
         bool m_ViewportHovered = false, m_ViewportFocused = false;
-        Ref<Texture2D> m_PlayIcon, m_StopIcon;
+        Ref<Texture2D> m_PlayIcon, m_StopIcon, m_ResetCameraRotationIcon;
         Ref<SceneDrawList> m_ViewportDrawList;
         Mode m_SceneMode = Mode::SceneEdit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;

@@ -42,7 +42,7 @@ namespace Turbo
             vkDestroyFence(device, fence, nullptr);
     }
 
-    VkCommandBuffer VulkanRenderCommandBuffer::GetCommandBuffer() const
+    VkCommandBuffer VulkanRenderCommandBuffer::GetHandle() const
     {
         u32 currentFrame = Renderer::GetCurrentFrame();
         return m_CommandBuffers[currentFrame];

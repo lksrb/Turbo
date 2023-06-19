@@ -137,11 +137,8 @@ namespace Turbo {
         m_SupportDetails.presentMode = ChooseSwapchainPresentMode(presentModes);
         m_SupportDetails.capabilities = capabilities;
 
-        m_SupportDetails.nMinImageCount = capabilities.minImageCount + 1;
-        if (capabilities.maxImageCount > 0 && m_SupportDetails.nMinImageCount > capabilities.maxImageCount)
-        { // ?
-            m_SupportDetails.nMinImageCount = capabilities.maxImageCount;
-        }
+        TBO_ENGINE_ASSERT(capabilities.minImageCount > 0);
+        m_SupportDetails.nMinImageCount = std::min(capabilities.minImageCount, capabilities.maxImageCount);
     }
 
     VkSurfaceFormatKHR GPUDevice::ChooseSwapchainSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
@@ -225,11 +222,9 @@ namespace Turbo {
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
-        std::vector<const char*> validationLayers{
-            "VK_LAYER_KHRONOS_validation"
-        };
-
         // Validation layers used for debugging Vulkan
+        std::vector<const char*> validationLayers;
+
         if (RendererContext::ValidationLayerEnabled())
         {
             validationLayers.push_back("VK_LAYER_KHRONOS_validation");

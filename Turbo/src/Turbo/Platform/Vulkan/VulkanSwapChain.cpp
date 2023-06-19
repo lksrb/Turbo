@@ -96,7 +96,7 @@ namespace Turbo
         VkSwapchainCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         createInfo.surface = RendererContext::GetSurface();
-        createInfo.minImageCount = deviceDetails.nMinImageCount;
+        createInfo.minImageCount = RendererContext::FramesInFlight();
         createInfo.imageFormat = m_SwapchainFormat;
         createInfo.imageColorSpace = deviceDetails.surfaceFormat.colorSpace;
         createInfo.imageExtent = { width, height };
@@ -122,10 +122,10 @@ namespace Turbo
 
         TBO_VK_ASSERT(vkCreateSwapchainKHR(device, &createInfo, nullptr, &newSwapchain));
 
-        uint32_t image_count;
-        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &image_count, nullptr));
-        TBO_ENGINE_ASSERT(image_count <= 3);
-        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &image_count, m_Images.data()));
+        u32 imageCount;
+        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, nullptr));
+        TBO_ENGINE_ASSERT(imageCount <= RendererContext::FramesInFlight());
+        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, m_Images.data()));
 
         // Destroy old stuff if exists
         if (m_Swapchain)

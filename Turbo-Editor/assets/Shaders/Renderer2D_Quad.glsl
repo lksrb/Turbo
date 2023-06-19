@@ -62,7 +62,7 @@ void main()
 	o_EntityID = in_EntityID;
     o_Color = Input.Color * texture(u_Textures[in_TexIndex], Input.TexCoord * Input.TilingFactor);
 
-	// Currently the only solution for blending semi-transparent objects
+	// Temporary solution for blending semi-transparent objects
 	if(o_Color.w == 0.0f)
 		discard;
 }

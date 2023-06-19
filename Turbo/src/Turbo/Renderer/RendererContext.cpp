@@ -77,7 +77,7 @@ namespace Turbo
 
         ResourceQueue RuntimeResourceQueue;
         bool ValidationLayerEnabled = true;
-        u32 FramesInFlight = 3;
+        u32 FramesInFlight = 2;
     };
 
     static RendererContextInternal* s_RendererContext;

@@ -13,6 +13,8 @@ namespace Turbo
         {
             Ref<FrameBuffer> TargetFrameBuffer;
             bool ClearOnLoad = true;
+
+            u32 SubPassCount = 1;
         };
 
         static Ref<RenderPass> Create(const RenderPass::Config& config);
