@@ -243,4 +243,46 @@ namespace Turbo
             vkCmdDrawIndexed(vkCommandBuffer, indexCount, 1, 0, 0, 0);
         });
     }
+
+    void Renderer::PushConstant(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, u32 size, const void* data)
+    {
+        Renderer::Submit([=]()
+        {
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+
+            vkCmdPushConstants(vkCommandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, size, data);
+        });
+    }
+
+    void Renderer::DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 instanceCount, u32 indicesPerInstance)
+    {
+        Renderer::Submit([=]()
+        {
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
+
+            VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
+            VkBuffer vkInstanceBuffer = instanceBuffer.As<VulkanVertexBuffer>()->GetHandle();
+            VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+
+            Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
+            VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
+
+            // Updating or creating descriptor sets
+            const auto& resources = vkShader->GetResources();
+            UpdateWriteDescriptors(uniformBufferSet, vkShader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
+
+            VkDeviceSize offsets[] = { 0 };
+            vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
+            vkCmdBindVertexBuffers(vkCommandBuffer, 1, 1, &vkInstanceBuffer, offsets);
+            vkCmdBindIndexBuffer(vkCommandBuffer, vkIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+            vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
+            vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
+
+            vkCmdDrawIndexed(vkCommandBuffer, indicesPerInstance, instanceCount, 0, 0, 0);
+        });
+    }
 }

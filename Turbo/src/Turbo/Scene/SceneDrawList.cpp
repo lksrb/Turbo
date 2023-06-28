@@ -8,6 +8,7 @@
 #include "Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h"
 #include "Turbo/Platform/Vulkan/VulkanGraphicsPipeline.h"
 #include "Turbo/Platform/Vulkan/VulkanImage2D.h"
+#include <Turbo/Platform/Vulkan/VulkanShader.h>
 
 namespace Turbo
 {
@@ -55,12 +56,40 @@ namespace Turbo
         m_DrawList2D = DrawList2D::Create();
         m_DrawList2D->SetTargetRenderPass(m_FinalRenderPass);
         m_DrawList2D->Initialize();
-        
+
         // NOTE: First pass should clear everything
         // Cube pass
         {
-            size_t maxVertices = 24 * 10;
-            m_CubeVertexBuffer = VertexBuffer::Create({ maxVertices * sizeof(CubeVertex) });
+            m_CubeInstances.reserve(MaxCubes);
+            m_CubeVertexBuffer = VertexBuffer::Create({ MaxCubeVertices * sizeof(CubeVertex) });
+
+            // This will be the same as quad indicies
+            // because cube is just 6 quads and we still need normals from those quads
+            {
+                u32* quadIndices = new u32[MaxCubeIndices];
+                u32 offset = 0;
+                for (u32 i = 0; i < MaxCubeIndices; i += 6)
+                {
+                    quadIndices[i + 0] = offset + 0;
+                    quadIndices[i + 1] = offset + 1;
+                    quadIndices[i + 2] = offset + 2;
+
+                    quadIndices[i + 3] = offset + 2;
+                    quadIndices[i + 4] = offset + 3;
+                    quadIndices[i + 5] = offset + 0;
+
+                    offset += 4;
+                }
+
+                IndexBuffer::Config config = {};
+                config.Size = MaxCubeIndices * sizeof(u32);
+                config.Indices = quadIndices;
+                m_CubeIndexBuffer = IndexBuffer::Create(config);
+
+                delete[] quadIndices;
+            }
+
+            m_CubeInstanceBuffer = VertexBuffer::Create({ MaxCubes * sizeof(CubeInstance) });
 
             RenderPass::Config config = {};
             config.TargetFrameBuffer = targetFrameBuffer;
@@ -71,9 +100,25 @@ namespace Turbo
 
             GraphicsPipeline::Config pipelineConfig = {};
             pipelineConfig.Renderpass = m_CubeRenderPass;
-            pipelineConfig.DepthTesting = false;
+            pipelineConfig.DepthTesting = true;
             pipelineConfig.Shader = m_CubeShader;
             pipelineConfig.TargetFramebuffer = targetFrameBuffer;
+            pipelineConfig.Layout = VertexBufferLayout
+            {
+                {AttributeType::Vec3, "a_VertexPosition" },
+                {AttributeType::Vec3, "a_Normal" },
+                {AttributeType::Vec2, "a_TexCoord" }
+            };
+            pipelineConfig.InstanceLayout = VertexBufferLayout
+            {
+                {AttributeType::Vec4, "a_TransformRow0" },
+                {AttributeType::Vec4, "a_TransformRow1" },
+                {AttributeType::Vec4, "a_TransformRow2" },
+                {AttributeType::Vec4, "a_TransformRow3" },
+                {AttributeType::Vec4, "a_Color" },
+                {AttributeType::Int, "a_EntityID" }
+            };
+
             pipelineConfig.Topology = PrimitiveTopology::Triangle;
             m_CubePipeline = GraphicsPipeline::Create(pipelineConfig);
             m_CubePipeline->Invalidate();
@@ -82,146 +127,127 @@ namespace Turbo
         // Create camera uniform buffer
         m_UniformBufferSet = UniformBufferSet::Create();
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
+        m_UniformBufferSet->Create(0, 2, sizeof(PointLightData));
         // Wait for renderer2d to finish its work and do its own thing
         //m_CompositeRenderPass->DependsOn(m_SecondRenderPass);
+
+        m_ContainerDiffuse = Texture2D::Create("Assets/Textures/Container.png");
+        m_ContainerSpecular = Texture2D::Create("Assets/Textures/ContainerSpecular.png");
+        m_CubeMaterial = Material::Create({ m_CubeShader });
     }
 
-    void SceneDrawList::SetCamera(const Camera& camera)
+    void SceneDrawList::SetSceneData(const SceneRendererData& data)
     {
+        m_SceneRendererData = data;
+
         // NOTE: This is duplicate but keep it for now
-        m_DrawList2D->SetCameraTransform(camera.GetViewProjection());
+        m_DrawList2D->SetCameraTransform(data.ViewProjectionMatrix);
 
         // u_Camera, will be on the set on 0 and bound on 0
-        Renderer::Submit([this, camera]()
+        Renderer::Submit([this, data]()
         {
-            m_UniformBufferSet->SetData(0, 0, &camera.GetViewProjection());
+            m_UniformBufferSet->SetData(0, 0, &data);
         });
     }
 
     void SceneDrawList::Begin()
     {
-        m_DrawList2D->Begin();
+        // Clear everything
+        m_CubeInstances.clear();
+        m_PointLights.Count = 0;
     }
 
     void SceneDrawList::End()
     {
-        RenderGeometry();
+        // Submit point lights
+        Renderer::Submit([this]()
+        {
+            m_UniformBufferSet->SetData(0, 2, &m_PointLights);
+        });
+
+        m_RenderCommandBuffer->Begin();
+        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_CubeRenderPass, { 0.0f, 0.0f, 0.0f, 1 });
+
+        // Data
+        // TODO: This will be serialized in some model file (.fbx or someting)
+        std::array<CubeVertex, 24> cubeVertices = {
+            // Front face
+            CubeVertex{ glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f) },  // Vertex 0
+            CubeVertex{ glm::vec3(0.5f, -0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f) },  // Vertex 1
+            CubeVertex{ glm::vec3(0.5f,  0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f) },  // Vertex 2
+            CubeVertex{ glm::vec3(-0.5f,  0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f) },  // Vertex 3
+
+            // Back face
+            CubeVertex{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 4
+            CubeVertex{ glm::vec3(0.5f,  -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 5
+            CubeVertex{ glm::vec3(0.5f,   0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f) }, // Vertex 6
+            CubeVertex{ glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 7
+
+            // Left face
+            CubeVertex{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 8
+            CubeVertex{ glm::vec3(-0.5f, -0.5f, 0.5f),  glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 9
+            CubeVertex{ glm::vec3(-0.5f,  0.5f, 0.5f), glm::vec3(-1.0f, 0.0f, 0.0f) , glm::vec2(1.0f, 1.0f) },  // Vertex 10
+            CubeVertex{ glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 11
+
+            // Right face
+            CubeVertex{ glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 12
+            CubeVertex{ glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 13
+            CubeVertex{ glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(1.0f, 1.0f) }, // Vertex 14
+            CubeVertex{ glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 15
+
+            // Top face
+            CubeVertex{ glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f) },  // Vertex 16
+            CubeVertex{ glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },  // Vertex 17
+            CubeVertex{ glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },  // Vertex 18
+            CubeVertex{ glm::vec3(-0.5f, 0.5f, 0.5f),  glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f) },  // Vertex 19
+
+            // Bottom face
+            CubeVertex{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 20
+            CubeVertex{ glm::vec3(0.5f,  -0.5f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 21
+            CubeVertex{ glm::vec3(0.5f,  -0.5f,  0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 1.0f) }, // Vertex 22
+            CubeVertex{ glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 23
+        };
+
+        m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
+        m_CubeMaterial->Set("u_MaterialTexture", m_ContainerSpecular, 1);
+
+        m_CubeVertexBuffer->SetData(cubeVertices.data(), cubeVertices.size() * sizeof(CubeVertex));
+        m_CubeInstanceBuffer->SetData(m_CubeInstances.data(), m_CubeInstances.size() * sizeof(CubeInstance));
+
+        //Renderer::PushConstant(m_RenderCommandBuffer, m_CubePipeline, 64, &m_ViewProjection);
+        Renderer::DrawInstanced(m_RenderCommandBuffer, m_CubeVertexBuffer, m_CubeInstanceBuffer, m_CubeIndexBuffer, m_UniformBufferSet, m_CubePipeline, m_CubeShader, (u32)m_CubeInstances.size(), 36);
+        Renderer::EndRenderPass(m_RenderCommandBuffer);
+
+        m_RenderCommandBuffer->End();
+        m_RenderCommandBuffer->Submit();
 
         // NOTE: Drawing with multiple renderpasses works
         //m_DrawList2D->End();
+        m_DrawList2D->Begin();
 
         UpdateStatistics();
     }
 
-    void SceneDrawList::RenderGeometry()
+    void SceneDrawList::AddCube(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
-        // Should not overdraw
-        m_RenderCommandBuffer->Begin();
-        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_CubeRenderPass, { 0, 0, 0, 1 });
-        
-        // Data
-        CubeVertex cubeVertices[] = {
-/*
-              -0.5, -0.5,  0.0,   // Vertex 0
-               0.5, -0.5,  0.0,   // Vertex 1
-               0.5,  0.5,  0.0,   // Vertex 2
-               0.5,  0.5,  0.0,   // Vertex 3
-              -0.5,  0.5,  0.0,   // Vertex 4
-              -0.5, -0.5,  0.0    // Vertex 5
-             */
-            // Front face
-            glm::vec3(-0.5f, -0.5f, 0.5f),   // Vertex 0
-            glm::vec3( 0.5f, -0.5f, 0.5f),   // Vertex 1
-            glm::vec3( 0.5f,  0.5f, 0.5f),   // Vertex 2
-            glm::vec3(-0.5f,  0.5f, 0.5f),   // Vertex 3
+        auto& cube = m_CubeInstances.emplace_back();
+        cube.Tranform[0] = transform[0];
+        cube.Tranform[1] = transform[1];
+        cube.Tranform[2] = transform[2];
+        cube.Tranform[3] = transform[3];
+        cube.EntityID = entity;
+        cube.Color = color;
+    }
 
-            // Back face
-            glm::vec3(-0.5f, -0.5f, -0.5f),  // Vertex 4
-            glm::vec3( 0.5f, -0.5f, -0.5f),  // Vertex 5
-            glm::vec3( 0.5f,  0.5f, -0.5f),  // Vertex 6
-            glm::vec3(-0.5f,  0.5f, -0.5f),  // Vertex 7
+    void SceneDrawList::AddPointLight(const glm::vec3& position, f32 intensity, f32 radius, f32 fallOff, i32 entityID)
+    {
+        PointLight& pointLight = m_PointLights[m_PointLights.Count];
+        pointLight.Position = glm::vec4(position, 1.0f);
+        pointLight.Intensity = intensity;
+        pointLight.Radius = radius;
+        pointLight.FallOff = fallOff;
 
-            // Left face
-            glm::vec3(-0.5f, -0.5f, -0.5f),  // Vertex 8
-            glm::vec3(-0.5f, -0.5f, 0.5f),   // Vertex 9
-            glm::vec3(-0.5f,  0.5f, 0.5f),   // Vertex 10
-            glm::vec3(-0.5f,  0.5f, -0.5f),  // Vertex 11
-
-            // Right face
-            glm::vec3(0.5f, -0.5f, -0.5f),  // Vertex 12
-            glm::vec3(0.5f, -0.5f, 0.5f ),  // Vertex 13
-            glm::vec3(0.5f,  0.5f, 0.5f ),  // Vertex 14
-            glm::vec3(0.5f,  0.5f, -0.5f),  // Vertex 15
-
-             // Top face
-             glm::vec3(-0.5f, 0.5f, -0.5f),   // Vertex 16
-             glm::vec3( 0.5f, 0.5f, -0.5f),   // Vertex 17
-             glm::vec3( 0.5f, 0.5f, 0.5f ),    // Vertex 18
-             glm::vec3(-0.5f, 0.5f, 0.5f ),    // Vertex 19
-
-             // Bottom face
-             glm::vec3(-0.5f, -0.5f, -0.5f),  // Vertex 20
-             glm::vec3( 0.5f, -0.5f, -0.5f),  // Vertex 21
-             glm::vec3( 0.5f, -0.5f, 0.5f ),   // Vertex 22
-             glm::vec3(-0.5f, -0.5f, 0.5f )   // Vertex 23
-        };
-        glm::vec3 cubeVertices2[] = {
-            // Front face
-            glm::vec3(-0.5, -0.5, 0.5),   // Vertex 0
-            glm::vec3(0.5, -0.5, 0.5),   // Vertex 1
-            glm::vec3(0.5, 0.5, 0.5),   // Vertex 2
-            glm::vec3(-0.5, -0.5, 0.5),   // Vertex 0
-            glm::vec3(0.5, 0.5, 0.5),   // Vertex 2
-            glm::vec3(-0.5, 0.5, 0.5),   // Vertex 3
-
-            // Back face
-            glm::vec3(-0.5, -0.5, -0.5),   // Vertex 4
-            glm::vec3(0.5, -0.5, -0.5),   // Vertex 5
-            glm::vec3(0.5, 0.5, -0.5),   // Vertex 6
-            glm::vec3(-0.5, -0.5, -0.5),   // Vertex 4
-            glm::vec3(0.5, 0.5, -0.5),   // Vertex 6
-            glm::vec3(-0.5, 0.5, -0.5),   // Vertex 7
-
-            // Left face
-            glm::vec3(-0.5, -0.5, -0.5),   // Vertex 8
-            glm::vec3(-0.5, -0.5, 0.5),   // Vertex 9
-            glm::vec3(-0.5, 0.5, 0.5),   // Vertex 10
-            glm::vec3(-0.5, -0.5, -0.5),   // Vertex 8
-            glm::vec3(-0.5, 0.5, 0.5),   // Vertex 10
-            glm::vec3(-0.5, 0.5, -0.5),   // Vertex 11
-
-            // Right face
-            glm::vec3(0.5, -0.5, -0.5),   // Vertex 12
-            glm::vec3(0.5, -0.5, 0.5),   // Vertex 13
-            glm::vec3(0.5, 0.5, 0.5),   // Vertex 14
-            glm::vec3(0.5, -0.5, -0.5),   // Vertex 12
-            glm::vec3(0.5, 0.5, 0.5),   // Vertex 14
-            glm::vec3(0.5, 0.5, -0.5),   // Vertex 15
-
-            // Top face
-            glm::vec3(-0.5, 0.5, -0.5),   // Vertex 16
-            glm::vec3(0.5, 0.5, -0.5),   // Vertex 17
-            glm::vec3(0.5, 0.5, 0.5),   // Vertex 18
-            glm::vec3(-0.5, 0.5, -0.5),   // Vertex 16
-            glm::vec3(0.5, 0.5, 0.5),   // Vertex 18
-            glm::vec3(-0.5, 0.5, 0.5),   // Vertex 19
-
-            // Bottom face
-            glm::vec3(-0.5, -0.5, -0.5),   // Vertex 20
-            glm::vec3(0.5, -0.5, -0.5),   // Vertex 21
-            glm::vec3(0.5, -0.5, 0.5),   // Vertex 22
-            glm::vec3(-0.5, -0.5, -0.5),   // Vertex 20
-            glm::vec3(0.5, -0.5, 0.5),   // Vertex 22
-            glm::vec3(-0.5, -0.5, 0.5)    // Vertex 23
-    };
-
-        size_t count = sizeof(cubeVertices2) / sizeof(cubeVertices2[0]);
-        m_CubeVertexBuffer->SetData(&cubeVertices2, count * sizeof(CubeVertex));
-        Renderer::Draw(m_RenderCommandBuffer, m_CubeVertexBuffer, m_UniformBufferSet, m_CubePipeline, m_CubeShader, count);
-
-        Renderer::EndRenderPass(m_RenderCommandBuffer);
-        m_RenderCommandBuffer->End();
-        m_RenderCommandBuffer->Submit();
+        m_PointLights.Count++;
     }
 
     void SceneDrawList::UpdateStatistics()

@@ -132,6 +132,16 @@ namespace Turbo
         CircleRendererComponent(const CircleRendererComponent&) = default;
     };
 
+    struct MeshRendererComponent
+    {
+        enum class PrimitiveType : u32 { Cube, Sphere, Cylinder };
+
+        PrimitiveType Type;
+
+        MeshRendererComponent() = default;
+        MeshRendererComponent(const MeshRendererComponent&) = default;
+    };
+
     struct TextComponent
     {
         std::string Text;
@@ -142,6 +152,14 @@ namespace Turbo
 
         TextComponent() = default;
         TextComponent(const TextComponent&) = default;
+    };
+
+    // TODO: Think about what belongs here
+    struct PointLightComponent
+    {
+        f32 Intensity = 1.0f;
+        f32 Radius = 10.0f;
+        f32 FallOff = 1.0f;
     };
 
     struct ScriptComponent

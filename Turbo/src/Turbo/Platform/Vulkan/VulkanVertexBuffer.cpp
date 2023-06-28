@@ -89,7 +89,7 @@ namespace Turbo
     {
     }
 
-    void VulkanVertexBuffer::SetData(void* data, u32 size)
+    void VulkanVertexBuffer::SetData(void* data, size_t size)
     {
         // Copy data to staging buffer
         memcpy(m_StagingBufferPtr, data, size);
@@ -98,7 +98,7 @@ namespace Turbo
         TransferData(size);
     }
 
-    void VulkanVertexBuffer::TransferData(u32 size)
+    void VulkanVertexBuffer::TransferData(size_t size)
     {
         m_TranferCommandBuffer->Begin();
 

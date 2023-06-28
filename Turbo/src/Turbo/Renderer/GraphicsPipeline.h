@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "RenderPass.h"
 #include "Framebuffer.h"
+#include "VertexBufferLayout.h"
 
 namespace Turbo 
 {
@@ -23,6 +24,8 @@ namespace Turbo
             Ref<Shader> Shader;
             Ref<FrameBuffer> TargetFramebuffer;
             PrimitiveTopology Topology;
+            VertexBufferLayout Layout;
+            VertexBufferLayout InstanceLayout;
             bool DepthTesting;
 
             // Temporary

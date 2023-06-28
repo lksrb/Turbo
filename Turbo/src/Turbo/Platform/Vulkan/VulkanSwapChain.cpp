@@ -98,11 +98,11 @@ namespace Turbo
         createInfo.surface = RendererContext::GetSurface();
         createInfo.minImageCount = RendererContext::FramesInFlight();
         createInfo.imageFormat = m_SwapchainFormat;
-        createInfo.imageColorSpace = deviceDetails.surfaceFormat.colorSpace;
+        createInfo.imageColorSpace = deviceDetails.SurfaceFormat.colorSpace;
         createInfo.imageExtent = { width, height };
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        createInfo.preTransform = deviceDetails.capabilities.currentTransform;
+        createInfo.preTransform = deviceDetails.Capabilities.currentTransform;
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; // V-Sync
         createInfo.clipped = VK_TRUE;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Turbo/Renderer/Camera.h"
 #include "Turbo/Renderer/DrawList2D.h"
 
 // Temporary
@@ -8,6 +7,17 @@
 
 namespace Turbo
 {
+    struct SceneRendererData
+    {
+        glm::mat4 ViewProjectionMatrix = glm::mat4(1.0f);
+        glm::mat4 InversedViewMatrix = glm::mat4(1.0f);
+    };
+
+    struct SceneEnvironment
+    {
+
+    };
+
     class SceneDrawList
     {
     public:
@@ -28,7 +38,9 @@ namespace Turbo
         void Begin();
         void End();
 
-        // 2D
+        void AddCube(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
+        void AddPointLight(const glm::vec3& position, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f, i32 entityID = -1);
+        
         void AddQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
         void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity = -1);
@@ -48,27 +60,81 @@ namespace Turbo
         SceneDrawList::Statistics GetStatistics() const { return m_Statistics; }
     private:
         void Init();
-        void SetCamera(const Camera& camera);
-        void RenderGeometry();
+        void SetSceneData(const SceneRendererData& data);
         void UpdateStatistics();
     private:
+        static constexpr u32 MaxCubes = 100;
+        static constexpr u32 MaxCubeVertices = 24 * MaxCubes;
+        static constexpr u32 MaxCubeIndices = 6 * MaxCubes;
+
         struct UBCamera
         {
-            glm::mat4 ViewProjection;
+            glm::mat4 ViewProjectionMatrix;
+            glm::mat4 InversedViewMatrix;
         };
 
         struct CubeVertex
         {
             glm::vec3 Position;
-            //glm::vec4 Color;
-            //i32 EntityID;
+            glm::vec3 Normal;
+            glm::vec2 TexCoord;
         };
+
+        struct CubeInstance
+        {
+            // We cannot send mat4, there is not an appropriate VkFormat for it
+            glm::vec4 Tranform[4];
+            glm::vec4 Color;
+            i32 EntityID;
+        };
+
+        // Match the layout in shader
+        // Padding set to 16 because of std140 
+        struct alignas(16) PointLight
+        {
+            glm::vec4 Position;
+
+            f32 Intensity;
+            f32 Radius;
+            f32 FallOff;
+        };
+
+        // Match the layout in shader
+        // Padding set to 16 because of std140 
+        // FIXME: Padding fuckery, currently works for 32 but other numbers are not tested
+        struct alignas(16) PointLightData
+        {
+            u32 Count = 0;
+            PointLight PointLights[64];
+
+            PointLight& operator[](u32 index)
+            {
+                TBO_ENGINE_ASSERT(index < 64);
+                return PointLights[index];
+            }
+        };
+
+        struct DirectionalLight
+        {
+            glm::vec3 Direction;
+        };
+
+        Ref<Material> m_CubeMaterial;
+        Ref<Texture2D> m_ContainerDiffuse, m_ContainerSpecular;
+        std::vector<CubeInstance> m_CubeInstances;
 
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
         Ref<UniformBufferSet> m_UniformBufferSet;
 
+        SceneRendererData m_SceneRendererData;
+
+        PointLightData m_PointLights;
+
         // Cubes for now
+        Ref<VertexBuffer> m_CubeInstanceBuffer;
         Ref<VertexBuffer> m_CubeVertexBuffer;
+        Ref<IndexBuffer> m_CubeIndexBuffer;
+
         Ref<Shader> m_CubeShader;
         Ref<GraphicsPipeline> m_CubePipeline;
         Ref<RenderPass> m_CubeRenderPass;

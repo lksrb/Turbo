@@ -131,14 +131,16 @@ namespace Turbo {
 
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(m_PhysicalDevice, &properties);
-        m_SupportDetails.properties = properties;
+        m_SupportDetails.Properties = properties;
 
-        m_SupportDetails.surfaceFormat = ChooseSwapchainSurfaceFormat(formats);
-        m_SupportDetails.presentMode = ChooseSwapchainPresentMode(presentModes);
-        m_SupportDetails.capabilities = capabilities;
+        m_SupportDetails.SurfaceFormat = ChooseSwapchainSurfaceFormat(formats);
+        m_SupportDetails.PresentMode = ChooseSwapchainPresentMode(presentModes);
+        m_SupportDetails.Capabilities = capabilities;
+        
+        TBO_ENGINE_ASSERT(properties.limits.maxPushConstantsSize >= 64, "Turbo Engine require 64 bytes minimum for push constants!");
 
         TBO_ENGINE_ASSERT(capabilities.minImageCount > 0);
-        m_SupportDetails.nMinImageCount = std::min(capabilities.minImageCount, capabilities.maxImageCount);
+        m_SupportDetails.MinImageCount = std::min(capabilities.minImageCount, capabilities.maxImageCount);
     }
 
     VkSurfaceFormatKHR GPUDevice::ChooseSwapchainSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)

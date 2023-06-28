@@ -193,8 +193,36 @@ namespace Turbo
         m_PostUpdateFuncs.clear();
 
         // Render
-        drawList->SetCamera(editorCamera);
 
+        SceneRendererData rendererData = {};
+        rendererData.ViewProjectionMatrix = editorCamera.GetViewProjection();
+        rendererData.InversedViewMatrix = glm::inverse(editorCamera.GetViewMatrix());
+        drawList->SetSceneData(rendererData);
+
+        // Test cube rendering
+        {
+            static f32 s_Time = 0.0f;
+
+            TransformComponent transformComponent;
+            TransformComponent transformComponent2;
+            transformComponent2.Scale *= 0.2f;
+
+            // Cube
+            drawList->AddCube(transformComponent.GetTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
+
+            // Light
+            //transformComponent2.Translation.x = 2.0f * glm::sin(s_Time += ts * 0.2f);
+            //transformComponent2.Translation.z = 2.0f * glm::cos(s_Time += ts * 0.2f);
+            //transformComponent2.Translation.y = 2.0f * glm::sin(s_Time += ts * 0.2f);
+
+            transformComponent2.Translation.z = 2.0f;
+
+            f32 radius = (2 + glm::sin(s_Time += ts));
+            f32 fallOff = 0.1f;
+
+            drawList->AddPointLight(transformComponent2.Translation, 2.0f, radius, fallOff);
+            drawList->AddCube(transformComponent2.GetTransform(), glm::vec4(0.7f, 0.3f, 0.2f, 1.0f), 3);
+        }
         // 2D Rendering
         {
             // Quads
@@ -346,10 +374,21 @@ namespace Turbo
                 return;
 
             SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+            glm::mat4 inversedCameraTransform = cameraEntity.Transform().GetTransform();
             camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
             camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
 
-            drawList->SetCamera(camera);
+            SceneRendererData rendererData = {};
+            rendererData.ViewProjectionMatrix = camera.GetViewProjection();
+            rendererData.InversedViewMatrix = inversedCameraTransform;
+            drawList->SetSceneData(rendererData);
+
+            // Static meshes
+            // Cubes for now
+            {
+
+            }
+
             // 2D Rendering
             {
                 // Sprites

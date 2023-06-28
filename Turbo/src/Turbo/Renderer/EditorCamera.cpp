@@ -2,6 +2,7 @@
 #include "EditorCamera.h"
 
 #include "Turbo/Core/Input.h"
+#include "Turbo/Core/Math.h"
 #include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Core/MouseCodes.h"
 

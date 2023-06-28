@@ -14,11 +14,11 @@ namespace Turbo
         VulkanVertexBuffer(const VertexBuffer::Config& config);
         ~VulkanVertexBuffer();
 
-        void SetData(void* data, u32 size) override;
+        void SetData(void* data, size_t size) override;
 
         VkBuffer GetHandle() const { return m_Buffer; }
     private:
-        void TransferData(u32 size);
+        void TransferData(size_t size);
     private:
         VkBuffer m_Buffer = VK_NULL_HANDLE;
         VkDeviceMemory m_Memory = VK_NULL_HANDLE;

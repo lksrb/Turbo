@@ -26,11 +26,11 @@ namespace Turbo
 
     struct SwapchainSupportDetails
     {
-        u32 nMinImageCount;
-        VkSurfaceFormatKHR surfaceFormat;
-        VkPresentModeKHR presentMode;
-        VkSurfaceCapabilitiesKHR capabilities;
-        VkPhysicalDeviceProperties properties;
+        u32 MinImageCount;
+        VkSurfaceFormatKHR SurfaceFormat;
+        VkPresentModeKHR PresentMode;
+        VkSurfaceCapabilitiesKHR Capabilities;
+        VkPhysicalDeviceProperties Properties;
     };
 
     class GPUDevice

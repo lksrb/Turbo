@@ -29,7 +29,7 @@ namespace Turbo
 
             TBO_ENGINE_ASSERT(false, "Unknown shader!");
 
-            return ShaderStage_Max;
+            return ShaderStage_Count;
         }
 
         static const char* ShaderTypeToString(ShaderStage stage)
@@ -81,7 +81,7 @@ namespace Turbo
             return 0;
         }
 
-        static VkFormat ShaderDataTypeToVulkanFormat(spirv_cross::SPIRType::BaseType type, uint32_t size)
+        static VkFormat AttributeTypeToVulkanFormat(spirv_cross::SPIRType::BaseType type, uint32_t size)
         {
 
             if (type == spirv_cross::SPIRType::BaseType::Float)
@@ -120,7 +120,7 @@ namespace Turbo
             return VK_FORMAT_UNDEFINED;
         }
 
-        static VkShaderStageFlagBits TboStageToVkStage(ShaderStage stage)
+        static VkShaderStageFlagBits ShaderStageToVulkanStage(ShaderStage stage)
         {
             switch (stage)
             {
@@ -147,7 +147,7 @@ namespace Turbo
     VulkanShader::~VulkanShader()
     {
         VkDevice device = RendererContext::GetDevice();
-        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
+        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
         {
             vkDestroyShaderModule(device, m_ShaderModules[shaderStage], nullptr);
         }
@@ -191,7 +191,7 @@ namespace Turbo
             TBO_ENGINE_ASSERT(eol != std::string::npos, "Syntax error");
             size_t begin = pos + typeTokenLength + 1; //Start of shader type name (after "#type " keyword)
             std::string type = sourceCode.substr(begin, eol - begin);
-            TBO_ENGINE_ASSERT(Utils::ShaderTypeFromString(type) != ShaderStage_Max, "Invalid shader type specified");
+            TBO_ENGINE_ASSERT(Utils::ShaderTypeFromString(type) != ShaderStage_Count, "Invalid shader type specified");
 
             size_t nextLinePos = sourceCode.find_first_not_of("\r\n", eol); //Start of shader code after shader type declaration line
             TBO_ENGINE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
@@ -203,47 +203,47 @@ namespace Turbo
 
     void VulkanShader::CheckIfUpToDate()
     {
-        std::filesystem::path metadata_path = m_Config.ShaderPath;
-        metadata_path.concat(".metadata");
+        std::filesystem::path metadataPath = m_Config.ShaderPath;
+        metadataPath.concat(".metadata");
 
-        std::ifstream stream(metadata_path, std::ios_base::in);
+        std::ifstream stream(metadataPath, std::ios_base::in);
 
         const char* token = "LastTimeWrite=";
-        size_t token_length = strlen(token);
-        size_t cached_last_time_write = 0;
+        size_t tokenLength = strlen(token);
+        size_t cachedLastTimeWrite = 0;
         std::string line;
         while (std::getline(stream, line))
         {
             if (line.find(token) != std::string::npos)
             {
-                cached_last_time_write = std::stoull(line.substr(token_length));
+                cachedLastTimeWrite = std::stoull(line.substr(tokenLength));
                 break;
             }
         }
 
         stream.close();
 
-        size_t last_time_write = std::filesystem::last_write_time(m_Config.ShaderPath).time_since_epoch().count();
+        size_t lastTimeWrite = std::filesystem::last_write_time(m_Config.ShaderPath).time_since_epoch().count();
         // Changed or newly created
 
-        if (cached_last_time_write != last_time_write)
+        if (cachedLastTimeWrite != lastTimeWrite)
         {
             m_Compile = true;
-            std::ofstream metaDataStream(metadata_path, std::ios_base::trunc);
+            std::ofstream metaDataStream(metadataPath, std::ios_base::trunc);
             metaDataStream << "[MetaData]\n";
-            metaDataStream << "LastTimeWrite=" << last_time_write << "\n";
+            metaDataStream << "LastTimeWrite=" << lastTimeWrite << "\n";
             metaDataStream.close();
         }
     }
 
     void VulkanShader::CompileOrGetCompiledShaders()
     {
-        std::filesystem::path cached_path = "Assets\\Shaders\\cached";
+        std::filesystem::path cachedPath = "Assets\\Shaders\\cached";
 
-        if (!std::filesystem::exists(cached_path))
+        if (!std::filesystem::exists(cachedPath))
         {
             // Cache folder does not exists, create one and compile shaders
-            std::filesystem::create_directory(cached_path);
+            std::filesystem::create_directory(cachedPath);
             m_Compile = true;
         }
 
@@ -254,17 +254,17 @@ namespace Turbo
             TBO_ENGINE_WARN("Changes detected! Compiling...");
 
             // Clear shaders
-            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
+            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
                 m_CompiledShaders[shaderStage].clear();
 
-            std::thread compileJobMaker[ShaderStage_Max];
-            for (u32 shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
+            std::thread compileJobMaker[ShaderStage_Count];
+            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
             {
                 compileJobMaker[shaderStage] = std::thread(&VulkanShader::CompileShader, this, shaderStage);
             }
 
             // Wait for all threads
-            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
+            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
             {
                 compileJobMaker[shaderStage].join();
             }
@@ -273,11 +273,11 @@ namespace Turbo
         }
         else // Retrieve shaders 
         {
-            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
+            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
             {
                 TBO_ENGINE_WARN("[{0}] Shader {1} is up-to-date!", Utils::ShaderTypeToString(shaderStage), m_Config.ShaderPath.c_str());
 
-                const std::filesystem::path& shader_path = cached_path / std::filesystem::path(m_Config.ShaderPath)
+                const std::filesystem::path& shader_path = cachedPath / std::filesystem::path(m_Config.ShaderPath)
                     .stem()
                     .concat(Utils::GLShaderStageCachedVulkanFileExtension(shaderStage));
 
@@ -327,7 +327,7 @@ namespace Turbo
             TBO_ENGINE_ASSERT(false, "");
         }
 
-        m_CompiledShaders[shaderStage] = std::vector<uint32_t>(result.cbegin(), result.cend());
+        m_CompiledShaders[shaderStage] = std::vector<u32>(result.cbegin(), result.cend());
 
         std::filesystem::path shaderPath = cachedPath / std::filesystem::path(m_Config.ShaderPath)
             .stem()
@@ -338,7 +338,7 @@ namespace Turbo
         if (outStream)
         {
             auto& data = m_CompiledShaders[shaderStage];
-            outStream.write((char*)data.data(), data.size() * sizeof(uint32_t));
+            outStream.write((char*)data.data(), data.size() * sizeof(u32));
             outStream.flush();
             outStream.close();
 
@@ -353,7 +353,7 @@ namespace Turbo
         Debug::ScopeTimer timer("Shader reflection");
 
         TBO_ENGINE_TRACE("-----------------------------------------------");
-        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
+        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
         {
             ReflectStage(shaderStage);
         }
@@ -377,8 +377,8 @@ namespace Turbo
         // Compare lambda 
         auto asceningOrderLambda = [&compiler](spirv_cross::Resource& a, spirv_cross::Resource& b)
         {
-            uint32_t location1 = compiler.get_decoration(a.id, spv::DecorationLocation);
-            uint32_t location2 = compiler.get_decoration(b.id, spv::DecorationLocation);
+            u32 location1 = compiler.get_decoration(a.id, spv::DecorationLocation);
+            u32 location2 = compiler.get_decoration(b.id, spv::DecorationLocation);
 
             return location1 < location2;
         };
@@ -388,17 +388,17 @@ namespace Turbo
         std::sort(resources.stage_inputs.begin(), resources.stage_inputs.end(), asceningOrderLambda);
 
         // Local variable for offsetting attributes in the buffer
-        uint32_t attributeOffset = 0;
+        u32 attributeOffset = 0;
         for (const auto& resource : resources.stage_inputs)
         {
             const auto& bufferType = compiler.get_type(resource.base_type_id);
-            uint32_t location = compiler.get_decoration(resource.id, spv::DecorationLocation);
-            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+            u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 
             // Query for type of the attribute
             const auto& type = compiler.get_type_from_variable(resource.id);
             // Calculating actual size of the attribute with base type of @type and 
-            uint32_t actualDataTypeSize = type.basetype == spirv_cross::SPIRType::Struct ? 0 : Utils::ShaderCBaseTypeSize(type.basetype) * type.vecsize;
+            u32 actualDataTypeSize = type.basetype == spirv_cross::SPIRType::Struct ? 0 : Utils::ShaderCBaseTypeSize(type.basetype) * type.vecsize;
 
             // Struct
             for (auto& member : type.member_types)
@@ -418,15 +418,13 @@ namespace Turbo
                 attributeDesc.binding = binding; // Not sure
                 attributeDesc.location = location;
                 attributeDesc.offset = attributeOffset;
-                attributeDesc.format = Utils::ShaderDataTypeToVulkanFormat(type.basetype, actualDataTypeSize);
+                attributeDesc.format = Utils::AttributeTypeToVulkanFormat(type.basetype, actualDataTypeSize);
                 attributeOffset += actualDataTypeSize;
                 m_Layout.Stride += actualDataTypeSize;
             }
         }
 
         TBO_ENGINE_TRACE("-----------------------------------------------");
-
-        // Create descriptors
 
         // Resources
         {
@@ -438,9 +436,23 @@ namespace Turbo
                 // Create uniform buffer for each stage
                 UniformBufferInfo& rUniformBuffer = m_Resources.UniformBuffers.emplace_back();
                 rUniformBuffer.Binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
-                rUniformBuffer.Size = (uint32_t)compiler.get_declared_struct_size(bufferType);
+                rUniformBuffer.Size = (u32)compiler.get_declared_struct_size(bufferType);
                 rUniformBuffer.Name = compiler.get_name(uniformBuffer.id);
                 rUniformBuffer.Stage = shaderStage;
+            }
+
+            // Push constants
+
+            // TODO: Offset push constants
+            TBO_ENGINE_ASSERT(resources.push_constant_buffers.size() < 2);
+            for (auto& pushConstantBuffer : resources.push_constant_buffers)
+            {
+                const auto& bufferType = compiler.get_type(pushConstantBuffer.base_type_id);
+                
+                auto& pushConstant = m_Resources.PushConstantRanges.emplace_back();
+                pushConstant.Size = (u32)compiler.get_declared_struct_size(bufferType);
+                pushConstant.Offset = 0;
+                pushConstant.Stage = shaderStage;
             }
 
             // Texture samplers
@@ -459,7 +471,7 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
 
-        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Max; ++shaderStage)
+        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
         {
             VkShaderModuleCreateInfo moduleCreateInfo = {};
             moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -484,10 +496,17 @@ namespace Turbo
             descriptorBinding = {};
             descriptorBinding.binding = uniformBufferResource.Binding;
             descriptorBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorBinding.stageFlags = Utils::TboStageToVkStage(uniformBufferResource.Stage);
+            descriptorBinding.stageFlags = Utils::ShaderStageToVulkanStage(uniformBufferResource.Stage);
             descriptorBinding.descriptorCount = 1;
             descriptorBinding.pImmutableSamplers = nullptr; // Optional
         }
+
+        // Push constants
+        //for (auto& pushConstantBuffer : m_Resources.PushConstantRanges)
+        //{
+        //
+        //}
+        
 
         // Texture samplers
         if (m_Resources.TextureSamplerArray.Size)

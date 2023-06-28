@@ -48,7 +48,7 @@ namespace Turbo
         return m_UniformBufferMap.at(set).at(binding).at(currentFrame);
     }
 
-    void UniformBufferSet::Create(u32 set, u32 binding, size_t data_size)
+    void UniformBufferSet::Create(u32 set, u32 binding, size_t dataSize)
     {
         // Create or recreate uniform buffer
         u32 framesInFlight = RendererContext::FramesInFlight();
@@ -58,7 +58,7 @@ namespace Turbo
         for (u32 i = 0; i < framesInFlight; ++i)
         {
             auto& uniformBuffer = m_UniformBufferMap[set][binding][i];
-            uniformBuffer = UniformBuffer::Create({ set, binding, data_size });
+            uniformBuffer = UniformBuffer::Create({ set, binding, dataSize });
             uniformBuffer->Invalidate();
         }
     }

@@ -70,6 +70,15 @@ namespace Turbo
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
             config.DepthTesting = true;
+            config.Layout = VertexBufferLayout
+            {
+                { AttributeType::Vec3, "a_Position" },
+                { AttributeType::Vec4, "a_Color" },
+                { AttributeType::Vec2, "a_TexCoord" },
+                { AttributeType::UInt,   "a_TexIndex" },
+                { AttributeType::Float,  "a_TilingFactor" },
+                { AttributeType::Int,    "a_EntityID" },
+            };
             config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_QuadPipeline = GraphicsPipeline::Create(config);
             m_QuadPipeline->Invalidate();
@@ -98,6 +107,15 @@ namespace Turbo
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
             config.DepthTesting = true;
+            config.Layout = VertexBufferLayout
+            {
+                { AttributeType::Vec3, "a_WorldPosition" },
+                { AttributeType::Vec3, "a_LocalPosition" },
+                { AttributeType::Vec4, "a_Color" },
+                { AttributeType::Float,   "a_Thickness" },
+                { AttributeType::Float,  "a_Fade" },
+                { AttributeType::Int,    "a_EntityID" },
+            };
             config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_CirclePipeline = GraphicsPipeline::Create(config);
             m_CirclePipeline->Invalidate();
@@ -126,6 +144,12 @@ namespace Turbo
             config.Renderpass = m_TargerRenderPass;
             config.Topology = PrimitiveTopology::Line;
             config.DepthTesting = false;
+            config.Layout = VertexBufferLayout
+            {
+                { AttributeType::Vec3, "a_Position" },
+                { AttributeType::Vec4, "a_Color" },
+                { AttributeType::Int,  "a_EntityID" },
+            };
             config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();
@@ -152,6 +176,14 @@ namespace Turbo
             config.Renderpass = m_TargerRenderPass;
             config.DepthTesting = false;
             config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
+            config.Layout = VertexBufferLayout
+            {
+                { AttributeType::Vec3, "a_Position" },
+                { AttributeType::Vec4, "a_Color" },
+                { AttributeType::Vec2, "a_TexCoord" },
+                { AttributeType::UInt, "a_TexIndex" },
+                { AttributeType::Int,  "a_EntityID" },
+            };
             m_TextPipeline = GraphicsPipeline::Create(config);
             m_TextPipeline->Invalidate();
 
@@ -360,7 +392,7 @@ namespace Turbo
                 if (m_TextureSlotsIndex >= DrawList2D::MaxTextureSlots)
                 {
                     FlushAndReset();
-                } 
+                }
 
                 textureIndex = m_TextureSlotsIndex;
                 m_TextureSlots[m_TextureSlotsIndex] = texture;
@@ -419,7 +451,7 @@ namespace Turbo
                 {
                     FlushAndReset();
                 }
-                
+
                 textureIndex = m_TextureSlotsIndex;
                 m_TextureSlots[m_TextureSlotsIndex] = subTexture->GetTexture();
                 m_TextureSlotsIndex++;
@@ -615,7 +647,7 @@ namespace Turbo
 
     void DrawList2D::OnViewportResize(u32 width, u32 height)
     {
-        
+
     }
 
     void DrawList2D::SetTargetRenderPass(const Ref<RenderPass>& renderPass)
