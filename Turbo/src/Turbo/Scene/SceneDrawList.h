@@ -5,6 +5,10 @@
 // Temporary
 #include "Turbo/Renderer/RendererContext.h"
 
+#include "Turbo/Renderer/Mesh.h"
+
+#include <map>
+
 namespace Turbo
 {
     struct SceneRendererData
@@ -30,6 +34,21 @@ namespace Turbo
         struct Statistics
         {
             DrawList2D::Statistics Statistics2D;
+
+            u32 DrawCalls;
+            u32 Instances;
+            u32 Vertices;
+            u32 Indices;
+
+            Statistics()
+            {
+                Reset();
+            }
+
+            void Reset()
+            {
+                std::memset(this, 0, sizeof(*this));
+            }
         };
 
         SceneDrawList(const SceneDrawList::Config& config);
@@ -38,7 +57,7 @@ namespace Turbo
         void Begin();
         void End();
 
-        void AddCube(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
+        void AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity = -1);
         void AddPointLight(const glm::vec3& position, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f, i32 entityID = -1);
         
         void AddQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
@@ -62,10 +81,14 @@ namespace Turbo
         void Init();
         void SetSceneData(const SceneRendererData& data);
         void UpdateStatistics();
+        void PreRender();
     private:
         static constexpr u32 MaxCubes = 100;
         static constexpr u32 MaxCubeVertices = 24 * MaxCubes;
         static constexpr u32 MaxCubeIndices = 6 * MaxCubes;
+
+        // For now
+        static constexpr u32 MaxTransforms = 100;
 
         struct UBCamera
         {
@@ -73,19 +96,9 @@ namespace Turbo
             glm::mat4 InversedViewMatrix;
         };
 
-        struct CubeVertex
+        struct TransformData
         {
-            glm::vec3 Position;
-            glm::vec3 Normal;
-            glm::vec2 TexCoord;
-        };
-
-        struct CubeInstance
-        {
-            // We cannot send mat4, there is not an appropriate VkFormat for it
             glm::vec4 Tranform[4];
-            glm::vec4 Color;
-            i32 EntityID;
         };
 
         // Match the layout in shader
@@ -119,9 +132,38 @@ namespace Turbo
             glm::vec3 Direction;
         };
 
+        // Uniquely describes a mesh
+        // We can recycle meshes when they have same mesh and material
+        // by adding another instance of the mesh
+        struct MeshKey
+        {
+            Ref<StaticMesh> Mesh; // TODO: Assets
+
+            bool operator<(const MeshKey& other) const
+            {
+                return (size_t)Mesh.Get() < (size_t)other.Mesh.Get();
+            }
+        };
+
+        struct DrawCommand
+        {
+            Ref<StaticMesh> Mesh;
+            u32 InstanceCount;
+        };
+
+        struct MeshTransformMap
+        {
+            std::vector<TransformData> Transforms;
+            u32 TransformOffset;
+        };
+
         Ref<Material> m_CubeMaterial;
         Ref<Texture2D> m_ContainerDiffuse, m_ContainerSpecular;
-        std::vector<CubeInstance> m_CubeInstances;
+
+        // Static meshes
+        std::map<MeshKey, MeshTransformMap> m_MeshTransformMap;
+        std::map<MeshKey, DrawCommand> m_DrawCommands;
+        Ref<VertexBuffer> m_MeshTransformBuffer;
 
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
         Ref<UniformBufferSet> m_UniformBufferSet;
@@ -130,14 +172,9 @@ namespace Turbo
 
         PointLightData m_PointLights;
 
-        // Cubes for now
-        Ref<VertexBuffer> m_CubeInstanceBuffer;
-        Ref<VertexBuffer> m_CubeVertexBuffer;
-        Ref<IndexBuffer> m_CubeIndexBuffer;
-
-        Ref<Shader> m_CubeShader;
-        Ref<GraphicsPipeline> m_CubePipeline;
-        Ref<RenderPass> m_CubeRenderPass;
+        Ref<Shader> m_GeometryShader;
+        Ref<GraphicsPipeline> m_GeometryPipeline;
+        Ref<RenderPass> m_GeometryRenderPass;
 
         Ref<RenderPass> m_FinalRenderPass;
         Ref<DrawList2D> m_DrawList2D;

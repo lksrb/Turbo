@@ -16,8 +16,8 @@ IncludeDir["box2d"] = "%{wks.location}/dependencies/Box2D/include"
 IncludeDir["IconFontCppHeaders"] = "%{wks.location}/dependencies/IconFontCppHeaders"
 IncludeDir["msdfgen"] = "%{wks.location}/dependencies/msdf-atlas-gen/msdfgen"
 IncludeDir["msdf_atlas_gen"] = "%{wks.location}/dependencies/msdf-atlas-gen/msdf-atlas-gen"
+IncludeDir["Assimp"] = "%{wks.location}/dependencies/assimp/include"
 
--- Vulkan
 VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 IncludeDir["shaderc"] =					"%{wks.location}/dependencies/shaderc/include"
@@ -31,10 +31,11 @@ LibraryDir["VulkanSDK"] =				"%{VULKAN_SDK}/Lib"
 LibraryDir["VulkanSDK_Debug"] =			"%{VULKAN_SDK}/Lib"
 LibraryDir["VulkanSDK_DebugDLL"] =		"%{VULKAN_SDK}/Bin"
 
--- Mono
-
 Library = {}
 Library["mono"] = "%{LibraryDir.monodir}/libmono-static-sgen.lib"
+
+Library["Assimp_Debug"] = "%{wks.location}/dependencies/assimp/bin/Debug/assimp-vc143-mtd.lib"
+Library["Assimp_Release"] = "%{wks.location}/dependencies/assimp/bin/Release/assimp-vc143-mt.lib"
 
 Library["Vulkan"] =						"%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 Library["VulkanUtils"] =				"%{LibraryDir.VulkanSDK}/VkLayer_utils.lib"
@@ -56,3 +57,7 @@ Library["WinSock"] = "Ws2_32.lib"
 Library["WinMM"] = "Winmm.lib"
 Library["WinVersion"] = "Version.lib"
 Library["WinBcryp"] = "Bcrypt.lib"
+
+Binaries = {}
+Binaries["Assimp_Debug"] = "%{wks.location}/dependencies/assimp/bin/Debug/assimp-vc143-mtd.dll"
+Binaries["Assimp_Release"] = "%{wks.location}/dependencies/assimp/bin/Release/assimp-vc143-mt.dll"

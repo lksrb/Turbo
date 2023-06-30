@@ -43,18 +43,17 @@ project "Turbo"
         "%{IncludeDir.stb}",
         "%{IncludeDir.box2d}",
         "%{IncludeDir.yaml_cpp}",
-        "%{IncludeDir.mono}"
+        "%{IncludeDir.mono}",
+        "%{IncludeDir.Assimp}"
     }
 
     links {
         "ImGui",
-        "Shlwapi.lib",
         "box2d",
         "yaml-cpp",
         "msdf-atlas-gen",
         "%{Library.Vulkan}",
-        "%{Library.mono}",
-        "XAudio2"
+        "%{Library.mono}"
     }
 
     -- Ignore already defined symbols warning(LNK4006), symbols not found(LNK4099)
@@ -77,7 +76,9 @@ project "Turbo"
             "%{Library.WinSock}",
             "%{Library.WinMM}",
             "%{Library.WinVersion}",
-            "%{Library.WinBcryp}"
+            "%{Library.WinBcryp}",
+            "XAudio2",
+            "Shlwapi.lib"
         }
 
     filter "configurations:Debug"
@@ -85,16 +86,12 @@ project "Turbo"
         runtime "Debug"
         symbols "on"
 
-        postbuildcommands
-        {
-            "{COPYDIR} \"%{LibraryDir.VulkanSDK_DebugDLL}\" \"%{cfg.targetdir}\""
-        }
-
         links
         {
            "%{Library.ShaderC_Debug}",
            "%{Library.SPIRV_Cross_Debug}",
-           "%{Library.SPIRV_Cross_GLSL_Debug}"
+           "%{Library.SPIRV_Cross_GLSL_Debug}",
+           "%{Library.Assimp_Debug}"
         }
 
     filter "configurations:Release"
@@ -106,6 +103,7 @@ project "Turbo"
         {
             "%{Library.ShaderC_Release}",
             "%{Library.SPIRV_Cross_Release}",
-            "%{Library.SPIRV_Cross_GLSL_Release}"
+            "%{Library.SPIRV_Cross_GLSL_Release}",
+            "%{Library.Assimp_Release}"
         }
 

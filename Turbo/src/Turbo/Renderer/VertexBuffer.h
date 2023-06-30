@@ -8,6 +8,8 @@ namespace Turbo
         struct Config
         {
             size_t Size;
+
+            Config(size_t size) : Size(size) {}
         };
         
         static Ref<VertexBuffer> Create(const VertexBuffer::Config& config);

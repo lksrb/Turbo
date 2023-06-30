@@ -255,7 +255,7 @@ namespace Turbo
         });
     }
 
-    void Renderer::DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 instanceCount, u32 indicesPerInstance)
+    void Renderer::DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 instanceCount, u32 indicesPerInstance)
     {
         Renderer::Submit([=]()
         {
@@ -266,8 +266,7 @@ namespace Turbo
             VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetHandle();
             VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
             VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
-
-            Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
+            Ref<VulkanShader> vkShader = pipeline->GetConfig().Shader.As<VulkanShader>();
             VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
 
             // Updating or creating descriptor sets
@@ -283,6 +282,38 @@ namespace Turbo
             vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
 
             vkCmdDrawIndexed(vkCommandBuffer, indicesPerInstance, instanceCount, 0, 0, 0);
+        });
+    }
+
+    void Renderer::DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 transformOffset, u32 instanceCount)
+    {
+        Renderer::Submit([=]()
+        {
+            Ref<VertexBuffer> vertexBuffer = mesh->GetVertexBuffer();
+            Ref<VertexBuffer> indexBuffer = mesh->GetIndexBuffer();
+            Ref<VulkanShader> shader = pipeline->GetConfig().Shader.As<VulkanShader>();
+
+            VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
+
+            VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
+            VkBuffer vkTransformBuffer = transformBuffer.As<VulkanVertexBuffer>()->GetHandle();
+            VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+            VkDescriptorSet vkDescriptorSet = shader->GetDescriptorSet();
+
+            // Updating or creating descriptor sets
+            const auto& resources =shader->GetResources();
+            UpdateWriteDescriptors(uniformBufferSet, shader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
+
+            VkDeviceSize offsets[] = { 0 };
+            vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
+            VkDeviceSize instanceOffsets[] = { transformOffset };
+            vkCmdBindVertexBuffers(vkCommandBuffer, 1, 1, &vkTransformBuffer, instanceOffsets);
+            vkCmdBindIndexBuffer(vkCommandBuffer, vkIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
+            vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
+            vkCmdDrawIndexed(vkCommandBuffer, mesh->GetIndicesPerInstance(), instanceCount, 0, 0, 0);
         });
     }
 }

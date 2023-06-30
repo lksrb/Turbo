@@ -8,7 +8,7 @@
 #include "Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h"
 #include "Turbo/Platform/Vulkan/VulkanGraphicsPipeline.h"
 #include "Turbo/Platform/Vulkan/VulkanImage2D.h"
-#include <Turbo/Platform/Vulkan/VulkanShader.h>
+#include "Turbo/Platform/Vulkan/VulkanShader.h"
 
 namespace Turbo
 {
@@ -60,48 +60,19 @@ namespace Turbo
         // NOTE: First pass should clear everything
         // Cube pass
         {
-            m_CubeInstances.reserve(MaxCubes);
-            m_CubeVertexBuffer = VertexBuffer::Create({ MaxCubeVertices * sizeof(CubeVertex) });
-
-            // This will be the same as quad indicies
-            // because cube is just 6 quads and we still need normals from those quads
-            {
-                u32* quadIndices = new u32[MaxCubeIndices];
-                u32 offset = 0;
-                for (u32 i = 0; i < MaxCubeIndices; i += 6)
-                {
-                    quadIndices[i + 0] = offset + 0;
-                    quadIndices[i + 1] = offset + 1;
-                    quadIndices[i + 2] = offset + 2;
-
-                    quadIndices[i + 3] = offset + 2;
-                    quadIndices[i + 4] = offset + 3;
-                    quadIndices[i + 5] = offset + 0;
-
-                    offset += 4;
-                }
-
-                IndexBuffer::Config config = {};
-                config.Size = MaxCubeIndices * sizeof(u32);
-                config.Indices = quadIndices;
-                m_CubeIndexBuffer = IndexBuffer::Create(config);
-
-                delete[] quadIndices;
-            }
-
-            m_CubeInstanceBuffer = VertexBuffer::Create({ MaxCubes * sizeof(CubeInstance) });
+            m_MeshTransformBuffer = VertexBuffer::Create(MaxTransforms * sizeof(TransformData));
 
             RenderPass::Config config = {};
             config.TargetFrameBuffer = targetFrameBuffer;
             config.ClearOnLoad = true;
-            m_CubeRenderPass = RenderPass::Create(config);
-            m_CubeRenderPass->Invalidate();
-            m_CubeShader = Shader::Create({ ShaderLanguage::GLSL, "Assets/Shaders/Cube.glsl" });
+            m_GeometryRenderPass = RenderPass::Create(config);
+            m_GeometryRenderPass->Invalidate();
+            m_GeometryShader = Shader::Create({ ShaderLanguage::GLSL, "Assets/Shaders/StaticMesh.glsl" });
 
             GraphicsPipeline::Config pipelineConfig = {};
-            pipelineConfig.Renderpass = m_CubeRenderPass;
+            pipelineConfig.Renderpass = m_GeometryRenderPass;
             pipelineConfig.DepthTesting = true;
-            pipelineConfig.Shader = m_CubeShader;
+            pipelineConfig.Shader = m_GeometryShader;
             pipelineConfig.TargetFramebuffer = targetFrameBuffer;
             pipelineConfig.Layout = VertexBufferLayout
             {
@@ -115,13 +86,11 @@ namespace Turbo
                 {AttributeType::Vec4, "a_TransformRow1" },
                 {AttributeType::Vec4, "a_TransformRow2" },
                 {AttributeType::Vec4, "a_TransformRow3" },
-                {AttributeType::Vec4, "a_Color" },
-                {AttributeType::Int, "a_EntityID" }
             };
 
             pipelineConfig.Topology = PrimitiveTopology::Triangle;
-            m_CubePipeline = GraphicsPipeline::Create(pipelineConfig);
-            m_CubePipeline->Invalidate();
+            m_GeometryPipeline = GraphicsPipeline::Create(pipelineConfig);
+            m_GeometryPipeline->Invalidate();
         }
 
         // Create camera uniform buffer
@@ -133,7 +102,7 @@ namespace Turbo
 
         m_ContainerDiffuse = Texture2D::Create("Assets/Textures/Container.png");
         m_ContainerSpecular = Texture2D::Create("Assets/Textures/ContainerSpecular.png");
-        m_CubeMaterial = Material::Create({ m_CubeShader });
+        m_CubeMaterial = Material::Create({ m_GeometryShader });
     }
 
     void SceneDrawList::SetSceneData(const SceneRendererData& data)
@@ -153,69 +122,33 @@ namespace Turbo
     void SceneDrawList::Begin()
     {
         // Clear everything
-        m_CubeInstances.clear();
+        m_DrawCommands.clear();
+        m_MeshTransformMap.clear();
+
+        m_Statistics.Reset();
+
         m_PointLights.Count = 0;
     }
 
     void SceneDrawList::End()
     {
-        // Submit point lights
-        Renderer::Submit([this]()
-        {
-            m_UniformBufferSet->SetData(0, 2, &m_PointLights);
-        });
+        PreRender();
 
         m_RenderCommandBuffer->Begin();
-        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_CubeRenderPass, { 0.0f, 0.0f, 0.0f, 1 });
-
-        // Data
-        // TODO: This will be serialized in some model file (.fbx or someting)
-        std::array<CubeVertex, 24> cubeVertices = {
-            // Front face
-            CubeVertex{ glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f) },  // Vertex 0
-            CubeVertex{ glm::vec3(0.5f, -0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f) },  // Vertex 1
-            CubeVertex{ glm::vec3(0.5f,  0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f) },  // Vertex 2
-            CubeVertex{ glm::vec3(-0.5f,  0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f) },  // Vertex 3
-
-            // Back face
-            CubeVertex{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 4
-            CubeVertex{ glm::vec3(0.5f,  -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 5
-            CubeVertex{ glm::vec3(0.5f,   0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f) }, // Vertex 6
-            CubeVertex{ glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 7
-
-            // Left face
-            CubeVertex{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 8
-            CubeVertex{ glm::vec3(-0.5f, -0.5f, 0.5f),  glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 9
-            CubeVertex{ glm::vec3(-0.5f,  0.5f, 0.5f), glm::vec3(-1.0f, 0.0f, 0.0f) , glm::vec2(1.0f, 1.0f) },  // Vertex 10
-            CubeVertex{ glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 11
-
-            // Right face
-            CubeVertex{ glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 12
-            CubeVertex{ glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 13
-            CubeVertex{ glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(1.0f, 1.0f) }, // Vertex 14
-            CubeVertex{ glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(1.0f ,0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 15
-
-            // Top face
-            CubeVertex{ glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f) },  // Vertex 16
-            CubeVertex{ glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },  // Vertex 17
-            CubeVertex{ glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },  // Vertex 18
-            CubeVertex{ glm::vec3(-0.5f, 0.5f, 0.5f),  glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f) },  // Vertex 19
-
-            // Bottom face
-            CubeVertex{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f) }, // Vertex 20
-            CubeVertex{ glm::vec3(0.5f,  -0.5f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f) }, // Vertex 21
-            CubeVertex{ glm::vec3(0.5f,  -0.5f,  0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 1.0f) }, // Vertex 22
-            CubeVertex{ glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // Vertex 23
-        };
+        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_GeometryRenderPass, { 0.0f, 0.0f, 0.0f, 1 });
 
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerSpecular, 1);
 
-        m_CubeVertexBuffer->SetData(cubeVertices.data(), cubeVertices.size() * sizeof(CubeVertex));
-        m_CubeInstanceBuffer->SetData(m_CubeInstances.data(), m_CubeInstances.size() * sizeof(CubeInstance));
+        // Mesh rendering
+        for (auto& [mk, drawCommand] : m_DrawCommands)
+        {
+            auto& transformMap = m_MeshTransformMap.at(mk);
+            Renderer::DrawStaticMesh(m_RenderCommandBuffer, drawCommand.Mesh, m_MeshTransformBuffer, m_UniformBufferSet, m_GeometryPipeline, transformMap.TransformOffset, drawCommand.InstanceCount);
+        }
 
         //Renderer::PushConstant(m_RenderCommandBuffer, m_CubePipeline, 64, &m_ViewProjection);
-        Renderer::DrawInstanced(m_RenderCommandBuffer, m_CubeVertexBuffer, m_CubeInstanceBuffer, m_CubeIndexBuffer, m_UniformBufferSet, m_CubePipeline, m_CubeShader, (u32)m_CubeInstances.size(), 36);
+        //Renderer::DrawInstanced(m_RenderCommandBuffer, m_CubeVertexBuffer, m_CubeInstanceBuffer, m_CubeIndexBuffer, m_UniformBufferSet, m_GeometryPipeline, m_CubeShader, (u32)m_CubeInstances.size(), 36);
         Renderer::EndRenderPass(m_RenderCommandBuffer);
 
         m_RenderCommandBuffer->End();
@@ -228,15 +161,51 @@ namespace Turbo
         UpdateStatistics();
     }
 
-    void SceneDrawList::AddCube(const glm::mat4& transform, const glm::vec4& color, i32 entity)
+    void SceneDrawList::PreRender()
     {
-        auto& cube = m_CubeInstances.emplace_back();
-        cube.Tranform[0] = transform[0];
-        cube.Tranform[1] = transform[1];
-        cube.Tranform[2] = transform[2];
-        cube.Tranform[3] = transform[3];
-        cube.EntityID = entity;
-        cube.Color = color;
+        // Submit point lights
+        Renderer::Submit([this]()
+        {
+            m_UniformBufferSet->SetData(0, 2, &m_PointLights);
+        });
+
+        // Set whole transform buffer and then offset it in draw call
+        std::vector<TransformData> transformData;
+
+        u32 offset = 0;
+        for (auto& [mk, transformMap] : m_MeshTransformMap)
+        {
+            transformMap.TransformOffset = offset;
+
+            for (auto& transform : transformMap.Transforms)
+            {
+                transformData.push_back(transform);
+                offset += (u32)sizeof(TransformData);
+            }
+        }
+
+        m_MeshTransformBuffer->SetData(transformData.data(), transformData.size() * sizeof(TransformData));
+    }
+
+    void SceneDrawList::AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity)
+    {
+        //for (auto& submesh : mesh->GetSubmeshes())
+        {
+            MeshKey key = { mesh };
+            auto& drawCommand = m_DrawCommands[key];
+            drawCommand.Mesh = mesh;
+            drawCommand.InstanceCount++;
+
+            // If a mesh is a duplicate, draw it as a another instance of the original mesh but with different transform
+            // Store those transforms in a map and then offset in PreRender 
+            auto& meshTransformData = m_MeshTransformMap[key];
+
+            auto& currentTransform = meshTransformData.Transforms.emplace_back();
+            currentTransform.Tranform[0] = transform[0];
+            currentTransform.Tranform[1] = transform[1];
+            currentTransform.Tranform[2] = transform[2];
+            currentTransform.Tranform[3] = transform[3];
+        }
     }
 
     void SceneDrawList::AddPointLight(const glm::vec3& position, f32 intensity, f32 radius, f32 fallOff, i32 entityID)
@@ -253,6 +222,13 @@ namespace Turbo
     void SceneDrawList::UpdateStatistics()
     {
         m_Statistics.Statistics2D = m_DrawList2D->GetStatistics();
+
+        // Static meshes 
+        for (auto& [mk, drawCommand] : m_DrawCommands)
+        {
+            m_Statistics.Instances += drawCommand.InstanceCount;
+            m_Statistics.DrawCalls++;
+        }
     }
 
     void SceneDrawList::AddQuad(const glm::vec3& position, const glm::vec2& size, f32 rotation, const glm::vec4& color, i32 entity)

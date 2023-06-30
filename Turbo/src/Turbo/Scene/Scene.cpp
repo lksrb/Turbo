@@ -9,6 +9,7 @@
 #include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Debug/ScopeTimer.h"
 #include "Turbo/Script/Script.h"
+#include "Turbo/Renderer/Mesh.h"
 
 #include "Turbo/Physics/Physics2D.h" // <-- TODO: Remove
 #include "Turbo/Physics/PhysicsWorld2D.h"
@@ -88,6 +89,9 @@ namespace Turbo
 
         m_Registry.reserve(200);
     }
+
+    static Ref<StaticMesh> s_TestMesh;
+    static Ref<StaticMesh> s_TestMesh2;
 
     Scene::~Scene()
     {
@@ -204,24 +208,44 @@ namespace Turbo
             static f32 s_Time = 0.0f;
 
             TransformComponent transformComponent;
+            transformComponent.Scale *= 1.5f;
             TransformComponent transformComponent2;
             transformComponent2.Scale *= 0.2f;
 
-            // Cube
-            drawList->AddCube(transformComponent.GetTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
-
             // Light
-            //transformComponent2.Translation.x = 2.0f * glm::sin(s_Time += ts * 0.2f);
-            //transformComponent2.Translation.z = 2.0f * glm::cos(s_Time += ts * 0.2f);
+            transformComponent2.Translation.x = 2.0f * glm::sin(s_Time += ts * 0.2f);
+            transformComponent2.Translation.z = 2.0f * glm::cos(s_Time += ts * 0.2f);
             //transformComponent2.Translation.y = 2.0f * glm::sin(s_Time += ts * 0.2f);
 
-            transformComponent2.Translation.z = 2.0f;
-
-            f32 radius = (2 + glm::sin(s_Time += ts));
+            f32 radius = 10.0f;
             f32 fallOff = 0.1f;
+            f32 intensity = 5.0f;
 
-            drawList->AddPointLight(transformComponent2.Translation, 2.0f, radius, fallOff);
-            drawList->AddCube(transformComponent2.GetTransform(), glm::vec4(0.7f, 0.3f, 0.2f, 1.0f), 3);
+            if (!s_TestMesh)
+            {
+                s_TestMesh = Ref<StaticMesh>::Create("Assets/Meshes/Cube.fbx");
+            }
+
+            if (!s_TestMesh2)
+            {
+                s_TestMesh2 = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
+            }
+
+            // Render two duplicate meshes
+            drawList->AddStaticMesh(s_TestMesh2, transformComponent.GetTransform(), 3);
+            drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
+
+            // Render another mesh
+            TransformComponent transformComponent3;
+            transformComponent3.Translation.x = 2;
+            transformComponent3.Translation.y = 2;
+            //drawList->AddStaticMesh(s_TestMesh2, transformComponent3.GetTransform(), 3);
+            transformComponent3.Translation.x = -2;
+            //drawList->AddStaticMesh(s_TestMesh2, transformComponent3.GetTransform(), 3);
+            drawList->AddPointLight(transformComponent2.Translation, intensity, radius, fallOff);
+
+            // Other duplicate
+            //drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
         }
         // 2D Rendering
         {
@@ -384,7 +408,6 @@ namespace Turbo
             drawList->SetSceneData(rendererData);
 
             // Static meshes
-            // Cubes for now
             {
 
             }

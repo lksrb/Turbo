@@ -514,15 +514,16 @@ namespace Turbo::Ed
             ImGui::End();
         }
 
-        ImGui::Begin("Statistics & Renderer2D");
+        ImGui::Begin("Statistics & Renderer");
         ImGui::Text("Timestep: %.5f ms", Time.DeltaTime.ms());
         ImGui::Text("StartTime: %.5f ms", Time.TimeSinceStart.ms());
         ImGui::Separator();
 
         // TODO: Better statistics
-        auto stats2d = m_ViewportDrawList->GetStatistics().Statistics2D;
-        ImGui::Text("Quad Count: %d", stats2d.QuadCount);
-        ImGui::Text("Drawcalls: %d", stats2d.DrawCalls);
+        auto stats = m_ViewportDrawList->GetStatistics();
+        ImGui::Text("Quad Count: %d", stats.Statistics2D.QuadCount);
+        ImGui::Text("Drawcalls: %d", stats.Statistics2D.DrawCalls + stats.DrawCalls);
+        ImGui::Text("Instances: %d", stats.Instances);
         ImGui::Separator();
 
         Scene::Statistics sceneStats = m_CurrentScene->GetStatistics();

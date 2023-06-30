@@ -33,13 +33,20 @@ namespace Turbo
             for (auto& fence : m_WaitFences)
                 TBO_VK_ASSERT(vkCreateFence(device, &fence_create_info, nullptr, &fence));
         }
+
+        auto& resourceQueue = RendererContext::GetResourceQueue();
+        resourceQueue.Submit(SYNC_OBJECT, [waitFences = m_WaitFences]()
+        {
+            VkDevice device = RendererContext::GetDevice();
+            for (auto& fence : waitFences)
+            {
+                vkDestroyFence(device, fence, nullptr);
+            }
+        });
     }
 
     VulkanRenderCommandBuffer::~VulkanRenderCommandBuffer()
     {
-        VkDevice device = RendererContext::GetDevice();
-        for (auto& fence : m_WaitFences)
-            vkDestroyFence(device, fence, nullptr);
     }
 
     VkCommandBuffer VulkanRenderCommandBuffer::GetHandle() const

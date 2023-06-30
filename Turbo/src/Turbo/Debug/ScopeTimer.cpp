@@ -3,7 +3,7 @@
 
 namespace Turbo::Debug
 {
-    ScopeTimer::ScopeTimer(const std::string& name, bool output)
+    ScopeTimer::ScopeTimer(std::string_view name, bool output)
         : m_Name(name), m_Output(output)
     {
         m_Start = std::chrono::high_resolution_clock::now();

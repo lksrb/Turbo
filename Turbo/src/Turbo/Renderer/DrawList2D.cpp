@@ -31,11 +31,11 @@ namespace Turbo
         {
             // Vertex buffer
             m_QuadVertexBufferBase = m_QuadVertexBufferPointer = new QuadVertex[MaxQuadVertices];
-            m_QuadVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(QuadVertex) });
+            m_QuadVertexBuffer = VertexBuffer::Create(MaxQuadVertices * sizeof(QuadVertex));
 
             // Index buffer
             {
-                u32* quadIndices = new u32[MaxQuadIndices];
+                std::vector<u32> quadIndices(MaxQuadIndices);
                 u32 offset = 0;
                 for (u32 i = 0; i < MaxQuadIndices; i += 6)
                 {
@@ -50,12 +50,7 @@ namespace Turbo
                     offset += 4;
                 }
 
-                IndexBuffer::Config config = {};
-                config.Size = MaxQuadIndices * sizeof(u32);
-                config.Indices = quadIndices;
-                m_QuadIndexBuffer = IndexBuffer::Create(config);
-
-                delete[] quadIndices;
+                m_QuadIndexBuffer = IndexBuffer::Create(quadIndices);
             }
 
             // Shader
@@ -91,7 +86,7 @@ namespace Turbo
         {
             // Vertex buffer
             m_CircleVertexBufferBase = m_CircleVertexBufferPointer = new CircleVertex[MaxQuadVertices];
-            m_CircleVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(CircleVertex) });
+            m_CircleVertexBuffer = VertexBuffer::Create(MaxQuadVertices * sizeof(CircleVertex));
 
             // Index buffer from quads
 
@@ -128,7 +123,7 @@ namespace Turbo
         {
             // Vertex buffer
             m_LineVertexBufferBase = m_LineVertexBufferPointer = new LineVertex[MaxQuadVertices];
-            m_LineVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(CircleVertex) });
+            m_LineVertexBuffer = VertexBuffer::Create(MaxQuadVertices * sizeof(CircleVertex));
 
             // Index buffer is not needed
 
@@ -159,7 +154,7 @@ namespace Turbo
         {
             // Vertex buffer
             m_TextVertexBufferBase = m_TextVertexBufferPointer = new TextVertex[MaxQuadVertices];
-            m_TextVertexBuffer = VertexBuffer::Create({ MaxQuadVertices * sizeof(TextVertex) });
+            m_TextVertexBuffer = VertexBuffer::Create(MaxQuadVertices * sizeof(TextVertex));
 
             // Index buffer is not needed
 
