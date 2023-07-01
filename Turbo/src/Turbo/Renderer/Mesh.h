@@ -21,8 +21,12 @@ namespace Turbo
 
     struct Submesh
     {
-        std::vector<Vertex> Vertices;
-        std::vector<u32> Indices;
+        u32 BaseVertex = 0;
+        u32 BaseIndex = 0;
+        u32 VertexCount = 0;
+        u32 IndexCount = 0;
+        glm::mat4 Transform {1.0f};
+        std::string Name;
     };
 
     class StaticMesh
@@ -31,17 +35,15 @@ namespace Turbo
         explicit StaticMesh(std::string_view filePath);
         ~StaticMesh();
 
-        u32 GetIndicesPerInstance() const { return (u32)m_Indices.size(); }
-
         Ref<VertexBuffer> GetVertexBuffer() const { return m_VertexBuffer; }
         Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
 
         const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
     private:
+        void TraverseNodes(aiNode* node, glm::mat4 parentTransform = glm::mat4(1.0), u32 level = 0);
         void Load();
         void AllocateGPUResources();
         void ProcessNode(const aiScene* scene, aiNode* node);
-        Submesh ProcessMesh(const aiScene* scene, aiMesh* mesh);
     private:
         std::vector<Submesh> m_Submeshes;
 

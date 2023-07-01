@@ -132,14 +132,14 @@ namespace Turbo
         CircleRendererComponent(const CircleRendererComponent&) = default;
     };
 
-    struct MeshRendererComponent
+    struct StaticMeshRendererComponent
     {
         enum class PrimitiveType : u32 { Cube, Sphere, Cylinder };
 
         PrimitiveType Type;
 
-        MeshRendererComponent() = default;
-        MeshRendererComponent(const MeshRendererComponent&) = default;
+        StaticMeshRendererComponent() = default;
+        StaticMeshRendererComponent(const StaticMeshRendererComponent&) = default;
     };
 
     struct TextComponent

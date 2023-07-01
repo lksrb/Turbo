@@ -160,10 +160,16 @@ vec3 CalculatePointLights()
         vec3 lightDiffuse = vec3(0.8, 0.8, 0.8);
         vec3 lightSpecular = vec3(1.0, 1.0, 1.0);
 
+        vec3 color = vec3(1.0);
+
         // Combine results
         vec3 ambient  = light.Intensity * lightAmbient * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
         vec3 diffuse  = light.Intensity * lightDiffuse  * diffuseAngle * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
         vec3 specular = light.Intensity * lightSpecular * spec * vec3(texture(u_MaterialTexture[1], Input.TexCoord));
+
+        //vec3 ambient  = light.Intensity * lightAmbient * color;
+        //vec3 diffuse  = light.Intensity * lightDiffuse  * diffuseAngle * color;
+        //vec3 specular = light.Intensity * lightSpecular * spec * color;
 
         ambient  *= attenuation;
         diffuse  *= attenuation;
@@ -183,7 +189,7 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
     // Calculate diffuse
     float diffuseAngle = max(dot(normal, lightDir), 0.0);
 
-    // Calculate specular
+    // Calculate specular 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
@@ -191,6 +197,12 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
     vec3 ambient  = vec3(light.Ambient) * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
     vec3 diffuse  = vec3(light.Diffuse) * diffuseAngle * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
     vec3 specular = vec3(light.Specular) * spec * vec3(texture(u_MaterialTexture[1], Input.TexCoord));
+
+    vec3 color = vec3(1.0);
+
+    //vec3 ambient  = vec3(light.Ambient) * color;
+    //vec3 diffuse  = vec3(light.Diffuse) * diffuseAngle * color;
+    //vec3 specular = vec3(light.Specular) * spec * color;
 
     return (ambient + diffuse + specular);
 }

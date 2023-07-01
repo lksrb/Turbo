@@ -88,7 +88,7 @@ namespace Turbo
         static constexpr u32 MaxCubeIndices = 6 * MaxCubes;
 
         // For now
-        static constexpr u32 MaxTransforms = 100;
+        static constexpr u32 MaxTransforms = 4096;
 
         struct UBCamera
         {
@@ -138,17 +138,22 @@ namespace Turbo
         struct MeshKey
         {
             Ref<StaticMesh> Mesh; // TODO: Assets
+            u32 SubmeshIndex = 0;
 
             bool operator<(const MeshKey& other) const
             {
-                return (size_t)Mesh.Get() < (size_t)other.Mesh.Get();
+                if ((size_t)Mesh.Get() < (size_t)other.Mesh.Get())
+                    return true;
+
+                return (size_t)Mesh.Get() == (size_t)other.Mesh.Get() && SubmeshIndex < other.SubmeshIndex;
             }
         };
 
         struct DrawCommand
         {
             Ref<StaticMesh> Mesh;
-            u32 InstanceCount;
+            u32 SubmeshIndex = 0;
+            u32 InstanceCount = 0;
         };
 
         struct MeshTransformMap

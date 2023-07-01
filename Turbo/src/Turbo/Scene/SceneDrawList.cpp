@@ -100,8 +100,9 @@ namespace Turbo
         // Wait for renderer2d to finish its work and do its own thing
         //m_CompositeRenderPass->DependsOn(m_SecondRenderPass);
 
-        m_ContainerDiffuse = Texture2D::Create("Assets/Textures/Container.png");
-        m_ContainerSpecular = Texture2D::Create("Assets/Textures/ContainerSpecular.png");
+        m_ContainerDiffuse = Texture2D::Create("Assets/Meshes/Backpack/1001_albedo.jpg");
+        m_ContainerSpecular = Texture2D::Create("Assets/Meshes/Backpack/1001_metallic.jpg");
+
         m_CubeMaterial = Material::Create({ m_GeometryShader });
     }
 
@@ -144,7 +145,7 @@ namespace Turbo
         for (auto& [mk, drawCommand] : m_DrawCommands)
         {
             auto& transformMap = m_MeshTransformMap.at(mk);
-            Renderer::DrawStaticMesh(m_RenderCommandBuffer, drawCommand.Mesh, m_MeshTransformBuffer, m_UniformBufferSet, m_GeometryPipeline, transformMap.TransformOffset, drawCommand.InstanceCount);
+            Renderer::DrawStaticMesh(m_RenderCommandBuffer, drawCommand.Mesh, m_MeshTransformBuffer, m_UniformBufferSet, m_GeometryPipeline, transformMap.TransformOffset, drawCommand.SubmeshIndex, drawCommand.InstanceCount);
         }
 
         //Renderer::PushConstant(m_RenderCommandBuffer, m_CubePipeline, 64, &m_ViewProjection);
@@ -189,22 +190,26 @@ namespace Turbo
 
     void SceneDrawList::AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity)
     {
-        //for (auto& submesh : mesh->GetSubmeshes())
+        u32 submeshIndex = 0;
+        for (auto& submesh : mesh->GetSubmeshes())
         {
-            MeshKey key = { mesh };
+            glm::mat4 submeshTransform = transform * submesh.Transform;
+
+            MeshKey key = { mesh, submeshIndex };
             auto& drawCommand = m_DrawCommands[key];
             drawCommand.Mesh = mesh;
             drawCommand.InstanceCount++;
+            drawCommand.SubmeshIndex = submeshIndex++;
 
             // If a mesh is a duplicate, draw it as a another instance of the original mesh but with different transform
             // Store those transforms in a map and then offset in PreRender 
             auto& meshTransformData = m_MeshTransformMap[key];
 
             auto& currentTransform = meshTransformData.Transforms.emplace_back();
-            currentTransform.Tranform[0] = transform[0];
-            currentTransform.Tranform[1] = transform[1];
-            currentTransform.Tranform[2] = transform[2];
-            currentTransform.Tranform[3] = transform[3];
+            currentTransform.Tranform[0] = submeshTransform[0];
+            currentTransform.Tranform[1] = submeshTransform[1];
+            currentTransform.Tranform[2] = submeshTransform[2];
+            currentTransform.Tranform[3] = submeshTransform[3];
         }
     }
 

@@ -285,7 +285,7 @@ namespace Turbo
         });
     }
 
-    void Renderer::DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 transformOffset, u32 instanceCount)
+    void Renderer::DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 transformOffset, u32 subMeshIndex, u32 instanceCount)
     {
         Renderer::Submit([=]()
         {
@@ -306,6 +306,8 @@ namespace Turbo
             const auto& resources =shader->GetResources();
             UpdateWriteDescriptors(uniformBufferSet, shader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
 
+            auto& submesh = mesh->GetSubmeshes()[subMeshIndex];
+
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
             VkDeviceSize instanceOffsets[] = { transformOffset };
@@ -313,7 +315,7 @@ namespace Turbo
             vkCmdBindIndexBuffer(vkCommandBuffer, vkIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
             vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
-            vkCmdDrawIndexed(vkCommandBuffer, mesh->GetIndicesPerInstance(), instanceCount, 0, 0, 0);
+            vkCmdDrawIndexed(vkCommandBuffer, submesh.IndexCount, instanceCount, submesh.BaseIndex, submesh.BaseVertex, 0);
         });
     }
 }

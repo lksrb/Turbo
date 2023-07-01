@@ -91,7 +91,7 @@ namespace Turbo
     }
 
     static Ref<StaticMesh> s_TestMesh;
-    static Ref<StaticMesh> s_TestMesh2;
+    static Ref<StaticMesh> s_Backpack;
 
     Scene::~Scene()
     {
@@ -208,32 +208,48 @@ namespace Turbo
             static f32 s_Time = 0.0f;
 
             TransformComponent transformComponent;
-            transformComponent.Scale *= 1.5f;
+            //transformComponent.Rotation.z = glm::radians(180.0f);
+            //transformComponent.Rotation.y = glm::radians(-90.0f);
+            //transformComponent.Rotation.x = glm::radians(90.0f);
+            //transformComponent.Scale *= 1.5f;
             TransformComponent transformComponent2;
-            transformComponent2.Scale *= 0.2f;
+            TransformComponent transformComponent5;
+            //transformComponent2.Scale *= 0.2f;
 
             // Light
-            transformComponent2.Translation.x = 2.0f * glm::sin(s_Time += ts * 0.2f);
-            transformComponent2.Translation.z = 2.0f * glm::cos(s_Time += ts * 0.2f);
+            transformComponent2.Translation.x = 4.0f * glm::sin(s_Time += ts * 0.2f);
+            transformComponent2.Translation.z = 4.0f * glm::cos(s_Time += ts * 0.2f);
+
+            transformComponent5.Translation.x = transformComponent2.Translation.x;
+            transformComponent5.Translation.y = -transformComponent2.Translation.z;
             //transformComponent2.Translation.y = 2.0f * glm::sin(s_Time += ts * 0.2f);
 
             f32 radius = 10.0f;
             f32 fallOff = 0.1f;
-            f32 intensity = 5.0f;
+            f32 intensity = 7.0f;
 
             if (!s_TestMesh)
             {
                 s_TestMesh = Ref<StaticMesh>::Create("Assets/Meshes/Cube.fbx");
             }
 
-            if (!s_TestMesh2)
+            if (!s_Backpack)
             {
-                s_TestMesh2 = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
+                s_Backpack = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
             }
 
-            // Render two duplicate meshes
-            drawList->AddStaticMesh(s_TestMesh2, transformComponent.GetTransform(), 3);
-            drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
+            TransformComponent transformComponent4;
+
+            transformComponent4.Translation.y = 5;
+
+            drawList->AddStaticMesh(s_Backpack, transformComponent4.GetTransform(), 3);
+            drawList->AddStaticMesh(s_Backpack, transformComponent.GetTransform(), 3);
+
+            // Cube
+            {
+                drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
+                drawList->AddStaticMesh(s_TestMesh, transformComponent5.GetTransform(), 3);
+            }
 
             // Render another mesh
             TransformComponent transformComponent3;
@@ -243,6 +259,7 @@ namespace Turbo
             transformComponent3.Translation.x = -2;
             //drawList->AddStaticMesh(s_TestMesh2, transformComponent3.GetTransform(), 3);
             drawList->AddPointLight(transformComponent2.Translation, intensity, radius, fallOff);
+            drawList->AddPointLight(transformComponent5.Translation, intensity, radius, fallOff);
 
             // Other duplicate
             //drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
