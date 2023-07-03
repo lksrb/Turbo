@@ -3,6 +3,8 @@
 #include "Turbo/Core/PrimitiveTypes.h"
 #include "Turbo/Core/UUID.h"
 
+#include "Turbo/Asset/Asset.h"
+
 #include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Renderer/Font.h"
 
@@ -134,9 +136,7 @@ namespace Turbo
 
     struct StaticMeshRendererComponent
     {
-        enum class PrimitiveType : u32 { Cube, Sphere, Cylinder };
-
-        PrimitiveType Type;
+        AssetHandle Mesh;
 
         StaticMeshRendererComponent() = default;
         StaticMeshRendererComponent(const StaticMeshRendererComponent&) = default;

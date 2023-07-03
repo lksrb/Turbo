@@ -148,6 +148,11 @@ namespace Turbo
         }
     }
 
+    void AssetManager::ExportAsset(Ref<Asset> asset)
+    {
+
+    }
+
     bool AssetManager::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
     {
         std::string filename = entity.GetName();

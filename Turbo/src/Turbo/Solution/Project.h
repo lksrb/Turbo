@@ -3,6 +3,8 @@
 #include "Turbo/Core/Common.h"
 #include "Turbo/Scene/Scene.h"
 
+#include "Turbo/Asset/AssetManagerBase.h"
+
 #include <vector>
 
 namespace Turbo
@@ -69,8 +71,11 @@ namespace Turbo
     private:
         Project::Config m_Config;
 
+        Ref<AssetManagerBase> m_AssetManager;
+
         static inline Ref<Project> s_ActiveProject;
 
+        friend class AssetManager;
         friend class ProjectSerializer;
     };
 
