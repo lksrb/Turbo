@@ -14,8 +14,8 @@ namespace Turbo
         EditorAssetManager();
         virtual ~EditorAssetManager();
 
-        bool IsAssetHandleValid(AssetHandle handle) override;
-        Ref<Asset> GetAsset(AssetHandle handle) override;
+        bool IsAssetHandleValid(AssetHandle handle) const override;
+        Ref<Asset> GetAsset(AssetHandle handle) const override;
     private:
         AssetMap m_AssetMap;
     };

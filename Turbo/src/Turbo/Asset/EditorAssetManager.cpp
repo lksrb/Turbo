@@ -11,12 +11,12 @@ namespace Turbo
     {
     }
 
-    bool EditorAssetManager::IsAssetHandleValid(AssetHandle handle)
+    bool EditorAssetManager::IsAssetHandleValid(AssetHandle handle) const
     {
         return m_AssetMap.find(handle) != m_AssetMap.end();
     }
 
-    Ref<Asset> EditorAssetManager::GetAsset(AssetHandle handle)
+    Ref<Asset> EditorAssetManager::GetAsset(AssetHandle handle) const
     {
         TBO_ENGINE_ASSERT(IsAssetHandleValid(handle));
 

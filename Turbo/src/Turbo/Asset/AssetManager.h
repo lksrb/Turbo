@@ -21,7 +21,6 @@ namespace Turbo
             return Project::GetActive()->m_AssetManager->GetAsset(handle).As<T>();
         }
 
-        static 
         static void ExportAsset(Ref<Asset> asset);
 
         // Temporary solution to prefabs
