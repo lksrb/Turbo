@@ -38,7 +38,7 @@ Entities:
       Scale: [10.0003405, 0.610543609, 1]
     SpriteRendererComponent:
       Color: [0.764705896, 0.164936557, 0.164936557, 1]
-      TexturePath: None
+      TextureHandle: 0
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
