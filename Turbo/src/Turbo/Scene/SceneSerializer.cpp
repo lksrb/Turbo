@@ -396,24 +396,19 @@ namespace Turbo
             auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
             out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
-            if (spriteRendererComponent.Texture)
-            {
-                const char* filterTypeStrings[] = { "Nearest", "Linear" };
-                std::map<ImageFormat, const char*> formatTypeStrings;
-                formatTypeStrings[ImageFormat_RGBA_SRGB] = "RGBA_SRGB";
-                formatTypeStrings[ImageFormat_RGBA_Unorm] = "RGBA_Unorm";
+            const char* filterTypeStrings[] = { "Nearest", "Linear" };
+            std::map<ImageFormat, const char*> formatTypeStrings;
+            formatTypeStrings[ImageFormat_RGBA_SRGB] = "RGBA_SRGB";
+            formatTypeStrings[ImageFormat_RGBA_Unorm] = "RGBA_Unorm";
 
-                auto texture = AssetRegistry::GetAsset<Texture2D>(spriteRendererComponent.Texture);
-                auto& config = texture->GetConfig();
-                out << YAML::Key << "TextureHandle" << YAML::Value << spriteRendererComponent.Texture;
-                //out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(u32)config.Filter];
-                //out << YAML::Key << "TextureFormat" << YAML::Value << formatTypeStrings[config.Format];
-                //out << YAML::Key << "IsSpriteSheet" << YAML::Value << spriteRendererComponent.IsSpriteSheet;
-                //out << YAML::Key << "SpriteCoords" << YAML::Value << config.SpriteCoords;
-                //out << YAML::Key << "SpriteSize" << YAML::Value << config.SpriteSize;
-            }
-            else
-                out << YAML::Key << "TexturePath" << YAML::Value << "None";
+            //auto texture = AssetRegistry::GetAsset<Texture2D>(spriteRendererComponent.Texture);
+            //auto& config = texture->GetConfig();
+            out << YAML::Key << "TextureHandle" << YAML::Value << spriteRendererComponent.Texture;
+            //out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(u32)config.Filter];
+            //out << YAML::Key << "TextureFormat" << YAML::Value << formatTypeStrings[config.Format];
+            //out << YAML::Key << "IsSpriteSheet" << YAML::Value << spriteRendererComponent.IsSpriteSheet;
+            //out << YAML::Key << "SpriteCoords" << YAML::Value << config.SpriteCoords;
+            //out << YAML::Key << "SpriteSize" << YAML::Value << config.SpriteSize;
 
             out << YAML::EndMap;
         }
@@ -666,34 +661,34 @@ namespace Turbo
                 AssetRegistry::GetAsset<Texture2D>(textureHandle);
 
                 AssetRegistry::ImportAsset()*/
-/*
-                //auto& filterTypeString = spriteRendererComponent["TextureFiltering"].as<std::string>();
-                //auto& formatTypeString = spriteRendererComponent["TextureFormat"].as<std::string>();
-                //auto& spriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
-                //auto& spriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
+                /*
+                                //auto& filterTypeString = spriteRendererComponent["TextureFiltering"].as<std::string>();
+                                //auto& formatTypeString = spriteRendererComponent["TextureFormat"].as<std::string>();
+                                //auto& spriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
+                                //auto& spriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
 
-                //src.IsSpriteSheet = spriteRendererComponent["IsSpriteSheet"].as<bool>();
-                //src.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
-                // Recreate the texture with different settings
-                Texture2D::Config config = {};
-                config.Filter = ImageFilter_Nearest;
-                //config.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
-                //config.Format = Utils::GetImageFormatFromString(formatTypeString);
-                config.Format = ImageFormat_RGBA_SRGB;
-                config.Path = path;
-                config.IsSpriteSheet = false;
-                if (config.IsSpriteSheet)
-                {
-                    //config.SpriteCoords = spriteCoords;
-                    //config.SpriteSize = spriteSize;
-                }
+                                //src.IsSpriteSheet = spriteRendererComponent["IsSpriteSheet"].as<bool>();
+                                //src.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
+                                // Recreate the texture with different settings
+                                Texture2D::Config config = {};
+                                config.Filter = ImageFilter_Nearest;
+                                //config.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
+                                //config.Format = Utils::GetImageFormatFromString(formatTypeString);
+                                config.Format = ImageFormat_RGBA_SRGB;
+                                config.Path = path;
+                                config.IsSpriteSheet = false;
+                                if (config.IsSpriteSheet)
+                                {
+                                    //config.SpriteCoords = spriteCoords;
+                                    //config.SpriteSize = spriteSize;
+                                }
 
-                Ref<Texture2D> texture = Texture2D::Create(config);
-                if (texture->IsLoaded())
-                    src.Texture = texture;
-                else
-                    TBO_WARN("Could not load texture {0}", config.Path);
-            }*/
+                                Ref<Texture2D> texture = Texture2D::Create(config);
+                                if (texture->IsLoaded())
+                                    src.Texture = texture;
+                                else
+                                    TBO_WARN("Could not load texture {0}", config.Path);
+                            }*/
         }
 
         auto circleRendererComponent = entity["CircleRendererComponent"];
