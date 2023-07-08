@@ -7,6 +7,7 @@
 #include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Script/Script.h"
 #include "Turbo/UI/UI.h"
+#include "Turbo/UI/Widgets.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -310,28 +311,12 @@ namespace Turbo
     {
     }
 
-    static UUID s_UUID;
-
     void SceneHierarchyPanel::OnDrawUI()
     {
         ImGui::Begin("Scene Hierarchy");
 
         if (m_Context)
         {
-            if (m_SelectedEntity) // FIXME: Temporary solution to invalid entity
-            {
-                Entity entity = m_Context->FindEntityByUUID(s_UUID);
-                if (entity)
-                {
-                    m_SelectedEntity = entity;
-                    s_UUID = m_SelectedEntity.GetUUID();
-                }
-                else
-                {
-                    m_SelectedEntity = {};
-                }
-            }
-
             auto& view = m_Context->GetAllEntitiesWith<RelationshipComponent>();
             for (auto e : view)
             {
@@ -389,14 +374,9 @@ namespace Turbo
         ImGui::End();
     }
 
-    void SceneHierarchyPanel::SetSelectedEntity(Entity entity /*= {}*/)
+    void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
     {
         m_SelectedEntity = entity;
-
-        if (m_SelectedEntity)
-        {
-            s_UUID = m_SelectedEntity.GetUUID();
-        }
     }
 
     void SceneHierarchyPanel::OnSceneContextChanged(const Ref<Scene>& context)
@@ -404,7 +384,7 @@ namespace Turbo
         m_Context = context;
 
         // Reset selected entity
-        SetSelectedEntity();
+        m_SelectedEntity = {};
     }
 
     void SceneHierarchyPanel::OnProjectChanged(const Ref<Project>& project)
@@ -536,32 +516,26 @@ namespace Turbo
         Utils::DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [&m_AssetsPath = m_AssetsPath](auto& component)
         {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-
+            ImGui::NextColumn();
             ImGui::Text("Texture");
-            ImGui::NextColumn();
-            ImGui::SameLine();
-            const ImVec2 cursor = ImGui::GetCursorPos();
-            /*   ImDrawList* drawList = ImGui::GetWindowDrawList();
-               drawList->AddRectFilled(cursor, { cursor.x + 100, cursor.y + 100 }, 0xff0000ff); // red*/
-            ImGui::SetCursorPos(ImVec2(cursor.x + 225.0f, cursor.y));
-            ImGui::PushItemWidth(-1);
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - 50.0f);
 
-            if (component.SubTexture)
-                UI::ImageButton(component.SubTexture, ImVec2(50, 50.0f), { 0, 1 }, { 1, 0 });
-            else
-                ImGui::Button("##TextureButton", ImVec2(50, 50.0f));
+            if (ImGui::Button("Open Asset"))
+                ImGui::OpenPopup("SRC_AssetSearchPopup");
 
-            ImGui::PopItemWidth();
+            AssetHandle selectedHandle = Widgets::AssetSearchPopup("SRC_AssetSearchPopup");
+
             ImGui::NextColumn();
+
+#if TODO_ASSET_SETTINGS
 
             if (ImGui::BeginDragDropTarget())
             {
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP"))
                 {
-                    const wchar_t* path = (const wchar_t*)payload->Data;
-                    const std::filesystem::path texturePath = path;
+                    const std::filesystem::path path = (const wchar_t*)payload->Data;
 
-                    auto& fileExtension = texturePath.extension();
+                    auto& fileExtension = path.extension();
 
                     // Currently accepting only .pngs and .jpgs
                     bool success = fileExtension == ".png" || fileExtension == ".jpg";
@@ -569,30 +543,31 @@ namespace Turbo
                     if (success)
                     {
                         Texture2D::Config config = {};
-                        config.Filter = ImageFilter_Nearest;
+                        config.Filter = component.Filter;
                         config.Format = ImageFormat_RGBA_Unorm;
-                        config.Path = texturePath.string();
+                        config.Path = path.string();
 
                         Ref<Texture2D> texture = Texture2D::Create(config);
                         if (texture->IsLoaded())
-                            component.SubTexture = SubTexture2D::CreateFromTexture(texture);
+                            component.Texture = texture;
                         else
-                            TBO_WARN("Could not load texture {0}", texturePath.stem().string());
+                            TBO_WARN("Could not load texture {0}", path.stem().string());
                     }
                     else
-                        TBO_WARN("Could not load texture {0} - Invalid format", texturePath.stem().string());
+                        TBO_WARN("Could not load texture {0} - Invalid format", path.stem().string());
                 }
                 ImGui::EndDragDropTarget();
             }
-
-            if (component.SubTexture)
+            if (component.Texture)
             {
-                glm::vec2 coords = component.SubTexture->GetSpriteCoords();
-                glm::vec2 spriteSize = component.SubTexture->GetSpriteSize();
-                ImageFilter filter = component.SubTexture->GetTexture()->GetConfig().Filter;
+                const auto& config = component.Texture->GetConfig();
+
+                component.SpriteCoords = config.SpriteCoords;
+                component.SpriteSize = config.SpriteSize;
+                component.Filter = config.Filter;
 
                 const char* filterTypeStrings[] = { "Nearest", "Linear" };
-                const char* currentFilterType = filterTypeStrings[(u32)filter];
+                const char* currentFilterType = filterTypeStrings[(u32)component.Filter];
                 if (ImGui::BeginCombo("Filter", currentFilterType))
                 {
                     for (u32 i = 0; i < 2; i++)
@@ -602,19 +577,20 @@ namespace Turbo
                         {
                             currentFilterType = filterTypeStrings[i];
 
-                            if (filter == (ImageFilter)i)
+                            if (component.Filter == (ImageFilter)i)
                                 continue;
 
-                            // Recreate the texture with different settings
-                            Texture2D::Config config = {};
-                            config.Filter = (ImageFilter)i;
-                            config.Path = component.SubTexture->GetTexture()->GetConfig().Path;
+                            component.Filter = (ImageFilter)i;
 
-                            Ref<Texture2D> texture = Texture2D::Create(config);
+                            // Recreate the texture with different settings
+                            Texture2D::Config newConfig = config;
+                            newConfig.Filter = component.Filter;
+
+                            Ref<Texture2D> texture = Texture2D::Create(newConfig);
                             if (texture->IsLoaded())
-                                component.SubTexture = SubTexture2D::CreateFromTexture(texture, coords, spriteSize);
+                                component.Texture = texture;
                             else
-                                TBO_WARN("Could not load texture {0}", config.Path);
+                                TBO_WARN("Could not load texture {0}", newConfig.Path);
                         }
 
                         if (isSelected)
@@ -623,13 +599,30 @@ namespace Turbo
                     ImGui::EndCombo();
                 }
 
-                ImGui::InputFloat2("Sprite Coordinates", glm::value_ptr(coords));
-                ImGui::InputFloat2("Sprite Size", glm::value_ptr(spriteSize));
+                if (ImGui::Checkbox("Is SpriteSheet", &component.IsSpriteSheet))
+                {
+                    component.Texture->SetSpriteSheet(component.IsSpriteSheet);
+                }
+#endif
 
-                component.SubTexture->SetBounds(coords, spriteSize);
+            /*if (component.IsSpriteSheet)
+            {
+                bool valueChanged = false;
+                valueChanged |= ImGui::InputFloat2("Sprite Coordinates", glm::value_ptr(component.SpriteCoords));
+                valueChanged |= ImGui::InputFloat2("Sprite Size", glm::value_ptr(component.SpriteSize));
+
+                // TODO: Think about creating sprite class instead of using Texture2D class as some kind of hybrids
+                if (valueChanged)
+                {
+                    component.Texture->SetTextureCoords(component.SpriteCoords, component.SpriteSize);
+                }
             }
+            else
+            {
+                component.Texture->ResetTextureCoords();
+            }*/
 
-            // TODO(Urby): Style ImGui and make id generator for imgui id system
+            // TODO: Style ImGui and make id generator for imgui id system
 
             ImGui::Text("Tiling");
             ImGui::NextColumn();
@@ -799,7 +792,7 @@ namespace Turbo
         });
     }
 
-    void SceneHierarchyPanel::DrawEntityNode(Entity entity)
+            void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
         if (!entity)
             return;
@@ -891,7 +884,7 @@ namespace Turbo
     }
 
     template<typename T>
-    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
+    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string & entryName)
     {
         if (m_SelectedEntity.HasComponent<T>() == false)
         {

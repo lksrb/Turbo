@@ -33,11 +33,6 @@ namespace Turbo
         return ImGui::ImageButton(textureID, size, uv0, uv1, frame_padding, bg_col, tint_col);
     }
 
-    bool UI::ImageButton(Ref<SubTexture2D> subTexture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, i32 frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
-    {
-        return ImageButton(subTexture->GetTexture(), size, uv0, uv1, frame_padding, bg_col, tint_col);
-    }
-
     bool UI::DragByte(const char* label, char* v, float v_speed , char v_min , char v_max , const char* format, ImGuiSliderFlags flags )
     {
         return ImGui::DragScalar(label, ImGuiDataType_S8, v, v_speed, &v_min, &v_max, format, flags);
@@ -66,6 +61,24 @@ namespace Turbo
     bool UI::DragULong(const char* label, unsigned long long* v, float v_speed , unsigned long long v_min , unsigned long long v_max , const char* format, ImGuiSliderFlags flags )
     {
         return ImGui::DragScalar(label, ImGuiDataType_U64, v, v_speed, &v_min, &v_max, format, flags);
+    }
+
+	void UI::OffsetCursorPos(const ImVec2& offset)
+	{
+        auto cursorPos = ImGui::GetCursorPos();
+        cursorPos.x += offset.x;
+        cursorPos.y += offset.y;
+        ImGui::SetCursorPos(cursorPos);
+	}
+
+    void UI::OffsetCursorPosX(float xOffset)
+    {
+        OffsetCursorPos(ImVec2(xOffset, 0.0f));
+    }
+
+    void UI::OffsetCursorPosY(float yOffset)
+    {
+        OffsetCursorPos(ImVec2(0.0f, yOffset));
     }
 
 }

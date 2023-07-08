@@ -19,7 +19,7 @@ namespace Turbo
         static f32 GetTime();
 
         // Dialogs
-        static std::filesystem::path OpenFileDialog(const wchar_t* title = L"", const wchar_t* filter = L"");
+        static std::filesystem::path OpenFileDialog(const wchar_t* title = L"", const wchar_t* filter = L"", const std::filesystem::path& initialDir = L"");
         static std::filesystem::path OpenBrowseFolderDialog(const char* title = "", const char* savedPath = "");
         static std::filesystem::path SaveFileDialog(const char* filter = "", const char* suffix = "");
 

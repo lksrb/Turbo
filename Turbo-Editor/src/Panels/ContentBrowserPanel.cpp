@@ -5,13 +5,13 @@
 #include <Turbo/Solution/Project.h>
 #include <Turbo/Scene/Scene.h>
 #include <Turbo/Scene/Entity.h>
-#include <Turbo/Asset/AssetManager.h>
+#include <Turbo/Asset/AssetRegistry.h>
 
 #include <filesystem>
 
 namespace Turbo::Ed
 {
- 
+
     ContentBrowserPanel::ContentBrowserPanel()
     {
         m_DirectoryIcon = Texture2D::Create("Resources/Icons/DirectoryIcon.png");
@@ -50,7 +50,7 @@ namespace Turbo::Ed
                 if (entity)
                 {
                     // Serialize every component except
-                    if (AssetManager::SerializeToPrefab(m_CurrentDirectory, entity))
+                    if (AssetRegistry::SerializeToPrefab(m_CurrentDirectory, entity))
                     {
                         TBO_ENGINE_INFO("Successfully serialized prefab!");
                     }
@@ -61,8 +61,8 @@ namespace Turbo::Ed
         }
 
         static f32 padding = 16.0f;
-        static f32 thumbnail_size = 128;
-        f32 cellSize = thumbnail_size + padding;
+        static f32 thumbnailSize = 128;
+        f32 cellSize = thumbnailSize + padding;
 
         f32 panelWidth = ImGui::GetContentRegionAvail().x;
         i32 columnCount = (i32)(panelWidth / cellSize);
@@ -71,7 +71,7 @@ namespace Turbo::Ed
 
         ImGui::Columns(columnCount, 0, false);
 
-        for (auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory.c_str()))
+        for (auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
         {
             const auto& path = directoryEntry.path();
 
@@ -86,7 +86,7 @@ namespace Turbo::Ed
             Ref<Texture2D> icon = directoryEntry.is_directory() ? m_DirectoryIcon : m_FileIcon;
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-            UI::ImageButton(icon, { thumbnail_size, thumbnail_size }, { 0,1 }, { 1,0 });
+            UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, { 0,1 }, { 1,0 });
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
                 const wchar_t* itemPath = path.c_str();
@@ -104,24 +104,28 @@ namespace Turbo::Ed
 
             ImGui::PopStyleColor();
 
-            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            if (ImGui::IsItemHovered())
             {
-                if (directoryEntry.is_directory())
+                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
-                    m_CurrentDirectory /= path.filename().string().c_str();
-                }
-                else
-                {
-                    if (path.extension() == ".cs")
+                    if (directoryEntry.is_directory())
                     {
-                        // Open specific script
-                        if (!Platform::Execute(L"cmd /C start devenv.exe /Edit", path))
+                        m_CurrentDirectory /= path.filename().string().c_str();
+                    }
+                    else
+                    {
+                        if (path.extension() == ".cs")
                         {
-                            TBO_ERROR("Failed to open C# script!");
+                            // Open specific script
+                            if (!Platform::Execute(L"cmd /C start devenv.exe /Edit", path))
+                            {
+                                TBO_ERROR("Failed to open C# script!");
+                            }
                         }
                     }
                 }
             }
+
             ImGui::TextWrapped(filenameString.c_str());
 
             ImGui::NextColumn();
@@ -130,17 +134,24 @@ namespace Turbo::Ed
         }
 
         ImGui::Columns(1);
-        ImGui::SliderFloat("Thumbnail Size", &thumbnail_size, 16, 512);
+        ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
         ImGui::SliderFloat("Thumbnail Padding", &padding, 0, 32);
 
         if (ImGui::BeginPopupContextWindow("##ContentBrowserPanel"))
         {
-            static const char* s_PlatformFileExplorerName = "Open in Explorer";
-
-            if (ImGui::MenuItem(s_PlatformFileExplorerName))
+            if (ImGui::MenuItem("Open in Explorer"))
             {
                 Platform::OpenFileExplorer(m_CurrentDirectory);
             }
+
+            if (ImGui::MenuItem("Import Asset"))
+            {
+                // NOTE: Its users responsibility to move assets to Assets directory
+                // TODO: Make a popup warning about this
+                auto& filepath = Platform::OpenFileDialog(L"Import Asset", L"", m_CurrentDirectory);
+                AssetRegistry::ImportAsset(filepath);
+            }
+
             ImGui::EndPopup();
         }
 

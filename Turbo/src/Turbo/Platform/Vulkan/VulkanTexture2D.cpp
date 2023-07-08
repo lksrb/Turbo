@@ -52,7 +52,6 @@ namespace Turbo
         void* pixels = nullptr;
         if (!m_Config.Path.empty())
         {
-
             // Load picture from filepath
             int texWidth = 0, texHeight = 0, texChannel = 0;
 
@@ -86,6 +85,11 @@ namespace Turbo
             stbi_set_flip_vertically_on_load(0);
         }
      
+        if (config.IsSpriteSheet)
+        {
+            SetTextureCoords(config.SpriteCoords, config.SpriteSize);
+        }
+
         m_IsLoaded = true;
     }
 

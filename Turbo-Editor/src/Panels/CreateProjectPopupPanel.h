@@ -16,7 +16,7 @@ namespace Turbo::Ed
         CreateProjectPopupPanel(const CreateProjectCallback& callback);
         ~CreateProjectPopupPanel();
 
-        void Open() { m_Open = true; }
+        void Open();
         void OnDrawUI() override;
     private:
         CreateProjectCallback m_Callback;

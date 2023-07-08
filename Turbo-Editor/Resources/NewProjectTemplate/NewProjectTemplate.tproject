@@ -2,4 +2,4 @@ Project: %PROJECT_NAME%
 AssetsDirectory: Assets
 StartScene: Scenes\StartScene.tscene
 ScriptModulePath: Binaries\%PROJECT_NAME%.dll
-OpenSolutionOnStart: true
+OpenSolutionOnStart: false

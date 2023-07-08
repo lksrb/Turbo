@@ -3,7 +3,7 @@
 
 #include "Turbo/Platform/Vulkan/VulkanTexture2D.h"
 
-#define TBO_CACHE_TEXTURES 1
+#define TBO_CACHE_TEXTURES 0
 
 namespace Turbo
 {
@@ -38,43 +38,41 @@ namespace Turbo
         {
             auto& texture = s_CachedTextures[config.Path];
             texture = Ref<VulkanTexture2D>::Create(config);
+
+            if (config.IsSpriteSheet)
+            {
+                texture->SetTextureCoords(config.SpriteCoords, config.SpriteSize);
+            }
+
             if (texture == nullptr)
             {
                 s_CachedTextures.erase(config.Path);
                 return nullptr;
             }
         }
-        
+
         return s_CachedTextures.at(config.Path);
 #else
         return Ref<VulkanTexture2D>::Create(config);
 #endif
     }
 
-    SubTexture2D::SubTexture2D(Ref<Texture2D> texture)
-        : m_Texture(texture)
+    void Texture2D::SetTextureCoords(const glm::vec2& coords, const glm::vec2 spriteSize)
     {
+        m_Config.SpriteCoords = coords;
+        m_Config.SpriteSize = spriteSize;
+
+        glm::vec2 min = { (m_Config.SpriteCoords.x * m_Config.SpriteSize.x) / GetWidth(), (m_Config.SpriteCoords.y * m_Config.SpriteSize.y) / GetHeight() };
+        glm::vec2 max = { ((m_Config.SpriteCoords.x + 1) * m_Config.SpriteSize.x) / GetWidth(), ((m_Config.SpriteCoords.y + 1) * m_Config.SpriteSize.y) / GetHeight() };
+
+        m_TextureCoords[0] = { min.x, min.y };
+        m_TextureCoords[1] = { max.x, min.y };
+        m_TextureCoords[2] = { max.x, max.y };
+        m_TextureCoords[3] = { min.x, max.y };
     }
 
-    Ref<SubTexture2D> SubTexture2D::CreateFromTexture(Ref<Texture2D> texture, glm::vec2 coords, glm::vec2 spriteSize)
+    void Texture2D::ResetTextureCoords()
     {
-        Ref<SubTexture2D> subTexture = Ref<SubTexture2D>::Create(texture);
-        subTexture->SetBounds(coords, spriteSize);
-        return subTexture;
-    }
-
-    void SubTexture2D::SetBounds(glm::vec2 coords, glm::vec2 spriteSize)
-    {
-        m_SpriteCoords = coords;
-        m_SpriteSize.x = spriteSize.x ? spriteSize.x : m_Texture->GetWidth();
-        m_SpriteSize.y = spriteSize.y ? spriteSize.y : m_Texture->GetHeight();
-
-        glm::vec2 min = { (coords.x * m_SpriteSize.x) / m_Texture->GetWidth(), (coords.y * m_SpriteSize.y) / m_Texture->GetHeight() };
-        glm::vec2 max = { ((coords.x + 1) * m_SpriteSize.x) / m_Texture->GetWidth(), ((coords.y + 1) * m_SpriteSize.y) / m_Texture->GetHeight() };
-
-        m_TexCoords[0] = { min.x, min.y };
-        m_TexCoords[1] = { max.x, min.y };
-        m_TexCoords[2] = { max.x, max.y };
-        m_TexCoords[3] = { min.x, max.y };
+        m_TextureCoords = { glm::vec2{ 0.0f, 0.0f }, glm::vec2{ 1.0f, 0.0f }, glm::vec2{ 1.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } };
     }
 }

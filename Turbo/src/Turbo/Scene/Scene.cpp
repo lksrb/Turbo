@@ -5,6 +5,7 @@
 #include "SceneDrawList.h"
 #include "SceneCamera.h"
 
+#include "Turbo/Asset/AssetRegistry.h"
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Debug/ScopeTimer.h"
@@ -89,9 +90,6 @@ namespace Turbo
 
         m_Registry.reserve(200);
     }
-
-    static Ref<StaticMesh> s_TestMesh;
-    static Ref<StaticMesh> s_Backpack;
 
     Scene::~Scene()
     {
@@ -228,28 +226,31 @@ namespace Turbo
             f32 fallOff = 0.1f;
             f32 intensity = 7.0f;
 
+            static Ref<StaticMesh> s_TestMesh;
+            static Ref<StaticMesh> s_Backpack;
+
             if (!s_TestMesh)
             {
-                s_TestMesh = Ref<StaticMesh>::Create("Assets/Meshes/Cube.fbx");
+                //s_TestMesh = Ref<StaticMesh>::Create("Assets/Meshes/Cube.fbx");
             }
 
             if (!s_Backpack)
             {
-                s_Backpack = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
+                //s_Backpack = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
             }
 
             TransformComponent transformComponent4;
 
             transformComponent4.Translation.y = 5;
 
-            drawList->AddStaticMesh(s_Backpack, transformComponent4.GetTransform(), 3);
+           /* drawList->AddStaticMesh(s_Backpack, transformComponent4.GetTransform(), 3);
             drawList->AddStaticMesh(s_Backpack, transformComponent.GetTransform(), 3);
 
             // Cube
             {
                 drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
                 drawList->AddStaticMesh(s_TestMesh, transformComponent5.GetTransform(), 3);
-            }
+            }*/
 
             // Render another mesh
             TransformComponent transformComponent3;
@@ -273,7 +274,8 @@ namespace Turbo
                 for (auto entity : view)
                 {
                     auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-                    drawList->AddSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
+                    auto texture = AssetRegistry::GetAsset<Texture2D>(src.Texture);
+                    drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.Tiling, (i32)entity);
                 }
             }
 
@@ -438,7 +440,8 @@ namespace Turbo
                     for (auto entity : view)
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-                        drawList->AddSprite(transform.GetTransform(), src.Color, src.SubTexture, src.Tiling, (i32)entity);
+                        auto texture = AssetRegistry::GetAsset<Texture2D>(src.Texture);
+                        drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.Tiling, (i32)entity);
                     }
                 }
 

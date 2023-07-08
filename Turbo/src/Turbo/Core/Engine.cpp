@@ -58,7 +58,7 @@ namespace Turbo
         m_ViewportWindow = Window::Create(config);
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Engine::OnEvent));
 
-        // Create Win32 surface and initializes swapchain
+        // Create Win32 surface and initialize swapchain
         RendererContext::SetWindowContext(m_ViewportWindow);
 
         // Initialize rendering
@@ -97,7 +97,7 @@ namespace Turbo
 
         Platform::Shutdown();
 
-        TBO_ENGINE_WARN("Engine is shutting down!");
+        TBO_ENGINE_WARN("Engine shut down!");
     }
 
     void Engine::Close()

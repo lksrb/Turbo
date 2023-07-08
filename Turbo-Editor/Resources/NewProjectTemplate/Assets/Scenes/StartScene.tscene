@@ -1,6 +1,9 @@
 Scene: StartScene
 Entities:
-  - Entity: 9446318442325437810
+  - Entity: 3517970494138153289
+    Parent: 0
+    Children:
+      []
     TagComponent:
       Tag: Sprite
     TransformComponent:
@@ -8,13 +11,13 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [0.800000012, 0.100000001, 0.200000003, 1]
+      Color: [0.823673546, 0.965686262, 0, 1]
       TexturePath: None
-    ScriptComponent:
-      ClassName: ExampleNamespace.ExampleEntity
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -22,19 +25,25 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 2098855278331695246
+      IsSensor: false
+  - Entity: 13963187795045410005
+    Parent: 0
+    Children:
+      []
     TagComponent:
       Tag: Ground
     TransformComponent:
-      Translation: [0, -2, 0]
+      Translation: [0, -1.4564209, 0]
       Rotation: [0, 0, 0]
-      Scale: [5, 0.5, 1]
+      Scale: [10.0003405, 0.610543609, 1]
     SpriteRendererComponent:
-      Color: [0.200000003, 0.800000012, 0.100000001, 1]
+      Color: [0.764705896, 0.164936557, 0.164936557, 1]
       TexturePath: None
     Rigidbody2DComponent:
       BodyType: Static
       FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -42,7 +51,11 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 17566374929209752254
+      IsSensor: false
+  - Entity: 15120497435686810087
+    Parent: 0
+    Children:
+      []
     TagComponent:
       Tag: Camera
     TransformComponent:

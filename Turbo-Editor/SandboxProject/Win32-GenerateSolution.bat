@@ -1,7 +1,6 @@
 @echo off
-pushd %~dp0\..\
-call premake5.exe vs2022
-popd
+call premake5.exe %1
+exit /b 1
 
 IF "%1" == "" (
     pause

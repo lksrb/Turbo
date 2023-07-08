@@ -118,7 +118,11 @@ namespace Turbo
     {
         glm::vec4 Color{ 1.0f };
         f32 Tiling = 1.0f;
-        Ref<SubTexture2D> SubTexture;
+        AssetHandle Texture = 0;
+        //ImageFilter Filter = ImageFilter_Nearest;
+        //bool IsSpriteSheet = false;
+        //glm::vec2 SpriteCoords{ 0.0f };
+        //glm::vec2 SpriteSize{ 0.0f };
 
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -136,7 +140,7 @@ namespace Turbo
 
     struct StaticMeshRendererComponent
     {
-        AssetHandle Mesh;
+        AssetHandle Mesh = 0;
 
         StaticMeshRendererComponent() = default;
         StaticMeshRendererComponent(const StaticMeshRendererComponent&) = default;

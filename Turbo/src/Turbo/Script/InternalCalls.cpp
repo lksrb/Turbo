@@ -8,7 +8,7 @@
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
 #include "Turbo/Audio/Audio.h"
-#include "Turbo/Asset/AssetManager.h"
+#include "Turbo/Asset/AssetRegistry.h"
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Core/Input.h"
 #include "Turbo/Core/Math.h"
@@ -354,7 +354,7 @@ namespace Turbo
         std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
         mono_free(cString);
 
-        Entity entity = AssetManager::DeserializePrefab(prefabPath, context, *translation);
+        Entity entity = AssetRegistry::DeserializePrefab(prefabPath, context, *translation);
 
         if (entity)
         {
@@ -374,7 +374,7 @@ namespace Turbo
         std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
         mono_free(cString);
 
-        Entity child = AssetManager::DeserializePrefab(prefabPath, context, *translation);
+        Entity child = AssetRegistry::DeserializePrefab(prefabPath, context, *translation);
 
         if (child)
         {
@@ -503,13 +503,13 @@ namespace Turbo
     static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
     {
         Entity entity = GetEntity(uuid);
-
+        
         *outColor = entity.GetComponent<SpriteRendererComponent>().Color;
     }
     static void Component_SpriteRenderer_Set_Color(UUID uuid, glm::vec4* color)
     {
         Entity entity = GetEntity(uuid);
-
+        
         entity.GetComponent<SpriteRendererComponent>().Color = *color;
     }
 
@@ -519,9 +519,10 @@ namespace Turbo
 
         auto& src = entity.GetComponent<SpriteRendererComponent>();
 
-        if (src.SubTexture)
+        if (src.Texture)
         {
-            src.SubTexture->SetBounds(position, size);
+            auto texture = AssetRegistry::GetAsset<Texture2D>(src.Texture);
+            texture->SetTextureCoords(position, size);
             return;
         }
 

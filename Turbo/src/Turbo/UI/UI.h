@@ -46,6 +46,13 @@ namespace Turbo::UI
                 ImGui::PushStyleVar(idx, value);
         }
 
+        ScopedStyleVar(ImGuiStyleVar idx, f32 value, bool predicate = true)
+            : Set(predicate)
+        {
+            if (Set)
+                ImGui::PushStyleVar(idx, value);
+        }
+
         ~ScopedStyleVar()
         {
             if (Set)
@@ -61,7 +68,6 @@ namespace Turbo::UI
 
     // Display icon buttons
     bool ImageButton(Ref<Texture2D> texture, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), i32 frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
-    bool ImageButton(Ref<SubTexture2D> subTexture, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), i32 frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 
     // Extends imgui standard DragScalars
     bool DragByte(const char* label, char* v, float v_speed = 1.0f, char v_min = 0, char v_max = 0, const char* format = NULL, ImGuiSliderFlags flags = 0);
@@ -70,4 +76,9 @@ namespace Turbo::UI
     bool DragUInt(const char* label, unsigned int* v, float v_speed = 1.0f, unsigned int v_min = 0, unsigned int v_max = UINT_MAX, const char* format = NULL, ImGuiSliderFlags flags = 0);
     bool DragLong(const char* label, long long* v, float v_speed = 1.0f, long long v_min = 0, long long v_max = 0, const char* format = NULL, ImGuiSliderFlags flags = 0);
     bool DragULong(const char* label, unsigned long long* v, float v_speed = 1.0f, unsigned long long v_min = 0, unsigned long long v_max = ULONG_MAX, const char* format = NULL, ImGuiSliderFlags flags = 0);
+
+    // Manipulatine drawing
+    void OffsetCursorPos(const ImVec2& offset);
+    void OffsetCursorPosX(float xOffset);
+    void OffsetCursorPosY(float yOffset);
 }

@@ -74,7 +74,7 @@ namespace Turbo
         return (static_cast<f32>(timerValue - s_RendererContext->Timer.Offset) / (s_RendererContext->Timer.Frequency));
     }
 
-    std::filesystem::path Platform::OpenFileDialog(const wchar_t* title, const wchar_t* filter)
+    std::filesystem::path Platform::OpenFileDialog(const wchar_t* title, const wchar_t* filter, const std::filesystem::path& initialDir)
     {
         OPENFILENAME ofn = {};
         WCHAR szFile[MAX_PATH] = { 0 };
@@ -85,6 +85,7 @@ namespace Turbo
         ofn.lpstrFilter = filter;
         ofn.nFilterIndex = 1;
         ofn.lpstrTitle = title;
+        ofn.lpstrInitialDir = initialDir.c_str();
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_DONTADDTORECENT | OFN_NOCHANGEDIR;
         if (::GetOpenFileName(&ofn) == TRUE)
         {

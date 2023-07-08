@@ -45,7 +45,7 @@ namespace Turbo
         // Main render pass
         RenderPass::Config config = {};
         config.TargetFrameBuffer = targetFrameBuffer;
-        config.ClearOnLoad = false;
+        config.ClearOnLoad = true;
         m_FinalRenderPass = RenderPass::Create(config);
         m_FinalRenderPass->Invalidate();
 
@@ -129,10 +129,17 @@ namespace Turbo
         m_Statistics.Reset();
 
         m_PointLights.Count = 0;
+
+        m_DrawList2D->Begin();
     }
 
     void SceneDrawList::End()
     {
+        m_DrawList2D->End();
+
+        UpdateStatistics();
+        return;
+
         PreRender();
 
         m_RenderCommandBuffer->Begin();
@@ -228,6 +235,7 @@ namespace Turbo
     {
         m_Statistics.Statistics2D = m_DrawList2D->GetStatistics();
 
+        return;
         // Static meshes 
         for (auto& [mk, drawCommand] : m_DrawCommands)
         {
@@ -250,9 +258,9 @@ namespace Turbo
         m_DrawList2D->AddQuad(transform, color, entity);
     }
 
-    void SceneDrawList::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity)
+    void SceneDrawList::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity)
     {
-        m_DrawList2D->AddSprite(transform, color, subTexture, tiling, entity);
+        m_DrawList2D->AddSprite(transform, color, texture, tiling, entity);
     }
 
     void SceneDrawList::AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity)

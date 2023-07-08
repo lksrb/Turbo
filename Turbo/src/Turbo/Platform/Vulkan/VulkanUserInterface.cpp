@@ -304,6 +304,7 @@ namespace Turbo
         icons_config.PixelSnapH = true;
         icons_config.GlyphOffset.y = 3;
         io.Fonts->AddFontFromFileTTF("Assets\\Fonts\\IconFonts\\" FONT_ICON_FILE_NAME_FAR, 16.0f, &icons_config, icons_ranges);
+        //io.FontGlobalScale = 1.5f;
 
         ImGuiStyleSpectrum();
 

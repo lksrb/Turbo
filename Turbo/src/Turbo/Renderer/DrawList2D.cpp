@@ -362,11 +362,11 @@ namespace Turbo
         }
 
         u32 textureIndex = 0; // White Texture
-        glm::vec2 textureCoords[] = {
-            { 0.0f, 0.0f },
-            { 1.0f, 0.0f },
-            { 1.0f, 1.0f },
-            { 0.0f, 1.0f }
+        std::array<glm::vec2, 4> textureCoords = {
+            glm::vec2{ 0.0f, 0.0f },
+            glm::vec2{ 1.0f, 0.0f },
+            glm::vec2{ 1.0f, 1.0f },
+            glm::vec2{ 0.0f, 1.0f }
         };
 
         if (texture)
@@ -393,64 +393,8 @@ namespace Turbo
                 m_TextureSlots[m_TextureSlotsIndex] = texture;
                 m_TextureSlotsIndex++;
             }
-        }
 
-        for (u32 i = 0; i < 4; ++i)
-        {
-            m_QuadVertexBufferPointer->Position = transform * m_QuadVertexPositions[i];
-            m_QuadVertexBufferPointer->Color = color;
-            m_QuadVertexBufferPointer->EntityID = entity;
-            m_QuadVertexBufferPointer->TextureIndex = textureIndex;
-            m_QuadVertexBufferPointer->TexCoord = textureCoords[i];
-            m_QuadVertexBufferPointer->TilingFactor = tiling;
-            m_QuadVertexBufferPointer++;
-        }
-
-        m_QuadIndexCount += 6;
-
-        m_Statistics.QuadCount++;
-    }
-
-    void DrawList2D::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<SubTexture2D> subTexture, f32 tiling, i32 entity)
-    {
-        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
-        {
-            FlushAndReset();
-        }
-
-        u32 textureIndex = 0; // White Texture
-        glm::vec2 textureCoords[] = {
-            { 0.0f, 0.0f },
-            { 1.0f, 0.0f },
-            { 1.0f, 1.0f },
-            { 0.0f, 1.0f }
-        };
-
-        if (subTexture)
-        {
-            memcpy(textureCoords, subTexture->GetTextureCoords().data(), 4 * sizeof(glm::vec2));
-            for (u32 i = 1; i < m_TextureSlotsIndex; ++i)
-            {
-                // If the texture is in the stack, just modify textureIndex
-                if (subTexture->GetTexture()->GetHash() == m_TextureSlots[i]->GetHash())
-                {
-                    textureIndex = i;
-                    break;
-                }
-            }
-
-            // If the texture is not present in texture stack, add it
-            if (textureIndex == 0)
-            {
-                if (m_TextureSlotsIndex >= DrawList2D::MaxTextureSlots)
-                {
-                    FlushAndReset();
-                }
-
-                textureIndex = m_TextureSlotsIndex;
-                m_TextureSlots[m_TextureSlotsIndex] = subTexture->GetTexture();
-                m_TextureSlotsIndex++;
-            }
+            textureCoords = texture->GetTextureCoords();
         }
 
         for (u32 i = 0; i < 4; ++i)

@@ -3,7 +3,8 @@
 #include "Turbo/Core/Common.h"
 #include "Turbo/Scene/Scene.h"
 
-#include "Turbo/Asset/AssetManagerBase.h"
+#include "Turbo/Asset/AssetRegistryBase.h"
+#include "Turbo/Asset/EditorAssetRegistry.h"
 
 #include <vector>
 
@@ -65,17 +66,25 @@ namespace Turbo
         }
 
         static Ref<Project> GetActive() { return s_ActiveProject; }
-        static void SetActive(Ref<Project> project) { s_ActiveProject = project; }
 
-        static void Build();
+        static void SetActive(Ref<Project> project);
+
+        Ref<EditorAssetRegistry> GetEditorAssetRegistry() const { return m_AssetRegistry.As<EditorAssetRegistry>(); }
+
+        static std::filesystem::path GetAssetRegistryPath()
+        {
+            TBO_ENGINE_ASSERT(s_ActiveProject);
+
+            return s_ActiveProject->GetAssetsPath() / "AssetRegistry.tregistry";
+        }
     private:
         Project::Config m_Config;
 
-        Ref<AssetManagerBase> m_AssetManager;
+        Ref<AssetRegistryBase> m_AssetRegistry;
 
         static inline Ref<Project> s_ActiveProject;
 
-        friend class AssetManager;
+        friend class AssetRegistry;
         friend class ProjectSerializer;
     };
 

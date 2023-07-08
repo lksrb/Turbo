@@ -124,6 +124,6 @@ namespace Turbo
         friend class PhysicsScene2D;
         friend class Project;
         friend class ProjectSerializer;
-        friend class AssetManager;
+        friend class AssetRegistry;
     };
 }

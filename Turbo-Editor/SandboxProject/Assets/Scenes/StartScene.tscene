@@ -1,138 +1,23 @@
 Scene: StartScene
 Entities:
-  - Entity: 17489375651344337891
-    Parent: 17489375651344337891
-    Children:
-      []
-    TagComponent:
-      Tag: Text
-    TransformComponent:
-      Translation: [-6.03027534, 1.47613597, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.999999762, 1]
-    TextComponent:
-      Text: Welcome to the demo scene
-      Color: [0.84803921, 0.170439228, 0.170439228, 1]
-      KerningOffset: 0
-      LineSpacing: 0.0250000004
-    Rigidbody2DComponent:
-      BodyType: Dynamic
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [5.25, 0.25]
-      Size: [5.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 11837830512272370972
-    Parent: 11837830512272370972
-    Children:
-      []
-    TagComponent:
-      Tag: KRUH
-    TransformComponent:
-      Translation: [341.560211, 1427.42188, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CircleRendererComponent:
-      Color: [1, 0, 0, 1]
-      Thickness: 1
-      Fade: 0
-    Rigidbody2DComponent:
-      BodyType: Dynamic
-      FixedRotation: false
-    CircleCollider2DComponent:
-      Offset: [0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 1445474774719227887
-    Parent: 1445474774719227887
+  - Entity: 3517970494138153289
+    Parent: 0
     Children:
       []
     TagComponent:
       Tag: Sprite
     TransformComponent:
-      Translation: [0.703826785, 2.94921875, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [0.800000012, 0.100000001, 0.200000003, 1]
-      TexturePath: None
-    ScriptComponent:
-      ClassName: Sandbox.SandboxEntity
-      Fields:
-        - Name: m_Bool
-          Type: Bool
-          Data: true
-        - Name: m_Float
-          Type: Float
-          Data: 6.30999994
-        - Name: m_UnsignedLong
-          Type: ULong
-          Data: 0
-        - Name: m_Double
-          Type: Double
-          Data: 0
-        - Name: m_Int
-          Type: Int
-          Data: 0
-        - Name: m_Byte
-          Type: Byte
-          Data: 0
-        - Name: m_UnsignedInt
-          Type: UInt
-          Data: 0
-        - Name: m_Long
-          Type: Long
-          Data: 0
-        - Name: m_UnsignedByte
-          Type: UByte
-          Data: 0
-        - Name: m_Vector2
-          Type: Vector2
-          Data: [0, 0]
-        - Name: m_Vector3
-          Type: Vector3
-          Data: [0, 0, 0]
-        - Name: m_Vector4
-          Type: Vector4
-          Data: [0, 0, 0, 0]
-    AudioSourceComponent:
-      AudioClipPath: Assets/Audio/example_song_mono.wav
-      Gain: 5.5
-      Spatial: true
-      PlayOnStart: true
-      Loop: true
+      Color: [0.823529422, 1, 1, 1]
+      TextureHandle: 1769461780424482570
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 12425978561696158902
-    Parent: 12425978561696158902
-    Children:
-      []
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Translation: [0, -2, 0]
-      Rotation: [0, 0, 0.232855648]
-      Scale: [13.8999891, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [0.103037283, 0.542839825, 0.656862736, 1]
-      TexturePath: None
-    Rigidbody2DComponent:
-      BodyType: Static
-      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -140,19 +25,46 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 2511981452619357033
-    Parent: 2511981452619357033
+      IsSensor: false
+  - Entity: 13963187795045410005
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -1.4564209, 0]
+      Rotation: [0, 0, 0]
+      Scale: [10.0003405, 0.610543609, 1]
+    SpriteRendererComponent:
+      Color: [0.764705896, 0.164936557, 0.164936557, 1]
+      TexturePath: None
+    Rigidbody2DComponent:
+      BodyType: Static
+      FixedRotation: false
+      GravityScale: 1
+      IsBullet: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+      IsSensor: false
+  - Entity: 15120497435686810087
+    Parent: 0
     Children:
       []
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0, 0, 13.2701359]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       Camera:
-        ProjectionType: 0
+        ProjectionType: 1
         PerspectiveFOV: 0.785398185
         PerspectiveNear: 0.00999999978
         PerspectiveFar: 1000
@@ -161,7 +73,3 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-    ScriptComponent:
-      ClassName: Sandbox.CameraController
-    AudioListenerComponent:
-      Primary: true

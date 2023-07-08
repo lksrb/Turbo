@@ -26,11 +26,6 @@ namespace Turbo::Ed
 
     void CreateProjectPopupPanel::OnDrawUI()
     {
-        if (!m_Open)
-            return;
-
-        ImGui::OpenPopup("New Project...");
-
         // Always center this window when appearing
         ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -110,4 +105,10 @@ namespace Turbo::Ed
             ImGui::EndPopup();
         }
     }
+
+    void CreateProjectPopupPanel::Open()
+    {
+        ImGui::OpenPopup("New Project...");
+    }
+
 }

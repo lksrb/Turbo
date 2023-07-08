@@ -5,6 +5,7 @@
 #include "Entity.h"
 
 #include "Turbo/Audio/Audio.h"
+#include "Turbo/Asset/AssetRegistry.h"
 #include "Turbo/Script/Script.h"
 
 #include <yaml-cpp/yaml.h>
@@ -169,6 +170,17 @@ namespace Turbo
 
             TBO_ENGINE_ASSERT(false, "Unknown ScriptFieldType");
             return ScriptFieldType::None;
+        }
+
+        static ImageFormat GetImageFormatFromString(std::string_view format)
+        {
+            static std::unordered_map<std::string_view, ImageFormat> s_FormatTypeStrings =
+            {
+                {"RGBA_SRGB", ImageFormat_RGBA_SRGB },
+                {"RGBA_Unorm", ImageFormat_RGBA_Unorm }
+            };
+
+            return s_FormatTypeStrings.at(format);
         }
     }
 
@@ -384,20 +396,21 @@ namespace Turbo
             auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
             out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
-            if (spriteRendererComponent.SubTexture)
+            if (spriteRendererComponent.Texture)
             {
                 const char* filterTypeStrings[] = { "Nearest", "Linear" };
                 std::map<ImageFormat, const char*> formatTypeStrings;
                 formatTypeStrings[ImageFormat_RGBA_SRGB] = "RGBA_SRGB";
                 formatTypeStrings[ImageFormat_RGBA_Unorm] = "RGBA_Unorm";
 
-                Ref<SubTexture2D> subTexture = spriteRendererComponent.SubTexture;
-                auto& textureConfig = subTexture->GetTexture()->GetConfig();
-                out << YAML::Key << "TexturePath" << YAML::Value << textureConfig.Path;
-                out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(u32)textureConfig.Filter];
-                out << YAML::Key << "TextureFormat" << YAML::Value << formatTypeStrings[textureConfig.Format];
-                out << YAML::Key << "SpriteCoords" << YAML::Value << subTexture->GetSpriteCoords();
-                out << YAML::Key << "SpriteSize" << YAML::Value << subTexture->GetSpriteSize();
+                auto texture = AssetRegistry::GetAsset<Texture2D>(spriteRendererComponent.Texture);
+                auto& config = texture->GetConfig();
+                out << YAML::Key << "TextureHandle" << YAML::Value << spriteRendererComponent.Texture;
+                //out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(u32)config.Filter];
+                //out << YAML::Key << "TextureFormat" << YAML::Value << formatTypeStrings[config.Format];
+                //out << YAML::Key << "IsSpriteSheet" << YAML::Value << spriteRendererComponent.IsSpriteSheet;
+                //out << YAML::Key << "SpriteCoords" << YAML::Value << config.SpriteCoords;
+                //out << YAML::Key << "SpriteSize" << YAML::Value << config.SpriteSize;
             }
             else
                 out << YAML::Key << "TexturePath" << YAML::Value << "None";
@@ -646,30 +659,41 @@ namespace Turbo
         {
             auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
             src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
-            auto& path = spriteRendererComponent["TexturePath"].as<std::string>();
-            if (path != "None")
+            src.Texture = spriteRendererComponent["TextureHandle"].as<u64>();
+            /*if (textureHandle)
             {
-                auto& filterTypeString = spriteRendererComponent["TextureFiltering"].as<std::string>();
-                auto& formatTypeString = spriteRendererComponent["TextureFormat"].as<std::string>();
-                auto& spriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
-                auto& spriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
+                // Now we now that the texture is used somewhere so load it
+                AssetRegistry::GetAsset<Texture2D>(textureHandle);
 
-                std::unordered_map<std::string, ImageFormat> formatTypeStrings;
-                formatTypeStrings["RGBA_SRGB"] = ImageFormat_RGBA_SRGB;
-                formatTypeStrings["RGBA_Unorm"] = ImageFormat_RGBA_Unorm;
+                AssetRegistry::ImportAsset()*/
+/*
+                //auto& filterTypeString = spriteRendererComponent["TextureFiltering"].as<std::string>();
+                //auto& formatTypeString = spriteRendererComponent["TextureFormat"].as<std::string>();
+                //auto& spriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
+                //auto& spriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
 
+                //src.IsSpriteSheet = spriteRendererComponent["IsSpriteSheet"].as<bool>();
+                //src.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
                 // Recreate the texture with different settings
                 Texture2D::Config config = {};
-                config.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
-                config.Format = formatTypeStrings.at(formatTypeString);
+                config.Filter = ImageFilter_Nearest;
+                //config.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
+                //config.Format = Utils::GetImageFormatFromString(formatTypeString);
+                config.Format = ImageFormat_RGBA_SRGB;
                 config.Path = path;
+                config.IsSpriteSheet = false;
+                if (config.IsSpriteSheet)
+                {
+                    //config.SpriteCoords = spriteCoords;
+                    //config.SpriteSize = spriteSize;
+                }
 
                 Ref<Texture2D> texture = Texture2D::Create(config);
                 if (texture->IsLoaded())
-                    src.SubTexture = SubTexture2D::CreateFromTexture(texture, spriteCoords, spriteSize);
+                    src.Texture = texture;
                 else
                     TBO_WARN("Could not load texture {0}", config.Path);
-            }
+            }*/
         }
 
         auto circleRendererComponent = entity["CircleRendererComponent"];
@@ -748,7 +772,7 @@ namespace Turbo
         auto audioSourceComponent = entity["AudioSourceComponent"];
         if (audioSourceComponent)
         {
-            AudioSourceComponent as = {};
+            AudioSourceComponent as;
             const std::string& audioPath = audioSourceComponent["AudioPath"].as<std::string>();
             as.AudioPath = audioPath != "None" ? audioPath : "";
             as.Gain = audioSourceComponent["Gain"].as<f32>();

@@ -7,17 +7,16 @@ namespace Turbo::Ed
     class Editor : public Application
     {
     public:
-        enum class Mode : u32
+        enum SceneMode : u32
         {
-            SceneEdit = 0,
-            ScenePlay = 1
+            SceneMode_Edit = 0,
+            SceneMode_Play
         };
 
-        // Expand
-        enum class IDE : u32
+        enum DevEnv : u32
         {
-            None = 0,
-            VisualStudio2022
+            DevEnv_None = 0,
+            DevEnv_VS2022
         };
 
         Editor(const Application::Config& config);
@@ -57,18 +56,21 @@ namespace Turbo::Ed
         i32 m_GizmoType = -1;
         glm::vec2 m_ViewportBounds[2] = {};
 
+        bool m_ShowDemoWindow = false;
+        bool m_ShowAssetRegistryPanel = false;
+
         EditorCamera m_EditorCamera;
         bool m_ShowPhysics2DColliders = false;
         bool m_ViewportHovered = false, m_ViewportFocused = false;
         Ref<Texture2D> m_PlayIcon, m_StopIcon, m_ResetCameraRotationIcon;
         Ref<SceneDrawList> m_ViewportDrawList;
-        Mode m_SceneMode = Mode::SceneEdit;
+        SceneMode m_SceneMode = SceneMode_Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
 
         std::filesystem::path m_EditorScenePath;
         std::filesystem::path m_CurrentPath;
 
-        IDE m_CurrentIDE = IDE::VisualStudio2022;
+        DevEnv m_CurrentIDE = DevEnv_VS2022;
         std::filesystem::path m_MSBuildPath;
 
         Entity m_SelectedEntity, m_HoveredEntity;

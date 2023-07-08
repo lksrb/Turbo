@@ -17,7 +17,7 @@ namespace Turbo
 
         void OnDrawUI() override;
         Entity GetSelectedEntity() const { return m_SelectedEntity; }
-        void SetSelectedEntity(Entity entity = {});
+        void SetSelectedEntity(Entity entity);
 
         void OnSceneContextChanged(const Ref<Scene>& scene) override;
         void OnProjectChanged(const Ref<Project>& project) override;
