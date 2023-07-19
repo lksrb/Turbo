@@ -5,7 +5,7 @@
 #include "Entity.h"
 
 #include "Turbo/Audio/Audio.h"
-#include "Turbo/Asset/AssetRegistry.h"
+#include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Script/Script.h"
 
 #include <yaml-cpp/yaml.h>
@@ -209,9 +209,9 @@ namespace Turbo
     {
         switch (bodyType)
         {
-            case Rigidbody2DComponent::BodyType::Static:    return "Static";
-            case Rigidbody2DComponent::BodyType::Dynamic:   return "Dynamic";
-            case Rigidbody2DComponent::BodyType::Kinematic: return "Kinematic";
+            case Rigidbody2DComponent::BodyType_Static:    return "Static";
+            case Rigidbody2DComponent::BodyType_Dynamic:   return "Dynamic";
+            case Rigidbody2DComponent::BodyType_Kinematic: return "Kinematic";
         }
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
@@ -220,12 +220,12 @@ namespace Turbo
 
     static Rigidbody2DComponent::BodyType RigidBody2DBodyTypeFromString(const std::string& bodyTypeString)
     {
-        if (bodyTypeString == "Static")    return Rigidbody2DComponent::BodyType::Static;
-        if (bodyTypeString == "Dynamic")   return Rigidbody2DComponent::BodyType::Dynamic;
-        if (bodyTypeString == "Kinematic") return Rigidbody2DComponent::BodyType::Kinematic;
+        if (bodyTypeString == "Static")    return Rigidbody2DComponent::BodyType_Static;
+        if (bodyTypeString == "Dynamic")   return Rigidbody2DComponent::BodyType_Dynamic;
+        if (bodyTypeString == "Kinematic") return Rigidbody2DComponent::BodyType_Kinematic;
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
-        return Rigidbody2DComponent::BodyType::Static;
+        return Rigidbody2DComponent::BodyType_Static;
     }
 
     SceneSerializer::SceneSerializer(Ref<Scene> scene)
@@ -396,19 +396,10 @@ namespace Turbo
             auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
             out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
-            const char* filterTypeStrings[] = { "Nearest", "Linear" };
-            std::map<ImageFormat, const char*> formatTypeStrings;
-            formatTypeStrings[ImageFormat_RGBA_SRGB] = "RGBA_SRGB";
-            formatTypeStrings[ImageFormat_RGBA_Unorm] = "RGBA_Unorm";
-
-            //auto texture = AssetRegistry::GetAsset<Texture2D>(spriteRendererComponent.Texture);
-            //auto& config = texture->GetConfig();
-            out << YAML::Key << "TextureHandle" << YAML::Value << spriteRendererComponent.Texture;
-            //out << YAML::Key << "TextureFiltering" << YAML::Value << filterTypeStrings[(u32)config.Filter];
-            //out << YAML::Key << "TextureFormat" << YAML::Value << formatTypeStrings[config.Format];
-            //out << YAML::Key << "IsSpriteSheet" << YAML::Value << spriteRendererComponent.IsSpriteSheet;
-            //out << YAML::Key << "SpriteCoords" << YAML::Value << config.SpriteCoords;
-            //out << YAML::Key << "SpriteSize" << YAML::Value << config.SpriteSize;
+            out << YAML::Key << "Texture" << YAML::Value << spriteRendererComponent.Texture;
+            out << YAML::Key << "IsSpriteSheet" << YAML::Value << spriteRendererComponent.IsSpriteSheet;
+            out << YAML::Key << "SpriteCoords" << YAML::Value << spriteRendererComponent.SpriteCoords;
+            out << YAML::Key << "SpriteSize" << YAML::Value << spriteRendererComponent.SpriteSize;
 
             out << YAML::EndMap;
         }
@@ -654,41 +645,16 @@ namespace Turbo
         {
             auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
             src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
-            src.Texture = spriteRendererComponent["TextureHandle"].as<u64>();
-            /*if (textureHandle)
+            src.Texture = spriteRendererComponent["Texture"].as<u64>();
+            src.IsSpriteSheet = spriteRendererComponent["IsSpriteSheet"].as<bool>();
+            src.SpriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
+            src.SpriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
+
+            if (AssetManager::IsAssetLoaded(src.Texture))
             {
-                // Now we now that the texture is used somewhere so load it
-                AssetRegistry::GetAsset<Texture2D>(textureHandle);
-
-                AssetRegistry::ImportAsset()*/
-                /*
-                                //auto& filterTypeString = spriteRendererComponent["TextureFiltering"].as<std::string>();
-                                //auto& formatTypeString = spriteRendererComponent["TextureFormat"].as<std::string>();
-                                //auto& spriteCoords = spriteRendererComponent["SpriteCoords"].as<glm::vec2>();
-                                //auto& spriteSize = spriteRendererComponent["SpriteSize"].as<glm::vec2>();
-
-                                //src.IsSpriteSheet = spriteRendererComponent["IsSpriteSheet"].as<bool>();
-                                //src.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
-                                // Recreate the texture with different settings
-                                Texture2D::Config config = {};
-                                config.Filter = ImageFilter_Nearest;
-                                //config.Filter = filterTypeString == "Nearest" ? ImageFilter_Nearest : ImageFilter_Linear;
-                                //config.Format = Utils::GetImageFormatFromString(formatTypeString);
-                                config.Format = ImageFormat_RGBA_SRGB;
-                                config.Path = path;
-                                config.IsSpriteSheet = false;
-                                if (config.IsSpriteSheet)
-                                {
-                                    //config.SpriteCoords = spriteCoords;
-                                    //config.SpriteSize = spriteSize;
-                                }
-
-                                Ref<Texture2D> texture = Texture2D::Create(config);
-                                if (texture->IsLoaded())
-                                    src.Texture = texture;
-                                else
-                                    TBO_WARN("Could not load texture {0}", config.Path);
-                            }*/
+                auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
+                src.UpdateTextureCoords(texture->GetWidth(), texture->GetHeight());
+            }
         }
 
         auto circleRendererComponent = entity["CircleRendererComponent"];

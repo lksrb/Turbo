@@ -4,6 +4,7 @@
 #include "Turbo/Core/Platform.h"
 
 #include "Turbo/Audio/Audio.h"
+#include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Script/Script.h"
 #include "Turbo/UI/UI.h"
@@ -328,7 +329,7 @@ namespace Turbo
                     DrawEntityNode(entity);
             }
 
-            if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+            if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
                 m_SelectedEntity = {};
 
             // Right-click on blank space
@@ -346,16 +347,8 @@ namespace Turbo
             {
                 DrawComponents(m_SelectedEntity);
 
-                // Drag & drop
-                ImGuiWindow* window = ImGui::GetCurrentWindow();
-                ImRect windowContent = window->ContentRegionRect;
-
-                // Handle scrolling
-                windowContent.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
-                windowContent.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
-
                 // Add script component if dragged into properties
-                if (ImGui::BeginDragDropTargetCustom(windowContent, window->ID))
+                if (UI::BeginDragDropTargetWindow())
                 {
                     const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP");
 
@@ -366,7 +359,7 @@ namespace Turbo
                         m_SelectedEntity.AddComponent<ScriptComponent>(path.string());
                     }
 
-                    ImGui::EndDragDropTarget();
+                    UI::EndDragDropTargetWindow();
                 }
             }
         }
@@ -517,110 +510,47 @@ namespace Turbo
         {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
             ImGui::NextColumn();
-            ImGui::Text("Texture");
+
+            ImGui::Text("Texture: ");
+            if (component.Texture)
+            {
+                auto& textureMetadata = AssetManager::GetAssetMetadata(component.Texture);
+                ImGui::SameLine();
+                if (ImGui::Button(textureMetadata.FilePath.stem().string().c_str()))
+                {
+                    ImGui::OpenPopup("SRC_YesNoPopup");
+                }
+
+                if (UI::Widgets::YesNoPopup("SRC_YesNoPopup", "Reset?"))
+                {
+                    component.Texture = 0;
+                }
+
+            }
             ImGui::SameLine(ImGui::GetContentRegionAvail().x - 50.0f);
 
             if (ImGui::Button("Open Asset"))
                 ImGui::OpenPopup("SRC_AssetSearchPopup");
 
-            AssetHandle selectedHandle = Widgets::AssetSearchPopup("SRC_AssetSearchPopup");
+            if (AssetHandle confirmedHandle = UI::Widgets::AssetSearchPopup("SRC_AssetSearchPopup"))
+            {
+                component.Texture = confirmedHandle;
+            }
 
             ImGui::NextColumn();
+            ImGui::Checkbox("Is Sprite Sheet", &component.IsSpriteSheet);
 
-#if TODO_ASSET_SETTINGS
-
-            if (ImGui::BeginDragDropTarget())
+            if (component.IsSpriteSheet)
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM_SHP"))
-                {
-                    const std::filesystem::path path = (const wchar_t*)payload->Data;
-
-                    auto& fileExtension = path.extension();
-
-                    // Currently accepting only .pngs and .jpgs
-                    bool success = fileExtension == ".png" || fileExtension == ".jpg";
-
-                    if (success)
-                    {
-                        Texture2D::Config config = {};
-                        config.Filter = component.Filter;
-                        config.Format = ImageFormat_RGBA_Unorm;
-                        config.Path = path.string();
-
-                        Ref<Texture2D> texture = Texture2D::Create(config);
-                        if (texture->IsLoaded())
-                            component.Texture = texture;
-                        else
-                            TBO_WARN("Could not load texture {0}", path.stem().string());
-                    }
-                    else
-                        TBO_WARN("Could not load texture {0} - Invalid format", path.stem().string());
-                }
-                ImGui::EndDragDropTarget();
+                ImGui::InputFloat2("Sprite Coordinates", glm::value_ptr(component.SpriteCoords));
+                ImGui::InputFloat2("Sprite Size", glm::value_ptr(component.SpriteSize));
             }
-            if (component.Texture)
+
+            if (AssetManager::IsAssetLoaded(component.Texture))
             {
-                const auto& config = component.Texture->GetConfig();
-
-                component.SpriteCoords = config.SpriteCoords;
-                component.SpriteSize = config.SpriteSize;
-                component.Filter = config.Filter;
-
-                const char* filterTypeStrings[] = { "Nearest", "Linear" };
-                const char* currentFilterType = filterTypeStrings[(u32)component.Filter];
-                if (ImGui::BeginCombo("Filter", currentFilterType))
-                {
-                    for (u32 i = 0; i < 2; i++)
-                    {
-                        bool isSelected = currentFilterType == filterTypeStrings[i];
-                        if (ImGui::Selectable(filterTypeStrings[i], isSelected))
-                        {
-                            currentFilterType = filterTypeStrings[i];
-
-                            if (component.Filter == (ImageFilter)i)
-                                continue;
-
-                            component.Filter = (ImageFilter)i;
-
-                            // Recreate the texture with different settings
-                            Texture2D::Config newConfig = config;
-                            newConfig.Filter = component.Filter;
-
-                            Ref<Texture2D> texture = Texture2D::Create(newConfig);
-                            if (texture->IsLoaded())
-                                component.Texture = texture;
-                            else
-                                TBO_WARN("Could not load texture {0}", newConfig.Path);
-                        }
-
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-
-                if (ImGui::Checkbox("Is SpriteSheet", &component.IsSpriteSheet))
-                {
-                    component.Texture->SetSpriteSheet(component.IsSpriteSheet);
-                }
-#endif
-
-            /*if (component.IsSpriteSheet)
-            {
-                bool valueChanged = false;
-                valueChanged |= ImGui::InputFloat2("Sprite Coordinates", glm::value_ptr(component.SpriteCoords));
-                valueChanged |= ImGui::InputFloat2("Sprite Size", glm::value_ptr(component.SpriteSize));
-
-                // TODO: Think about creating sprite class instead of using Texture2D class as some kind of hybrids
-                if (valueChanged)
-                {
-                    component.Texture->SetTextureCoords(component.SpriteCoords, component.SpriteSize);
-                }
+                auto texture = AssetManager::GetAsset<Texture2D>(component.Texture);
+                component.UpdateTextureCoords(texture->GetWidth(), texture->GetHeight());
             }
-            else
-            {
-                component.Texture->ResetTextureCoords();
-            }*/
 
             // TODO: Style ImGui and make id generator for imgui id system
 
@@ -792,7 +722,7 @@ namespace Turbo
         });
     }
 
-            void SceneHierarchyPanel::DrawEntityNode(Entity entity)
+    void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
         if (!entity)
             return;
@@ -884,7 +814,7 @@ namespace Turbo
     }
 
     template<typename T>
-    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string & entryName)
+    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
     {
         if (m_SelectedEntity.HasComponent<T>() == false)
         {

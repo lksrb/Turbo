@@ -5,7 +5,7 @@
 #include <Turbo/Solution/Project.h>
 #include <Turbo/Scene/Scene.h>
 #include <Turbo/Scene/Entity.h>
-#include <Turbo/Asset/AssetRegistry.h>
+#include <Turbo/Asset/AssetManager.h>
 
 #include <filesystem>
 
@@ -32,17 +32,13 @@ namespace Turbo::Ed
             {
                 m_CurrentDirectory = std::filesystem::path(m_CurrentDirectory.c_str()).parent_path().string();
             }
+
+            ImGui::SameLine();
         }
 
-        ImGuiWindow* window = ImGui::GetCurrentWindow();
-        ImRect windowContent = window->ContentRegionRect;
+        ImGui::Checkbox("Show all files", &m_ShowAllFiles);
 
-        // Handle scrolling
-        windowContent.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
-        windowContent.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
-
-        // Whole window has this ability
-        if (ImGui::BeginDragDropTargetCustom(windowContent, window->ID))
+        if (UI::BeginDragDropTargetWindow())
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SHP_DATA"))
             {
@@ -50,14 +46,14 @@ namespace Turbo::Ed
                 if (entity)
                 {
                     // Serialize every component except
-                    if (AssetRegistry::SerializeToPrefab(m_CurrentDirectory, entity))
+                    if (AssetManager::SerializeToPrefab(m_CurrentDirectory, entity))
                     {
                         TBO_ENGINE_INFO("Successfully serialized prefab!");
                     }
                 }
             }
 
-            ImGui::EndDragDropTarget();
+            UI::EndDragDropTargetWindow();
         }
 
         static f32 padding = 16.0f;
@@ -71,6 +67,9 @@ namespace Turbo::Ed
 
         ImGui::Columns(columnCount, 0, false);
 
+        static std::filesystem::path s_SelectedPath;
+
+        bool wasAnyItemHovered = false;
         for (auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
         {
             const auto& path = directoryEntry.path();
@@ -81,12 +80,18 @@ namespace Turbo::Ed
 
             const auto& relativePath = std::filesystem::relative(path, m_BasePath.c_str());
             const std::string& filenameString = relativePath.filename().string();
+            bool selected = s_SelectedPath == path;
 
             ImGui::PushID(filenameString.c_str());
             Ref<Texture2D> icon = directoryEntry.is_directory() ? m_DirectoryIcon : m_FileIcon;
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-            UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, { 0,1 }, { 1,0 });
+            UI::ScopedStyleColor buttonColor(ImGuiCol_Button, { 0.2f, 0.3f, 0.8f, 0.8f }, selected);
+            UI::ScopedStyleColor buttonHoveredColor(ImGuiCol_ButtonHovered, { 0.2f, 0.3f, 0.8f, 0.6f }, selected);
+            if (UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, { 0,1 }, { 1,0 }))
+            {
+                s_SelectedPath = path;
+            }
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
                 const wchar_t* itemPath = path.c_str();
@@ -106,8 +111,11 @@ namespace Turbo::Ed
 
             if (ImGui::IsItemHovered())
             {
+                wasAnyItemHovered = true;
                 if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
+                    s_SelectedPath = "";
+
                     if (directoryEntry.is_directory())
                     {
                         m_CurrentDirectory /= path.filename().string().c_str();
@@ -133,7 +141,12 @@ namespace Turbo::Ed
             ImGui::PopID();
         }
 
-        ImGui::Columns(1);
+        if (!wasAnyItemHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        {
+            s_SelectedPath = "";
+        }
+
+        ImGui::Columns();
         ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
         ImGui::SliderFloat("Thumbnail Padding", &padding, 0, 32);
 
@@ -149,7 +162,11 @@ namespace Turbo::Ed
                 // NOTE: Its users responsibility to move assets to Assets directory
                 // TODO: Make a popup warning about this
                 auto& filepath = Platform::OpenFileDialog(L"Import Asset", L"", m_CurrentDirectory);
-                AssetRegistry::ImportAsset(filepath);
+
+                if (!filepath.empty())
+                {
+                    AssetManager::ImportAsset(filepath);
+                }
             }
 
             ImGui::EndPopup();

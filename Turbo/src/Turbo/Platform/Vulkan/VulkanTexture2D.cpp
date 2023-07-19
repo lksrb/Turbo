@@ -64,7 +64,6 @@ namespace Turbo
             if (texWidth * texHeight <= 0)
             {
                 TBO_ENGINE_ERROR("Texture cannot be loaded! (\"{0}\")", m_Config.Path.c_str());
-                stbi_set_flip_vertically_on_load(0);
                 return;
             }
 
@@ -82,14 +81,8 @@ namespace Turbo
 
             // Free pixels
             stbi_image_free(pixels);
-            stbi_set_flip_vertically_on_load(0);
         }
-     
-        if (config.IsSpriteSheet)
-        {
-            SetTextureCoords(config.SpriteCoords, config.SpriteSize);
-        }
-
+        
         m_IsLoaded = true;
     }
 
@@ -151,7 +144,7 @@ namespace Turbo
         RendererContext::FlushCommandBuffer(commandBuffer);
         {
             // Copy buffer to image barrier
-            VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer(true);
+            VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
             {
                 VkBufferImageCopy region{};
                 region.bufferOffset = 0;
@@ -180,7 +173,7 @@ namespace Turbo
 
         {
             // Pipeline barrier, transition image layout 2
-            VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer(true);
+            VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
             {
                 VkImageMemoryBarrier barrier{};
                 barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

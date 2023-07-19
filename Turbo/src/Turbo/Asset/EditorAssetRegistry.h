@@ -14,7 +14,7 @@ namespace Turbo
         bool IsAssetHandleValid(AssetHandle handle) const override;
         bool IsAssetLoaded(AssetHandle handle) const override;
         Ref<Asset> GetAsset(AssetHandle handle) override;
-        AssetMetadata GetAssetMetadata(AssetHandle handle) const override;
+        const AssetMetadata& GetAssetMetadata(AssetHandle handle) const override;
 
         const AssetRegistry& GetRegisteredAssets() const { return m_AssetRegistry; }
         const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }

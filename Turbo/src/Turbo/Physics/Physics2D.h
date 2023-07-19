@@ -19,9 +19,9 @@ namespace Turbo
         {
             switch (bodyType)
             {
-                case Rigidbody2DComponent::BodyType::Static:    return b2_staticBody;
-                case Rigidbody2DComponent::BodyType::Dynamic:   return b2_dynamicBody;
-                case Rigidbody2DComponent::BodyType::Kinematic: return b2_kinematicBody;
+                case Rigidbody2DComponent::BodyType_Static:    return b2_staticBody;
+                case Rigidbody2DComponent::BodyType_Dynamic:   return b2_dynamicBody;
+                case Rigidbody2DComponent::BodyType_Kinematic: return b2_kinematicBody;
             }
 
             TBO_ENGINE_ASSERT(false, "Unknown body type");
@@ -32,13 +32,13 @@ namespace Turbo
         {
             switch (bodyType)
             {
-                case b2_staticBody:    return Rigidbody2DComponent::BodyType::Static;
-                case b2_dynamicBody:   return Rigidbody2DComponent::BodyType::Dynamic;
-                case b2_kinematicBody: return Rigidbody2DComponent::BodyType::Kinematic;
+                case b2_staticBody:    return Rigidbody2DComponent::BodyType_Static;
+                case b2_dynamicBody:   return Rigidbody2DComponent::BodyType_Dynamic;
+                case b2_kinematicBody: return Rigidbody2DComponent::BodyType_Kinematic;
             }
 
             TBO_ENGINE_ASSERT(false, "Unknown body type");
-            return Rigidbody2DComponent::BodyType::Static;
+            return Rigidbody2DComponent::BodyType_Static;
         }
     }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Turbo/Core/Common.h"
 #include "Turbo/Core/UUID.h"
 
 namespace Turbo
@@ -26,6 +27,11 @@ namespace Turbo
 
         AssetHandle Handle; // Generates ID
     };
+
+    // Each asset will have its own flags
+    // However all those flags must be unique
+    // 32 flags available
+    using AssetFlags = u32;
 
     struct AssetMetadata
     {

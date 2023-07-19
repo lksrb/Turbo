@@ -2,8 +2,10 @@
 
 #include "Turbo/Asset/Asset.h"
 
-namespace Turbo::Widgets
+namespace Turbo::UI::Widgets
 {
-    // popupName - Must be unique
+    // popupName - must be unique
     AssetHandle AssetSearchPopup(const char* popupName);
+
+    bool YesNoPopup(const char* popupName, const char* text);
 }

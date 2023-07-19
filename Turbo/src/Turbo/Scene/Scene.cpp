@@ -5,7 +5,7 @@
 #include "SceneDrawList.h"
 #include "SceneCamera.h"
 
-#include "Turbo/Asset/AssetRegistry.h"
+#include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Debug/ScopeTimer.h"
@@ -274,8 +274,8 @@ namespace Turbo
                 for (auto entity : view)
                 {
                     auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-                    auto texture = AssetRegistry::GetAsset<Texture2D>(src.Texture);
-                    drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.Tiling, (i32)entity);
+                    auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
+                    drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
                 }
             }
 
@@ -440,8 +440,8 @@ namespace Turbo
                     for (auto entity : view)
                     {
                         auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-                        auto texture = AssetRegistry::GetAsset<Texture2D>(src.Texture);
-                        drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.Tiling, (i32)entity);
+                        auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
+                        drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
                     }
                 }
 

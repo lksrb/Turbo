@@ -5,7 +5,6 @@
 
 #include "Turbo/Asset/Asset.h"
 
-#include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Renderer/Font.h"
 
 #include "Turbo/Audio/AudioClip.h"
@@ -119,13 +118,35 @@ namespace Turbo
         glm::vec4 Color{ 1.0f };
         f32 Tiling = 1.0f;
         AssetHandle Texture = 0;
-        //ImageFilter Filter = ImageFilter_Nearest;
-        //bool IsSpriteSheet = false;
-        //glm::vec2 SpriteCoords{ 0.0f };
-        //glm::vec2 SpriteSize{ 0.0f };
+
+        bool IsSpriteSheet = false;
+        glm::vec2 SpriteCoords{ 0.0f, 0.0f };
+        glm::vec2 SpriteSize{ 32.0f, 32.0f };
+        std::array<glm::vec2, 4> TextureCoords;
 
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
+
+        inline void UpdateTextureCoords(u32 textureWidth, u32 textureHeight)
+        {
+            if (IsSpriteSheet)
+            {
+                glm::vec2 min = { (SpriteCoords.x * SpriteSize.x) / textureWidth, (SpriteCoords.y * SpriteSize.y) / textureHeight };
+                glm::vec2 max = { ((SpriteCoords.x + 1) * SpriteSize.x) / textureWidth, ((SpriteCoords.y + 1) * SpriteSize.y) / textureHeight };
+
+                TextureCoords[0] = { min.x, min.y };
+                TextureCoords[1] = { max.x, min.y };
+                TextureCoords[2] = { max.x, max.y };
+                TextureCoords[3] = { min.x, max.y };
+            }
+            else
+            {
+                TextureCoords[0] = { 0.0f, 0.0f };
+                TextureCoords[1] = { 1.0f, 0.0f };
+                TextureCoords[2] = { 1.0f, 1.0f };
+                TextureCoords[3] = { 0.0f, 1.0f };
+            }
+        }
     };
 
     struct CircleRendererComponent
@@ -178,8 +199,8 @@ namespace Turbo
     // Physics 2D
     struct Rigidbody2DComponent
     {
-        enum class BodyType : u32 { Static = 0, Dynamic, Kinematic };
-        BodyType Type = BodyType::Dynamic;
+        enum BodyType : u32 { BodyType_Static = 0, BodyType_Dynamic, BodyType_Kinematic };
+        BodyType Type = BodyType_Static;
         bool FixedRotation = false;
         f32 GravityScale = 1.0f;
         bool Enabled = true;

@@ -54,8 +54,6 @@ namespace Turbo
         | aiProcess_ValidateDataStructure;
 
 
-    static std::unordered_map<std::string_view, StaticMesh*> s_CachedMeshes;
-
     StaticMesh::StaticMesh(std::string_view filePath)
         : m_FilePath(filePath)
     {

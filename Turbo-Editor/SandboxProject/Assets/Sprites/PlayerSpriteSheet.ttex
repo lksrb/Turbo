@@ -1,0 +1,3 @@
+TexturePath: Sprites/PlayerSpriteSheet.png
+TextureFilter: Linear
+TextureFormat: RGBA_SRGB

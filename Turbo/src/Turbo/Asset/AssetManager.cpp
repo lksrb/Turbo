@@ -1,5 +1,5 @@
 #include "tbopch.h"
-#include "AssetRegistry.h"
+#include "AssetManager.h"
 
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/SceneSerializer.h"
@@ -148,22 +148,27 @@ namespace Turbo
         }
     }
 
-    void AssetRegistry::ImportAsset(const std::filesystem::path& filepath)
+    const AssetMetadata& AssetManager::GetAssetMetadata(AssetHandle handle)
+    {
+        return Project::GetActive()->m_AssetRegistry->GetAssetMetadata(handle);
+    }
+
+    void AssetManager::ImportAsset(const std::filesystem::path& filepath)
     {
         Project::GetActive()->m_AssetRegistry->ImportAsset(filepath);
     }
 
-    bool AssetRegistry::IsAssetHandleValid(AssetHandle handle)
+    bool AssetManager::IsAssetHandleValid(AssetHandle handle)
 	{
         return Project::GetActive()->m_AssetRegistry->IsAssetHandleValid(handle);
 	}
 
-    bool AssetRegistry::IsAssetLoaded(AssetHandle handle)
+    bool AssetManager::IsAssetLoaded(AssetHandle handle)
     {
         return Project::GetActive()->m_AssetRegistry->IsAssetLoaded(handle);
     }
 
-    bool AssetRegistry::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
+    bool AssetManager::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
     {
         std::string filename = entity.GetName();
         filename.append(".tprefab");
@@ -190,7 +195,7 @@ namespace Turbo
         return true;
     }
 
-    Entity AssetRegistry::DeserializePrefab(const std::filesystem::path& filepath, Scene* scene, glm::vec3 translation)
+    Entity AssetManager::DeserializePrefab(const std::filesystem::path& filepath, Scene* scene, glm::vec3 translation)
     {
         //Debug::ScopeTimer timer("Prefab Deserialization");
 

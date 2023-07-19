@@ -2,6 +2,8 @@
 #include "EditorAssetRegistry.h"
 
 #include "AssetImporter.h"
+
+#include "Turbo/Core/FileSystem.h"
 #include "Turbo/Solution/Project.h"
 
 #include "Turbo/Renderer/Texture2D.h"
@@ -14,12 +16,30 @@ namespace Turbo
     {
         static AssetType GetAssetTypeFromExtension(const std::filesystem::path& extension)
         {
-            if (extension == ".png" || extension == ".jpg") return AssetType_Texture2D;
+            if (extension == ".png") return AssetType_Texture2D;
             //if (extension == ".obj" || extension == ".fbx") return AssetType_StaticMesh;
 
             TBO_ENGINE_ASSERT(false, "Unsupported extension!");
 
             return AssetType_Count;
+        }
+
+        static std::filesystem::path ReplaceExtension(std::filesystem::path filepath)
+        {
+            auto extension = filepath.extension();
+
+            if (extension == ".png") return FileSystem::ReplaceExtension(filepath, ".ttex");
+
+            TBO_ENGINE_ASSERT(false);
+
+            return "Unknown";
+        }
+
+        static std::filesystem::path GetMetadataPath(const std::filesystem::path& filepath)
+        {
+            auto assetsPath = Project::GetAssetsPath();
+            auto metadataPath = std::filesystem::relative(filepath, assetsPath);
+            return ReplaceExtension(metadataPath);
         }
     }
 
@@ -58,7 +78,7 @@ namespace Turbo
         return m_LoadedAssets.at(handle);
     }
 
-    AssetMetadata EditorAssetRegistry::GetAssetMetadata(AssetHandle handle) const
+    const AssetMetadata& EditorAssetRegistry::GetAssetMetadata(AssetHandle handle) const
     {
         if (!IsAssetHandleValid(handle))
             return {};
@@ -68,14 +88,20 @@ namespace Turbo
 
     void EditorAssetRegistry::ImportAsset(const std::filesystem::path& filepath)
     {
-        auto assetsPath = Project::GetAssetsPath();
+        // Generates ID
+        AssetHandle assetHandle;
 
-        AssetHandle assetHandle; // Generates ID
+        // Create metadata specific to the asset type
         AssetMetadata metadata;
-        metadata.FilePath = std::filesystem::relative(filepath, assetsPath).generic_string();
         metadata.Type = Utils::GetAssetTypeFromExtension(filepath.extension());
+        metadata.FilePath = Utils::GetMetadataPath(filepath);
 
+        // Serialize data
+        TBO_ENGINE_ASSERT(AssetImporter::Serialize(metadata));
+
+        // Load data
         Ref<Asset> asset = AssetImporter::TryLoad(metadata);
+
         if (asset)
         {
             asset->Handle = assetHandle;
@@ -129,8 +155,8 @@ namespace Turbo
 
     bool EditorAssetRegistry::Serialize()
     {
-        auto path = Project::GetAssetRegistryPath();
-        
+       auto path = Project::GetAssetRegistryPath();
+
         YAML::Emitter out;
         {
             out << YAML::BeginMap;
@@ -146,7 +172,7 @@ namespace Turbo
                 out << YAML::EndMap;
             }
             out << YAML::EndSeq;
-            out << YAML::EndMap; // Root
+            out << YAML::EndMap;
         }
 
         std::ofstream stream(path);

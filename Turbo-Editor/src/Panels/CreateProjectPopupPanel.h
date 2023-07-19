@@ -7,19 +7,20 @@
 
 namespace Turbo::Ed
 {
-    using CreateProjectCallback = std::function<void(const std::filesystem::path&)>;
 
     // Modal window
     class CreateProjectPopupPanel : public EditorPanel
     {
     public:
-        CreateProjectPopupPanel(const CreateProjectCallback& callback);
+        using Callback = std::function<void(const std::filesystem::path&)>;
+
+        CreateProjectPopupPanel(const Callback& callback);
         ~CreateProjectPopupPanel();
 
         void Open();
         void OnDrawUI() override;
     private:
-        CreateProjectCallback m_Callback;
+        Callback m_Callback;
         bool m_Open = false;
     };
 }

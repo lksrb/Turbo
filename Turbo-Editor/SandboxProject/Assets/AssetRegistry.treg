@@ -1,0 +1,4 @@
+AssetRegistry:
+  - Asset: 17301129294625693509
+    Path: Sprites/PlayerSpriteSheet.ttex
+    Type: Texture2D

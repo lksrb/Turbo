@@ -21,6 +21,8 @@ namespace Turbo::Ed
 
         Ref<Scene> m_Context;
 
+        bool m_ShowAllFiles = false;
+
         std::filesystem::path m_BasePath;
         std::filesystem::path m_CurrentDirectory;
     };

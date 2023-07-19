@@ -18,6 +18,15 @@ namespace Turbo
         }
     };
 
+    AssetRegistryPanel::AssetRegistryPanel(const Callback& callback)
+        : m_OpenAssetEditorCallback(callback)
+    {
+    }
+
+    AssetRegistryPanel::~AssetRegistryPanel()
+    {
+    }
+
     void AssetRegistryPanel::OnDrawUI()
     {
         static AssetHandle s_SelectedHandle = 0; // TODO: If the asset is removed, this must be reset
@@ -50,7 +59,7 @@ namespace Turbo
             for (const auto& [handle, metadata] : assetRegistry)
             {
                 const auto& name = metadata.FilePath.stem().string();
-                u32 correctLetters = Filter(name);
+                u32 correctLetters = FilterName(name);
 
                 if (correctLetters)
                 {
@@ -61,8 +70,6 @@ namespace Turbo
             }
 
             std::sort(filteredAssets.begin(), filteredAssets.end());
-
-            AssetMetadata selectedMetadata = {};
 
             for (auto& [pririty, asset] : filteredAssets)
             {
@@ -82,7 +89,12 @@ namespace Turbo
                 if (selected)
                 {
                     s_SelectedHandle = asset.first;
-                    selectedMetadata = asset.second;
+
+                    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                    {
+                        // Open asset editor
+                        m_OpenAssetEditorCallback(s_SelectedHandle);
+                    }
                 }
             }
 
@@ -92,7 +104,7 @@ namespace Turbo
         ImGui::End();
     }
 
-    u32 AssetRegistryPanel::Filter(std::string_view name)
+    u32 AssetRegistryPanel::FilterName(std::string_view name)
     {
         if (m_Input.size() > name.size())
             return 0;

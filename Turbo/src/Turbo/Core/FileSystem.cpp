@@ -27,4 +27,24 @@ namespace Turbo
         return buffer;
     }
 
+    bool FileSystem::Exists(const std::filesystem::path& path)
+    {
+        return std::filesystem::exists(path);
+    }
+
+    std::filesystem::path FileSystem::ReplaceExtension(std::filesystem::path filepath, const std::filesystem::path& extension)
+    {
+        return filepath.replace_extension(extension);
+    }
+
+    std::filesystem::path FileSystem::GetCurrentDirectory()
+    {
+        return std::filesystem::current_path();
+    }
+
+    std::filesystem::path FileSystem::RelativeToCurrentDirectory(const std::filesystem::path filepath)
+    {
+        return std::filesystem::relative(filepath, GetCurrentDirectory());
+    }
+
 }

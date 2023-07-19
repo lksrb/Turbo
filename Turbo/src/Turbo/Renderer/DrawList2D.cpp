@@ -354,7 +354,7 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void DrawList2D::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity /*= -1*/)
+    void DrawList2D::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity)
     {
         if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
         {
@@ -362,13 +362,6 @@ namespace Turbo
         }
 
         u32 textureIndex = 0; // White Texture
-        std::array<glm::vec2, 4> textureCoords = {
-            glm::vec2{ 0.0f, 0.0f },
-            glm::vec2{ 1.0f, 0.0f },
-            glm::vec2{ 1.0f, 1.0f },
-            glm::vec2{ 0.0f, 1.0f }
-        };
-
         if (texture)
         {
             for (u32 i = 1; i < m_TextureSlotsIndex; ++i)
@@ -393,8 +386,6 @@ namespace Turbo
                 m_TextureSlots[m_TextureSlotsIndex] = texture;
                 m_TextureSlotsIndex++;
             }
-
-            textureCoords = texture->GetTextureCoords();
         }
 
         for (u32 i = 0; i < 4; ++i)
@@ -413,7 +404,7 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void DrawList2D::AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity /*= -1*/)
+    void DrawList2D::AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity)
     {
         m_LineVertexBufferPointer->Position = p0;
         m_LineVertexBufferPointer->Color = color;

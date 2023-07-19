@@ -4,16 +4,17 @@
 #include "../Panels/ContentBrowserPanel.h"
 #include "../Panels/AssetRegistryPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
+#include "../Panels/AssetEditorPanel.h"
+
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
 
 #include <Turbo/Audio/Audio.h>
-#include <Turbo/Asset/AssetRegistry.h>
+#include <Turbo/Asset/AssetManager.h>
 #include <Turbo/Debug/ScopeTimer.h>
 #include <Turbo/Script/Script.h>
 #include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Solution/ProjectSerializer.h>
-
 
 #include <Turbo/Renderer/Font.h>
 #include <Turbo/UI/UI.h>
@@ -121,7 +122,11 @@ namespace Turbo::Ed
         m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
         m_PanelManager->AddPanel<EditorConsolePanel>();
-        m_PanelManager->AddPanel<AssetRegistryPanel>();
+        m_PanelManager->AddPanel<AssetRegistryPanel>([this](AssetHandle handle)
+        {
+            m_PanelManager->GetPanel<AssetEditorPanel>()->OpenAsset(handle);
+        });
+        m_PanelManager->AddPanel<AssetEditorPanel>();
         m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(Editor::CreateProject));
 
         // Render 
@@ -311,7 +316,7 @@ namespace Turbo::Ed
                     }
                     else if (path.extension() == ".tprefab" && m_SceneMode == SceneMode_Edit) // Only in edit mode for now
                     {
-                        TBO_VERIFY(AssetRegistry::DeserializePrefab(path, m_CurrentScene.Get()), "Successfully deserialized prefab!");
+                        TBO_VERIFY(AssetManager::DeserializePrefab(path, m_CurrentScene.Get()), "Successfully deserialized prefab!");
                     }
                 }
 

@@ -13,7 +13,7 @@ namespace Turbo::Ed
     static char s_ProjectDirectoryPath[256]{ 0 };
     static char s_ProjectFullPath[256]{ 0 };
 
-    CreateProjectPopupPanel::CreateProjectPopupPanel(const CreateProjectCallback& callback)
+    CreateProjectPopupPanel::CreateProjectPopupPanel(const Callback& callback)
         : m_Callback(callback)
     {
         strcpy_s(s_ProjectDirectoryPath, "C:\\dev\\TurboProjects");

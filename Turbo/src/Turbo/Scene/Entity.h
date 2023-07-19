@@ -110,7 +110,7 @@ namespace Turbo
         friend class Scene;
 
         // FIXME: Maybe not ideal
-        friend class AssetRegistry;
+        friend class AssetManager;
     };
 }
 

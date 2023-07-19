@@ -75,7 +75,7 @@ namespace Turbo
         {
             TBO_ENGINE_ASSERT(s_ActiveProject);
 
-            return s_ActiveProject->GetAssetsPath() / "AssetRegistry.tregistry";
+            return s_ActiveProject->GetAssetsPath() / "AssetRegistry.treg";
         }
     private:
         Project::Config m_Config;
@@ -84,7 +84,7 @@ namespace Turbo
 
         static inline Ref<Project> s_ActiveProject;
 
-        friend class AssetRegistry;
+        friend class AssetManager;
         friend class ProjectSerializer;
     };
 

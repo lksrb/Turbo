@@ -9,10 +9,10 @@ namespace Turbo
 {
     class AssetRegistryBase
     {
-    protected:
+    public:
         using AssetMap = std::map<AssetHandle, Ref<Asset>>;
         using AssetRegistry = std::map<AssetHandle, AssetMetadata>;
-    public:
+
         AssetRegistryBase() = default;
         virtual ~AssetRegistryBase() = default;
 
@@ -22,6 +22,6 @@ namespace Turbo
         // Tries to load asset from asset registy
         virtual bool IsAssetLoaded(AssetHandle handle) const = 0;
         virtual Ref<Asset> GetAsset(AssetHandle handle) = 0;
-        virtual AssetMetadata GetAssetMetadata(AssetHandle handle) const = 0;
+        virtual const AssetMetadata& GetAssetMetadata(AssetHandle handle) const = 0;
     };
 }

@@ -81,4 +81,9 @@ namespace Turbo::UI
     void OffsetCursorPos(const ImVec2& offset);
     void OffsetCursorPosX(float xOffset);
     void OffsetCursorPosY(float yOffset);
+
+    // Drag & Drop
+	// Whole window is a drop target
+    bool BeginDragDropTargetWindow();
+    void EndDragDropTargetWindow();
 }

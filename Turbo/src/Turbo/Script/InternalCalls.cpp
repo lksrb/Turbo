@@ -8,7 +8,7 @@
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
 #include "Turbo/Audio/Audio.h"
-#include "Turbo/Asset/AssetRegistry.h"
+#include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Core/Input.h"
 #include "Turbo/Core/Math.h"
@@ -354,7 +354,7 @@ namespace Turbo
         std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
         mono_free(cString);
 
-        Entity entity = AssetRegistry::DeserializePrefab(prefabPath, context, *translation);
+        Entity entity = AssetManager::DeserializePrefab(prefabPath, context, *translation);
 
         if (entity)
         {
@@ -374,7 +374,7 @@ namespace Turbo
         std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
         mono_free(cString);
 
-        Entity child = AssetRegistry::DeserializePrefab(prefabPath, context, *translation);
+        Entity child = AssetManager::DeserializePrefab(prefabPath, context, *translation);
 
         if (child)
         {
@@ -519,10 +519,20 @@ namespace Turbo
 
         auto& src = entity.GetComponent<SpriteRendererComponent>();
 
-        if (src.Texture)
+        if (src.IsSpriteSheet && src.Texture)
         {
-            auto texture = AssetRegistry::GetAsset<Texture2D>(src.Texture);
-            texture->SetTextureCoords(position, size);
+            auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
+            src.SpriteCoords = position;
+            src.SpriteSize = size;
+
+            glm::vec2 min = { (src.SpriteCoords.x * src.SpriteSize.x) / texture->GetWidth(), (src.SpriteCoords.y * src.SpriteSize.y) / texture->GetHeight() };
+            glm::vec2 max = { ((src.SpriteCoords.x + 1) * src.SpriteSize.x) / texture->GetWidth(), ((src.SpriteCoords.y + 1) * src.SpriteSize.y) / texture->GetHeight() };
+
+            src.TextureCoords[0] = { min.x, min.y };
+            src.TextureCoords[1] = { max.x, min.y };
+            src.TextureCoords[2] = { max.x, max.y };
+            src.TextureCoords[3] = { min.x, max.y };
+
             return;
         }
 

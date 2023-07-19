@@ -258,9 +258,9 @@ namespace Turbo
         m_DrawList2D->AddQuad(transform, color, entity);
     }
 
-    void SceneDrawList::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity)
+    void SceneDrawList::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity)
     {
-        m_DrawList2D->AddSprite(transform, color, texture, tiling, entity);
+        m_DrawList2D->AddSprite(transform, color, texture, textureCoords, tiling, entity);
     }
 
     void SceneDrawList::AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity)

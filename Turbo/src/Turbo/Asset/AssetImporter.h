@@ -4,6 +4,8 @@
 #include "AssetRegistryBase.h"
 #include "AssetSerializer.h"
 
+#include "Turbo/Core/Scopes.h"
+
 namespace Turbo
 {
     // Importing asset means:
@@ -13,12 +15,12 @@ namespace Turbo
     class AssetImporter
     {
     public:
-        static bool Serialize(AssetHandle handle, const AssetMetadata& metadata);
+        static bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset = nullptr);
         static Ref<Asset> TryLoad(const AssetMetadata& metadata);
     private:
         AssetImporter();
 
-        Ref<AssetSerializer> m_Serializers[AssetType_Count];
+        Scope<AssetSerializer> m_Serializers[AssetType_Count];
 
         static AssetImporter s_AssetImporter;
     };

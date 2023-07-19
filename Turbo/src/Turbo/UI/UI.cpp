@@ -81,4 +81,21 @@ namespace Turbo
         OffsetCursorPos(ImVec2(0.0f, yOffset));
     }
 
+	bool UI::BeginDragDropTargetWindow()
+	{
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        ImRect windowContent = window->ContentRegionRect;
+
+        // Handle scrolling
+        windowContent.Max.y = window->ContentRegionRect.Max.y + window->Scroll.y;
+        windowContent.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
+
+        return ImGui::BeginDragDropTargetCustom(windowContent, window->ID);
+	}
+
+    void UI::EndDragDropTargetWindow()
+    {
+        ImGui::EndDragDropTarget();
+    }
+
 }
