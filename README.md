@@ -1,5 +1,4 @@
 # Turbo [![License](https://img.shields.io/github/license/lksrb/Turbo.svg)](https://github.com/lksrb/Turbo/blob/main/LICENSE)
-=====
 
 <center><b><i>"I could've been Turbo?! - Dewey"</i></b></center>
 
