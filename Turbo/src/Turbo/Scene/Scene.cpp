@@ -243,8 +243,8 @@ namespace Turbo
 
             transformComponent4.Translation.y = 5;
 
+            //drawList->AddStaticMesh(s_Backpack, transformComponent.GetTransform(), 3);
            /* drawList->AddStaticMesh(s_Backpack, transformComponent4.GetTransform(), 3);
-            drawList->AddStaticMesh(s_Backpack, transformComponent.GetTransform(), 3);
 
             // Cube
             {
@@ -265,6 +265,18 @@ namespace Turbo
             // Other duplicate
             //drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
         }
+
+      /*  // Static meshes
+        {
+            auto& view = GetAllEntitiesWith<TransformComponent, StaticMeshRendererComponent>();
+            for (auto entity : view)
+            {
+                auto& [transform, src] = view.get<TransformComponent, StaticMeshRendererComponent>(entity);
+                auto mesh = AssetManager::GetAsset<Texture2D>(src.Texture);
+                drawList->AddStaticMesh(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
+            }
+        }*/
+
         // 2D Rendering
         {
             // Quads

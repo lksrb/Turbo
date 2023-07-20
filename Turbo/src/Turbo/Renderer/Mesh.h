@@ -11,14 +11,6 @@ struct aiMesh;
 
 namespace Turbo
 {
-    // For now
-    struct Vertex
-    {
-        glm::vec3 Position;
-        glm::vec3 Normal;
-        glm::vec2 TexCoords;
-    };
-
     struct Submesh
     {
         u32 BaseVertex = 0;
@@ -45,6 +37,13 @@ namespace Turbo
         void AllocateGPUResources();
         void ProcessNode(const aiScene* scene, aiNode* node);
     private:
+        struct Vertex
+        {
+            glm::vec3 Position;
+            glm::vec3 Normal;
+            glm::vec2 TexCoords;
+        };
+
         std::vector<Submesh> m_Submeshes;
 
         u32 m_TotalVerticesCount = 0;

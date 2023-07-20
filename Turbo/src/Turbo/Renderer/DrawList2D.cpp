@@ -7,6 +7,7 @@
 #include "Turbo/Debug/ScopeTimer.h"
 
 #include <glm/ext/matrix_transform.hpp>
+#include <Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h>
 
 namespace Turbo
 {
@@ -65,6 +66,7 @@ namespace Turbo
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
             config.DepthTesting = true;
+            config.SubpassIndex = 0;
             config.Layout = VertexBufferLayout
             {
                 { AttributeType::Vec3, "a_Position" },
@@ -102,6 +104,7 @@ namespace Turbo
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
             config.DepthTesting = true;
+            config.SubpassIndex = 1;
             config.Layout = VertexBufferLayout
             {
                 { AttributeType::Vec3, "a_WorldPosition" },
@@ -139,6 +142,7 @@ namespace Turbo
             config.Renderpass = m_TargerRenderPass;
             config.Topology = PrimitiveTopology::Line;
             config.DepthTesting = false;
+            config.SubpassIndex = 2;
             config.Layout = VertexBufferLayout
             {
                 { AttributeType::Vec3, "a_Position" },
@@ -170,7 +174,7 @@ namespace Turbo
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
             config.DepthTesting = false;
-            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
+            config.SubpassIndex = 3;
             config.Layout = VertexBufferLayout
             {
                 { AttributeType::Vec3, "a_Position" },
@@ -179,6 +183,7 @@ namespace Turbo
                 { AttributeType::UInt, "a_TexIndex" },
                 { AttributeType::Int,  "a_EntityID" },
             };
+            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_TextPipeline = GraphicsPipeline::Create(config);
             m_TextPipeline->Invalidate();
 
@@ -274,6 +279,12 @@ namespace Turbo
 
             m_Statistics.DrawCalls++;
         }
+/*
+
+        Renderer::Submit([this]()
+        {
+            vkCmdNextSubpass(m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle(), VK_SUBPASS_CONTENTS_INLINE);
+        });*/
 
         // Circles
         if (m_CircleIndexCount)
@@ -285,6 +296,11 @@ namespace Turbo
             m_Statistics.DrawCalls++;
         }
 
+    /*    Renderer::Submit([this]()
+        {
+            vkCmdNextSubpass(m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle(), VK_SUBPASS_CONTENTS_INLINE);
+        });*/
+
         // Lines
         if (m_LineVertexCount)
         {
@@ -295,6 +311,12 @@ namespace Turbo
             Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
             m_Statistics.DrawCalls++;
         }
+/*
+
+        Renderer::Submit([this]()
+        {
+            vkCmdNextSubpass(m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle(), VK_SUBPASS_CONTENTS_INLINE);
+        });*/
 
         // Text
         if (m_TextIndexCount)

@@ -310,7 +310,7 @@ namespace Turbo
         pipelineCreateInfo.pDynamicState = &dynamicStatesInfo;
         pipelineCreateInfo.layout = m_PipelineLayout;
         pipelineCreateInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetHandle();
-        pipelineCreateInfo.subpass = m_Config.Subpass;
+        pipelineCreateInfo.subpass = 0; // m_Config.SubpassIndex
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineCreateInfo.basePipelineIndex = -1; // Optional
         

@@ -29,7 +29,7 @@ namespace Turbo
             bool DepthTesting;
 
             // Temporary
-            u32 Subpass = 0;
+            u32 SubpassIndex = 0;
         };
 
         static Ref<GraphicsPipeline> Create(const GraphicsPipeline::Config& config);

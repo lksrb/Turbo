@@ -46,6 +46,7 @@ namespace Turbo
         RenderPass::Config config = {};
         config.TargetFrameBuffer = targetFrameBuffer;
         config.ClearOnLoad = true;
+        config.SubPassCount = 1;
         m_FinalRenderPass = RenderPass::Create(config);
         m_FinalRenderPass->Invalidate();
 
@@ -135,14 +136,9 @@ namespace Turbo
 
     void SceneDrawList::End()
     {
-        m_DrawList2D->End();
+        //PreRender();
 
-        UpdateStatistics();
-        return;
-
-        PreRender();
-
-        m_RenderCommandBuffer->Begin();
+       /* m_RenderCommandBuffer->Begin();
         Renderer::BeginRenderPass(m_RenderCommandBuffer, m_GeometryRenderPass, { 0.0f, 0.0f, 0.0f, 1 });
 
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
@@ -160,11 +156,10 @@ namespace Turbo
         Renderer::EndRenderPass(m_RenderCommandBuffer);
 
         m_RenderCommandBuffer->End();
-        m_RenderCommandBuffer->Submit();
+        m_RenderCommandBuffer->Submit();*/
 
         // NOTE: Drawing with multiple renderpasses works
-        //m_DrawList2D->End();
-        m_DrawList2D->Begin();
+        m_DrawList2D->End();
 
         UpdateStatistics();
     }

@@ -58,8 +58,7 @@ namespace Turbo
         VkAttachmentReference depthAttachmentRef = {};
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-
+            
         std::vector<VkSubpassDescription> subpassDescriptions;
         std::vector<VkSubpassDependency> subpassDependencies;
         subpassDescriptions.resize(m_Config.SubPassCount);
@@ -80,6 +79,7 @@ namespace Turbo
         }
 
         // Self-dependency
+
         auto& dependency = subpassDependencies[0];
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;

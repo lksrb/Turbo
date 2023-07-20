@@ -56,7 +56,8 @@ namespace Turbo
     enum ImageFilter : u32
     {
         ImageFilter_Nearest = 0,
-        ImageFilter_Linear
+        ImageFilter_Linear,
+        ImageFilter_Count
     };
 
     enum ImageLayout : u32
