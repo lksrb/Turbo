@@ -301,7 +301,7 @@ namespace Turbo::Ed
 
             if (m_EditorScene)
             {
-                UI::Image(m_ViewportDrawList->GetFinalImage(), { viewportPanelSize.x, viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
+                UI::Image(m_ViewportDrawList->GetFinalImage(), viewportPanelSize, { 0, 1 }, { 1, 0 });
             }
 
             if (ImGui::BeginDragDropTarget())
