@@ -1,6 +1,6 @@
 # Turbo [![License](https://img.shields.io/github/license/lksrb/Turbo.svg)](https://github.com/lksrb/Turbo/blob/main/LICENSE)
 
-<center><b><i>"I could've been Turbo?! - Dewey"</i></b></center>
+<center><b><i>"I could have been Turbo?!"</i></b></center> - Dewey Duck
 
 ----
 Turbo is a game engine created by me for me to create games.
