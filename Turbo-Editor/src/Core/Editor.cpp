@@ -498,6 +498,7 @@ namespace Turbo::Ed
         if (m_ShowDemoWindow)
             ImGui::ShowDemoWindow();
 
+        if constexpr (false) 
         {
             static ImVec2 uv0 = { 0, 1 };
             static ImVec2 uv1 = { 1, 0 };

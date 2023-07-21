@@ -226,44 +226,16 @@ namespace Turbo
             f32 fallOff = 0.1f;
             f32 intensity = 7.0f;
 
-            static Ref<StaticMesh> s_TestMesh;
             static Ref<StaticMesh> s_Backpack;
-
-            if (!s_TestMesh)
-            {
-                //s_TestMesh = Ref<StaticMesh>::Create("Assets/Meshes/Cube.fbx");
-            }
 
             if (!s_Backpack)
             {
-                //s_Backpack = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
+                s_Backpack = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
             }
 
-            TransformComponent transformComponent4;
-
-            transformComponent4.Translation.y = 5;
-
-            //drawList->AddStaticMesh(s_Backpack, transformComponent.GetTransform(), 3);
-           /* drawList->AddStaticMesh(s_Backpack, transformComponent4.GetTransform(), 3);
-
-            // Cube
-            {
-                drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
-                drawList->AddStaticMesh(s_TestMesh, transformComponent5.GetTransform(), 3);
-            }*/
-
-            // Render another mesh
-            TransformComponent transformComponent3;
-            transformComponent3.Translation.x = 2;
-            transformComponent3.Translation.y = 2;
-            //drawList->AddStaticMesh(s_TestMesh2, transformComponent3.GetTransform(), 3);
-            transformComponent3.Translation.x = -2;
-            //drawList->AddStaticMesh(s_TestMesh2, transformComponent3.GetTransform(), 3);
+            drawList->AddStaticMesh(s_Backpack, transformComponent.GetTransform(), 3);
             drawList->AddPointLight(transformComponent2.Translation, intensity, radius, fallOff);
             drawList->AddPointLight(transformComponent5.Translation, intensity, radius, fallOff);
-
-            // Other duplicate
-            //drawList->AddStaticMesh(s_TestMesh, transformComponent2.GetTransform(), 3);
         }
 
       /*  // Static meshes

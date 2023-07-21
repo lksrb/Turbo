@@ -8,7 +8,7 @@
 namespace Turbo
 {
     VulkanIndexBuffer::VulkanIndexBuffer(const IndexBuffer::Config& config)
-        : IndexBuffer(config), m_Buffer(VK_NULL_HANDLE), m_Memory(VK_NULL_HANDLE)
+        : IndexBuffer(config)
     {
         VkDevice device = RendererContext::GetDevice();
 
@@ -58,8 +58,8 @@ namespace Turbo
             allocateInfo.allocationSize = m_Config.Size;
             allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequiremets.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_Memory));
-            TBO_VK_ASSERT(vkBindBufferMemory(device, m_Buffer, m_Memory, 0));
+            TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_BufferMemory));
+            TBO_VK_ASSERT(vkBindBufferMemory(device, m_Buffer, m_BufferMemory, 0));
         }
 
         // Set data into the staging buffer
@@ -87,13 +87,11 @@ namespace Turbo
         vkFreeMemory(device, stagingBufferMemory, nullptr);
 
         // Add it to the resource free queue
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(BUFFER, [device, m_Buffer = m_Buffer, m_Memory = m_Memory]()
+        RendererContext::SubmitResourceFree([device, buffer = m_Buffer, bufferMemory = m_BufferMemory]()
         {
             // Destroy index buffer
-            vkDestroyBuffer(device, m_Buffer, nullptr);
-            vkFreeMemory(device, m_Memory, nullptr);
+            vkDestroyBuffer(device, buffer, nullptr);
+            vkFreeMemory(device, bufferMemory, nullptr);
         });
     }
 

@@ -34,6 +34,7 @@ namespace Turbo
 
         m_ColorAttachments.resize(framesInFlight);
         m_Framebuffers.resize(framesInFlight);
+        m_DepthBuffers.resize(framesInFlight);
         for (u32 i = 0; i < m_Framebuffers.size(); ++i)
         {
             // Images
@@ -61,10 +62,10 @@ namespace Turbo
                 depthBufferConfig.MemoryStorage = MemoryStorage_DeviceLocal;
                 depthBufferConfig.Usage = ImageUsage_DepthStencilSttachment;
                 depthBufferConfig.Tiling = ImageTiling_Optimal;
-                m_DepthBuffer = Image2D::Create(depthBufferConfig);
-                m_DepthBuffer->Invalidate(width, height);
+                m_DepthBuffers[i] = Image2D::Create(depthBufferConfig);
+                m_DepthBuffers[i]->Invalidate(width, height);
 
-                attachments[1] = m_DepthBuffer.As<VulkanImage2D>()->GetImageView();
+                attachments[1] = m_DepthBuffers[i].As<VulkanImage2D>()->GetImageView();
                 attachmentCount++;
             }
 
@@ -81,10 +82,8 @@ namespace Turbo
             TBO_VK_ASSERT(vkCreateFramebuffer(device, &createInfo, nullptr, &m_Framebuffers[i]));
         }
 
-        // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(FRAMEBUFFER, [device, framebuffers = m_Framebuffers]()
+        // Add it to deletion queue
+        RendererContext::SubmitResourceFree([device, framebuffers = m_Framebuffers]()
         {
             for (u32 i = 0; i < framebuffers.size(); ++i)
                 vkDestroyFramebuffer(device, framebuffers[i], nullptr);

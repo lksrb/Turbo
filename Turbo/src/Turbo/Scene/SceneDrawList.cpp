@@ -36,7 +36,7 @@ namespace Turbo
         colorAttachment.DstBlendFactor = FrameBuffer::BlendFactor_OneMinus_SrcAlpha;
 
         // Target Framebuffer
-        // This will be the main canvas
+        // This will be the main framebuffer
         FrameBuffer::Config frameBufferConfig = {};
         frameBufferConfig.ColorAttachment = colorAttachment;
         frameBufferConfig.EnableDepthTesting = true;
@@ -45,7 +45,7 @@ namespace Turbo
         // Main render pass
         RenderPass::Config config = {};
         config.TargetFrameBuffer = targetFrameBuffer;
-        config.ClearOnLoad = true;
+        config.ClearOnLoad = false;
         config.SubPassCount = 1;
         m_FinalRenderPass = RenderPass::Create(config);
         m_FinalRenderPass->Invalidate();
@@ -77,16 +77,16 @@ namespace Turbo
             pipelineConfig.TargetFramebuffer = targetFrameBuffer;
             pipelineConfig.Layout = VertexBufferLayout
             {
-                {AttributeType::Vec3, "a_VertexPosition" },
-                {AttributeType::Vec3, "a_Normal" },
-                {AttributeType::Vec2, "a_TexCoord" }
+                { AttributeType::Vec3, "a_VertexPosition" },
+                { AttributeType::Vec3, "a_Normal" },
+                { AttributeType::Vec2, "a_TexCoord" }
             };
             pipelineConfig.InstanceLayout = VertexBufferLayout
             {
-                {AttributeType::Vec4, "a_TransformRow0" },
-                {AttributeType::Vec4, "a_TransformRow1" },
-                {AttributeType::Vec4, "a_TransformRow2" },
-                {AttributeType::Vec4, "a_TransformRow3" },
+                { AttributeType::Vec4, "a_TransformRow0" },
+                { AttributeType::Vec4, "a_TransformRow1" },
+                { AttributeType::Vec4, "a_TransformRow2" },
+                { AttributeType::Vec4, "a_TransformRow3" },
             };
 
             pipelineConfig.Topology = PrimitiveTopology::Triangle;
@@ -98,8 +98,6 @@ namespace Turbo
         m_UniformBufferSet = UniformBufferSet::Create();
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
         m_UniformBufferSet->Create(0, 2, sizeof(PointLightData));
-        // Wait for renderer2d to finish its work and do its own thing
-        //m_CompositeRenderPass->DependsOn(m_SecondRenderPass);
 
         m_ContainerDiffuse = Texture2D::Create("Assets/Meshes/Backpack/1001_albedo.jpg");
         m_ContainerSpecular = Texture2D::Create("Assets/Meshes/Backpack/1001_metallic.jpg");
@@ -136,9 +134,9 @@ namespace Turbo
 
     void SceneDrawList::End()
     {
-        //PreRender();
+        PreRender();
 
-       /* m_RenderCommandBuffer->Begin();
+        m_RenderCommandBuffer->Begin();
         Renderer::BeginRenderPass(m_RenderCommandBuffer, m_GeometryRenderPass, { 0.0f, 0.0f, 0.0f, 1 });
 
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
@@ -156,9 +154,9 @@ namespace Turbo
         Renderer::EndRenderPass(m_RenderCommandBuffer);
 
         m_RenderCommandBuffer->End();
-        m_RenderCommandBuffer->Submit();*/
+        m_RenderCommandBuffer->Submit();
 
-        // NOTE: Drawing with multiple renderpasses works
+        // NOTE: Drawing with multiple renderpasses works... sort of
         m_DrawList2D->End();
 
         UpdateStatistics();
@@ -230,7 +228,6 @@ namespace Turbo
     {
         m_Statistics.Statistics2D = m_DrawList2D->GetStatistics();
 
-        return;
         // Static meshes 
         for (auto& [mk, drawCommand] : m_DrawCommands)
         {
@@ -293,11 +290,11 @@ namespace Turbo
         m_Config.ViewportHeight = height;
 
         // Should framebuffer resize?
-        /*Renderer::Submit([this, width, height]()
+        Renderer::Submit([this, width, height]()
         {
-            //m_CompositeRenderPass->GetConfig().TargetFrameBuffer->Invalidate(width, height);
-            //m_DrawList2D->OnViewportResize(width, height);
-        });*/
+            m_FinalRenderPass->GetConfig().TargetFrameBuffer->Invalidate(width, height);
+            m_DrawList2D->OnViewportResize(width, height);
+        });
     }
 
     Ref<Image2D> SceneDrawList::GetFinalImage() const

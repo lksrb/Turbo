@@ -14,15 +14,13 @@ namespace Turbo
 
         VkImageView GetImageView() const { return m_ImageView; }
         VkImage GetImage() const { return m_Image; }
-        VkDeviceMemory GetMemory() const { return m_Memory; }
         VkSampler GetSampler() const { return m_Sampler; }
 
         void Invalidate(u32 width, u32 height) override;
     private:
-        VkDeviceMemory m_Memory = nullptr;
-
-        VkSampler m_Sampler = nullptr;
-        VkImageView m_ImageView = nullptr;
-        VkImage m_Image = nullptr;
+        VkDeviceMemory m_ImageMemory = VK_NULL_HANDLE;
+        VkSampler m_Sampler = VK_NULL_HANDLE;
+        VkImageView m_ImageView = VK_NULL_HANDLE;
+        VkImage m_Image = VK_NULL_HANDLE;
     };
 }

@@ -279,12 +279,6 @@ namespace Turbo
 
             m_Statistics.DrawCalls++;
         }
-/*
-
-        Renderer::Submit([this]()
-        {
-            vkCmdNextSubpass(m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle(), VK_SUBPASS_CONTENTS_INLINE);
-        });*/
 
         // Circles
         if (m_CircleIndexCount)
@@ -296,11 +290,6 @@ namespace Turbo
             m_Statistics.DrawCalls++;
         }
 
-    /*    Renderer::Submit([this]()
-        {
-            vkCmdNextSubpass(m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle(), VK_SUBPASS_CONTENTS_INLINE);
-        });*/
-
         // Lines
         if (m_LineVertexCount)
         {
@@ -311,12 +300,6 @@ namespace Turbo
             Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
             m_Statistics.DrawCalls++;
         }
-/*
-
-        Renderer::Submit([this]()
-        {
-            vkCmdNextSubpass(m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle(), VK_SUBPASS_CONTENTS_INLINE);
-        });*/
 
         // Text
         if (m_TextIndexCount)

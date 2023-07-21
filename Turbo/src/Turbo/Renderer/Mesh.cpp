@@ -70,16 +70,11 @@ namespace Turbo
 
     void StaticMesh::Load()
     {
-        static Ref<Assimp::Importer> s_Importer;
+        Assimp::Importer importer;
         
-        if (!s_Importer)
-        {
-            s_Importer = Ref<Assimp::Importer>::Create();
-        }
-
         // aiProcess_FlipUVs - Flip UVs but I think vulkan already has fliped UVs
-        const aiScene* scene = s_Importer->ReadFile(m_FilePath.data(), s_AssimpImporterFlags);
-        TBO_ENGINE_ASSERT(scene && ~scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE && scene->mRootNode, s_Importer->GetErrorString());
+        const aiScene* scene = importer.ReadFile(m_FilePath.data(), s_AssimpImporterFlags);
+        TBO_ENGINE_ASSERT(scene && ~scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE && scene->mRootNode, importer.GetErrorString());
 
         ProcessNode(scene, scene->mRootNode);
     }

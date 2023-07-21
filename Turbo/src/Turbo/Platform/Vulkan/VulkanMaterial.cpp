@@ -89,7 +89,7 @@ namespace Turbo
 
         TBO_VK_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &defaultSampler));
 
-        RendererContext::GetResourceQueue().Submit(SAMPLER, [device, defaultSampler]()
+        RendererContext::SubmitResourceFree([device, defaultSampler]()
         {
             vkDestroySampler(device, defaultSampler, nullptr);
         });

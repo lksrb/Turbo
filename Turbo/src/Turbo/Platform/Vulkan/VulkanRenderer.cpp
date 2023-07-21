@@ -25,7 +25,7 @@ namespace Turbo
 
     static std::map<VulkanShader const*, std::map<UniformBuffer const*, WriteDescriptorSetInfo>> s_CachedWriteDescriptorSets;
 
-    static void UpdateWriteDescriptors(Ref<UniformBufferSet> uniformBufferSet, const Ref<VulkanShader>& shader, const std::vector<VulkanShader::UniformBufferInfo>& uniformBufferInfos)
+    static void UpdateWriteDescriptors(const Ref<UniformBufferSet>& uniformBufferSet, const Ref<VulkanShader>& shader, const std::vector<VulkanShader::UniformBufferInfo>& uniformBufferInfos)
     {
         VkDevice device = RendererContext::GetDevice();
 
@@ -68,7 +68,7 @@ namespace Turbo
 
     struct RendererInternal
     {
-        RenderCommandQueue RenderQueue;
+        CommandQueue RenderQueue;
     };
 
     static RendererInternal* s_Internal;
@@ -83,7 +83,7 @@ namespace Turbo
         delete s_Internal;
     }
 
-    RenderCommandQueue& Renderer::GetRenderCommandQueue()
+    CommandQueue& Renderer::GetCommandQueue()
     {
         return s_Internal->RenderQueue;
     }

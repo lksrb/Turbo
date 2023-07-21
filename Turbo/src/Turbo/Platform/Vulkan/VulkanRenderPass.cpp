@@ -27,7 +27,9 @@ namespace Turbo
             auto& colorAttachment = attachments.emplace_back();
             colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM; // VK_FORMAT_B8G8R8A8_SRGB;
             colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            // For beginning of the render pass (vkCmdBeginRenderPass)
             colorAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+            // For the end of the render pass (vkCmdEndRenderPass)
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -41,11 +43,11 @@ namespace Turbo
             auto& depthAttachment = attachments.emplace_back();
             depthAttachment.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
             depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+            depthAttachment.storeOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
             depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            depthAttachment.initialLayout = m_Config.ClearOnLoad ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         }
 
@@ -79,15 +81,14 @@ namespace Turbo
         }
 
         // Self-dependency
-
         auto& dependency = subpassDependencies[0];
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+        dependency.dependencyFlags = 0;
 
         if (frameBufferConfig.EnableDepthTesting)
         {
@@ -120,6 +121,7 @@ namespace Turbo
         // Render pass 
         VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.pNext = nullptr;
 
         // Attachments
         renderPassInfo.attachmentCount = (u32)attachments.size();
@@ -136,8 +138,7 @@ namespace Turbo
         TBO_VK_ASSERT(vkCreateRenderPass(device, &renderPassInfo, VK_NULL_HANDLE, &m_RenderPass));
 
         // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-        resourceFreeQueue.Submit(RENDERPASS, [device, m_RenderPass = m_RenderPass]()
+        RendererContext::SubmitResourceFree([device, m_RenderPass = m_RenderPass]()
         {
             vkDestroyRenderPass(device, m_RenderPass, nullptr);
         });

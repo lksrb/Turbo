@@ -14,8 +14,8 @@ namespace Turbo
         
         VkBuffer GetHandle() const { return m_Buffer; }
     private:
-        VkBuffer m_Buffer;
-        VkDeviceMemory m_Memory;
+        VkBuffer m_Buffer = VK_NULL_HANDLE;
+        VkDeviceMemory m_BufferMemory = VK_NULL_HANDLE;
     };
 }
 

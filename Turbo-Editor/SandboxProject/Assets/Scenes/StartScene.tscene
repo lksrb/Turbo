@@ -7,7 +7,7 @@ Entities:
     TagComponent:
       Tag: Sprite
     TransformComponent:
-      Translation: [0, 0.472415686, 0]
+      Translation: [0, 0.472415686, 4.28188801]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -16,6 +16,10 @@ Entities:
       IsSpriteSheet: true
       SpriteCoords: [0, 0]
       SpriteSize: [20, 20]
+    ScriptComponent:
+      ClassName: Sandbox.ExampleEntity
+      Fields:
+        []
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false
@@ -36,7 +40,7 @@ Entities:
     TagComponent:
       Tag: Ground
     TransformComponent:
-      Translation: [0, -1.4564209, 0]
+      Translation: [0, -1, 1.68821502]
       Rotation: [0, 0, 0]
       Scale: [10.0003405, 0.610543609, 1]
     SpriteRendererComponent:

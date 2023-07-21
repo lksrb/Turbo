@@ -21,7 +21,7 @@ namespace Turbo
         void TransferData(size_t size);
     private:
         VkBuffer m_Buffer = VK_NULL_HANDLE;
-        VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+        VkDeviceMemory m_BufferMemory = VK_NULL_HANDLE;
 
         VkBuffer m_StagingBuffer = VK_NULL_HANDLE;
         VkDeviceMemory m_StagingBufferMemory = VK_NULL_HANDLE;

@@ -80,8 +80,8 @@ namespace Turbo
 
         allocInfo.memoryTypeIndex = Utils::FindMemoryType(memRequirements.memoryTypeBits, m_Config.MemoryStorage);
 
-        TBO_VK_ASSERT(vkAllocateMemory(device, &allocInfo, nullptr, &m_Memory));
-        TBO_VK_ASSERT(vkBindImageMemory(device, m_Image, m_Memory, 0));
+        TBO_VK_ASSERT(vkAllocateMemory(device, &allocInfo, nullptr, &m_ImageMemory));
+        TBO_VK_ASSERT(vkBindImageMemory(device, m_Image, m_ImageMemory, 0));
 
         // Image view
         VkImageViewCreateInfo createInfo{};
@@ -123,22 +123,12 @@ namespace Turbo
         TBO_VK_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler));
 
         // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(SAMPLER, [device, sampler = m_Sampler]()
+        RendererContext::SubmitResourceFree([device, sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
         {
             vkDestroySampler(device, sampler, nullptr);
-        });
-
-        resourceFreeQueue.Submit(IMAGE, [device, m_Image = m_Image, m_Memory = m_Memory]()
-        {
-            vkDestroyImage(device, m_Image, nullptr);
-            vkFreeMemory(device, m_Memory, nullptr);
-        });
-
-        resourceFreeQueue.Submit(IMAGEVIEW, [device, m_ImageView = m_ImageView]()
-        {
-            vkDestroyImageView(device, m_ImageView, nullptr);
+            vkDestroyImage(device, image, nullptr);
+            vkFreeMemory(device, imageMemory, nullptr);
+            vkDestroyImageView(device, imageView, nullptr);
         });
     }
 }

@@ -20,6 +20,7 @@ namespace Turbo
             ColorWriteMask_A = 0x00000008,
             ColorWriteMask_RGBA = ColorWriteMask_R | ColorWriteMask_G | ColorWriteMask_B | ColorWriteMask_A
         };
+
         using ColorWriteMask = u32;
 
         enum BlendFactor : u32
@@ -66,7 +67,6 @@ namespace Turbo
         FrameBuffer(const FrameBuffer::Config& config);
 
         Ref<RenderPass> m_RenderPass;
-        Ref<Image2D> m_DepthBuffer;
 
         FrameBuffer::Config m_Config;
     };

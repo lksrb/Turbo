@@ -57,29 +57,24 @@ namespace Turbo
             allocateInfo.allocationSize = m_Config.Size;
             allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_Memory));
-            TBO_VK_ASSERT(vkBindBufferMemory(device, m_Buffer, m_Memory, 0));
+            TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_BufferMemory));
+            TBO_VK_ASSERT(vkBindBufferMemory(device, m_Buffer, m_BufferMemory, 0));
         }
 
         // Add it to the resource free queue
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(BUFFER, [device,
-            m_StagingBuffer = m_StagingBuffer,
-            m_StagingBufferMemory = m_StagingBufferMemory,
-            m_Buffer = m_Buffer,
-            m_Memory = m_Memory]()
+        RendererContext::SubmitResourceFree([device, stagingBuffer = m_StagingBuffer, stagingBufferMemory = m_StagingBufferMemory, 
+            buffer = m_Buffer, bufferMemory = m_BufferMemory]()
         {
             // Unmapping
-            vkUnmapMemory(device, m_StagingBufferMemory);
+            vkUnmapMemory(device, stagingBufferMemory);
 
             // Destroy staging buffer
-            vkDestroyBuffer(device, m_StagingBuffer, nullptr);
-            vkFreeMemory(device, m_StagingBufferMemory, nullptr);
+            vkDestroyBuffer(device, stagingBuffer, nullptr);
+            vkFreeMemory(device, stagingBufferMemory, nullptr);
 
             // Destroy vertex buffer
-            vkDestroyBuffer(device, m_Buffer, nullptr);
-            vkFreeMemory(device, m_Memory, nullptr);
+            vkDestroyBuffer(device, buffer, nullptr);
+            vkFreeMemory(device, bufferMemory, nullptr);
         });
 
         m_TranferCommandBuffer = RenderCommandBuffer::Create();
@@ -100,6 +95,7 @@ namespace Turbo
 
     void VulkanVertexBuffer::TransferData(size_t size)
     {
+        // TODO: Maybe record this only once?
         m_TranferCommandBuffer->Begin();
 
         Renderer::Submit([this, size]()

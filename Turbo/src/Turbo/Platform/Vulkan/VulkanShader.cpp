@@ -565,15 +565,9 @@ namespace Turbo
         }
 
         // Resource free queue
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(DESCRIPTOR_POOL, [device, descriptorPool = m_DescriptorPool]()
+        RendererContext::SubmitResourceFree([device, descriptorPool = m_DescriptorPool, descriptorSetLayout = m_DescriptorSetLayout]()
         {
             vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-        });
-
-        resourceFreeQueue.Submit(DESCRIPTOR_SET_LAYOUT, [device, descriptorSetLayout = m_DescriptorSetLayout]()
-        {
             vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
         });
     }

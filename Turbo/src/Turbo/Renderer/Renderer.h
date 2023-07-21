@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderCommandQueue.h"
+#include "CommandQueue.h"
 #include "DrawList2D.h"
 
 #include "Mesh.h"
@@ -19,20 +19,9 @@ namespace Turbo
         template<typename F>
         static void Submit(F&& func)
         {
-            auto size = sizeof(func);
-
-            auto command = [](void* ptr)
-            {
-                auto pFunc = (F*)ptr;
-                (*pFunc)();
-                pFunc->~F();
-            };
-
-            void* memory = GetRenderCommandQueue().Allocate(command, sizeof(func));
-            new(memory) F(std::forward<F>(func));
+            GetCommandQueue().Submit(std::forward<F>(func));
         }
 
-        static RenderCommandQueue& GetRenderCommandQueue();
         static u32 GetCurrentFrame();
 
         static void SetLineWidth(Ref<RenderCommandBuffer> commandBuffer, f32 lineWidth);
@@ -47,5 +36,7 @@ namespace Turbo
         static void DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount);
         static void DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 instanceCount, u32 indicesPerInstance);
         static void DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 transformOffset, u32 subMeshIndex, u32 instanceCount);
+    private:
+        static CommandQueue& GetCommandQueue();
     };
 }

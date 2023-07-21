@@ -46,10 +46,8 @@ namespace Turbo
         // Access allocated buffer
         TBO_VK_ASSERT(vkMapMemory(device, m_Memory, 0, m_Config.Size, 0, &m_Data));
 
-        // Add it to deletion queue 
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(BUFFER, [device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
+        // Add it to deletion queue         
+        RendererContext::SubmitResourceFree([device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
         {
             vkUnmapMemory(device, m_Memory);
             vkDestroyBuffer(device, m_Buffer, nullptr);

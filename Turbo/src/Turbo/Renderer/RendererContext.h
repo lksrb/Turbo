@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Turbo/Core/Common.h"
-#include "Turbo/Renderer/ResourceQueue.h"
+#include "Turbo/Renderer/CommandQueue.h"
 
 extern "C"
 {
@@ -82,15 +82,21 @@ namespace Turbo
         static void SetWindowContext(Window* window);
 
         static u32 FramesInFlight();
-
+            
+        
         /**
-         * Resource queue manages vulkan handles on runtime, if vulkan wrappers are freed, vulkan handles will be submitted, to this queue
+         * Resource queue manages vulkan handles on runtime, if vulkan wrappers are invalidated, vulkan handles will be submitted, to this queue
          * and safely released when the resource is not used.
          */
-        static ResourceQueue& GetResourceQueue();
+        template<typename F>
+        static void SubmitResourceFree(F&& func)
+        {
+            GetResourceQueue().Submit(std::forward<F>(func));
+        }
         static const SwapchainSupportDetails& GetSwapchainSupportDetails();
         static const QueueFamilyIndices& GetQueueFamilyIndices();
     private:
+        static CommandQueue& GetResourceQueue();
         static void CreateInstance();
         static void CreateDebugger();
     };

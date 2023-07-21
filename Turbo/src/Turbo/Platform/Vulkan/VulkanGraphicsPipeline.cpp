@@ -310,22 +310,16 @@ namespace Turbo
         pipelineCreateInfo.pDynamicState = &dynamicStatesInfo;
         pipelineCreateInfo.layout = m_PipelineLayout;
         pipelineCreateInfo.renderPass = m_Config.Renderpass.As<VulkanRenderPass>()->GetHandle();
-        pipelineCreateInfo.subpass = 0; // m_Config.SubpassIndex
+        pipelineCreateInfo.subpass = 0;
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineCreateInfo.basePipelineIndex = -1; // Optional
         
         TBO_VK_ASSERT(vkCreateGraphicsPipelines(device, nullptr, 1, &pipelineCreateInfo, nullptr, &m_Pipeline));
 
         // Resource free queue
-        auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-        resourceFreeQueue.Submit(PIPELINE_LAYOUT, [device, layout = m_PipelineLayout]()
+        RendererContext::SubmitResourceFree([device, pipeline = m_Pipeline, pipelineLayout = m_PipelineLayout]()
         {
-            vkDestroyPipelineLayout(device, layout, nullptr);
-        });
-
-        resourceFreeQueue.Submit(PIPELINE, [device, pipeline = m_Pipeline]()
-        {
+            vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
             vkDestroyPipeline(device, pipeline, nullptr);
         });
     }

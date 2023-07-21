@@ -1,23 +1,22 @@
 #include "tbopch.h"
-#include "RenderCommandQueue.h"
+#include "CommandQueue.h"
 
 namespace Turbo
 {
-    RenderCommandQueue::RenderCommandQueue()
+    CommandQueue::CommandQueue()
     {
-        memset(this, 0, sizeof(*this));
         // Allocate 10 MB
-        m_Buffer = m_BufferPointer = new u8[1 * 1024 * 1024];
-        memset(m_BufferPointer, 0, 1 * 1024 * 1024);
+        m_Buffer = m_BufferPointer = new u8[10 * 1024 * 1024];
+        memset(m_BufferPointer, 0, 10 * 1024 * 1024);
     }
 
-    RenderCommandQueue::~RenderCommandQueue()
+    CommandQueue::~CommandQueue()
     {
         delete[] m_Buffer;
         m_Buffer = nullptr;
     }
 
-    void* RenderCommandQueue::Allocate(RenderCommandFn func, size_t size)
+    void* CommandQueue::Allocate(RenderCommandFn func, size_t size)
     {
         // TODO: alignment
         *(RenderCommandFn*)m_BufferPointer = func;
@@ -34,7 +33,7 @@ namespace Turbo
         return memory;
     }
 
-    void RenderCommandQueue::Execute()
+    void CommandQueue::Execute()
     {
         u8* buffer = m_Buffer;
 

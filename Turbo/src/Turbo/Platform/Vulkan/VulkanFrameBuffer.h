@@ -18,7 +18,7 @@ namespace Turbo
         Ref<Image2D> GetColorAttachment() const override;
     private:
         std::vector<Ref<Image2D>> m_ColorAttachments;
-
+        std::vector<Ref<Image2D>> m_DepthBuffers;
         std::vector<VkFramebuffer> m_Framebuffers;
     };
 }

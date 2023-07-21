@@ -8,17 +8,17 @@ namespace Turbo
 {
     VulkanRenderCommandBuffer::VulkanRenderCommandBuffer()
     {
-        u32 frames_in_flight = RendererContext::FramesInFlight();
+        u32 framesInFlight = RendererContext::FramesInFlight();
         VkDevice device = RendererContext::GetDevice();
 
         // Command buffers
         {
-            m_CommandBuffers.resize(frames_in_flight);
+            m_CommandBuffers.resize(framesInFlight);
             VkCommandBufferAllocateInfo alloc_info = {};
             alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             alloc_info.commandPool = RendererContext::GetCommandPool();
             alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            alloc_info.commandBufferCount = frames_in_flight;
+            alloc_info.commandBufferCount = framesInFlight;
 
             TBO_VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, m_CommandBuffers.data()));
         }
@@ -29,13 +29,12 @@ namespace Turbo
             fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
             fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-            m_WaitFences.resize(frames_in_flight);
+            m_WaitFences.resize(framesInFlight);
             for (auto& fence : m_WaitFences)
                 TBO_VK_ASSERT(vkCreateFence(device, &fence_create_info, nullptr, &fence));
         }
 
-        auto& resourceQueue = RendererContext::GetResourceQueue();
-        resourceQueue.Submit(SYNC_OBJECT, [waitFences = m_WaitFences]()
+        RendererContext::SubmitResourceFree([waitFences = m_WaitFences]()
         {
             VkDevice device = RendererContext::GetDevice();
             for (auto& fence : waitFences)

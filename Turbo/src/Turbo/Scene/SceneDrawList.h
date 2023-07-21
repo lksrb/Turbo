@@ -87,6 +87,8 @@ namespace Turbo
         static constexpr u32 MaxCubeVertices = 24 * MaxCubes;
         static constexpr u32 MaxCubeIndices = 6 * MaxCubes;
 
+        static constexpr u32 MaxPointLights = 64;
+
         // For now
         static constexpr u32 MaxTransforms = 4096;
 
@@ -118,11 +120,11 @@ namespace Turbo
         struct alignas(16) PointLightData
         {
             u32 Count = 0;
-            PointLight PointLights[64];
+            PointLight PointLights[MaxPointLights];
 
             PointLight& operator[](u32 index)
             {
-                TBO_ENGINE_ASSERT(index < 64);
+                TBO_ENGINE_ASSERT(index < MaxPointLights);
                 return PointLights[index];
             }
         };

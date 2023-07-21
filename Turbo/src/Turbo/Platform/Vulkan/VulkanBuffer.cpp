@@ -41,9 +41,7 @@ namespace Turbo
         if (m_Config.Temporary == false)
         {
             // Add it to deletion queue 
-            auto& resourceFreeQueue = RendererContext::GetResourceQueue();
-
-            resourceFreeQueue.Submit(BUFFER, [device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
+            RendererContext::SubmitResourceFree([device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
             {
                 vkUnmapMemory(device, m_Memory);
                 vkDestroyBuffer(device, m_Buffer, nullptr);
