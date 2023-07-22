@@ -17,4 +17,11 @@ namespace Turbo
         bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
         Ref<Asset> TryLoad(const AssetMetadata& metadata) override;
     };
+
+    class StaticMeshSerializer : public AssetSerializer
+    {
+    public:
+        bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
+        Ref<Asset> TryLoad(const AssetMetadata& metadata) override;
+    };
 }

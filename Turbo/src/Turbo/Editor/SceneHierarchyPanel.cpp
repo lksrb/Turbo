@@ -417,9 +417,11 @@ namespace Turbo
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             DisplayAddComponentEntry<LineRendererComponent>("Line Renderer");
             DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+            DisplayAddComponentEntry<TextComponent>("Text Component");
+            DisplayAddComponentEntry<StaticMeshRendererComponent>("Static Mesh Renderer");
+            DisplayAddComponentEntry<PointLightComponent>("Point Light");
             DisplayAddComponentEntry<AudioSourceComponent>("Audio Source Component");
             DisplayAddComponentEntry<AudioListenerComponent>("Audio Listener Component");
-            DisplayAddComponentEntry<TextComponent>("Text Component");
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
@@ -506,15 +508,18 @@ namespace Turbo
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
         });
 
-        Utils::DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [&m_AssetsPath = m_AssetsPath](auto& component)
+        Utils::DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
         {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
             ImGui::NextColumn();
 
             ImGui::Text("Texture: ");
-            if (component.Texture)
+            if (AssetManager::IsAssetLoaded(component.Texture))
             {
                 auto& textureMetadata = AssetManager::GetAssetMetadata(component.Texture);
+                auto texture = AssetManager::GetAsset<Texture2D>(component.Texture);
+                component.UpdateTextureCoords(texture->GetWidth(), texture->GetHeight());
+
                 ImGui::SameLine();
                 if (ImGui::Button(textureMetadata.FilePath.stem().string().c_str()))
                 {
@@ -525,14 +530,14 @@ namespace Turbo
                 {
                     component.Texture = 0;
                 }
-
             }
+
             ImGui::SameLine(ImGui::GetContentRegionAvail().x - 50.0f);
 
             if (ImGui::Button("Open Asset"))
                 ImGui::OpenPopup("SRC_AssetSearchPopup");
 
-            if (AssetHandle confirmedHandle = UI::Widgets::AssetSearchPopup("SRC_AssetSearchPopup"))
+            if (AssetHandle confirmedHandle = UI::Widgets::AssetSearchPopup("SRC_AssetSearchPopup", AssetType_Texture2D))
             {
                 component.Texture = confirmedHandle;
             }
@@ -544,12 +549,6 @@ namespace Turbo
             {
                 ImGui::InputFloat2("Sprite Coordinates", glm::value_ptr(component.SpriteCoords));
                 ImGui::InputFloat2("Sprite Size", glm::value_ptr(component.SpriteSize));
-            }
-
-            if (AssetManager::IsAssetLoaded(component.Texture))
-            {
-                auto texture = AssetManager::GetAsset<Texture2D>(component.Texture);
-                component.UpdateTextureCoords(texture->GetWidth(), texture->GetHeight());
             }
 
             // TODO: Style ImGui and make id generator for imgui id system
@@ -569,12 +568,49 @@ namespace Turbo
             ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
         });
 
-        Utils::DrawComponent<TextComponent>("Text Component", entity, [&entity, m_Context = m_Context](auto& component)
+        Utils::DrawComponent<TextComponent>("Text Component", entity, [](auto& component)
         {
             ImGui::InputTextMultiline("Text", &component.Text);
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
             ImGui::InputFloat("Kerning Offset", &component.KerningOffset, 0.025f);
             ImGui::InputFloat("Line Spacing", &component.LineSpacing, 0.025f);
+        });
+
+        Utils::DrawComponent<StaticMeshRendererComponent>("Static Mesh Renderer", entity, [](auto& component)
+        {
+            ImGui::Text("Mesh: ");
+            if (AssetManager::IsAssetLoaded(component.Mesh))
+            {
+                auto& meshMetadata = AssetManager::GetAssetMetadata(component.Mesh);
+
+                ImGui::SameLine();
+                if (ImGui::Button(meshMetadata.FilePath.stem().string().c_str()))
+                {
+                    ImGui::OpenPopup("SRC_YesNoPopup");
+                }
+
+                if (UI::Widgets::YesNoPopup("SRC_YesNoPopup", "Reset?"))
+                {
+                    component.Mesh = 0;
+                }
+            }
+
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - 50.0f);
+
+            if (ImGui::Button("Open Asset"))
+                ImGui::OpenPopup("SRC_AssetSearchPopup");
+
+            if (AssetHandle confirmedHandle = UI::Widgets::AssetSearchPopup("SRC_AssetSearchPopup", AssetType_StaticMesh))
+            {
+                component.Mesh = confirmedHandle;
+            }
+        });
+
+        Utils::DrawComponent<PointLightComponent>("Point Light", entity, [](auto& component)
+        {
+            ImGui::InputFloat("Radius", &component.Radius, 0.025f);
+            ImGui::InputFloat("Intensity", &component.Intensity, 0.025f);
+            ImGui::InputFloat("Fall Off", &component.FallOff, 0.025f);
         });
 
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
@@ -617,7 +653,7 @@ namespace Turbo
             {
                 s_AudioSourcePath = Platform::OpenFileDialog(L"Open Audio File", L"WAV File (*.wav)\0*.wav\0");
                 component.AudioPath = s_AudioSourcePath.string();
-                Audio::Register(entity.GetUUID(), component.AudioPath);
+                Audio::Register(entity.GetUUID(), component.AudioPath); // TOOD: Assets
             }
 
             ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 10.0f);
@@ -814,11 +850,11 @@ namespace Turbo
     }
 
     template<typename T>
-    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
+    void SceneHierarchyPanel::DisplayAddComponentEntry(std::string_view entryName)
     {
-        if (m_SelectedEntity.HasComponent<T>() == false)
+        if (!m_SelectedEntity.HasComponent<T>())
         {
-            if (ImGui::MenuItem(entryName.c_str()))
+            if (ImGui::MenuItem(entryName.data()))
             {
                 m_SelectedEntity.AddComponent<T>();
                 ImGui::CloseCurrentPopup();

@@ -86,6 +86,8 @@ namespace Turbo
 
         bool IsRunning() const { return m_Running; }
     private:
+        void RenderScene(Ref<SceneDrawList> drawList);
+    private:
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
         void OnAudioSourceComponentConstruct(entt::registry& registry, entt::entity entity);

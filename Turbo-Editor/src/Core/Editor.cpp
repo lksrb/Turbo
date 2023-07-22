@@ -1002,6 +1002,12 @@ namespace Turbo::Ed
                 m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
             }
         }
+
+        // TODO: Settings for turning of point light textures
+        if (true)
+        {
+            //auto view = m_CurrentScene->GetAllEntitiesWith<TransformComponent, PointLightComponent>();
+        }
     }
 
 }

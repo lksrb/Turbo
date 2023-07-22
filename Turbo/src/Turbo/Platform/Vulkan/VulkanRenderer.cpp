@@ -306,7 +306,7 @@ namespace Turbo
             const auto& resources =shader->GetResources();
             UpdateWriteDescriptors(uniformBufferSet, shader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
 
-            auto& submesh = mesh->GetSubmeshes()[subMeshIndex];
+            const auto& submesh = mesh->GetSubmeshes()[subMeshIndex];
 
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);

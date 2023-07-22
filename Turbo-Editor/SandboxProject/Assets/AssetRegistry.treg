@@ -1,4 +1,7 @@
 AssetRegistry:
+  - Asset: 7671040854140009362
+    Path: Meshes/Backpack/Backpack.fbx
+    Type: StaticMesh
   - Asset: 17301129294625693509
     Path: Sprites/PlayerSpriteSheet.ttex
     Type: Texture2D

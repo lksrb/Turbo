@@ -1,7 +1,7 @@
 #include "tbopch.h"
 #include "ScopeTimer.h"
 
-namespace Turbo::Debug
+namespace Turbo
 {
     ScopeTimer::ScopeTimer(std::string_view name, bool output)
         : m_Name(name), m_Output(output)

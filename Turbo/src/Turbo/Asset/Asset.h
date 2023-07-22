@@ -11,9 +11,7 @@ namespace Turbo
     enum AssetType : u32
     {
         AssetType_Texture2D = 0,
-        //AssetType_StaticMesh,
-        //Audio,
-
+        AssetType_StaticMesh,
         AssetType_Count //  Also serves purpose as invalid value
     };
 

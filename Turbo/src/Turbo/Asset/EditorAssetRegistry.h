@@ -11,6 +11,7 @@ namespace Turbo
         EditorAssetRegistry();
         ~EditorAssetRegistry();
         
+        // FIXME: Bad solution for this
         template<typename T, typename... Args>
         Ref<T> RecreateAsset(AssetHandle handle, Args&&... args)
         {

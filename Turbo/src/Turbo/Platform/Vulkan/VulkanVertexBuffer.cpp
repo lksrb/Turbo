@@ -86,6 +86,9 @@ namespace Turbo
 
     void VulkanVertexBuffer::SetData(void* data, size_t size)
     {
+        if (size == 0)
+            return;
+
         // Copy data to staging buffer
         memcpy(m_StagingBufferPtr, data, size);
 

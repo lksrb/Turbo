@@ -29,7 +29,7 @@ namespace Turbo
         void DrawComponents(Entity entity);
 
         template<typename T>
-        void DisplayAddComponentEntry(const std::string& entryName);
+        void DisplayAddComponentEntry(std::string_view entryName);
 
         void DrawEntityNode(Entity entity);
     private:

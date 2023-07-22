@@ -7,7 +7,8 @@ namespace Turbo
     {
         static const char* s_StringifiedAssetTypeMap[AssetType_Count] =
         {
-            "Texture2D"
+            "Texture2D",
+            "StaticMesh"
         };
 
         return s_StringifiedAssetTypeMap[type];
@@ -17,7 +18,8 @@ namespace Turbo
     {
         static std::unordered_map<std::string_view, AssetType> s_AssetTypeMap =
         {
-            { "Texture2D", AssetType_Texture2D }
+            { "Texture2D", AssetType_Texture2D },
+            { "StaticMesh", AssetType_StaticMesh }
         };
 
         return s_AssetTypeMap.at(type);

@@ -36,7 +36,7 @@ namespace Turbo::UI
         return (correctLetters > 0 && skippedLetters == 0) ? correctLetters : 0;
     };
 
-    AssetHandle Widgets::AssetSearchPopup(const char* popupName)
+    AssetHandle Widgets::AssetSearchPopup(const char* popupName, AssetType filterType)
     {
         static std::string s_InputText;
         static AssetHandle s_SelectedHandle = 0;
@@ -78,7 +78,7 @@ namespace Turbo::UI
                     const auto& name = metadata.FilePath.stem().string();
                     u32 correctLetters = FilterResults(s_InputText, name);
 
-                    if (correctLetters)
+                    if (correctLetters && metadata.Type == filterType)
                     {
                         FilterResult& result = filteredAssets.emplace_back();
                         result.CorrectLetters = correctLetters;

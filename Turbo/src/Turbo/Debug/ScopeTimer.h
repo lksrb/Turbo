@@ -4,7 +4,7 @@
 
 #include <chrono>
 
-namespace Turbo::Debug
+namespace Turbo
 {
 	class ScopeTimer 
 	{

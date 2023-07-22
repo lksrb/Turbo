@@ -103,16 +103,6 @@ namespace Turbo
         CameraComponent(const CameraComponent&) = default;
     };
 
-    struct LineRendererComponent
-    {
-        glm::vec3 Position0{ 0.0f };
-        glm::vec3 Position1{ 0.0f };
-        glm::vec4 Color{ 1.0f };
-
-        LineRendererComponent() = default;
-        LineRendererComponent(const LineRendererComponent&) = default;
-    };
-
     struct SpriteRendererComponent
     {
         glm::vec4 Color{ 1.0f };
@@ -149,6 +139,16 @@ namespace Turbo
         }
     };
 
+    struct LineRendererComponent
+    {
+        glm::vec3 Position0{ 0.0f };
+        glm::vec3 Position1{ 0.0f };
+        glm::vec4 Color{ 1.0f };
+
+        LineRendererComponent() = default;
+        LineRendererComponent(const LineRendererComponent&) = default;
+    };
+
     struct CircleRendererComponent
     {
         glm::vec4 Color{ 1.0f };
@@ -179,12 +179,14 @@ namespace Turbo
         TextComponent(const TextComponent&) = default;
     };
 
-    // TODO: Think about what belongs here
     struct PointLightComponent
     {
         f32 Intensity = 1.0f;
         f32 Radius = 10.0f;
         f32 FallOff = 1.0f;
+
+        PointLightComponent() = default;
+        PointLightComponent(const PointLightComponent&) = default;
     };
 
     struct ScriptComponent
@@ -205,7 +207,7 @@ namespace Turbo
         f32 GravityScale = 1.0f;
         bool Enabled = true;
         bool ContactEnabled = true;
-        bool IsBullet = false; // Continous collision detection
+        bool IsBullet = false; // true == continous collision detection
 
         // Storage for runtime
         void* RuntimeBody = nullptr;
@@ -255,6 +257,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, LineRendererComponent, SpriteRendererComponent, CircleRendererComponent, TextComponent, ScriptComponent,
+        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, StaticMeshRendererComponent, ScriptComponent,
         AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

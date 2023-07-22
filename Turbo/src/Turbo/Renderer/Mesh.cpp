@@ -58,14 +58,16 @@ namespace Turbo
         : m_FilePath(filePath)
     {
         LogDebugStream::Initialize();
-
         Load();
-        AllocateGPUResources();
     }
 
     StaticMesh::~StaticMesh()
     {
+    }
 
+    Ref<StaticMesh> StaticMesh::Create(std::string_view filePath)
+    {
+        return Ref<StaticMesh>::Create(filePath);
     }
 
     void StaticMesh::Load()
@@ -74,17 +76,22 @@ namespace Turbo
         
         // aiProcess_FlipUVs - Flip UVs but I think vulkan already has fliped UVs
         const aiScene* scene = importer.ReadFile(m_FilePath.data(), s_AssimpImporterFlags);
-        TBO_ENGINE_ASSERT(scene && ~scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE && scene->mRootNode, importer.GetErrorString());
+
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+        {
+            TBO_ENGINE_ERROR("Could not load static mesh! {}", importer.GetErrorString());
+            return;
+        }
 
         ProcessNode(scene, scene->mRootNode);
-    }
 
-    void StaticMesh::AllocateGPUResources()
-    {
+        // Allocate GPU resources
         m_VertexBuffer = VertexBuffer::Create({ m_Vertices.size() * sizeof(Vertex) });
         m_VertexBuffer->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
 
         m_IndexBuffer = IndexBuffer::Create(m_Indices);
+
+        m_Loaded = true;
     }
 
     // Flattens the hierarchy 

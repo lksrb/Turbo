@@ -14,6 +14,7 @@ namespace Turbo
     AssetImporter::AssetImporter()
     {
         m_Serializers[AssetType_Texture2D] = CreateScope<Texture2DSerializer>();
+        m_Serializers[AssetType_StaticMesh] = CreateScope<StaticMeshSerializer>();
     }
 
     bool AssetImporter::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)

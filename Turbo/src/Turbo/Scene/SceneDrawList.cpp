@@ -156,7 +156,8 @@ namespace Turbo
         m_RenderCommandBuffer->End();
         m_RenderCommandBuffer->Submit();
 
-        // NOTE: Drawing with multiple renderpasses works... sort of
+        // Draw 2D on top of 3D
+        // Depth buffer remains uncleared so we can easily figure out the depth to avoid overdrawing
         m_DrawList2D->End();
 
         UpdateStatistics();
@@ -202,7 +203,7 @@ namespace Turbo
             drawCommand.SubmeshIndex = submeshIndex++;
 
             // If a mesh is a duplicate, draw it as a another instance of the original mesh but with different transform
-            // Store those transforms in a map and then offset in PreRender 
+            // Store those transforms in a map and then offsetthem in PreRender 
             auto& meshTransformData = m_MeshTransformMap[key];
 
             auto& currentTransform = meshTransformData.Transforms.emplace_back();
@@ -290,11 +291,12 @@ namespace Turbo
         m_Config.ViewportHeight = height;
 
         // Should framebuffer resize?
+/*
         Renderer::Submit([this, width, height]()
         {
             m_FinalRenderPass->GetConfig().TargetFrameBuffer->Invalidate(width, height);
             m_DrawList2D->OnViewportResize(width, height);
-        });
+        });*/
     }
 
     Ref<Image2D> SceneDrawList::GetFinalImage() const

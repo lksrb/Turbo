@@ -17,7 +17,7 @@ namespace Turbo
         static AssetType GetAssetTypeFromExtension(const std::filesystem::path& extension)
         {
             if (extension == ".png") return AssetType_Texture2D;
-            //if (extension == ".obj" || extension == ".fbx") return AssetType_StaticMesh;
+            if (extension == ".fbx") return AssetType_StaticMesh;
 
             TBO_ENGINE_ASSERT(false, "Unsupported extension!");
 
@@ -28,11 +28,10 @@ namespace Turbo
         {
             auto extension = filepath.extension();
 
+            // Those are special cases where we want to have separate file to refence an asset
             if (extension == ".png") return FileSystem::ReplaceExtension(filepath, ".ttex");
 
-            TBO_ENGINE_ASSERT(false);
-
-            return "Unknown";
+            return filepath;
         }
 
         static std::filesystem::path GetMetadataPath(const std::filesystem::path& filepath)

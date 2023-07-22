@@ -195,106 +195,13 @@ namespace Turbo
         m_PostUpdateFuncs.clear();
 
         // Render
-
-        SceneRendererData rendererData = {};
-        rendererData.ViewProjectionMatrix = editorCamera.GetViewProjection();
-        rendererData.InversedViewMatrix = glm::inverse(editorCamera.GetViewMatrix());
-        drawList->SetSceneData(rendererData);
-
-        // Test cube rendering
         {
-            static f32 s_Time = 0.0f;
+            SceneRendererData rendererData = {};
+            rendererData.ViewProjectionMatrix = editorCamera.GetViewProjection();
+            rendererData.InversedViewMatrix = glm::inverse(editorCamera.GetViewMatrix());
+            drawList->SetSceneData(rendererData);
 
-            TransformComponent transformComponent;
-            //transformComponent.Rotation.z = glm::radians(180.0f);
-            //transformComponent.Rotation.y = glm::radians(-90.0f);
-            //transformComponent.Rotation.x = glm::radians(90.0f);
-            //transformComponent.Scale *= 1.5f;
-            TransformComponent transformComponent2;
-            TransformComponent transformComponent5;
-            //transformComponent2.Scale *= 0.2f;
-
-            // Light
-            transformComponent2.Translation.x = 4.0f * glm::sin(s_Time += ts * 0.2f);
-            transformComponent2.Translation.z = 4.0f * glm::cos(s_Time += ts * 0.2f);
-
-            transformComponent5.Translation.x = transformComponent2.Translation.x;
-            transformComponent5.Translation.y = -transformComponent2.Translation.z;
-            //transformComponent2.Translation.y = 2.0f * glm::sin(s_Time += ts * 0.2f);
-
-            f32 radius = 10.0f;
-            f32 fallOff = 0.1f;
-            f32 intensity = 7.0f;
-
-            static Ref<StaticMesh> s_Backpack;
-
-            if (!s_Backpack)
-            {
-                s_Backpack = Ref<StaticMesh>::Create("Assets/Meshes/Backpack/Backpack.fbx");
-            }
-
-            drawList->AddStaticMesh(s_Backpack, transformComponent.GetTransform(), 3);
-            drawList->AddPointLight(transformComponent2.Translation, intensity, radius, fallOff);
-            drawList->AddPointLight(transformComponent5.Translation, intensity, radius, fallOff);
-        }
-
-      /*  // Static meshes
-        {
-            auto& view = GetAllEntitiesWith<TransformComponent, StaticMeshRendererComponent>();
-            for (auto entity : view)
-            {
-                auto& [transform, src] = view.get<TransformComponent, StaticMeshRendererComponent>(entity);
-                auto mesh = AssetManager::GetAsset<Texture2D>(src.Texture);
-                drawList->AddStaticMesh(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
-            }
-        }*/
-
-        // 2D Rendering
-        {
-            // Quads
-            {
-                auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
-
-                for (auto entity : view)
-                {
-                    auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-                    auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
-                    drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
-                }
-            }
-
-            // Circles
-            {
-                auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
-
-                for (auto entity : view)
-                {
-                    auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                    drawList->AddCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
-                }
-            }
-
-            // Text
-            {
-                auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
-
-                for (auto entity : view)
-                {
-                    auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
-                    drawList->AddString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
-                }
-            }
-
-            // Lines
-            {
-                auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
-
-                for (auto entity : view)
-                {
-                    auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
-                    drawList->AddLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
-                }
-            }
+            RenderScene(drawList);
         }
     }
 
@@ -410,58 +317,7 @@ namespace Turbo
             rendererData.InversedViewMatrix = inversedCameraTransform;
             drawList->SetSceneData(rendererData);
 
-            // Static meshes
-            {
-
-            }
-
-            // 2D Rendering
-            {
-                // Sprites
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-                        auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
-                        drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
-                    }
-                }
-
-                // Circles
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                        drawList->AddCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
-                    }
-                }
-
-                // Text
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, TextComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
-                        drawList->AddString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
-                    }
-                }
-
-                // Lines
-                {
-                    auto& view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
-
-                    for (auto entity : view)
-                    {
-                        auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
-                        drawList->AddLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
-                    }
-                }
-            }
+            RenderScene(drawList);
         }
     }
 
@@ -662,6 +518,84 @@ namespace Turbo
         }
 
         return Entity{};
+    }
+
+    void Scene::RenderScene(Ref<SceneDrawList> drawList)
+    {
+        // Point lights
+        {
+            auto view = GetAllEntitiesWith<TransformComponent, PointLightComponent>();
+            for (auto entity : view)
+            {
+                auto& [transform, plc] = view.get<TransformComponent, PointLightComponent>(entity);
+
+                // Rotation does not matter, but i think scale will matter
+                // TODO: Figure out how to composose scale of the ligth and intesity
+                drawList->AddPointLight(transform.Translation, plc.Intensity, plc.Radius, plc.FallOff, (i32)entity);
+            }
+        }
+
+        // Static meshes
+        {
+            auto view = GetAllEntitiesWith<TransformComponent, StaticMeshRendererComponent>();
+            for (auto entity : view)
+            {
+                const auto& [transform, smr] = view.get<TransformComponent, StaticMeshRendererComponent>(entity);
+                auto mesh = AssetManager::GetAsset<StaticMesh>(smr.Mesh);
+                if (mesh == nullptr)
+                    continue;
+
+                drawList->AddStaticMesh(mesh, transform.GetTransform(), (i32)entity);
+            }
+        }
+
+        // 2D Rendering
+        {
+            // Sprites
+            {
+                auto view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    const auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                    auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
+                    drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
+                }
+            }
+
+            // Circles
+            {
+                auto view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    const auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                    drawList->AddCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                }
+            }
+
+            // Text
+            {
+                auto view = GetAllEntitiesWith<TransformComponent, TextComponent>();
+
+                for (auto entity : view)
+                {
+                    const auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+                    drawList->AddString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                }
+            }
+
+            // Lines
+            {
+                auto view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
+
+                for (auto entity : view)
+                {
+                    const auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
+                    drawList->AddLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
+                }
+            }
+        }
     }
 
     // ---- EnTT callbacks ----

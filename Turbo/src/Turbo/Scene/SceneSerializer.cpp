@@ -375,19 +375,6 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
-        if (entity.HasComponent<LineRendererComponent>())
-        {
-            out << YAML::Key << "LineRendererComponent";
-            out << YAML::BeginMap;
-
-            auto& lineRendererComponent = entity.GetComponent<LineRendererComponent>();
-            out << YAML::Key << "Position0" << YAML::Value << lineRendererComponent.Position0;
-            out << YAML::Key << "Position1" << YAML::Value << lineRendererComponent.Position1;
-            out << YAML::Key << "Color" << YAML::Value << lineRendererComponent.Color;
-
-            out << YAML::EndMap;
-        }
-
         if (entity.HasComponent<SpriteRendererComponent>())
         {
             out << YAML::Key << "SpriteRendererComponent";
@@ -400,6 +387,19 @@ namespace Turbo
             out << YAML::Key << "IsSpriteSheet" << YAML::Value << spriteRendererComponent.IsSpriteSheet;
             out << YAML::Key << "SpriteCoords" << YAML::Value << spriteRendererComponent.SpriteCoords;
             out << YAML::Key << "SpriteSize" << YAML::Value << spriteRendererComponent.SpriteSize;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<LineRendererComponent>())
+        {
+            out << YAML::Key << "LineRendererComponent";
+            out << YAML::BeginMap;
+
+            auto& lineRendererComponent = entity.GetComponent<LineRendererComponent>();
+            out << YAML::Key << "Position0" << YAML::Value << lineRendererComponent.Position0;
+            out << YAML::Key << "Position1" << YAML::Value << lineRendererComponent.Position1;
+            out << YAML::Key << "Color" << YAML::Value << lineRendererComponent.Color;
 
             out << YAML::EndMap;
         }
@@ -429,6 +429,29 @@ namespace Turbo
             out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.LineSpacing;
             //out << YAML::Key << "FontAsset" << YAML::Value << textComponent.FontAsset; // TODO: Font assets
 
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<StaticMeshRendererComponent>())
+        {
+            out << YAML::Key << "StaticMeshRendererComponent";
+            out << YAML::BeginMap;
+
+            auto& staticMeshRendererComponent = entity.GetComponent<StaticMeshRendererComponent>();
+            out << YAML::Key << "Mesh" << YAML::Value << staticMeshRendererComponent.Mesh;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<PointLightComponent>())
+        {
+            out << YAML::Key << "PointLightComponent";
+            out << YAML::BeginMap;
+
+            auto& pointLightComponent = entity.GetComponent<PointLightComponent>();
+            out << YAML::Key << "Radius" << YAML::Value << pointLightComponent.Radius;
+            out << YAML::Key << "Intensity" << YAML::Value << pointLightComponent.Intensity;
+            out << YAML::Key << "FallOff" << YAML::Value << pointLightComponent.FallOff;
             out << YAML::EndMap;
         }
 
@@ -675,6 +698,22 @@ namespace Turbo
             tc.Color = textComponent["Color"].as<glm::vec4>();
             tc.KerningOffset = textComponent["KerningOffset"].as<f32>();
             tc.LineSpacing = textComponent["LineSpacing"].as<f32>();
+        }
+
+        auto staticMeshRendererComponent = entity["StaticMeshRendererComponent"];
+        if (staticMeshRendererComponent)
+        {
+            auto& smr = deserializedEntity.AddComponent<StaticMeshRendererComponent>();
+            smr.Mesh = staticMeshRendererComponent  ["Mesh"].as<u64>();
+        }
+
+        auto pointLightComponent = entity["PointLightComponent"];
+        if (pointLightComponent)
+        {
+            auto& plc = deserializedEntity.AddComponent<PointLightComponent>();
+            plc.Radius = pointLightComponent["Radius"].as<f32>();
+            plc.Intensity = pointLightComponent["Intensity"].as<f32>();
+            plc.FallOff = pointLightComponent["FallOff"].as<f32>();
         }
 
         auto scriptComponent = entity["ScriptComponent"];

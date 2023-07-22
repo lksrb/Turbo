@@ -4,6 +4,7 @@
 #include "Turbo/Core/FileSystem.h"
 #include "Turbo/Renderer/Texture2D.h"
 #include "Turbo/Solution/Project.h"
+#include "Turbo/Renderer/Mesh.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -82,7 +83,6 @@ namespace Turbo
 
         return true;
     }
-
     Ref<Asset> Texture2DSerializer::TryLoad(const AssetMetadata& metadata)
     {
         auto assetsPath = Project::GetAssetsPath();
@@ -111,5 +111,22 @@ namespace Turbo
 
         return result;
     }
+
+	bool StaticMeshSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+	{
+        // TODO: Figure out what should be serialized
+        return true;
+	}
+
+	Ref<Asset> StaticMeshSerializer::TryLoad(const AssetMetadata& metadata)
+	{
+        auto path = Project::GetAssetsPath() / metadata.FilePath;
+        Ref<StaticMesh> result = StaticMesh::Create(path.string());
+        if (!result->IsLoaded())
+            return nullptr;
+
+        return result;
+
+	}
 
 }

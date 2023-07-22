@@ -7,7 +7,7 @@ Entities:
     TagComponent:
       Tag: Sprite
     TransformComponent:
-      Translation: [0, 0.472415686, 4.28188801]
+      Translation: [0, 0.472415686, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -33,6 +33,44 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
       IsSensor: false
+  - Entity: 10790257138722840556
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Backpack2
+    TransformComponent:
+      Translation: [-3.41294074, 3.06687069, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 7671040854140009362
+  - Entity: 11763059056531762380
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Pointlight1
+    TransformComponent:
+      Translation: [0.42899859, 2.63716364, 3.9925673]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Radius: 10.0249996
+      Intensity: 4
+      FallOff: 1
+  - Entity: 12644240978762369834
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Backpack
+    TransformComponent:
+      Translation: [4.51193619, 2.72789049, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 7671040854140009362
   - Entity: 13963187795045410005
     Parent: 0
     Children:
