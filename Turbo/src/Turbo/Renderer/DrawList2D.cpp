@@ -76,7 +76,6 @@ namespace Turbo
                 { AttributeType::Float,  "a_TilingFactor" },
                 { AttributeType::Int,    "a_EntityID" },
             };
-            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_QuadPipeline = GraphicsPipeline::Create(config);
             m_QuadPipeline->Invalidate();
 
@@ -114,7 +113,6 @@ namespace Turbo
                 { AttributeType::Float,  "a_Fade" },
                 { AttributeType::Int,    "a_EntityID" },
             };
-            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_CirclePipeline = GraphicsPipeline::Create(config);
             m_CirclePipeline->Invalidate();
 
@@ -149,7 +147,6 @@ namespace Turbo
                 { AttributeType::Vec4, "a_Color" },
                 { AttributeType::Int,  "a_EntityID" },
             };
-            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();
         }
@@ -183,7 +180,6 @@ namespace Turbo
                 { AttributeType::UInt, "a_TexIndex" },
                 { AttributeType::Int,  "a_EntityID" },
             };
-            config.TargetFramebuffer = m_TargerRenderPass->GetConfig().TargetFrameBuffer;
             m_TextPipeline = GraphicsPipeline::Create(config);
             m_TextPipeline->Invalidate();
 

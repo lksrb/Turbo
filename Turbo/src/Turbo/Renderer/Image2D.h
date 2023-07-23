@@ -81,6 +81,7 @@ namespace Turbo
             MemoryStorage MemoryStorage;                // VkMemoryPropertyFlags
             ImageUsage Usage;                           // VkImageUsageFlags
             ImageFilter Filter = ImageFilter_Linear;    // VkFilter
+            std::string_view DebugName;
         };
 
         virtual ~Image2D();

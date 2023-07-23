@@ -6,48 +6,32 @@
 
 namespace Turbo
 {
-    class Image2D;
     class RenderPass;
 
     class FrameBuffer
     {
     public:
-        enum ColorWriteMask_ : u32
+        enum AttachmentType : u32
         {
-            ColorWriteMask_R = 0x00000001,
-            ColorWriteMask_G = 0x00000002,
-            ColorWriteMask_B = 0x00000004,
-            ColorWriteMask_A = 0x00000008,
-            ColorWriteMask_RGBA = ColorWriteMask_R | ColorWriteMask_G | ColorWriteMask_B | ColorWriteMask_A
-        };
-
-        using ColorWriteMask = u32;
-
-        enum BlendFactor : u32
-        {
-            BlendFactor_SrcAlpha = 6,
-            BlendFactor_OneMinus_SrcAlpha = 7,
-        };
-
-        enum BlendOperation : u32
-        {
-            BlendOperation_Add = 0,
-            BlendOperation_Substract
+            AttachmentType_Color = 0,
+            AttachmentType_Depth,
+            AttachmentType_Count,
         };
 
         struct Attachment
         {
-            ColorWriteMask ColorMask;
-            bool EnableBlend;
-            BlendFactor SrcBlendFactor;
-            BlendFactor DstBlendFactor;
-            BlendOperation BlendOperation;
+            AttachmentType Type;
+            u32 Count = 1;
+
+            Attachment(AttachmentType type) : Type(type) {}
         };
 
+        // NOTE: This setup means there cannot be two attachments of the same type
+        // For now its completely okay
         struct Config
         {
-            Attachment ColorAttachment;
-            bool EnableDepthTesting = true;
+            std::vector<Attachment> Attachments;
+            bool EnableDepthTesting = true; // TODO: Remove
             u32 Width;
             u32 Height;
         };
@@ -60,7 +44,7 @@ namespace Turbo
 
         const FrameBuffer::Config& GetConfig() const { return m_Config; }
 
-        virtual Ref<Image2D> GetColorAttachment() const = 0;
+        virtual Ref<Image2D> GetAttachment(AttachmentType type, u32 index = 0) const = 0;
 
         virtual void Invalidate(u32 width, u32 height) = 0;
     protected:

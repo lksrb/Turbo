@@ -93,10 +93,19 @@ namespace Turbo
         {
             GetResourceQueue().Submit(std::forward<F>(func));
         }
+
+        // For now this is implemented just for FrameBuffer and Image2D since those are the only objects
+        // that are getting resized
+        template<typename F>
+        static void SubmitRuntimeResourceFree(F&& func)
+        {
+            GetResourceRuntimeQueue().Submit(std::forward<F>(func));
+        }
         static const SwapchainSupportDetails& GetSwapchainSupportDetails();
         static const QueueFamilyIndices& GetQueueFamilyIndices();
-    private:
+        static CommandQueue& GetResourceRuntimeQueue();
         static CommandQueue& GetResourceQueue();
+    private:
         static void CreateInstance();
         static void CreateDebugger();
     };

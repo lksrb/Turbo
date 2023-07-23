@@ -75,6 +75,7 @@ namespace Turbo
         VkDebugUtilsMessengerEXT DebugMessenger = VK_NULL_HANDLE;
         GPUDevice Device;
 
+        CommandQueue ResourceQueue;
         CommandQueue RuntimeResourceQueue;
         bool ValidationLayerEnabled = true;
         u32 FramesInFlight = 2;
@@ -95,6 +96,7 @@ namespace Turbo
     void RendererContext::Shutdown()
     {
         GetResourceQueue().Execute();
+        GetResourceRuntimeQueue().Execute();
 
         vkDestroySurfaceKHR(s_RendererContext->Instance, s_RendererContext->Surface, nullptr);
 
@@ -246,6 +248,11 @@ namespace Turbo
     }
 
     CommandQueue& RendererContext::GetResourceQueue()
+    {
+        return s_RendererContext->ResourceQueue;
+    }
+
+    CommandQueue& RendererContext::GetResourceRuntimeQueue()
     {
         return s_RendererContext->RuntimeResourceQueue;
     }

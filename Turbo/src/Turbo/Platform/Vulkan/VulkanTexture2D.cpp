@@ -214,6 +214,7 @@ namespace Turbo
         imageConfig.Tiling = ImageTiling_Optimal;
         imageConfig.Format = m_Config.Format;
         imageConfig.Filter = m_Config.Filter;
+        imageConfig.DebugName = m_Config.Path;
         m_TextureImage = Image2D::Create(imageConfig);
         m_TextureImage->Invalidate(m_Config.Width, m_Config.Height);
     }

@@ -11,7 +11,7 @@ namespace Turbo
     public:
         struct Config
         {
-            Ref<FrameBuffer> TargetFrameBuffer;
+            WeakRef<FrameBuffer> TargetFrameBuffer;
             bool ClearOnLoad = true;
 
             u32 SubPassCount = 1;

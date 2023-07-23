@@ -35,13 +35,29 @@ namespace Turbo
         }
     }
 
+    // For debug purposes
+    static std::vector<VulkanImage2D*> s_LiveInstances;
+
     VulkanImage2D::VulkanImage2D(const Image2D::Config& config) 
         : Image2D(config)
     {
+        s_LiveInstances.emplace_back(this);
     }
 
     VulkanImage2D::~VulkanImage2D()
     {
+        // Add it to deletion queue 
+        RendererContext::SubmitResourceFree([sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
+        {
+            VkDevice device = RendererContext::GetDevice();
+            vkDestroySampler(device, sampler, nullptr);
+            vkDestroyImage(device, image, nullptr);
+            vkFreeMemory(device, imageMemory, nullptr);
+            vkDestroyImageView(device, imageView, nullptr);
+        });
+
+        auto it = std::find(s_LiveInstances.begin(), s_LiveInstances.end(), this);
+        s_LiveInstances.erase(it);
     }
 
     void VulkanImage2D::Invalidate(u32 width, u32 height)
@@ -49,6 +65,17 @@ namespace Turbo
         SetExtent(width, height);
 
         VkDevice device = RendererContext::GetDevice();
+
+        if (m_Image)
+        {
+            RendererContext::SubmitRuntimeResourceFree([device, sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
+            {
+                vkDestroySampler(device, sampler, nullptr);
+                vkDestroyImage(device, image, nullptr);
+                vkFreeMemory(device, imageMemory, nullptr);
+                vkDestroyImageView(device, imageView, nullptr);
+            });
+        }
 
         VkImageCreateInfo imageCreateInfo = {};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -121,14 +148,5 @@ namespace Turbo
         samplerInfo.maxLod = 0.0f;
 
         TBO_VK_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler));
-
-        // Add it to deletion queue 
-        RendererContext::SubmitResourceFree([device, sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
-        {
-            vkDestroySampler(device, sampler, nullptr);
-            vkDestroyImage(device, image, nullptr);
-            vkFreeMemory(device, imageMemory, nullptr);
-            vkDestroyImageView(device, imageView, nullptr);
-        });
     }
 }

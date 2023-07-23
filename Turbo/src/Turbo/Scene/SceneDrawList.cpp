@@ -27,21 +27,12 @@ namespace Turbo
         // Separate command buffer
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
 
-        // Color attachment
-        FrameBuffer::Attachment colorAttachment = {};
-        colorAttachment.ColorMask = FrameBuffer::ColorWriteMask_RGBA;
-        colorAttachment.EnableBlend = true;
-        colorAttachment.BlendOperation = FrameBuffer::BlendOperation_Add;
-        colorAttachment.SrcBlendFactor = FrameBuffer::BlendFactor_SrcAlpha;
-        colorAttachment.DstBlendFactor = FrameBuffer::BlendFactor_OneMinus_SrcAlpha;
-
         // Target Framebuffer
         // This will be the main framebuffer
         FrameBuffer::Config frameBufferConfig = {};
-        frameBufferConfig.ColorAttachment = colorAttachment;
-        frameBufferConfig.EnableDepthTesting = true;
+        frameBufferConfig.Attachments = { FrameBuffer::AttachmentType_Color, FrameBuffer::AttachmentType_Depth };
         Ref<FrameBuffer> targetFrameBuffer = FrameBuffer::Create(frameBufferConfig);
-
+        //m_TargetFramebuffer = targetFrameBuffer;
         // Main render pass
         RenderPass::Config config = {};
         config.TargetFrameBuffer = targetFrameBuffer;
@@ -52,6 +43,7 @@ namespace Turbo
 
         targetFrameBuffer->SetRenderPass(m_FinalRenderPass);
         targetFrameBuffer->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
+        m_TargetFramebuffer = targetFrameBuffer;
 
         // Create Renderer2D
         m_DrawList2D = DrawList2D::Create();
@@ -74,7 +66,6 @@ namespace Turbo
             pipelineConfig.Renderpass = m_GeometryRenderPass;
             pipelineConfig.DepthTesting = true;
             pipelineConfig.Shader = m_GeometryShader;
-            pipelineConfig.TargetFramebuffer = targetFrameBuffer;
             pipelineConfig.Layout = VertexBufferLayout
             {
                 { AttributeType::Vec3, "a_VertexPosition" },
@@ -290,18 +281,16 @@ namespace Turbo
         m_Config.ViewportWidth = width;
         m_Config.ViewportHeight = height;
 
-        // Should framebuffer resize?
-/*
         Renderer::Submit([this, width, height]()
         {
             m_FinalRenderPass->GetConfig().TargetFrameBuffer->Invalidate(width, height);
             m_DrawList2D->OnViewportResize(width, height);
-        });*/
+        });
     }
 
     Ref<Image2D> SceneDrawList::GetFinalImage() const
     {
         // Returns final image that is produced by the draw list
-        return m_FinalRenderPass->GetConfig().TargetFrameBuffer->GetColorAttachment();
+        return m_FinalRenderPass->GetConfig().TargetFrameBuffer->GetAttachment(FrameBuffer::AttachmentType_Color);
     }
 }

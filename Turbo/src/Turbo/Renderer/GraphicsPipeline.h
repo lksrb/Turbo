@@ -22,7 +22,6 @@ namespace Turbo
         {
             Ref<RenderPass> Renderpass;
             Ref<Shader> Shader;
-            Ref<FrameBuffer> TargetFramebuffer;
             PrimitiveTopology Topology;
             VertexBufferLayout Layout;
             VertexBufferLayout InstanceLayout;

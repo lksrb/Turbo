@@ -16,6 +16,13 @@ namespace Turbo
 
     VulkanFrameBuffer::~VulkanFrameBuffer()
     {
+        RendererContext::SubmitResourceFree([framebuffers = m_Framebuffers]()
+        {
+            VkDevice device = RendererContext::GetDevice();
+
+            for (u32 i = 0; i < framebuffers.size(); ++i)
+                vkDestroyFramebuffer(device, framebuffers[i], nullptr);
+        });
     }
 
     VkFramebuffer VulkanFrameBuffer::GetHandle() const
@@ -32,9 +39,102 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
         u32 framesInFlight = RendererContext::FramesInFlight();
 
-        m_ColorAttachments.resize(framesInFlight);
+        // Add it to deletion queue
+        if (!m_Framebuffers.empty())
+        {
+            for (u32 i = 0; i < m_Framebuffers.size(); ++i)
+            {
+                for (const auto& resourceByType : m_AttachmentResources)
+                {
+                    for (const auto& resouceByIndex : resourceByType)
+                    {
+                        auto image = resouceByIndex[i].As<VulkanImage2D>();
+                        image->Invalidate(width, height);
+                    }
+                }
+            }
+
+            RendererContext::SubmitRuntimeResourceFree([device, framebuffers = m_Framebuffers, attachmentResources = m_AttachmentResources]()
+            {
+                for (u32 i = 0; i < framebuffers.size(); ++i)
+                {
+                    vkDestroyFramebuffer(device, framebuffers[i], nullptr);
+                }
+            });
+        }
+
         m_Framebuffers.resize(framesInFlight);
-        m_DepthBuffers.resize(framesInFlight);
+
+        u32 index = 0;
+        for (const auto& [type, count] : m_Config.Attachments)
+        {
+            m_AttachmentResources[type].resize(count);
+            if (type == FrameBuffer::AttachmentType_Color)
+            {
+                Image2D::Config config = {};
+                config.Format = ImageFormat_BGRA_Unorm;
+                config.Aspect = ImageAspect_Color;
+                config.MemoryStorage = MemoryStorage_DeviceLocal;
+                config.Usage = ImageUsage_ColorAttachment | ImageUsage_Sampled;
+                config.Tiling = ImageTiling_Optimal;
+                config.DebugName = "FrameBuffer-ColorAttachment";
+
+                auto& fifResource = m_AttachmentResources[type][index];
+                fifResource.resize(framesInFlight);
+                for (u32 i = 0; i < fifResource.size(); ++i)
+                {
+                    fifResource[i] = Image2D::Create(config);
+                    fifResource[i]->Invalidate(width, height);
+                }
+            } 
+            else if (type == FrameBuffer::AttachmentType_Depth)
+            {
+                Image2D::Config config = {};
+                config.Format = ImageFormat_D32_SFloat_S8_Uint;
+                config.Aspect = ImageAspect_Depth;
+                config.MemoryStorage = MemoryStorage_DeviceLocal;
+                config.Usage = ImageUsage_DepthStencilSttachment;
+                config.Tiling = ImageTiling_Optimal;
+                config.DebugName = "FrameBuffer-DepthAttachment";
+
+                auto& fifResource = m_AttachmentResources[type][index];
+                fifResource.resize(framesInFlight);
+                for (u32 i = 0; i < fifResource.size(); ++i)
+                {
+                    fifResource[i] = Image2D::Create(config);
+                    fifResource[i]->Invalidate(width, height);
+                }
+            }
+        }
+
+        for (u32 i = 0; i < m_Framebuffers.size(); ++i)
+        {
+            std::vector<VkImageView> attachments;
+            attachments.reserve(m_Config.Attachments.size());
+
+            for (const auto& resourceByType : m_AttachmentResources)
+            {
+                for (const auto& resouceByIndex : resourceByType)
+                {
+                    auto image = resouceByIndex[i].As<VulkanImage2D>();
+                    attachments.emplace_back(image->GetImageView());
+                }
+            }
+
+            VkFramebufferCreateInfo createInfo = {};
+            createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            createInfo.pNext = nullptr;
+            createInfo.renderPass = m_RenderPass.As<VulkanRenderPass>()->GetHandle();
+            createInfo.width = width;
+            createInfo.height = height;
+            createInfo.layers = 1;
+            createInfo.attachmentCount = (u32)m_Config.Attachments.size();
+            createInfo.pAttachments = attachments.data();
+
+            TBO_VK_ASSERT(vkCreateFramebuffer(device, &createInfo, nullptr, &m_Framebuffers[i]));
+        }
+
+#if OLD
         for (u32 i = 0; i < m_Framebuffers.size(); ++i)
         {
             // Images
@@ -62,10 +162,10 @@ namespace Turbo
                 depthBufferConfig.MemoryStorage = MemoryStorage_DeviceLocal;
                 depthBufferConfig.Usage = ImageUsage_DepthStencilSttachment;
                 depthBufferConfig.Tiling = ImageTiling_Optimal;
-                m_DepthBuffers[i] = Image2D::Create(depthBufferConfig);
-                m_DepthBuffers[i]->Invalidate(width, height);
+                m_DepthAttachments[i] = Image2D::Create(depthBufferConfig);
+                m_DepthAttachments[i]->Invalidate(width, height);
 
-                attachments[1] = m_DepthBuffers[i].As<VulkanImage2D>()->GetImageView();
+                attachments[1] = m_DepthAttachments[i].As<VulkanImage2D>()->GetImageView();
                 attachmentCount++;
             }
 
@@ -81,19 +181,16 @@ namespace Turbo
 
             TBO_VK_ASSERT(vkCreateFramebuffer(device, &createInfo, nullptr, &m_Framebuffers[i]));
         }
-
-        // Add it to deletion queue
-        RendererContext::SubmitResourceFree([device, framebuffers = m_Framebuffers]()
-        {
-            for (u32 i = 0; i < framebuffers.size(); ++i)
-                vkDestroyFramebuffer(device, framebuffers[i], nullptr);
-        });
+#endif
     }
 
-    Ref<Image2D> VulkanFrameBuffer::GetColorAttachment() const
+    Ref<Image2D> VulkanFrameBuffer::GetAttachment(AttachmentType type, u32 index) const
     {
+        TBO_ENGINE_ASSERT(type < FrameBuffer::AttachmentType_Count);
+        TBO_ENGINE_ASSERT(index < m_AttachmentResources[type].size());
+
         u32 currentFrame = Renderer::GetCurrentFrame();
-        return m_ColorAttachments[currentFrame];
+        return m_AttachmentResources[type][index][currentFrame];
     }
 
 }

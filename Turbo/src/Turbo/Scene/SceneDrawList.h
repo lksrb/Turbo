@@ -4,7 +4,6 @@
 
 // Temporary
 #include "Turbo/Renderer/RendererContext.h"
-
 #include "Turbo/Renderer/Mesh.h"
 
 #include <map>
@@ -185,6 +184,7 @@ namespace Turbo
 
         Ref<RenderPass> m_FinalRenderPass;
         Ref<DrawList2D> m_DrawList2D;
+        Ref<FrameBuffer> m_TargetFramebuffer;
 
         SceneDrawList::Statistics m_Statistics;
         SceneDrawList::Config m_Config;

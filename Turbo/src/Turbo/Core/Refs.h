@@ -160,4 +160,53 @@ namespace Turbo
         template<typename T2>
         friend class Ref;
     };
+
+
+    template<typename T>
+    class WeakRef
+    {
+    public:
+        WeakRef() = default;
+
+        template<typename T2>
+        WeakRef(const WeakRef<T2>& other)
+        {
+            m_Instance = (T*)other.m_Instance;
+        }
+
+        WeakRef(Ref<T> ref)
+        {
+            m_Instance = ref.Get();
+        }
+
+        WeakRef(T* instance)
+        {
+            m_Instance = instance;
+        }
+
+        operator bool() { return m_Instance != nullptr; }
+        operator bool() const { return m_Instance != nullptr; }
+
+        T* operator->() { return m_Instance; }
+        const T* operator->() const { return m_Instance; }
+
+        T& operator*() { return *m_Instance; }
+        const T& operator*() const { return *m_Instance; }
+
+        // TODO: Currently there is no way to be sure if the instance is valid or not
+        //bool IsValid() const { return false}
+        //operator bool() const { return IsValid(); }
+
+        template<typename T2>
+        WeakRef<T2> As() const
+        {
+            return WeakRef<T2>(*this);
+        }
+
+    private:
+        T* m_Instance = nullptr;
+
+        template<typename T2>
+        friend class WeakRef;
+    };
 }

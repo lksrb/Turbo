@@ -146,6 +146,7 @@ namespace Turbo::Ed
     {
         // Reset
         Project::SetActive(nullptr);
+        m_ResetCameraRotationIcon.Reset();
     }
 
     void Editor::OnUpdate()

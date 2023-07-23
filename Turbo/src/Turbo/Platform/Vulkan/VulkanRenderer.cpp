@@ -106,6 +106,8 @@ namespace Turbo
                 wds.IsDirty = true;
             }
         }
+
+        RendererContext::GetResourceRuntimeQueue().Execute();
     }
 
     void Renderer::Render()

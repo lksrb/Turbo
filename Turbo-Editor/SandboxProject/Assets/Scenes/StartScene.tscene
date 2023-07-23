@@ -40,7 +40,7 @@ Entities:
     TagComponent:
       Tag: Backpack2
     TransformComponent:
-      Translation: [-3.41294074, 3.06687069, 0]
+      Translation: [-3.41294074, 3.06687069, -0.389391184]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
@@ -52,7 +52,7 @@ Entities:
     TagComponent:
       Tag: Pointlight1
     TransformComponent:
-      Translation: [0.42899859, 2.63716364, 3.9925673]
+      Translation: [-0.473808646, 2.12517619, 3.99257088]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:

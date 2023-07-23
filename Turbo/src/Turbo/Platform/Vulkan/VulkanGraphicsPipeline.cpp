@@ -88,7 +88,7 @@ namespace Turbo
         // Per vertex
 
         std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-        
+
         // Per vertex
         if (m_Config.Layout.AttributeCount())
         {
@@ -198,49 +198,52 @@ namespace Turbo
         // ##################                          Depth and stencil testing                        ##################
         // ###############################################################################################################
         VkPipelineDepthStencilStateCreateInfo depthAndStencilState = {};
-        //if (m_Config.DepthTesting)
-        {
-            depthAndStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-            depthAndStencilState.depthTestEnable = m_Config.DepthTesting;
-            depthAndStencilState.depthWriteEnable = m_Config.DepthTesting;
-            depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
-            depthAndStencilState.depthBoundsTestEnable = VK_FALSE;
-            depthAndStencilState.minDepthBounds = 0.0f; // Optional
-            depthAndStencilState.maxDepthBounds = 1.0f; // Optional
-            depthAndStencilState.stencilTestEnable = VK_FALSE;
-            
-           /* depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-            depthAndStencilState.depthBoundsTestEnable = VK_FALSE;
-            depthAndStencilState.back.failOp = VK_STENCIL_OP_KEEP;
-            depthAndStencilState.back.passOp = VK_STENCIL_OP_KEEP;
-            depthAndStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
-            depthAndStencilState.stencilTestEnable = VK_FALSE;
-            depthAndStencilState.front = depthAndStencilState.back;*/
-        }
+        depthAndStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthAndStencilState.depthTestEnable = m_Config.DepthTesting;
+        depthAndStencilState.depthWriteEnable = m_Config.DepthTesting;
+        depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthAndStencilState.depthBoundsTestEnable = VK_FALSE;
+        depthAndStencilState.minDepthBounds = 0.0f; // Optional
+        depthAndStencilState.maxDepthBounds = 1.0f; // Optional
+        depthAndStencilState.stencilTestEnable = VK_FALSE;
+#if 0
+        depthAndStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+        depthAndStencilState.depthBoundsTestEnable = VK_FALSE;
+        depthAndStencilState.back.failOp = VK_STENCIL_OP_KEEP;
+        depthAndStencilState.back.passOp = VK_STENCIL_OP_KEEP;
+        depthAndStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+        depthAndStencilState.stencilTestEnable = VK_FALSE;
+        depthAndStencilState.front = depthAndStencilState.back;
+#endif
 
         // ###############################################################################################################
         // ##################                              Color Blending                               ##################
         // ###############################################################################################################
+        const auto& framebufferAttachments = m_Config.Renderpass->GetConfig().TargetFrameBuffer->GetConfig().Attachments;
 
-        auto& targetFbConfig = m_Config.TargetFramebuffer->GetConfig();
+        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
+        colorBlendAttachments.reserve(framebufferAttachments.size());
 
-        VkPipelineColorBlendAttachmentState colorBlendAttachments[2] = {};
-        u32 attachmentCount = 1;
+        for (u32 i = 0; i < framebufferAttachments.size(); ++i)
+        {
+            if (framebufferAttachments[i].Type != FrameBuffer::AttachmentType_Color)
+                continue;
 
-        const auto& framebufferAttachment = targetFbConfig.ColorAttachment;
-        colorBlendAttachments[0].colorWriteMask = (VkColorComponentFlags)framebufferAttachment.ColorMask;
-        colorBlendAttachments[0].blendEnable = framebufferAttachment.EnableBlend;
-        colorBlendAttachments[0].srcColorBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor;
-        colorBlendAttachments[0].dstColorBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
-        colorBlendAttachments[0].colorBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
-        colorBlendAttachments[0].srcAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.SrcBlendFactor; // Idk what is this
-        colorBlendAttachments[0].dstAlphaBlendFactor = (VkBlendFactor)framebufferAttachment.DstBlendFactor;
-        colorBlendAttachments[0].alphaBlendOp = (VkBlendOp)framebufferAttachment.BlendOperation; // Optional
+            auto& colorBlendAttachment = colorBlendAttachments.emplace_back();
+            colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+            colorBlendAttachment.blendEnable = true;
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+            colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+            colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; // Idk what is this
+            colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; 
+            colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+        }
 
-        VkPipelineColorBlendStateCreateInfo colorBlendState{};
+        VkPipelineColorBlendStateCreateInfo colorBlendState = {};
         colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlendState.attachmentCount = attachmentCount;
-        colorBlendState.pAttachments = colorBlendAttachments;
+        colorBlendState.attachmentCount = (u32)colorBlendAttachments.size();
+        colorBlendState.pAttachments = colorBlendAttachments.data();
         colorBlendState.logicOpEnable = VK_FALSE;
         colorBlendState.logicOp = VK_LOGIC_OP_COPY; // Optional
         colorBlendState.blendConstants[0] = 1.0f; // Optional
@@ -272,7 +275,7 @@ namespace Turbo
         // Incase no uniform or other resource are not present
         pipelineLayoutInfo.setLayoutCount = descriptorLayout ? 1 : 0; // Optional
         pipelineLayoutInfo.pSetLayouts = descriptorLayout ? &descriptorLayout : VK_NULL_HANDLE; // Optional
-        
+
         auto& shaderPushContants = m_Config.Shader.As<VulkanShader>()->GetResources().PushConstantRanges;
         std::vector<VkPushConstantRange> pushConstantRanges;
         pushConstantRanges.reserve(shaderPushContants.size());
@@ -313,7 +316,7 @@ namespace Turbo
         pipelineCreateInfo.subpass = 0;
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineCreateInfo.basePipelineIndex = -1; // Optional
-        
+
         TBO_VK_ASSERT(vkCreateGraphicsPipelines(device, nullptr, 1, &pipelineCreateInfo, nullptr, &m_Pipeline));
 
         // Resource free queue

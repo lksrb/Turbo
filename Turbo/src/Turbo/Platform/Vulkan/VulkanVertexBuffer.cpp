@@ -62,8 +62,8 @@ namespace Turbo
         }
 
         // Add it to the resource free queue
-        RendererContext::SubmitResourceFree([device, stagingBuffer = m_StagingBuffer, stagingBufferMemory = m_StagingBufferMemory, 
-            buffer = m_Buffer, bufferMemory = m_BufferMemory]()
+        RendererContext::SubmitResourceFree([device, stagingBuffer = m_StagingBuffer, stagingBufferMemory = m_StagingBufferMemory,
+          buffer = m_Buffer, bufferMemory = m_BufferMemory]()
         {
             // Unmapping
             vkUnmapMemory(device, stagingBufferMemory);
