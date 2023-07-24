@@ -20,7 +20,7 @@ namespace Turbo
         {
             VkDevice device = RendererContext::GetDevice();
 
-            for (u32 i = 0; i < framebuffers.size(); ++i)
+            for (u32 i = 0; i < framebuffers.Size(); ++i)
                 vkDestroyFramebuffer(device, framebuffers[i], nullptr);
         });
     }
@@ -37,12 +37,11 @@ namespace Turbo
         m_Config.Height = height;
 
         VkDevice device = RendererContext::GetDevice();
-        u32 framesInFlight = RendererContext::FramesInFlight();
 
         // Add it to deletion queue
-        if (!m_Framebuffers.empty())
+        if (!m_Framebuffers.Empty())
         {
-            for (u32 i = 0; i < m_Framebuffers.size(); ++i)
+            for (u32 i = 0; i < m_Framebuffers.Size(); ++i)
             {
                 for (const auto& resourceByType : m_AttachmentResources)
                 {
@@ -56,14 +55,14 @@ namespace Turbo
 
             RendererContext::SubmitRuntimeResourceFree([device, framebuffers = m_Framebuffers, attachmentResources = m_AttachmentResources]()
             {
-                for (u32 i = 0; i < framebuffers.size(); ++i)
+                for (u32 i = 0; i < framebuffers.Size(); ++i)
                 {
                     vkDestroyFramebuffer(device, framebuffers[i], nullptr);
                 }
             });
         }
 
-        m_Framebuffers.resize(framesInFlight);
+        //m_Framebuffers.resize(framesInFlight);
 
         u32 index = 0;
         for (const auto& [type, count] : m_Config.Attachments)
@@ -80,8 +79,7 @@ namespace Turbo
                 config.DebugName = "FrameBuffer-ColorAttachment";
 
                 auto& fifResource = m_AttachmentResources[type][index];
-                fifResource.resize(framesInFlight);
-                for (u32 i = 0; i < fifResource.size(); ++i)
+                for (u32 i = 0; i < fifResource.Size(); ++i)
                 {
                     fifResource[i] = Image2D::Create(config);
                     fifResource[i]->Invalidate(width, height);
@@ -98,8 +96,7 @@ namespace Turbo
                 config.DebugName = "FrameBuffer-DepthAttachment";
 
                 auto& fifResource = m_AttachmentResources[type][index];
-                fifResource.resize(framesInFlight);
-                for (u32 i = 0; i < fifResource.size(); ++i)
+                for (u32 i = 0; i < fifResource.Size(); ++i)
                 {
                     fifResource[i] = Image2D::Create(config);
                     fifResource[i]->Invalidate(width, height);
@@ -107,7 +104,7 @@ namespace Turbo
             }
         }
 
-        for (u32 i = 0; i < m_Framebuffers.size(); ++i)
+        for (u32 i = 0; i < m_Framebuffers.Size(); ++i)
         {
             std::vector<VkImageView> attachments;
             attachments.reserve(m_Config.Attachments.size());

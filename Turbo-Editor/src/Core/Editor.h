@@ -60,9 +60,9 @@ namespace Turbo::Ed
         bool m_ShowAssetRegistryPanel = false;
 
         EditorCamera m_EditorCamera;
-        bool m_ShowPhysics2DColliders = false;
+        bool m_ShowPhysics2DColliders = false, m_ShowSceneIcons = true;
         bool m_ViewportHovered = false, m_ViewportFocused = false;
-        Ref<Texture2D> m_PlayIcon, m_StopIcon, m_ResetCameraRotationIcon;
+        Ref<Texture2D> m_PlayIcon, m_StopIcon, m_ResetCameraRotationIcon, m_PointLightIcon;
         Ref<SceneDrawList> m_ViewportDrawList;
         SceneMode m_SceneMode = SceneMode_Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;

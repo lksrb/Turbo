@@ -257,6 +257,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, StaticMeshRendererComponent, ScriptComponent,
+        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, PointLightComponent, StaticMeshRendererComponent, ScriptComponent,
         AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

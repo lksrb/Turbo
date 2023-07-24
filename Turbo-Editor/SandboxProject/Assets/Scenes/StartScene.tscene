@@ -7,7 +7,7 @@ Entities:
     TagComponent:
       Tag: Sprite
     TransformComponent:
-      Translation: [0, 0.472415686, 0]
+      Translation: [0.272560596, 1.44252467, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -52,7 +52,7 @@ Entities:
     TagComponent:
       Tag: Pointlight1
     TransformComponent:
-      Translation: [-0.473808646, 2.12517619, 3.99257088]
+      Translation: [0.241865873, 2.16765952, 3.45698881]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
@@ -78,7 +78,7 @@ Entities:
     TagComponent:
       Tag: Ground
     TransformComponent:
-      Translation: [0, -1, 1.68821502]
+      Translation: [0, -1, 0]
       Rotation: [0, 0, 0]
       Scale: [10.0003405, 0.610543609, 1]
     SpriteRendererComponent:
@@ -107,12 +107,12 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Translation: [5.49406052, 0, 10.7463398]
+      Rotation: [0, 0.811192751, 0]
+      Scale: [0.999999881, 1, 0.999999881]
     CameraComponent:
       Camera:
-        ProjectionType: 1
+        ProjectionType: 0
         PerspectiveFOV: 0.785398185
         PerspectiveNear: 0.00999999978
         PerspectiveFar: 1000

@@ -7,11 +7,11 @@ namespace Turbo
 {
     enum CursorMode : u32
     {
-        Hidden = 0,
-        Arrow,
-        Hand,
+        CursorMode_Hidden = 0,
+        CursorMode_Arrow,
+        CursorMode_Hand,
 
-        Count
+        CursorMode_Count
     };
 
     class Input

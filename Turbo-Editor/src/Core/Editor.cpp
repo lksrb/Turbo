@@ -136,6 +136,9 @@ namespace Turbo::Ed
         m_StopIcon = Texture2D::Create("Resources/Icons/StopButton.png");
         m_ResetCameraRotationIcon = Texture2D::Create("Resources/Icons/ResetCameraRotationButton.png");
 
+        // TODO: Find some better icons
+        m_PointLightIcon = Texture2D::Create("Resources/Icons/PointLight.png");
+
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
 
         // Open sandbox project
@@ -146,7 +149,6 @@ namespace Turbo::Ed
     {
         // Reset
         Project::SetActive(nullptr);
-        m_ResetCameraRotationIcon.Reset();
     }
 
     void Editor::OnUpdate()
@@ -499,7 +501,7 @@ namespace Turbo::Ed
         if (m_ShowDemoWindow)
             ImGui::ShowDemoWindow();
 
-        if constexpr (false) 
+        if constexpr (false)
         {
             static ImVec2 uv0 = { 0, 1 };
             static ImVec2 uv1 = { 1, 0 };
@@ -517,7 +519,10 @@ namespace Turbo::Ed
         {
             ImGui::Begin("Scene settings");
             if (m_CurrentScene)
+            {
                 ImGui::Checkbox("Physics Colliders", &m_ShowPhysics2DColliders);
+                ImGui::Checkbox("Show Scene Icons", &m_ShowSceneIcons);
+            }
 
             ImGui::End();
         }
@@ -615,7 +620,7 @@ namespace Turbo::Ed
             case Key::Escape:
             {
                 // Set cursor back
-                Input::SetCursorMode(CursorMode::Arrow);
+                Input::SetCursorMode(CursorMode_Arrow);
                 break;
             }
             // Menu
@@ -952,7 +957,7 @@ namespace Turbo::Ed
         }
 
         // Reset cursor
-        Input::SetCursorMode(CursorMode::Arrow);
+        Input::SetCursorMode(CursorMode_Arrow);
 
         m_PanelManager->SetSceneContext(m_CurrentScene);
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
@@ -1004,10 +1009,14 @@ namespace Turbo::Ed
             }
         }
 
-        // TODO: Settings for turning of point light textures
-        if (true)
+        if (m_ShowSceneIcons)
         {
-            //auto view = m_CurrentScene->GetAllEntitiesWith<TransformComponent, PointLightComponent>();
+            auto view = m_CurrentScene->GetAllEntitiesWith<TransformComponent, PointLightComponent>();
+            for (auto entity : view)
+            {
+                auto& [transform, plc] = view.get<TransformComponent, PointLightComponent>(entity);
+                m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_PointLightIcon, 1.0f, (i32)entity);
+            }
         }
     }
 

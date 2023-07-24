@@ -196,9 +196,12 @@ namespace Turbo
 
         // Render
         {
+            glm::mat4 cameraView = editorCamera.GetViewMatrix();
+
             SceneRendererData rendererData = {};
             rendererData.ViewProjectionMatrix = editorCamera.GetViewProjection();
-            rendererData.InversedViewMatrix = glm::inverse(editorCamera.GetViewMatrix());
+            rendererData.ViewMatrix = cameraView;
+            rendererData.InversedViewMatrix = glm::inverse(cameraView);
             drawList->SetSceneData(rendererData);
 
             RenderScene(drawList);
@@ -308,6 +311,7 @@ namespace Turbo
                 return;
 
             SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+            glm::mat4 cameraTransform = cameraEntity.Transform().GetTransform();
             glm::mat4 inversedCameraTransform = cameraEntity.Transform().GetTransform();
             camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
             camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
@@ -315,6 +319,7 @@ namespace Turbo
             SceneRendererData rendererData = {};
             rendererData.ViewProjectionMatrix = camera.GetViewProjection();
             rendererData.InversedViewMatrix = inversedCameraTransform;
+            rendererData.ViewMatrix = glm::inverse(inversedCameraTransform);
             drawList->SetSceneData(rendererData);
 
             RenderScene(drawList);

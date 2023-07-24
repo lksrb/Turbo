@@ -100,13 +100,17 @@ namespace Turbo
     {
         m_SceneRendererData = data;
 
-        // NOTE: This is duplicate but keep it for now
-        m_DrawList2D->SetCameraTransform(data.ViewProjectionMatrix);
+        // NOTE: This is duplicated but keep it for now
+        m_DrawList2D->SetSceneData(data);
 
         // u_Camera, will be on the set on 0 and bound on 0
         Renderer::Submit([this, data]()
         {
-            m_UniformBufferSet->SetData(0, 0, &data);
+            UBCamera camera;
+            camera.InversedViewMatrix = data.InversedViewMatrix;
+            camera.ViewProjectionMatrix = data.ViewProjectionMatrix;
+
+            m_UniformBufferSet->SetData(0, 0, &camera);
         });
     }
 
@@ -245,6 +249,11 @@ namespace Turbo
     void SceneDrawList::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity)
     {
         m_DrawList2D->AddSprite(transform, color, texture, textureCoords, tiling, entity);
+    }
+
+    void SceneDrawList::AddBillboardQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity)
+    {
+        m_DrawList2D->AddBillboardQuad(position, size, color, texture, tiling, entity);
     }
 
     void SceneDrawList::AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity)

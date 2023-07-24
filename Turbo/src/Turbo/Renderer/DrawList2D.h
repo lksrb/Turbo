@@ -21,6 +21,13 @@
 
 namespace Turbo
 {
+    struct SceneRendererData
+    {
+        glm::mat4 ViewProjectionMatrix = glm::mat4(1.0f);
+        glm::mat4 InversedViewMatrix = glm::mat4(1.0f);
+        glm::mat4 ViewMatrix = glm::mat4(1.0f);
+    };
+
     class DrawList2D
     {
     public:
@@ -49,10 +56,11 @@ namespace Turbo
         void Begin();
         void End();
         
-        void SetCameraTransform(const glm::mat4& viewProjection);
+        void SetSceneData(const SceneRendererData& data);
 
         void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity);
         void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity);
+        void AddBillboardQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity);
 
         void AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity);
         void AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity);
@@ -186,6 +194,7 @@ namespace Turbo
         std::array<Ref<Texture2D>, MaxFontTextureSlots> m_FontTextureSlots;
         u32 m_FontTextureSlotsIndex = 0;
 
+        SceneRendererData m_SceneData;
         glm::vec4 m_ClearColor = glm::vec4{ 0.0f };
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
     };

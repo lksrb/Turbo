@@ -15,16 +15,16 @@ namespace Turbo
 {
     struct InputData
     {
-        std::array<HCURSOR, CursorMode::Count> Cursors;
+        std::array<HCURSOR, CursorMode_Count> Cursors;
         CursorMode Mode;
 
         InputData()
         {
-            Cursors[CursorMode::Hidden] = nullptr;
-            Cursors[CursorMode::Arrow] = LoadCursor(NULL, IDC_ARROW);
-            Cursors[CursorMode::Hand] = LoadCursor(NULL, IDC_HAND);
+            Cursors[CursorMode_Hidden] = nullptr;
+            Cursors[CursorMode_Arrow] = LoadCursor(NULL, IDC_ARROW);
+            Cursors[CursorMode_Hand] = LoadCursor(NULL, IDC_HAND);
 
-            Mode = CursorMode::Arrow;
+            Mode = CursorMode_Arrow;
         }
     };
 
@@ -76,7 +76,7 @@ namespace Turbo
         if (cursorMode == s_Data.Mode)
             return;
 
-        if (cursorMode >= CursorMode::Count)
+        if (cursorMode >= CursorMode::CursorMode_Count)
         {
             TBO_ENGINE_ERROR("Invalid cursor mode!");
             return;

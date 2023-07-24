@@ -247,9 +247,9 @@ namespace Turbo
         {
             switch (cursorMode)
             {
-                case Turbo::Hidden: return ImGuiMouseCursor_None;
-                case Turbo::Arrow: return ImGuiMouseCursor_Arrow;
-                case Turbo::Hand: return ImGuiMouseCursor_Hand;
+                case Turbo::CursorMode_Hidden: return ImGuiMouseCursor_None;
+                case Turbo::CursorMode_Arrow: return ImGuiMouseCursor_Arrow;
+                case Turbo::CursorMode_Hand: return ImGuiMouseCursor_Hand;
             }
             
             TBO_ENGINE_ERROR("Invalid cursor mode!");

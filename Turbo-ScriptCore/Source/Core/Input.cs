@@ -2,9 +2,9 @@
 {
 	public enum CursorMode : uint
 	{
-		Hidden = 0,
-		Arrow,
-		Hand,
+		CursorMode_Hidden = 0,
+		CursorMode_Arrow,
+		CursorMode_Hand,
 	}
 
 	public static class Input

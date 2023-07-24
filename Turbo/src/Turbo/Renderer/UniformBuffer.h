@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RendererBuffer.h"
+#include "Fly.h"
 
 #include "Turbo/Core/Common.h"
 #include <map>
@@ -44,7 +45,7 @@ namespace Turbo
 
         static Ref<UniformBufferSet> Create();
     private:
-        std::map<u32, std::map<u32, std::vector<Ref<UniformBuffer>>>> m_UniformBufferMap;
+        std::map<u32, std::map<u32, Fly<Ref<UniformBuffer>>>> m_UniformBufferMap;
     };
 
 }

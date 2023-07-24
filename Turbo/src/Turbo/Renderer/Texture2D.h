@@ -15,7 +15,7 @@ namespace Turbo
         struct Config
         {
             ImageFormat Format = ImageFormat_RGBA_SRGB;
-            ImageFilter Filter = ImageFilter_Nearest;
+            ImageFilter Filter = ImageFilter_Linear;
             std::string Path;
             u32 Width = 1;
             u32 Height = 1;

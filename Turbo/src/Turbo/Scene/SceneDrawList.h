@@ -10,12 +10,6 @@
 
 namespace Turbo
 {
-    struct SceneRendererData
-    {
-        glm::mat4 ViewProjectionMatrix = glm::mat4(1.0f);
-        glm::mat4 InversedViewMatrix = glm::mat4(1.0f);
-    };
-
     struct SceneEnvironment
     {
 
@@ -62,11 +56,12 @@ namespace Turbo
         void AddQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
         void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity = -1);
+        void AddBillboardQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, const glm::vec4& color = {1.0f, 1.0f, 1.0f, 1.0f}, Ref<Texture2D> texture = nullptr, f32 tiling = 1.0f, i32 entity = -1);
 
         void AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity = -1);
         void AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
         void AddRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
-        void AddRect(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
+        void AddRect(const glm::mat4& transform, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f }, i32 entity = -1);
 
         void AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset = 0.0f, f32 lineSpacing = 0.0f, i32 entity = -1);
 

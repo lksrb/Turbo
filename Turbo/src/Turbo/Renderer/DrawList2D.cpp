@@ -321,12 +321,14 @@ namespace Turbo
         m_RenderCommandBuffer->Submit();
     }
 
-    void DrawList2D::SetCameraTransform(const glm::mat4& viewProjection)
+    void DrawList2D::SetSceneData(const SceneRendererData& data)
     {
+        m_SceneData = data;
         // u_Camera, will be on the set on 0 and bound on 0
-        Renderer::Submit([this, viewProjection]()
+        // TODO: Maybe there could be only one camera buffer
+        Renderer::Submit([this, data]()
         {
-            m_UniformBufferSet->SetData(0, 0, &viewProjection);
+            m_UniformBufferSet->SetData(0, 0, &data.ViewProjectionMatrix);
         });
     }
 
@@ -399,6 +401,77 @@ namespace Turbo
             m_QuadVertexBufferPointer->TilingFactor = tiling;
             m_QuadVertexBufferPointer++;
         }
+
+        m_QuadIndexCount += 6;
+
+        m_Statistics.QuadCount++;
+    }
+
+    void DrawList2D::AddBillboardQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity)
+    {
+        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        {
+            FlushAndReset();
+        }
+
+        u32 textureIndex = 0; // White Texture
+        if (texture)
+        {
+            for (u32 i = 1; i < m_TextureSlotsIndex; ++i)
+            {
+                // If the texture is in the stack, just modify textureIndex
+                if (texture->GetHash() == m_TextureSlots[i]->GetHash())
+                {
+                    textureIndex = i;
+                    break;
+                }
+            }
+
+            // If the texture is not present in texture stack, add it
+            if (textureIndex == 0)
+            {
+                if (m_TextureSlotsIndex >= DrawList2D::MaxTextureSlots)
+                {
+                    FlushAndReset();
+                }
+
+                textureIndex = m_TextureSlotsIndex;
+                m_TextureSlots[m_TextureSlotsIndex] = texture;
+                m_TextureSlotsIndex++;
+            }
+        }
+
+        glm::mat4 cameraView = m_SceneData.ViewMatrix;
+        glm::vec3 camRightWS = { cameraView[0][0], cameraView[1][0], cameraView[2][0] };
+        glm::vec3 camUpWS = { cameraView[0][1], cameraView[1][1], cameraView[2][1] };
+
+        m_QuadVertexBufferPointer->Position = position + camRightWS * (m_QuadVertexPositions[0].x) * size.x + camUpWS * m_QuadVertexPositions[0].y * size.y;
+        m_QuadVertexBufferPointer->Color = color;
+        m_QuadVertexBufferPointer->TexCoord = { 0.0f, 0.0f };
+        m_QuadVertexBufferPointer->TextureIndex = textureIndex;
+        m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer++;
+
+        m_QuadVertexBufferPointer->Position = position + camRightWS * m_QuadVertexPositions[1].x * size.x + camUpWS * m_QuadVertexPositions[1].y * size.y;
+        m_QuadVertexBufferPointer->Color = color;
+        m_QuadVertexBufferPointer->TexCoord = { 1.0f, 0.0f };
+        m_QuadVertexBufferPointer->TextureIndex = textureIndex;
+        m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer++;
+        
+        m_QuadVertexBufferPointer->Position = position + camRightWS * m_QuadVertexPositions[2].x * size.x + camUpWS * m_QuadVertexPositions[2].y * size.y;
+        m_QuadVertexBufferPointer->Color = color;
+        m_QuadVertexBufferPointer->TexCoord = { 1.0f, 1.0f };
+        m_QuadVertexBufferPointer->TextureIndex = textureIndex;
+        m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer++;
+        
+        m_QuadVertexBufferPointer->Position = position + camRightWS * m_QuadVertexPositions[3].x * size.x + camUpWS * m_QuadVertexPositions[3].y * size.y;
+        m_QuadVertexBufferPointer->Color = color;
+        m_QuadVertexBufferPointer->TexCoord = { 0.0f, 1.0f };
+        m_QuadVertexBufferPointer->TextureIndex = textureIndex;
+        m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer++;
 
         m_QuadIndexCount += 6;
 

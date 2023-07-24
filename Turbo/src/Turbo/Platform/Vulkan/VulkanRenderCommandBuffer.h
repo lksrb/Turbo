@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Turbo/Renderer/RenderCommandBuffer.h"
+#include "Turbo/Renderer/Fly.h"
 
 #include <vulkan/vulkan.h>
 
@@ -19,7 +20,7 @@ namespace Turbo
 
         void Submit() override;
     private:
-        std::vector<VkFence> m_WaitFences;
-        std::vector<VkCommandBuffer> m_CommandBuffers;
+        Fly<VkFence> m_WaitFences;
+        Fly<VkCommandBuffer> m_CommandBuffers;
     };
 }

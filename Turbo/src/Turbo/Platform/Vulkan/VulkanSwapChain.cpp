@@ -24,16 +24,6 @@ namespace Turbo
 
     void VulkanSwapChain::Initialize()
     {
-        u32 framesInFlight = RendererContext::FramesInFlight();
-
-        m_RenderFinishedSemaphores.resize(framesInFlight);
-        m_PresentSemaphores.resize(framesInFlight);
-        m_InFlightFences.resize(framesInFlight);
-        m_Imageviews.resize(framesInFlight);
-        m_Images.resize(framesInFlight);
-        m_Framebuffers.resize(framesInFlight);
-        m_RenderCommandBuffers.resize(framesInFlight);
-
         m_SwapchainFormat = Vulkan::SelectSurfaceFormat().format; // VK_FORMAT_B8G8R8A8_UNORM
 
         CreateRenderpass();
@@ -43,10 +33,10 @@ namespace Turbo
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = RendererContext::GetCommandPool();
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = static_cast<u32>(framesInFlight);
+        allocInfo.commandBufferCount = m_RenderCommandBuffers.Size();
 
         TBO_VK_ASSERT(vkAllocateCommandBuffers(RendererContext::GetDevice(),
-            &allocInfo, m_RenderCommandBuffers.data()));
+            &allocInfo, m_RenderCommandBuffers.Data()));
 
         // Swapchain, renderpass, etc. are created on the first resize
     }
@@ -126,7 +116,7 @@ namespace Turbo
         u32 imageCount;
         TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, nullptr));
         TBO_ENGINE_ASSERT(imageCount <= RendererContext::FramesInFlight());
-        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, m_Images.data()));
+        TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, m_Images.Data()));
 
         // Destroy old stuff if exists
         if (m_Swapchain)

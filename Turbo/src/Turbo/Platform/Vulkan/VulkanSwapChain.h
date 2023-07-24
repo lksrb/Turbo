@@ -3,8 +3,9 @@
 #include "Turbo/Renderer/RendererContext.h"
 #include "Turbo/Renderer/SwapChain.h"
 #include "Turbo/Renderer/Image2D.h"
-
 #include "Turbo/Renderer/RenderPass.h"
+#include "Turbo/Renderer/Fly.h"
+
 #include "Turbo/Platform/Vulkan/VulkanRenderPass.h"
 #include "Turbo/Platform/Vulkan/VulkanFrameBuffer.h"
 
@@ -47,13 +48,13 @@ namespace Turbo
         VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
         VkRenderPass m_Renderpass = VK_NULL_HANDLE;
 
-        std::vector<VkSemaphore> m_RenderFinishedSemaphores;
-        std::vector<VkSemaphore> m_PresentSemaphores;
-        std::vector<VkFence> m_InFlightFences;
-        std::vector<VkImageView> m_Imageviews;
-        std::vector<VkImage> m_Images;
-        std::vector<VkFramebuffer> m_Framebuffers;
-        std::vector<VkCommandBuffer> m_RenderCommandBuffers;
+        Fly<VkSemaphore> m_RenderFinishedSemaphores;
+        Fly<VkSemaphore> m_PresentSemaphores;
+        Fly<VkFence> m_InFlightFences;
+        Fly<VkImageView> m_Imageviews;
+        Fly<VkImage> m_Images;
+        Fly<VkFramebuffer> m_Framebuffers;
+        Fly<VkCommandBuffer> m_RenderCommandBuffers;
 
         VkFormat m_SwapchainFormat = VK_FORMAT_UNDEFINED;
 
