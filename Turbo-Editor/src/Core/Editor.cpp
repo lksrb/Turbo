@@ -69,15 +69,15 @@ namespace Turbo::Ed
 
                 while (msBuildPath.has_parent_path())
                 {
-                    if (filter(msBuildPath) || msBuildPath == L"C:\\")
+                    if (filter(msBuildPath) || msBuildPath == L"C:/")
                         break;
 
                     msBuildPath = msBuildPath.parent_path();
                 }
 
-                if (msBuildPath != L"C:\\")
+                if (msBuildPath != L"C:/")
                 {
-                    return msBuildPath / "MSBuild\\Current\\Bin\\MSBuild.exe";
+                    return msBuildPath / "MSBuild/Current/Bin/MSBuild.exe";
                 }
             }
 
@@ -142,7 +142,7 @@ namespace Turbo::Ed
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
 
         // Open sandbox project
-        OpenProject(m_CurrentPath / "SandboxProject\\SandboxProject.tproject");
+        OpenProject(m_CurrentPath / "SandboxProject/SandboxProject.tproject");
     }
 
     void Editor::OnShutdown()
