@@ -18,7 +18,16 @@ namespace Turbo
     {
         VkDevice device = RendererContext::GetDevice();
 
-        const auto& frameBufferConfig = m_Config.TargetFrameBuffer->GetConfig();
+        const auto& fbAttachments = m_Config.TargetFrameBuffer->GetConfig().Attachments;
+
+        bool depthTesting = false;
+        for (auto& attachment : fbAttachments)
+        {
+            if (attachment.Type == FrameBuffer::AttachmentType_Depth)
+            {
+                depthTesting = true;
+            }
+        }
 
         std::vector<VkAttachmentDescription> attachments;
 
@@ -37,7 +46,24 @@ namespace Turbo
             colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
 
-        if (frameBufferConfig.EnableDepthTesting)
+        // TODO: Make this more dynamic
+
+        // Selection buffer
+        {
+            auto& selectionAttachment = attachments.emplace_back();
+            selectionAttachment.format = VK_FORMAT_R32_SINT; // VK_FORMAT_B8G8R8A8_SRGB;
+            selectionAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            // For beginning of the render pass (vkCmdBeginRenderPass)
+            selectionAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+            // For the end of the render pass (vkCmdEndRenderPass)
+            selectionAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            selectionAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            selectionAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            selectionAttachment.initialLayout = m_Config.ClearOnLoad ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            selectionAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        }
+
+        if (depthTesting)
         {
             // Depth buffer
             auto& depthAttachment = attachments.emplace_back();
@@ -56,9 +82,18 @@ namespace Turbo
         colorAttachmentRef.attachment = 0;
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+
+        VkAttachmentReference selectionAttachmentRef = {};
+        selectionAttachmentRef.attachment = 1;
+        selectionAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference attachmentRefs[2];
+        attachmentRefs[0] = colorAttachmentRef;
+        attachmentRefs[1] = selectionAttachmentRef;
+
         // Depth buffer attachment reference
         VkAttachmentReference depthAttachmentRef = {};
-        depthAttachmentRef.attachment = 1;
+        depthAttachmentRef.attachment = 2;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             
         std::vector<VkSubpassDescription> subpassDescriptions;
@@ -70,14 +105,14 @@ namespace Turbo
         {
             auto& subpassDescription = subpassDescriptions[i];
             subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-            subpassDescription.colorAttachmentCount = 1;
-            subpassDescription.pColorAttachments = &colorAttachmentRef;
+            subpassDescription.colorAttachmentCount = 2;
+            subpassDescription.pColorAttachments = attachmentRefs;
             subpassDescription.inputAttachmentCount = 0;
             subpassDescription.pInputAttachments = VK_NULL_HANDLE;
             subpassDescription.preserveAttachmentCount = 0;
             subpassDescription.pPreserveAttachments = VK_NULL_HANDLE;
             subpassDescription.pResolveAttachments = VK_NULL_HANDLE;
-            subpassDescription.pDepthStencilAttachment = frameBufferConfig.EnableDepthTesting ? &depthAttachmentRef : VK_NULL_HANDLE;
+            subpassDescription.pDepthStencilAttachment = depthTesting ? &depthAttachmentRef : VK_NULL_HANDLE;
         }
 
         // Self-dependency
@@ -90,7 +125,7 @@ namespace Turbo
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependency.dependencyFlags = 0;
 
-        if (frameBufferConfig.EnableDepthTesting)
+        if (depthTesting)
         {
             dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -110,7 +145,7 @@ namespace Turbo
             dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             dependency.dependencyFlags = 0;
 
-            if (frameBufferConfig.EnableDepthTesting)
+            if (depthTesting)
             {
                 dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
                 dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;

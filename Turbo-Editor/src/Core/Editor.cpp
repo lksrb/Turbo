@@ -297,9 +297,23 @@ namespace Turbo::Ed
 
             m_CurrentScene->SetViewportOffset((i32)viewportOffset.x, (i32)viewportOffset.y);
 
-            if (m_ViewportWidth != windowSize.x || m_ViewportHeight != windowSize.y)
+            auto [mx, my] = ImGui::GetMousePos();
+            mx -= m_ViewportBounds[0].x;
+            my -= m_ViewportBounds[0].y;
+            glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+            my = viewportSize.y - my;
+            i32 mouseX = (i32)mx;
+            i32 mouseY = (i32)my;
+
+            if (mouseX >= 0 && mouseY >= 0 && mouseX < (i32)m_ViewportWidth && mouseY < (i32)m_ViewportHeight)
             {
-                OnViewportResize((u32)windowSize.x, (u32)windowSize.y);
+                i32 entityID = m_ViewportDrawList->ReadPixel(mouseX, mouseY);
+                m_HoveredEntity = entityID != -1 ? Entity{(entt::entity)entityID, m_CurrentScene.Get()} : Entity{};
+
+            }
+            if (m_ViewportWidth != viewportPanelSize.x || m_ViewportHeight != viewportPanelSize.y)
+            {
+                OnViewportResize((u32)viewportPanelSize.x, (u32)viewportPanelSize.y);
             }
 
             if (m_EditorScene)
@@ -528,6 +542,7 @@ namespace Turbo::Ed
         }
 
         ImGui::Begin("Statistics & Renderer");
+        ImGui::Text("Hovered entity: %s", m_HoveredEntity ? m_HoveredEntity.GetName().c_str() : "");
         ImGui::Text("Timestep: %.5f ms", Time.DeltaTime.ms());
         ImGui::Text("StartTime: %.5f ms", Time.TimeSinceStart.ms());
         ImGui::Separator();
@@ -652,18 +667,22 @@ namespace Turbo::Ed
 
     bool Editor::OnWindowResize(WindowResizeEvent& e)
     {
-        //OnViewportResize(m_ViewportX, m_ViewportY, e.GetWidth(), e.GetHeight());
-        //m_CurrentScene->SetViewportSize(e.GetWidth(), e.GetHeight());
         return false;
     }
 
     bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
-    {/*
-        if (e.GetMouseButton() == Mouse::ButtonLeft) // TODO: Object picking
+    {
+        if (e.GetMouseButton() == Mouse::ButtonLeft)
         {
-            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
-                m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_HoveredEntity);
-        }*/
+            if (m_ViewportHovered && (ImGuizmo::IsOver() == false || m_GizmoType == -1) && !Input::IsKeyPressed(Key::LeftAlt))
+            {
+                if (m_HoveredEntity)
+                {
+                    m_SelectedEntity = m_HoveredEntity;
+                    m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
+                }
+            }
+        }
         return false;
     }
 

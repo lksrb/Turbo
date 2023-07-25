@@ -224,10 +224,10 @@ namespace Turbo
         std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
         colorBlendAttachments.reserve(framebufferAttachments.size());
 
-        for (u32 i = 0; i < framebufferAttachments.size(); ++i)
+        //for (u32 i = 0; i < framebufferAttachments.size(); ++i)
         {
-            if (framebufferAttachments[i].Type != FrameBuffer::AttachmentType_Color)
-                continue;
+          //  if (framebufferAttachments[i].Type != FrameBuffer::AttachmentType_Color)
+          //      continue;
 
             auto& colorBlendAttachment = colorBlendAttachments.emplace_back();
             colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -238,6 +238,17 @@ namespace Turbo
             colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; // Idk what is this
             colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; 
             colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+#if 1
+            auto& selectionBlendAttachment = colorBlendAttachments.emplace_back();
+            selectionBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+            selectionBlendAttachment.blendEnable = false;
+            selectionBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA ;
+            selectionBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+            selectionBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+            selectionBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Idk what is this
+            selectionBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+            selectionBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+#endif
         }
 
         VkPipelineColorBlendStateCreateInfo colorBlendState = {};

@@ -38,6 +38,11 @@ namespace Turbo
         // Access allocated buffer
         TBO_VK_ASSERT(vkMapMemory(device, m_Memory, 0, m_Config.Size, 0, &m_Data));
 
+        if (m_Config.SetDefaultValue)
+        {
+            memset(m_Data, m_Config.DefaultValue, m_Config.Size);
+        }
+
         if (m_Config.Temporary == false)
         {
             // Add it to deletion queue 
@@ -54,11 +59,13 @@ namespace Turbo
     {
         if (m_Config.Temporary)
         {
-            VkDevice device = RendererContext::GetDevice();
-
-            vkUnmapMemory(device, m_Memory);
-            vkDestroyBuffer(device, m_Buffer, nullptr);
-            vkFreeMemory(device, m_Memory, nullptr);
+            RendererContext::SubmitRuntimeResourceFree([m_Memory = m_Memory, m_Buffer = m_Buffer]()
+            {
+                VkDevice device = RendererContext::GetDevice();
+                vkUnmapMemory(device, m_Memory);
+                vkDestroyBuffer(device, m_Buffer, nullptr);
+                vkFreeMemory(device, m_Memory, nullptr);
+            });
         }
 
         m_Data = nullptr;

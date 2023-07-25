@@ -43,6 +43,6 @@ layout(location = 1) out int o_EntityID;
 
 void main()
 {
-	o_EntityID = in_EntityID;
     o_Color = Input.Color;
+	o_EntityID = in_EntityID;
 }

@@ -8,6 +8,8 @@
 
 #include <glm/ext/matrix_transform.hpp>
 #include <Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h>
+#include <Turbo/Platform/Vulkan/VulkanBuffer.h>
+#include <Turbo/Platform/Vulkan/VulkanImage2D.h>
 
 namespace Turbo
 {
@@ -27,6 +29,10 @@ namespace Turbo
 
         // Default clear color
         m_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+        auto window = Engine::Get().GetViewportWindow();
+        m_ViewportWidth = window->GetWidth();
+        m_ViewportHeight = window->GetHeight();
 
         // Quad setup
         {
@@ -72,9 +78,9 @@ namespace Turbo
                 { AttributeType::Vec3, "a_Position" },
                 { AttributeType::Vec4, "a_Color" },
                 { AttributeType::Vec2, "a_TexCoord" },
-                { AttributeType::UInt,   "a_TexIndex" },
-                { AttributeType::Float,  "a_TilingFactor" },
-                { AttributeType::Int,    "a_EntityID" },
+                { AttributeType::UInt, "a_TexIndex" },
+                { AttributeType::Float, "a_TilingFactor" },
+                { AttributeType::Int, "a_EntityID" },
             };
             m_QuadPipeline = GraphicsPipeline::Create(config);
             m_QuadPipeline->Invalidate();
@@ -109,9 +115,9 @@ namespace Turbo
                 { AttributeType::Vec3, "a_WorldPosition" },
                 { AttributeType::Vec3, "a_LocalPosition" },
                 { AttributeType::Vec4, "a_Color" },
-                { AttributeType::Float,   "a_Thickness" },
-                { AttributeType::Float,  "a_Fade" },
-                { AttributeType::Int,    "a_EntityID" },
+                { AttributeType::Float, "a_Thickness" },
+                { AttributeType::Float, "a_Fade" },
+                { AttributeType::Int, "a_EntityID" },
             };
             m_CirclePipeline = GraphicsPipeline::Create(config);
             m_CirclePipeline->Invalidate();
@@ -145,7 +151,7 @@ namespace Turbo
             {
                 { AttributeType::Vec3, "a_Position" },
                 { AttributeType::Vec4, "a_Color" },
-                { AttributeType::Int,  "a_EntityID" },
+                { AttributeType::Int, "a_EntityID" },
             };
             m_LinePipeline = GraphicsPipeline::Create(config);
             m_LinePipeline->Invalidate();
@@ -178,7 +184,7 @@ namespace Turbo
                 { AttributeType::Vec4, "a_Color" },
                 { AttributeType::Vec2, "a_TexCoord" },
                 { AttributeType::UInt, "a_TexIndex" },
-                { AttributeType::Int,  "a_EntityID" },
+                { AttributeType::Int, "a_EntityID" },
             };
             m_TextPipeline = GraphicsPipeline::Create(config);
             m_TextPipeline->Invalidate();
@@ -196,6 +202,19 @@ namespace Turbo
 
         // Set white texture at the top of the stack
         m_TextureSlots[0] = m_WhiteTexture;
+
+        // Selection buffer for mouse picking
+        for (auto& buffer : m_SelectionBuffers)
+        {
+            RendererBuffer::Config config = {};
+            config.Temporary = true;
+            config.Size = m_ViewportWidth * m_ViewportHeight * sizeof(i32);
+            config.UsageFlags = BufferUsageFlags_Transfer_Dst;
+            config.MemoryFlags = MemoryPropertyFlags_HostVisible | MemoryPropertyFlags_HostCoherent | MemoryPropertyFlags_HostVisible;
+            config.SetDefaultValue = true;
+            config.DefaultValue = -1;
+            buffer = RendererBuffer::Create(config);
+        }
     }
 
     void DrawList2D::Shutdown()
@@ -317,6 +336,66 @@ namespace Turbo
         }
 
         Renderer::EndRenderPass(m_RenderCommandBuffer);
+
+        // Copy selection buffer attachment from GPU memory to the host
+        Renderer::Submit([this]()
+        {
+            u32 currentFrame = Renderer::GetCurrentFrame();
+            VkBuffer hostBuffer = m_SelectionBuffers[currentFrame].As<VulkanBuffer>()->GetHandle();
+
+            VkCommandBuffer currentCommandBuffer = m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
+            VkImage selectionBufferAttachment = m_TargerRenderPass->GetConfig().
+                TargetFrameBuffer->GetAttachment(FrameBuffer::AttachmentType_SelectionBuffer).As<VulkanImage2D>()->GetImage();
+
+            // Handle layout transition
+            {
+                VkImageMemoryBarrier imageBarrier = {};
+                imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                imageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                imageBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+                imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                imageBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                imageBarrier.image = selectionBufferAttachment;
+
+                vkCmdPipelineBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
+            }
+
+            // Copy buffer
+            {
+                VkBufferImageCopy bufferImageCopyInfo{};
+                bufferImageCopyInfo.bufferOffset = 0;
+                bufferImageCopyInfo.bufferRowLength = 0;
+                bufferImageCopyInfo.bufferImageHeight = 0;
+                bufferImageCopyInfo.imageOffset = { 0, 0, 0 };
+                bufferImageCopyInfo.imageExtent = { m_ViewportWidth, m_ViewportHeight, 1 };
+
+                VkImageSubresourceLayers imageSubresource{};
+                imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                imageSubresource.mipLevel = 0;
+                imageSubresource.baseArrayLayer = 0;
+                imageSubresource.layerCount = 1;
+                bufferImageCopyInfo.imageSubresource = imageSubresource;
+
+                vkCmdCopyImageToBuffer(currentCommandBuffer, selectionBufferAttachment, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, hostBuffer, 1, &bufferImageCopyInfo);
+            }
+
+            // Handle layout transition
+            {
+                VkImageMemoryBarrier imageBarrier = {};
+                imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                imageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                imageBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+                imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                imageBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                imageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageBarrier.image = selectionBufferAttachment;
+
+                vkCmdPipelineBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
+            }
+        });
+
+        // Copy entity id buffer
         m_RenderCommandBuffer->End();
         m_RenderCommandBuffer->Submit();
     }
@@ -450,6 +529,7 @@ namespace Turbo
         m_QuadVertexBufferPointer->TexCoord = { 0.0f, 0.0f };
         m_QuadVertexBufferPointer->TextureIndex = textureIndex;
         m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer->EntityID = entity;
         m_QuadVertexBufferPointer++;
 
         m_QuadVertexBufferPointer->Position = position + camRightWS * m_QuadVertexPositions[1].x * size.x + camUpWS * m_QuadVertexPositions[1].y * size.y;
@@ -457,20 +537,23 @@ namespace Turbo
         m_QuadVertexBufferPointer->TexCoord = { 1.0f, 0.0f };
         m_QuadVertexBufferPointer->TextureIndex = textureIndex;
         m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer->EntityID = entity;
         m_QuadVertexBufferPointer++;
-        
+
         m_QuadVertexBufferPointer->Position = position + camRightWS * m_QuadVertexPositions[2].x * size.x + camUpWS * m_QuadVertexPositions[2].y * size.y;
         m_QuadVertexBufferPointer->Color = color;
         m_QuadVertexBufferPointer->TexCoord = { 1.0f, 1.0f };
         m_QuadVertexBufferPointer->TextureIndex = textureIndex;
         m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer->EntityID = entity;
         m_QuadVertexBufferPointer++;
-        
+
         m_QuadVertexBufferPointer->Position = position + camRightWS * m_QuadVertexPositions[3].x * size.x + camUpWS * m_QuadVertexPositions[3].y * size.y;
         m_QuadVertexBufferPointer->Color = color;
         m_QuadVertexBufferPointer->TexCoord = { 0.0f, 1.0f };
         m_QuadVertexBufferPointer->TextureIndex = textureIndex;
         m_QuadVertexBufferPointer->TilingFactor = tiling;
+        m_QuadVertexBufferPointer->EntityID = entity;
         m_QuadVertexBufferPointer++;
 
         m_QuadIndexCount += 6;
@@ -651,7 +734,35 @@ namespace Turbo
 
     void DrawList2D::OnViewportResize(u32 width, u32 height)
     {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
 
+        // Selection buffer for mouse picking
+        for (auto& buffer : m_SelectionBuffers)
+        {
+            RendererBuffer::Config config = {};
+            config.Temporary = true;
+            config.Size = width * height * sizeof(i32);
+            config.UsageFlags = BufferUsageFlags_Transfer_Dst;
+            config.MemoryFlags = MemoryPropertyFlags_HostVisible | MemoryPropertyFlags_HostCoherent | MemoryPropertyFlags_HostVisible;
+            config.SetDefaultValue = true;
+            config.DefaultValue = -1;
+            buffer = RendererBuffer::Create(config);
+        }
+    }
+
+    i32 DrawList2D::ReadPixel(u32 x, u32 y)
+    {
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        const i32* data = (const i32*)m_SelectionBuffers[currentFrame]->GetData();
+
+        size_t index = (y * m_ViewportWidth + x);
+        if (index < (m_SelectionBuffers[currentFrame]->Size() / sizeof(i32)))
+        {
+            return data[index];
+        }
+
+        return -1;
     }
 
     void DrawList2D::SetTargetRenderPass(const Ref<RenderPass>& renderPass)

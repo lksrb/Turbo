@@ -65,6 +65,8 @@ namespace Turbo
 
         void AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset = 0.0f, f32 lineSpacing = 0.0f, i32 entity = -1);
 
+        i32 ReadPixel(u32 x, u32 y);
+
         void OnViewportResize(u32 width, u32 height);
         u32 GetViewportWidth() const { return m_Config.ViewportWidth; }
         u32 GetViewportHeight() const { return m_Config.ViewportHeight; }
@@ -95,6 +97,7 @@ namespace Turbo
         struct TransformData
         {
             glm::vec4 Tranform[4];
+            i32 EntityID;
         };
 
         // Match the layout in shader
@@ -179,7 +182,7 @@ namespace Turbo
 
         Ref<RenderPass> m_FinalRenderPass;
         Ref<DrawList2D> m_DrawList2D;
-        Ref<FrameBuffer> m_TargetFramebuffer;
+        Ref<FrameBuffer> m_TargetFrameBuffer;
 
         SceneDrawList::Statistics m_Statistics;
         SceneDrawList::Config m_Config;

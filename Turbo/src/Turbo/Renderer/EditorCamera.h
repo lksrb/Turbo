@@ -33,7 +33,7 @@ namespace Turbo
         inline glm::vec3 GetRightDirection() const { return glm::rotate(GetOrientation(), glm::vec3(1.0f, 0.0f, 0.0f)); }
         inline glm::vec3 GetForwardDirection() const { return glm::rotate(GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f)); }
 
-        inline const glm::vec3& GetPosition() const { return m_Position; }
+        inline glm::vec3 GetPosition() const { return m_Position; }
         inline glm::quat GetOrientation() const { return glm::quat(glm::vec3(-m_Pitch, -m_Yaw, 0.0f)); }
 
         inline f32 GetPitch() const { return m_Pitch; }

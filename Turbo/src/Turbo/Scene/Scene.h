@@ -50,6 +50,8 @@ namespace Turbo
 
         auto& GetPostUpdateFuncs() { return m_PostUpdateFuncs; }
 
+        bool Contains(Entity entity) const;
+
         // Editor only
         i32 GetViewportX() const { return m_ViewportX; }
         i32 GetViewportY() const { return m_ViewportY; }

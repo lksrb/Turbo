@@ -88,7 +88,7 @@ namespace Turbo
             else if (type == FrameBuffer::AttachmentType_Depth)
             {
                 Image2D::Config config = {};
-                config.Format = ImageFormat_D32_SFloat_S8_Uint;
+                config.Format = ImageFormat_D32_SFloat_S8_UInt;
                 config.Aspect = ImageAspect_Depth;
                 config.MemoryStorage = MemoryStorage_DeviceLocal;
                 config.Usage = ImageUsage_DepthStencilSttachment;
@@ -102,7 +102,25 @@ namespace Turbo
                     fifResource[i]->Invalidate(width, height);
                 }
             }
+            else if (type == FrameBuffer::AttachmentType_SelectionBuffer)
+            {
+                Image2D::Config config = {};
+                config.Format = ImageFormat_R_SInt;
+                config.Aspect = ImageAspect_Color;
+                config.MemoryStorage = MemoryStorage_DeviceLocal;
+                config.Usage = ImageUsage_ColorAttachment | ImageUsage_Sampled | ImageUsage_Transfer_Source;
+                config.Tiling = ImageTiling_Optimal;
+                config.DebugName = "FrameBuffer-SelectionBufferAttachment";
+
+                auto& fifResource = m_AttachmentResources[type][index];
+                for (u32 i = 0; i < fifResource.Size(); ++i)
+                {
+                    fifResource[i] = Image2D::Create(config);
+                    fifResource[i]->Invalidate(width, height);
+                }
+            }
         }
+        // TODO: Multiple attachments issue
 
         for (u32 i = 0; i < m_Framebuffers.Size(); ++i)
         {
@@ -154,7 +172,7 @@ namespace Turbo
             if (m_Config.EnableDepthTesting)
             {
                 Image2D::Config depthBufferConfig = {};
-                depthBufferConfig.Format = ImageFormat_D32_SFloat_S8_Uint;
+                depthBufferConfig.Format = ImageFormat_D32_SFloat_S8_UInt;
                 depthBufferConfig.Aspect = ImageAspect_Depth;
                 depthBufferConfig.MemoryStorage = MemoryStorage_DeviceLocal;
                 depthBufferConfig.Usage = ImageUsage_DepthStencilSttachment;

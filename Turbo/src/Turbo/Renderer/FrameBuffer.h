@@ -14,8 +14,9 @@ namespace Turbo
         enum AttachmentType : u32
         {
             AttachmentType_Color = 0,
+            AttachmentType_SelectionBuffer,
             AttachmentType_Depth,
-            AttachmentType_Count,
+            AttachmentType_Count
         };
 
         struct Attachment
@@ -31,7 +32,6 @@ namespace Turbo
         struct Config
         {
             std::vector<Attachment> Attachments;
-            bool EnableDepthTesting = true; // TODO: Remove
             u32 Width;
             u32 Height;
         };

@@ -72,6 +72,8 @@ namespace Turbo
 
         void OnViewportResize(u32 width, u32 height);
 
+        i32 ReadPixel(u32 x, u32 y);
+
         void SetTargetRenderPass(const Ref<RenderPass>& renderPass);
     private:
         void ResetStatistics() { m_Statistics.Reset(); }
@@ -193,6 +195,8 @@ namespace Turbo
         // Font Texture slots
         std::array<Ref<Texture2D>, MaxFontTextureSlots> m_FontTextureSlots;
         u32 m_FontTextureSlotsIndex = 0;
+
+        Fly<Ref<RendererBuffer>> m_SelectionBuffers;
 
         SceneRendererData m_SceneData;
         glm::vec4 m_ClearColor = glm::vec4{ 0.0f };

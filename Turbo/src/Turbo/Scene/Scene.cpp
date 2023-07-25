@@ -450,7 +450,12 @@ namespace Turbo
         }
     }
 
-    Entity Scene::FindPrimaryCameraEntity()
+    bool Scene::Contains(Entity entity) const
+    {
+        return m_Registry.valid(entity);
+    }
+
+	Entity Scene::FindPrimaryCameraEntity()
     {
         // Find entity with camera component
         auto& cameraComponentView = GetAllEntitiesWith<CameraComponent>();

@@ -4,24 +4,41 @@
 
 namespace Turbo
 {
-    // Renderer-Api agnostic buffer wrapper
+    enum BufferUsageFlags_ : u32
+    {
+        BufferUsageFlags_Transfer_Dst = TBO_BIT(1)
+    };
+
+    enum MemoryPropertyFlags_ : u32
+    {
+        MemoryPropertyFlags_HostVisible = TBO_BIT(1),
+        MemoryPropertyFlags_HostCoherent = TBO_BIT(2),
+        MemoryPropertyFlags_HostCached = TBO_BIT(3),
+
+    };
+
+    using BufferUsageFlags = u32;
+    using MemoryPropertyFlags = u32;
+
     class RendererBuffer
     {
     public:
         struct Config
         {
             size_t Size;
-            u32 UsageFlags;     // VkBufferUsageFlags
-            u32 MemoryFlags;    // VkMemoryPropertyFlags
+            BufferUsageFlags UsageFlags;     // VkBufferUsageFlags
+            MemoryPropertyFlags MemoryFlags;    // VkMemoryPropertyFlags
             bool Temporary;
+            bool SetDefaultValue = false;
+            i32 DefaultValue;
         };
         static Ref<RendererBuffer> Create(const RendererBuffer::Config& config);
         virtual ~RendererBuffer();
 
         virtual void SetData(const void* data) = 0;
 
-        size_t GetSize() const { return m_Config.Size; }
-        void* GetData() const { return m_Data; }
+        size_t Size() const { return m_Config.Size; }
+        const void* GetData() const { return m_Data; }
     protected:
         RendererBuffer(const RendererBuffer::Config& config);
 

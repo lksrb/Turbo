@@ -30,22 +30,20 @@ namespace Turbo
         // Target Framebuffer
         // This will be the main framebuffer
         FrameBuffer::Config frameBufferConfig = {};
-        frameBufferConfig.Attachments = { FrameBuffer::AttachmentType_Color, FrameBuffer::AttachmentType_Depth };
-        Ref<FrameBuffer> targetFrameBuffer = FrameBuffer::Create(frameBufferConfig);
-        //m_TargetFramebuffer = targetFrameBuffer;
+        frameBufferConfig.Attachments = { FrameBuffer::AttachmentType_Color, FrameBuffer::AttachmentType_SelectionBuffer, FrameBuffer::AttachmentType_Depth };
+        m_TargetFrameBuffer = FrameBuffer::Create(frameBufferConfig);
         // Main render pass
         RenderPass::Config config = {};
-        config.TargetFrameBuffer = targetFrameBuffer;
+        config.TargetFrameBuffer = m_TargetFrameBuffer;
         config.ClearOnLoad = false;
-        config.SubPassCount = 1;
+        //config.SubPassCount = 1;
         m_FinalRenderPass = RenderPass::Create(config);
         m_FinalRenderPass->Invalidate();
 
-        targetFrameBuffer->SetRenderPass(m_FinalRenderPass);
-        targetFrameBuffer->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
-        m_TargetFramebuffer = targetFrameBuffer;
+        m_TargetFrameBuffer->SetRenderPass(m_FinalRenderPass);
+        m_TargetFrameBuffer->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
 
-        // Create Renderer2D
+        // Create draw list for 2D
         m_DrawList2D = DrawList2D::Create();
         m_DrawList2D->SetTargetRenderPass(m_FinalRenderPass);
         m_DrawList2D->Initialize();
@@ -56,7 +54,7 @@ namespace Turbo
             m_MeshTransformBuffer = VertexBuffer::Create(MaxTransforms * sizeof(TransformData));
 
             RenderPass::Config config = {};
-            config.TargetFrameBuffer = targetFrameBuffer;
+            config.TargetFrameBuffer = m_TargetFrameBuffer;
             config.ClearOnLoad = true;
             m_GeometryRenderPass = RenderPass::Create(config);
             m_GeometryRenderPass->Invalidate();
@@ -78,6 +76,7 @@ namespace Turbo
                 { AttributeType::Vec4, "a_TransformRow1" },
                 { AttributeType::Vec4, "a_TransformRow2" },
                 { AttributeType::Vec4, "a_TransformRow3" },
+                { AttributeType::Int, "a_EntityID" },
             };
 
             pipelineConfig.Topology = PrimitiveTopology::Triangle;
@@ -155,7 +154,7 @@ namespace Turbo
         // Depth buffer remains uncleared so we can easily figure out the depth to avoid overdrawing
         m_DrawList2D->End();
 
-        UpdateStatistics();
+        //UpdateStatistics();
     }
 
     void SceneDrawList::PreRender()
@@ -198,7 +197,7 @@ namespace Turbo
             drawCommand.SubmeshIndex = submeshIndex++;
 
             // If a mesh is a duplicate, draw it as a another instance of the original mesh but with different transform
-            // Store those transforms in a map and then offsetthem in PreRender 
+            // Store those transforms in a map and then offset them in PreRender 
             auto& meshTransformData = m_MeshTransformMap[key];
 
             auto& currentTransform = meshTransformData.Transforms.emplace_back();
@@ -206,6 +205,7 @@ namespace Turbo
             currentTransform.Tranform[1] = submeshTransform[1];
             currentTransform.Tranform[2] = submeshTransform[2];
             currentTransform.Tranform[3] = submeshTransform[3];
+            currentTransform.EntityID = entity;
         }
     }
 
@@ -283,6 +283,11 @@ namespace Turbo
     void SceneDrawList::AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity)
     {
         m_DrawList2D->AddString(transform, color, font, string, kerningOffset, lineSpacing, entity);
+    }
+
+    i32 SceneDrawList::ReadPixel(u32 x, u32 y)
+    {
+        return m_DrawList2D->ReadPixel(x, y);
     }
 
     void SceneDrawList::OnViewportResize(u32 width, u32 height)

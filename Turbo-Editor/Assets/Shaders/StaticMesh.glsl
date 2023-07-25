@@ -13,6 +13,7 @@ layout(location = 3) in vec4 a_TransformRow0;
 layout(location = 4) in vec4 a_TransformRow1;
 layout(location = 5) in vec4 a_TransformRow2;
 layout(location = 6) in vec4 a_TransformRow3;
+layout(location = 7) in int a_EntityID;
 
 // Camera's view projection
 layout(std140, set = 0, binding = 0) uniform Camera 
@@ -39,6 +40,7 @@ struct VertexOutput
 
 // Outputs
 layout (location = 0) out VertexOutput Output;
+layout (location = 5) out flat int o_EntityID;
 
 void main()
 {
@@ -55,6 +57,7 @@ void main()
     Output.WorldPosition = vec3(transform * vec4(a_VertexPosition, 1.0));
     Output.ViewPosition = vec3(u_InversedViewMatrix * vec4(Output.WorldPosition, 1.0));
     Output.TexCoords = a_TexCoord;
+    o_EntityID = a_EntityID;
 
     gl_Position = u_ViewProjection * transform * vec4(a_VertexPosition, 1.0);
 }
@@ -73,11 +76,11 @@ struct VertexInput
 
 // Inputs
 layout(location = 0) in VertexInput Input;
+layout(location = 5) in flat int in_EntityID;
 
 // Outputs
 layout(location = 0) out vec4 o_Color;
-
-// TODO: Output entity id
+layout(location = 1) out int o_EntityID;
 
 struct PointLight
 {
@@ -227,4 +230,5 @@ void main()
 
     // TODO: Phase 3: Spot light
     o_Color = vec4(result, 1.0);
+    o_EntityID = in_EntityID;
 }

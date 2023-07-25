@@ -314,7 +314,7 @@ namespace Turbo
         shaderc::CompileOptions options;
         options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
         options.SetGenerateDebugInfo();
-        constexpr bool optimize = false;
+        constexpr bool optimize = true;
 
         if constexpr (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);

@@ -7,7 +7,7 @@ Entities:
     TagComponent:
       Tag: Sprite
     TransformComponent:
-      Translation: [0.272560596, 1.44252467, 0]
+      Translation: [3.63563037, 1.26068127, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -33,6 +33,34 @@ Entities:
       Restitution: 0
       RestitutionThreshold: 0.5
       IsSensor: false
+  - Entity: 6721799575610402783
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Human
+    TransformComponent:
+      Translation: [0.502807617, 2.8521235, -3.06472635]
+      Rotation: [0, 0, 0]
+      Scale: [0.999999762, 1, 0.999999762]
+    StaticMeshRendererComponent:
+      Mesh: 1241539050212899818
+  - Entity: 8447963595351474264
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0.237243652, -0.0249633789, 0]
+      Rotation: [0, 0, 0]
+      Scale: [20.2885799, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: 0
+      IsSpriteSheet: false
+      SpriteCoords: [0, 0]
+      SpriteSize: [32, 32]
   - Entity: 10790257138722840556
     Parent: 0
     Children:
@@ -40,7 +68,7 @@ Entities:
     TagComponent:
       Tag: Backpack2
     TransformComponent:
-      Translation: [-3.41294074, 3.06687069, -0.389391184]
+      Translation: [-6.59104013, 4.67765045, -0.865290642]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
@@ -52,7 +80,7 @@ Entities:
     TagComponent:
       Tag: Pointlight1
     TransformComponent:
-      Translation: [0.241865873, 2.16765952, 3.45698881]
+      Translation: [-0.14728272, 3.24159336, 3.44772792]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
@@ -66,11 +94,27 @@ Entities:
     TagComponent:
       Tag: Backpack
     TransformComponent:
-      Translation: [4.51193619, 2.72789049, 0]
+      Translation: [6.91056681, 4.25412512, 0.0276318155]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
       Mesh: 7671040854140009362
+  - Entity: 13409575385204592236
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0.0355224535, 1.44308472, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.588235259, 0.24509804, 0.24509804, 1]
+      Texture: 0
+      IsSpriteSheet: false
+      SpriteCoords: [0, 0]
+      SpriteSize: [32, 32]
   - Entity: 13963187795045410005
     Parent: 0
     Children:
@@ -78,7 +122,7 @@ Entities:
     TagComponent:
       Tag: Ground
     TransformComponent:
-      Translation: [0, -1, 0]
+      Translation: [2.38418579e-07, -1, 0]
       Rotation: [0, 0, 0]
       Scale: [10.0003405, 0.610543609, 1]
     SpriteRendererComponent:

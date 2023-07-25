@@ -17,9 +17,12 @@ namespace Turbo
         ImageFormat_BGRA_Unorm = 44,
         ImageFormat_BGRA_SRGB = 50,
 
+        ImageFormat_R_SInt = 99,
+        ImageFormat_R_SFloat = 100,
+
         ImageFormat_RGBA32F = 109,
 
-        ImageFormat_D32_SFloat_S8_Uint = 130
+        ImageFormat_D32_SFloat_S8_UInt = 130
     };
 
     enum ImageTiling : u32

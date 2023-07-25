@@ -29,7 +29,7 @@ namespace Turbo
         TBO_ENGINE_ASSERT(resource != m_UniformBufferMap.end(), "Resource does not exists!");
 
         auto buffer = (*resource).second;
-        TBO_ENGINE_ASSERT(buffer->GetSize() <= sizeof(glm::mat4));
+        TBO_ENGINE_ASSERT(buffer->Size() <= sizeof(glm::mat4));
         buffer->SetData(data);
     }
 
@@ -110,7 +110,7 @@ namespace Turbo
                 m_UniformBufferMap[uniformBuffer.Name] = Ref<VulkanBuffer>::Create(bufferConfig);
 
                 VkDescriptorBufferInfo bufferInfo{};
-                bufferInfo.buffer = m_UniformBufferMap[uniformBuffer.Name]->GetBuffer();
+                bufferInfo.buffer = m_UniformBufferMap[uniformBuffer.Name]->GetHandle();
                 bufferInfo.offset = 0;
                 bufferInfo.range = uniformBuffer.Size;
 

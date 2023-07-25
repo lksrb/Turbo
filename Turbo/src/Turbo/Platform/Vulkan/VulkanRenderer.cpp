@@ -165,9 +165,13 @@ namespace Turbo
             VkFramebuffer vkFramebuffer = renderPass->GetConfig().TargetFrameBuffer.As<VulkanFrameBuffer>()->GetHandle();
             VkRenderPass vkRenderpass = renderPass.As<VulkanRenderPass>()->GetHandle();
 
-            VkClearValue clearValues[2]{};
+            VkClearValue clearValues[3]{};
             clearValues[0].color = { { clearColor.x, clearColor.y, clearColor.z, clearColor.w } };
-            clearValues[1].depthStencil = { 1.0f, 0 };
+            clearValues[1].color.int32[0] = -1; // Selection buffer
+            clearValues[1].color.int32[1] = -1;
+            clearValues[1].color.int32[2] = -1;
+            clearValues[1].color.int32[3] = -1;
+            clearValues[2].depthStencil = { 1.0f, 0 };
 
             VkRenderPassBeginInfo renderPassBeginInfo = {};
             renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -175,7 +179,7 @@ namespace Turbo
             renderPassBeginInfo.renderArea.offset.x = 0;
             renderPassBeginInfo.renderArea.offset.y = 0;
             renderPassBeginInfo.renderArea.extent = { framebufferConfig.Width, framebufferConfig.Height };
-            renderPassBeginInfo.clearValueCount = 2;
+            renderPassBeginInfo.clearValueCount = (u32)framebufferConfig.Attachments.size();
             renderPassBeginInfo.pClearValues = clearValues;
             renderPassBeginInfo.framebuffer = vkFramebuffer;
 

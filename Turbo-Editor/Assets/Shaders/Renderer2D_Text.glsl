@@ -76,9 +76,8 @@ void main()
 
 	vec4 bgColor = vec4(0.0);
     o_Color = mix(bgColor, Input.Color, opacity);
+	o_EntityID = in_EntityID;
 
 	if (o_Color.a == 0.0)
 		discard;
-
-	o_EntityID = in_EntityID;
 }

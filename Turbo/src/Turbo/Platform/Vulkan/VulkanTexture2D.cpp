@@ -25,6 +25,7 @@ namespace Turbo
                 case ImageFormat_RGBA_Unorm:
                 case ImageFormat_BGRA_Unorm:
                 case ImageFormat_BGRA_SRGB:
+                case ImageFormat_R_SInt:
                     return 4;
                 case ImageFormat_RGBA32F:
                     return 4 * 4;
@@ -161,7 +162,7 @@ namespace Turbo
 
                 vkCmdCopyBufferToImage(
                     commandBuffer,
-                    stagingBuffer.GetBuffer(),
+                    stagingBuffer.GetHandle(),
                     m_TextureImage.As<VulkanImage2D>()->GetImage(),
                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                     1,
