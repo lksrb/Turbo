@@ -17,7 +17,6 @@ namespace Turbo
         void EndUI() override;
         void OnEvent(Event& e) override;
     private:
-        void ImGuiStyleSpectrum();
         void CreateImGuiContext();
     private:
         // ImGui vulkan objects

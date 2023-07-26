@@ -1,8 +1,9 @@
 #include "tbopch.h"
 #include "SceneDrawList.h"
 
-#include "Turbo/Scene/Scene.h"
 #include "Turbo/Core/Engine.h"
+#include "Turbo/Scene/Scene.h"
+#include "Turbo/Renderer/ShaderLibrary.h"
 
 #include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
 #include "Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h"
@@ -58,7 +59,7 @@ namespace Turbo
             config.ClearOnLoad = true;
             m_GeometryRenderPass = RenderPass::Create(config);
             m_GeometryRenderPass->Invalidate();
-            m_GeometryShader = Shader::Create({ ShaderLanguage::GLSL, "Assets/Shaders/StaticMesh.glsl" });
+            m_GeometryShader = ShaderLibrary::Get("StaticMesh");
 
             GraphicsPipeline::Config pipelineConfig = {};
             pipelineConfig.Renderpass = m_GeometryRenderPass;
@@ -89,8 +90,8 @@ namespace Turbo
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
         m_UniformBufferSet->Create(0, 2, sizeof(PointLightData));
 
-        m_ContainerDiffuse = Texture2D::Create("Assets/Meshes/Backpack/1001_albedo.jpg");
-        m_ContainerSpecular = Texture2D::Create("Assets/Meshes/Backpack/1001_metallic.jpg");
+        m_ContainerDiffuse = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_albedo.jpg");
+        m_ContainerSpecular = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_metallic.jpg");
 
         m_CubeMaterial = Material::Create({ m_GeometryShader });
     }

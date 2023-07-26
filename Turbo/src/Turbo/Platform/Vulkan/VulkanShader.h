@@ -26,7 +26,6 @@ namespace Turbo
 
         VkShaderModule GetModule(ShaderStage shaderStage) { TBO_ENGINE_ASSERT(shaderStage < ShaderStage_Count); return m_ShaderModules[shaderStage]; }
 
-        //const ShaderBufferLayout& GetLayout() const { return m_Layout; }
         const Resources& GetResources() const { return m_Resources; }
 
         VkDescriptorSetLayout GetDescriptorSetLayout() const { return m_DescriptorSetLayout; }
@@ -38,10 +37,12 @@ namespace Turbo
         void CheckIfUpToDate();
         void CompileOrGetCompiledShaders();
         void CompileShader(ShaderStage shaderStage);
+        void CompileShaders();
         void Reflect();
         void ReflectStage(ShaderStage shaderStage);
         void CreateModules();
         void GenerateDescriptors();
+        std::filesystem::path GetShaderCachePath(ShaderStage stage);
     private:
         VkDescriptorSetLayout m_DescriptorSetLayout;
         VkDescriptorPool m_DescriptorPool;
@@ -54,6 +55,8 @@ namespace Turbo
         std::vector<u32> m_CompiledShaders[ShaderStage_Count];
         
         Resources m_Resources;
+
+        friend class ShaderLibrary;
     };
 
 }

@@ -3,9 +3,11 @@
 #include "VulkanShader.h"
 
 #include "Turbo/Core/Platform.h"
+#include "Turbo/Core/FileSystem.h"
 #include "Turbo/Debug/ScopeTimer.h"
 
 #include "Turbo/Renderer/RendererContext.h"
+
 
 #include <fstream>
 #include <sstream>
@@ -136,12 +138,6 @@ namespace Turbo
     VulkanShader::VulkanShader(const Shader::Config& config)
         : Shader(config), m_DescriptorSetLayout(VK_NULL_HANDLE), m_DescriptorPool(VK_NULL_HANDLE), m_DescriptorSet(VK_NULL_HANDLE), m_Layout()
     {
-        CheckIfUpToDate();
-        ReadAndPreprocess();
-        CompileOrGetCompiledShaders();
-        Reflect();
-        GenerateDescriptors();
-        CreateModules();
     }
 
     VulkanShader::~VulkanShader()
@@ -156,12 +152,19 @@ namespace Turbo
     void VulkanShader::Reload()
     {
         TBO_ENGINE_ASSERT(false, "Not implemented yet.");
+
+        CheckIfUpToDate();
+        ReadAndPreprocess();
+        CompileOrGetCompiledShaders();
+        Reflect();
+        GenerateDescriptors();
+        CreateModules();
     }
 
     void VulkanShader::ReadAndPreprocess()
     {
         std::string sourceCode;
-        std::ifstream in(m_Config.ShaderPath.c_str(), std::ios::in | std::ios::binary); // ifstream closes itself due to RAII
+        std::ifstream in(m_Config.ShaderPath, std::ios::in | std::ios::binary); // ifstream closes itself due to RAII
         if (in)
         {
             in.seekg(0, std::ios::end);
@@ -238,38 +241,24 @@ namespace Turbo
 
     void VulkanShader::CompileOrGetCompiledShaders()
     {
-        std::filesystem::path cachedPath = "Assets\\Shaders\\cached";
+        std::filesystem::path cachedPath = "Resources/Cache/Shaders";
 
-        if (!std::filesystem::exists(cachedPath))
+        if (!FileSystem::Exists(cachedPath))
         {
             // Cache folder does not exists, create one and compile shaders
             std::filesystem::create_directory(cachedPath);
             m_Compile = true;
         }
 
+        // Clear shaders
+        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
+        {
+            m_CompiledShaders[shaderStage].clear();
+        }
+
         if (m_Compile)
         {
-            ScopeTimer timer("Shader compilation");
-
-            TBO_ENGINE_WARN("Changes detected! Compiling...");
-
-            // Clear shaders
-            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
-                m_CompiledShaders[shaderStage].clear();
-
-            std::thread compileJobMaker[ShaderStage_Count];
-            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
-            {
-                compileJobMaker[shaderStage] = std::thread(&VulkanShader::CompileShader, this, shaderStage);
-            }
-
-            // Wait for all threads
-            for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
-            {
-                compileJobMaker[shaderStage].join();
-            }
-
-            TBO_ENGINE_INFO("Compilation complete!");
+            CompileShaders();
         }
         else // Retrieve shaders 
         {
@@ -277,11 +266,8 @@ namespace Turbo
             {
                 TBO_ENGINE_WARN("[{0}] Shader {1} is up-to-date!", Utils::ShaderTypeToString(shaderStage), m_Config.ShaderPath.c_str());
 
-                const std::filesystem::path& shader_path = cachedPath / std::filesystem::path(m_Config.ShaderPath)
-                    .stem()
-                    .concat(Utils::GLShaderStageCachedVulkanFileExtension(shaderStage));
-
-                std::ifstream stream(shader_path, std::ios::in | std::ios::binary);
+                std::filesystem::path shaderPath = GetShaderCachePath(shaderStage);
+                std::ifstream stream(shaderPath, std::ios::in | std::ios::binary);
 
                 if (stream)
                 {
@@ -290,15 +276,12 @@ namespace Turbo
                     stream.seekg(0, std::ios::beg);
 
                     auto& data = m_CompiledShaders[shaderStage];
-                    data.resize(size / sizeof(uint32_t));
+                    data.resize(size / sizeof(u32));
                     stream.read((char*)data.data(), size);
                 }
                 else
                 {
-                    ScopeTimer timer("Shader compilation(not thread)"); // TODO: Rewrite this to be multithreaded
-                    TBO_ENGINE_WARN("Changes detected! Compiling...");
-                    CompileShader(shaderStage);
-                    TBO_ENGINE_INFO("Compilation complete!");
+                    CompileShaders();
                 }
             }
         }
@@ -306,7 +289,7 @@ namespace Turbo
 
     void VulkanShader::CompileShader(ShaderStage shaderStage)
     {
-        std::filesystem::path cachedPath = "Assets\\Shaders\\cached";
+        std::filesystem::path cachedPath = "Resources/Cache/Shaders";
 
         TBO_ENGINE_WARN("[{0}]...", Utils::ShaderTypeToString(shaderStage));
 
@@ -329,10 +312,7 @@ namespace Turbo
 
         m_CompiledShaders[shaderStage] = std::vector<u32>(result.cbegin(), result.cend());
 
-        std::filesystem::path shaderPath = cachedPath / std::filesystem::path(m_Config.ShaderPath)
-            .stem()
-            .concat(Utils::GLShaderStageCachedVulkanFileExtension(shaderStage));
-
+        std::filesystem::path shaderPath = GetShaderCachePath(shaderStage);
         // This should overwrite the contents of previous cached shader
         std::ofstream outStream(shaderPath, std::ios::binary | std::ios::trunc);
         if (outStream)
@@ -346,6 +326,27 @@ namespace Turbo
         }
 
         TBO_ENGINE_ERROR("Could not compile shader! Path: {0}", shaderPath.string());
+    }
+
+
+    void VulkanShader::CompileShaders()
+    {
+        ScopeTimer timer("Shader compilation");
+        TBO_ENGINE_WARN("Changes detected! Compiling...");
+
+        std::thread compileJobMaker[ShaderStage_Count];
+        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
+        {
+            compileJobMaker[shaderStage] = std::thread(&VulkanShader::CompileShader, this, shaderStage);
+        }
+
+        // Wait for all threads
+        for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
+        {
+            compileJobMaker[shaderStage].join();
+        }
+
+        TBO_ENGINE_INFO("Compilation complete!");
     }
 
     void VulkanShader::Reflect()
@@ -571,4 +572,14 @@ namespace Turbo
             vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
         });
     }
+
+    std::filesystem::path VulkanShader::GetShaderCachePath(ShaderStage stage)
+    {
+        std::filesystem::path cachedPath = "Resources/Cache/Shaders";
+
+        return cachedPath / std::filesystem::path(m_Config.ShaderPath)
+            .stem()
+            .concat(Utils::GLShaderStageCachedVulkanFileExtension(stage));
+    };
+
 }

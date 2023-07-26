@@ -1,5 +1,6 @@
 #include "tbopch.h"
 #include "Turbo/Renderer/Renderer.h"
+#include "Turbo/Renderer/ShaderLibrary.h"
 
 #include "VulkanSwapChain.h"
 #include "VulkanBuffer.h"
@@ -76,10 +77,15 @@ namespace Turbo
     void Renderer::Init()
     {
         s_Internal = new RendererInternal;
+
+        // Load shaders
+        // TODO: Only load shaders that are used
+        ShaderLibrary::Init();
     }
 
     void Renderer::Shutdown()
     {
+        ShaderLibrary::Shutdown();
         delete s_Internal;
     }
 

@@ -107,6 +107,16 @@ namespace Turbo
             m_Instance, /*Pass instance of this class*/this
         );
 
+        // TODO: Custom title bar
+#if 0
+        // Remove the caption
+        LONG_PTR style1 = GetWindowLongPtr(m_Handle, GWL_STYLE);
+        SetWindowLongPtr(m_Handle, GWL_STYLE, style1 & ~WS_CAPTION);
+
+        // Redraw the window to apply the changes
+        SetWindowPos(m_Handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+#endif
+
         // Set user pointer
         SetWindowLongPtr(m_Handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
     }

@@ -2,6 +2,7 @@
 #include "DrawList2D.h"
 
 #include "Font-Internal.h"
+#include "ShaderLibrary.h"
 
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Debug/ScopeTimer.h"
@@ -61,10 +62,7 @@ namespace Turbo
             }
 
             // Shader
-            Shader::Config shaderConfig = {};
-            shaderConfig.Language = ShaderLanguage::GLSL;
-            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Quad.glsl";
-            m_QuadShader = Shader::Create(shaderConfig);
+            m_QuadShader = ShaderLibrary::Get("Renderer2D_Quad");
 
             // Graphics pipeline
             GraphicsPipeline::Config config = {};
@@ -98,10 +96,7 @@ namespace Turbo
             // Index buffer from quads
 
             // Shader
-            Shader::Config shaderConfig = {};
-            shaderConfig.Language = ShaderLanguage::GLSL;
-            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Circle.glsl";
-            m_CircleShader = Shader::Create(shaderConfig);
+            m_CircleShader = ShaderLibrary::Get("Renderer2D_Circle");
 
             // Graphics pipeline
             GraphicsPipeline::Config config = {};
@@ -135,10 +130,7 @@ namespace Turbo
             // Index buffer is not needed
 
             // Shader
-            Shader::Config shaderConfig = {};
-            shaderConfig.Language = ShaderLanguage::GLSL;
-            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Line.glsl";
-            m_LineShader = Shader::Create(shaderConfig);
+            m_LineShader = ShaderLibrary::Get("Renderer2D_Line");
 
             // Graphics pipeline
             GraphicsPipeline::Config config = {};
@@ -166,10 +158,7 @@ namespace Turbo
             // Index buffer is not needed
 
             // Shader
-            Shader::Config shaderConfig = {};
-            shaderConfig.Language = ShaderLanguage::GLSL;
-            shaderConfig.ShaderPath = "Assets\\Shaders\\Renderer2D_Text.glsl";
-            m_TextShader = Shader::Create(shaderConfig);
+            m_TextShader = ShaderLibrary::Get("Renderer2D_Text");
 
             // Graphics PipeText
             GraphicsPipeline::Config config = {};

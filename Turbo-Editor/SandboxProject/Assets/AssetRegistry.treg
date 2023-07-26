@@ -2,6 +2,9 @@ AssetRegistry:
   - Asset: 1241539050212899818
     Path: Meshes/Human.fbx
     Type: StaticMesh
+  - Asset: 6075040000650103437
+    Path: Meshes/Sphere.fbx
+    Type: StaticMesh
   - Asset: 7671040854140009362
     Path: Meshes/Backpack/Backpack.fbx
     Type: StaticMesh

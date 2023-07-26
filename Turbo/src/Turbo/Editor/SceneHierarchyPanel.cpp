@@ -336,7 +336,28 @@ namespace Turbo
             if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
             {
                 if (ImGui::MenuItem("Create Empty Entity"))
-                    m_SelectedEntity = m_Context->CreateEntity("Empty Entity");
+                    m_SelectedEntity = m_Context->CreateEntity();
+
+                if (ImGui::BeginMenu("Create 2D"))
+                {
+                    if (ImGui::MenuItem("Sprite"))
+                    {
+
+                    }
+
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Create 3D"))
+                {
+                    if (ImGui::MenuItem("Cube"))
+                    {
+
+                    }
+
+                    ImGui::EndMenu();
+                }
 
                 ImGui::EndPopup();
             }
