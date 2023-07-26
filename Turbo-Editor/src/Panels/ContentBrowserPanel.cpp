@@ -1,5 +1,7 @@
 #include "ContentBrowserPanel.h"
 
+#include "../Core/EditorIcons.h"
+
 #include <Turbo/UI/UI.h>
 #include <Turbo/Core/Platform.h>
 #include <Turbo/Solution/Project.h>
@@ -14,8 +16,12 @@ namespace Turbo::Ed
 
     ContentBrowserPanel::ContentBrowserPanel()
     {
-        m_DirectoryIcon = Texture2D::Create("Resources/Icons/DirectoryIcon.png");
-        m_FileIcon = Texture2D::Create("Resources/Icons/FileIcon.png");
+        using namespace Icons;
+        Texture2D::Config config = {};
+        config.Format = ImageFormat_RGBA_SRGB;
+        config.Filter = ImageFilter_Linear;
+        m_DirectoryIcon = Texture2D::Create(config, Directory.data(), Directory.size());
+        m_FileIcon = Texture2D::Create(config, File.data(), File.size());
     }
 
     ContentBrowserPanel::~ContentBrowserPanel()
@@ -88,7 +94,7 @@ namespace Turbo::Ed
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             UI::ScopedStyleColor buttonColor(ImGuiCol_Button, { 0.2f, 0.3f, 0.8f, 0.8f }, selected);
             UI::ScopedStyleColor buttonHoveredColor(ImGuiCol_ButtonHovered, { 0.2f, 0.3f, 0.8f, 0.6f }, selected);
-            if (UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, { 0,1 }, { 1,0 }))
+            if (UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, { 0,0 }, { 1,1 }))
             {
                 s_SelectedPath = path;
             }
