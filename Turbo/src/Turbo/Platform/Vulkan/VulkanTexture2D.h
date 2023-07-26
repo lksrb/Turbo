@@ -13,6 +13,7 @@ namespace Turbo
     {
     public:
         VulkanTexture2D(const Texture2D::Config& config);
+        VulkanTexture2D(const Texture2D::Config& config, const void* data, u64 size);
         VulkanTexture2D(u32 color);
         ~VulkanTexture2D();
 

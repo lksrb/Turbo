@@ -14,7 +14,12 @@ namespace Turbo
     {
     }
 
-    Ref<Texture2D> Texture2D::Create(const std::string& filepath)
+	Ref<Texture2D> Texture2D::Create(const Texture2D::Config& config, const void* data, u64 size)
+	{
+        return Ref<VulkanTexture2D>::Create(config, data, size);
+	}
+
+	Ref<Texture2D> Texture2D::Create(const std::string& filepath)
     {
         Texture2D::Config config = {};
         config.Path = filepath;

@@ -87,6 +87,26 @@ namespace Turbo
         m_IsLoaded = true;
     }
 
+    VulkanTexture2D::VulkanTexture2D(const Texture2D::Config& config, const void* data, u64 size)
+        : Texture2D(config)
+    {
+        // Decode png
+        int width, height, channels;
+        u8* pixels = stbi_load_from_memory((const stbi_uc*)data, (int)size, &width, &height, &channels, STBI_rgb_alpha);
+
+        m_Config.Width = width;
+        m_Config.Height = height;
+
+        CreateImage2D();
+
+        if (pixels)
+        {
+            SetData(pixels);
+        }
+
+        m_IsLoaded = true;
+    }
+
     VulkanTexture2D::~VulkanTexture2D()
     {
     }

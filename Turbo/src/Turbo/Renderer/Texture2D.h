@@ -25,6 +25,7 @@ namespace Turbo
         Texture2D(const Texture2D::Config& config);
         virtual ~Texture2D();
 
+        static Ref<Texture2D> Create(const Texture2D::Config& config, const void* data, u64 size);
         static Ref<Texture2D> Create(const std::string& filepath);
         static Ref<Texture2D> Create(const Texture2D::Config& config);
         static Ref<Texture2D> Create(u32 color);
