@@ -144,8 +144,6 @@ namespace Turbo
             Renderer::DrawStaticMesh(m_RenderCommandBuffer, drawCommand.Mesh, m_MeshTransformBuffer, m_UniformBufferSet, m_GeometryPipeline, transformMap.TransformOffset, drawCommand.SubmeshIndex, drawCommand.InstanceCount);
         }
 
-        //Renderer::PushConstant(m_RenderCommandBuffer, m_CubePipeline, 64, &m_ViewProjection);
-        //Renderer::DrawInstanced(m_RenderCommandBuffer, m_CubeVertexBuffer, m_CubeInstanceBuffer, m_CubeIndexBuffer, m_UniformBufferSet, m_GeometryPipeline, m_CubeShader, (u32)m_CubeInstances.size(), 36);
         Renderer::EndRenderPass(m_RenderCommandBuffer);
 
         m_RenderCommandBuffer->End();

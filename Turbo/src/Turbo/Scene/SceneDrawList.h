@@ -72,10 +72,10 @@ namespace Turbo
         u32 GetViewportHeight() const { return m_Config.ViewportHeight; }
         Ref<Image2D> GetFinalImage() const;
 
+        void SetSceneData(const SceneRendererData& data);
         SceneDrawList::Statistics GetStatistics() const { return m_Statistics; }
     private:
         void Init();
-        void SetSceneData(const SceneRendererData& data);
         void UpdateStatistics();
         void PreRender();
     private:
@@ -186,8 +186,6 @@ namespace Turbo
 
         SceneDrawList::Statistics m_Statistics;
         SceneDrawList::Config m_Config;
-
-        friend class Scene;
     };
 }
 
