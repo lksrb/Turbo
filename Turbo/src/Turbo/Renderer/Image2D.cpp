@@ -6,7 +6,7 @@
 namespace Turbo
 {
     Image2D::Image2D(const Image2D::Config& config)
-        : m_Config(config), m_Width(0), m_Height(0)
+        : m_Config(config)
     {
     }
 

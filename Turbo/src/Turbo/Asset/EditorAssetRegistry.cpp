@@ -50,6 +50,7 @@ namespace Turbo
     EditorAssetRegistry::~EditorAssetRegistry()
     {
         Serialize();
+        //m_LoadedAssets.clear();
     }
 
     bool EditorAssetRegistry::IsAssetHandleValid(AssetHandle handle) const
@@ -79,8 +80,10 @@ namespace Turbo
 
     const AssetMetadata& EditorAssetRegistry::GetAssetMetadata(AssetHandle handle) const
     {
+        static AssetMetadata s_NullMetadata;
+
         if (!IsAssetHandleValid(handle))
-            return {};
+            return s_NullMetadata;
 
         return m_AssetRegistry.at(handle);
     }

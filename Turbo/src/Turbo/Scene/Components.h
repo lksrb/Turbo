@@ -181,12 +181,24 @@ namespace Turbo
 
     struct PointLightComponent
     {
+        glm::vec3 Radiance{ 1.0f };
         f32 Intensity = 1.0f;
         f32 Radius = 10.0f;
         f32 FallOff = 1.0f;
 
         PointLightComponent() = default;
         PointLightComponent(const PointLightComponent&) = default;
+    };
+
+    struct SpotLightComponent
+    {
+        glm::vec3 Radiance{ 1.0f };
+        f32 Intensity = 5.0f;
+        f32 InnerCone = 12.5f;
+        f32 OuterCone = 17.5f;
+
+        SpotLightComponent() = default;
+        SpotLightComponent(const SpotLightComponent&) = default;
     };
 
     struct ScriptComponent
@@ -257,6 +269,6 @@ namespace Turbo
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, PointLightComponent, StaticMeshRendererComponent, ScriptComponent,
+        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, ScriptComponent,
         AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

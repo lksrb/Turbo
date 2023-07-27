@@ -1,4 +1,7 @@
 AssetRegistry:
+  - Asset: 343049561117589508
+    Path: Meshes/Cube.fbx
+    Type: StaticMesh
   - Asset: 1241539050212899818
     Path: Meshes/Human.fbx
     Type: StaticMesh

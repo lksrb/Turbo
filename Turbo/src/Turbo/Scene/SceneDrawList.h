@@ -51,7 +51,8 @@ namespace Turbo
         void End();
 
         void AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity = -1);
-        void AddPointLight(const glm::vec3& position, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f, i32 entityID = -1);
+        void AddPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f);
+        void AddSpotLight(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 5.0f, f32 innerCone = 12.5f, f32 outerCone = 17.5f);
         
         void AddQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
@@ -84,6 +85,7 @@ namespace Turbo
         static constexpr u32 MaxCubeIndices = 6 * MaxCubes;
 
         static constexpr u32 MaxPointLights = 64;
+        static constexpr u32 MaxSpotLights = 64;
 
         // For now
         static constexpr u32 MaxTransforms = 4096;
@@ -105,25 +107,36 @@ namespace Turbo
         struct alignas(16) PointLight
         {
             glm::vec4 Position;
+            glm::vec3 Radiance;
 
             f32 Intensity;
             f32 Radius;
             f32 FallOff;
         };
 
+        struct alignas(16) SpotLight
+        {
+            glm::vec4 Position;
+            glm::vec4 Direction;
+            glm::vec3 Radiance;
+
+            f32 Intensity;
+            f32 InnerCone;
+            f32 OuterCone;
+        };
+
         // Match the layout in shader
         // Padding set to 16 because of std140 
-        // FIXME: Padding fuckery, currently works for 32 but other numbers are not tested
-        struct alignas(16) PointLightData
+        // FIXME: Padding fuckery, currently works for 64 but other numbers are not tested
+        struct alignas(16) LightEnvironment
         {
-            u32 Count = 0;
             PointLight PointLights[MaxPointLights];
-
-            PointLight& operator[](u32 index)
-            {
-                TBO_ENGINE_ASSERT(index < MaxPointLights);
-                return PointLights[index];
-            }
+            u32 PointLightCount = 0;
+            SpotLight SpotLights[MaxSpotLights];
+            u32 SpotLightCount = 0;
+            
+            inline PointLight& EmplacePointLight() { TBO_ENGINE_ASSERT(PointLightCount < MaxPointLights); return PointLights[PointLightCount++]; }
+            inline SpotLight& EmplaceSpotLight() { TBO_ENGINE_ASSERT(SpotLightCount < MaxSpotLights); return SpotLights[SpotLightCount++]; }
         };
 
         struct DirectionalLight
@@ -174,7 +187,7 @@ namespace Turbo
 
         SceneRendererData m_SceneRendererData;
 
-        PointLightData m_PointLights;
+        LightEnvironment m_LightEnvironment;
 
         Ref<Shader> m_GeometryShader;
         Ref<GraphicsPipeline> m_GeometryPipeline;

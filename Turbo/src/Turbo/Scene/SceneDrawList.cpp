@@ -88,7 +88,7 @@ namespace Turbo
         // Create camera uniform buffer
         m_UniformBufferSet = UniformBufferSet::Create();
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
-        m_UniformBufferSet->Create(0, 2, sizeof(PointLightData));
+        m_UniformBufferSet->Create(0, 2, sizeof(LightEnvironment));
 
         m_ContainerDiffuse = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_albedo.jpg");
         m_ContainerSpecular = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_metallic.jpg");
@@ -122,7 +122,8 @@ namespace Turbo
 
         m_Statistics.Reset();
 
-        m_PointLights.Count = 0;
+        m_LightEnvironment.PointLightCount = 0;
+        m_LightEnvironment.SpotLightCount = 0;
 
         m_DrawList2D->Begin();
     }
@@ -161,7 +162,7 @@ namespace Turbo
         // Submit point lights
         Renderer::Submit([this]()
         {
-            m_UniformBufferSet->SetData(0, 2, &m_PointLights);
+            m_UniformBufferSet->SetData(0, 2, &m_LightEnvironment);
         });
 
         // Set whole transform buffer and then offset it in draw call
@@ -208,15 +209,25 @@ namespace Turbo
         }
     }
 
-    void SceneDrawList::AddPointLight(const glm::vec3& position, f32 intensity, f32 radius, f32 fallOff, i32 entityID)
+    void SceneDrawList::AddPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity, f32 radius, f32 fallOff)
     {
-        PointLight& pointLight = m_PointLights[m_PointLights.Count];
+        PointLight& pointLight = m_LightEnvironment.EmplacePointLight();
         pointLight.Position = glm::vec4(position, 1.0f);
+        pointLight.Radiance = radiance;
         pointLight.Intensity = intensity;
         pointLight.Radius = radius;
         pointLight.FallOff = fallOff;
+    }
 
-        m_PointLights.Count++;
+    void SceneDrawList::AddSpotLight(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& radiance, f32 intensity, f32 innerCone, f32 outerCone)
+    {
+        SpotLight& spotLight = m_LightEnvironment.EmplaceSpotLight();
+        spotLight.Position = glm::vec4(position, 1.0f);
+        spotLight.Direction = glm::vec4(direction, 0.0f);
+        spotLight.Radiance = radiance;
+        spotLight.Intensity = intensity;
+        spotLight.InnerCone = glm::cos(glm::radians(innerCone));
+        spotLight.OuterCone = glm::cos(glm::radians(outerCone));
     }
 
     void SceneDrawList::UpdateStatistics()

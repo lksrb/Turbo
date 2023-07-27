@@ -85,6 +85,7 @@ layout(location = 1) out int o_EntityID;
 struct PointLight
 {
     vec4 Position;
+    vec3 Radiance;
     
     float Intensity;
     float Radius;
@@ -100,14 +101,15 @@ struct DirectionalLight
     vec3 Specular;
 };
 
-struct Spotlight 
+struct SpotLight 
 {
-    vec3 Position;
-    float FallOff;
+    vec4 Position;
+    vec4 Direction;
+    vec3 Radiance;
 
-    vec3 Ambient;
-    vec3 Diffuse;
-    vec3 Specular;
+    float Intensity;
+    float InnerCone;
+    float OuterCone;
 };
 
 // 0 - Diffuse, ambient
@@ -117,20 +119,18 @@ layout(binding = 1) uniform sampler2D u_MaterialTexture[2];
 // Point lights
 // TODO: Reduce the amount of active point lights by calculating which light is visible and which is not
 // std140 - buffer layout must be multiplier of 16 to match C++ struct
-layout(std140, binding = 2) uniform PointLightData
+layout(std140, binding = 2) uniform LightEnvironment
 {
-    uint u_PointLightCount;
     PointLight u_PointLights[64];
+    uint u_PointLightCount;
+    SpotLight u_SpotLights[64];
+    uint u_SpotLightCount;
 };
 
 // Point light calculation
-vec3 CalculatePointLights()
+vec3 CalculatePointLights(vec3 normal, vec3 viewDir, float shininess)
 {
     vec3 result = vec3(0.0);
-
-    vec3 normal = normalize(Input.Normal);
-    vec3 viewDir = normalize(Input.ViewPosition - Input.WorldPosition);
-    float shininess = 32.0;
 
     for(int i = 0; i < u_PointLightCount; i++)
     {
@@ -153,22 +153,18 @@ vec3 CalculatePointLights()
         float quadratic = 0.032;
 
         // Calculate attenuation
-        //float attenuation = 1.0 / (constant + linear * distance + quadratic * (lightDistance * lightDistance));
         float attenuation = clamp(1.0 - (lightDistance * lightDistance) / (light.Radius * light.Radius), 0.0, 1.0);
-        //float attenuation = 1.0 - clamp(lightDistance / light.Radius, 0.0, 1.0);
         attenuation *= mix(attenuation, 1.0, light.FallOff);
 
         // TODO: Materials
-        vec3 lightAmbient = vec3(0.05, 0.05, 0.05);
+        vec3 lightAmbient = vec3(0.2, 0.2, 0.2);
         vec3 lightDiffuse = vec3(0.8, 0.8, 0.8);
         vec3 lightSpecular = vec3(1.0, 1.0, 1.0);
 
-        vec3 color = vec3(1.0);
-
         // Combine results
         vec3 ambient  = light.Intensity * lightAmbient * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
-        vec3 diffuse  = light.Intensity * lightDiffuse  * diffuseAngle * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
-        vec3 specular = light.Intensity * lightSpecular * spec * vec3(texture(u_MaterialTexture[1], Input.TexCoord));
+        vec3 diffuse  = light.Radiance * light.Intensity * lightDiffuse  * diffuseAngle * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
+        vec3 specular = light.Radiance * light.Intensity * lightSpecular * spec * vec3(texture(u_MaterialTexture[1], Input.TexCoord));
 
         //vec3 ambient  = light.Intensity * lightAmbient * color;
         //vec3 diffuse  = light.Intensity * lightDiffuse  * diffuseAngle * color;
@@ -210,6 +206,45 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
     return (ambient + diffuse + specular);
 }
 
+vec3 CalculateSpotLights(vec3 normal, vec3 viewDir, float shininess)
+{
+    vec3 result = vec3(0.0);
+
+    for(int i = 0; i < u_SpotLightCount; i++)
+    {
+        SpotLight light = u_SpotLights[i];
+        vec3 lightDir = normalize(vec3(light.Position) - Input.WorldPosition);
+        float theta = dot(lightDir, vec3(normalize(-light.Direction)));
+
+        // Smooth edges
+        float epsilon = light.InnerCone - light.OuterCone;
+        float interpolatedIntensity = clamp((theta - light.OuterCone) / epsilon, 0.0, 1.0);
+
+        // Calculate diffuse
+        float diffuseAngle = max(dot(normal, lightDir), 0.0);
+        
+        // Calculate specular 
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+        
+        // TODO: Materials
+        vec3 lightAmbient = vec3(0.05, 0.05, 0.05);
+        vec3 lightDiffuse = vec3(0.8, 0.8, 0.8);
+        vec3 lightSpecular = vec3(1.0, 1.0, 1.0);
+        
+        //vec3 radiance = vec3(0.8f, 0.0f, 0.0f);
+
+        // Combine results
+        vec3 ambient  = light.Intensity * interpolatedIntensity * lightAmbient * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
+        vec3 diffuse  = vec3(light.Radiance) * light.Intensity * interpolatedIntensity * lightDiffuse  * diffuseAngle * vec3(texture(u_MaterialTexture[0], Input.TexCoord));
+        vec3 specular = vec3(light.Radiance) * light.Intensity * interpolatedIntensity * lightSpecular * spec * vec3(texture(u_MaterialTexture[1], Input.TexCoord));
+    
+        result += ambient + diffuse + specular;
+    }
+
+    return result;
+}
+
 void main()
 {
     DirectionalLight directionalLight;
@@ -226,9 +261,11 @@ void main()
     vec3 result = CalculateDirectionalLight(directionalLight, normal, viewDir, shininess);
 
     // Phase 2: Point lights
-    result += CalculatePointLights();
+    result += CalculatePointLights(normal, viewDir,  shininess);
 
-    // TODO: Phase 3: Spot light
+    // Phase 3: Spot light
+    result += CalculateSpotLights(normal, viewDir, shininess);
+
     o_Color = vec4(result, 1.0);
     o_EntityID = in_EntityID;
 }

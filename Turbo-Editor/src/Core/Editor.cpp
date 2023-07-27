@@ -144,6 +144,8 @@ namespace Turbo::Ed
             m_StopIcon = Texture2D::Create(config, StopButton.data(), StopButton.size());
             m_ResetCameraRotationIcon = Texture2D::Create(config, ResetCameraRotationButton.data(), ResetCameraRotationButton.size());
             m_PointLightIcon = Texture2D::Create(config, PointLight.data(), PointLight.size());
+            m_CameraIcon = Texture2D::Create(config, Camera.data(), Camera.size());
+            m_SpotLightIcon = Texture2D::Create(config, SpotLight.data(), SpotLight.size());
         }
 
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
@@ -312,11 +314,11 @@ namespace Turbo::Ed
             i32 mouseX = (i32)mx;
             i32 mouseY = (i32)my;
 
+            m_HoveredEntity = {};
             if (mouseX >= 0 && mouseY >= 0 && mouseX < (i32)m_ViewportWidth && mouseY < (i32)m_ViewportHeight)
             {
                 i32 entityID = m_ViewportDrawList->ReadPixel(mouseX, mouseY);
                 m_HoveredEntity = entityID != -1 ? Entity{(entt::entity)entityID, m_CurrentScene.Get()} : Entity{};
-
             }
             if (m_ViewportWidth != viewportPanelSize.x || m_ViewportHeight != viewportPanelSize.y)
             {
@@ -1005,7 +1007,7 @@ namespace Turbo::Ed
         if (m_ShowPhysics2DColliders)
         {
             // Box collider
-            auto bview = m_CurrentScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+            auto bview = m_CurrentScene->GroupAllEntitiesWith<BoxCollider2DComponent, TransformComponent>();
             for (auto entity : bview)
             {
                 auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
@@ -1021,10 +1023,10 @@ namespace Turbo::Ed
             }
 
             // Circle collider
-            auto cview = m_CurrentScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-            for (auto entity : cview)
+            auto circleColliders = m_CurrentScene->GroupAllEntitiesWith<CircleCollider2DComponent, TransformComponent>();
+            for (auto entity : circleColliders)
             {
-                auto& [transform, cc2d] = cview.get<TransformComponent, CircleCollider2DComponent>(entity);
+                auto& [transform, cc2d] = circleColliders.get<TransformComponent, CircleCollider2DComponent>(entity);
 
                 glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
                 glm::vec3 scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
@@ -1035,13 +1037,31 @@ namespace Turbo::Ed
             }
         }
 
+        // Icons
         if (m_ShowSceneIcons)
         {
-            auto view = m_CurrentScene->GetAllEntitiesWith<TransformComponent, PointLightComponent>();
-            for (auto entity : view)
+            // Point lights
+            auto pointlights = m_CurrentScene->GroupAllEntitiesWith<PointLightComponent, TransformComponent>();
+            for (auto entity : pointlights)
             {
-                auto& [transform, plc] = view.get<TransformComponent, PointLightComponent>(entity);
+                const auto& transform = pointlights.get<TransformComponent>(entity);
                 m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_PointLightIcon, 1.0f, (i32)entity);
+            }
+
+            // Spotlights
+            auto spotlights = m_CurrentScene->GroupAllEntitiesWith<SpotLightComponent, TransformComponent>();
+            for (auto entity : spotlights)
+            {
+                const auto& transform = spotlights.get<TransformComponent>(entity);
+                m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_SpotLightIcon, 1.0f, (i32)entity);
+            }
+
+            // Cameras
+            auto cameras = m_CurrentScene->GetAllEntitiesWith<CameraComponent, TransformComponent>();
+            for (auto entity : cameras)
+            {
+                const auto& transform = cameras.get<TransformComponent>(entity);
+                m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_CameraIcon, 1.0f, (i32)entity);
             }
         }
     }

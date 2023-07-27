@@ -15,7 +15,7 @@ namespace Turbo
         {
             u32 Set;
             u32 Binding;
-            size_t Size;
+            u64 Size;
         };
 
         UniformBuffer(const UniformBuffer::Config& config);
@@ -37,7 +37,7 @@ namespace Turbo
         UniformBufferSet();
         ~UniformBufferSet();
 
-        void Create(u32 set, u32 binding, size_t data_size);
+        void Create(u32 set, u32 binding, u64 data_size);
 
         void SetData(u32 set, u32 binding, const void* data);
 

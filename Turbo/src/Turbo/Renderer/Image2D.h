@@ -100,8 +100,8 @@ namespace Turbo
     protected:
         Image2D(const Image2D::Config& config);
     protected:
-        u32 m_Width;
-        u32 m_Height;
+        u32 m_Width = 0;
+        u32 m_Height = 0;
 
         Image2D::Config m_Config;
     };

@@ -48,7 +48,7 @@ namespace Turbo
         return m_UniformBufferMap.at(set).at(binding)[currentFrame];
     }
 
-    void UniformBufferSet::Create(u32 set, u32 binding, size_t dataSize)
+    void UniformBufferSet::Create(u32 set, u32 binding, u64 dataSize)
     {
         // Create or recreate uniform buffer
         auto& uniformBuffers = m_UniformBufferMap[set][binding];

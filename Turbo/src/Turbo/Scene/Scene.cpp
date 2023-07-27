@@ -116,7 +116,7 @@ namespace Turbo
         auto& physicsWorld2d = m_Registry.emplace<PhysicsWorld2DComponent>(m_SceneEntity, std::make_unique<PhysicsWorld2D>(glm::vec2{ 0.0f, -9.8f })).World;
 
         {
-            auto& view = GetAllEntitiesWith<Rigidbody2DComponent>();
+            auto view = m_Registry.view<Rigidbody2DComponent>();
             for (auto e : view)
             {
                 Entity entity = { e, this };
@@ -125,7 +125,7 @@ namespace Turbo
         }
 
         {
-            auto& view = GetAllEntitiesWith<BoxCollider2DComponent>();
+            auto view = m_Registry.view<BoxCollider2DComponent>();
             for (auto e : view)
             {
                 Entity entity = { e, this };
@@ -134,7 +134,7 @@ namespace Turbo
         }
 
         {
-            auto& view = GetAllEntitiesWith<CircleCollider2DComponent>();
+            auto view = m_Registry.view<CircleCollider2DComponent>();
             for (auto e : view)
             {
                 Entity entity = { e, this };
@@ -146,7 +146,7 @@ namespace Turbo
         Script::OnRuntimeStart(this);
 
         // Instantiate script instances and sets field instances
-        auto& scripts = GetAllEntitiesWith<IDComponent, ScriptComponent>();
+        auto scripts = m_Registry.view<ScriptComponent>();
         for (auto& e : scripts)
         {
             Entity entity = { e, this };
@@ -165,10 +165,10 @@ namespace Turbo
         if (audioListener)
         {
             // Send event to every audio source that scene has started
-            auto& audioSourcesView = GetAllEntitiesWith<IDComponent, AudioSourceComponent>();
-            for (auto& e : audioSourcesView)
+            auto audioSources = m_Registry.group<AudioSourceComponent>(entt::get<IDComponent>);
+            for (auto& e : audioSources)
             {
-                auto& [id, audioSource] = audioSourcesView.get<IDComponent, AudioSourceComponent>(e);
+                auto& [id, audioSource] = audioSources.get<IDComponent, AudioSourceComponent>(e);
 
                 if (audioSource.PlayOnAwake)
                 {
@@ -218,7 +218,7 @@ namespace Turbo
             world->Step(ts);
 
             // Retrieve transform from Box2D and copy settings to it
-            auto& view = GetAllEntitiesWith<Rigidbody2DComponent>();
+            auto view = m_Registry.view<Rigidbody2DComponent>();
             for (auto e : view)
             {
                 Entity entity = { e, this };
@@ -254,12 +254,12 @@ namespace Turbo
             Audio::UpdateAudioListener(transform.Translation, transform.Rotation, velocity);
 
             // Audio sources
-            auto& view = GetAllEntitiesWith<TransformComponent, AudioSourceComponent>();
-            for (auto e : view)
+            auto group = m_Registry.group<AudioSourceComponent>(entt::get<TransformComponent, IDComponent>);
+            for (auto e : group)
             {
                 Entity entity = { e, this };
 
-                auto& [id, transform, audioSourceComponent] = entity.GetComponents<IDComponent, TransformComponent, AudioSourceComponent>();
+                const auto& [transform, id, audioSourceComponent] = group.get<TransformComponent, IDComponent, AudioSourceComponent>(entity);
 
                 if (audioSourceComponent.AudioPath.empty())
                     continue;
@@ -287,7 +287,7 @@ namespace Turbo
         }
 
         // Call OnUpdate function in each script 
-        auto& view = GetAllEntitiesWith<ScriptComponent>();
+        auto view = m_Registry.view<ScriptComponent>();
         for (auto e : view)
         {
             Entity entity = { e, this };
@@ -458,10 +458,10 @@ namespace Turbo
 	Entity Scene::FindPrimaryCameraEntity()
     {
         // Find entity with camera component
-        auto& cameraComponentView = GetAllEntitiesWith<CameraComponent>();
-        for (auto entity : cameraComponentView)
+        auto view = m_Registry.view<CameraComponent>();
+        for (auto entity : view)
         {
-            auto& camera = cameraComponentView.get<CameraComponent>(entity);
+            auto& camera = view.get<CameraComponent>(entity);
 
             if (camera.IsPrimary)
             {
@@ -475,10 +475,10 @@ namespace Turbo
 
     Entity Scene::FindPrimaryAudioListenerEntity()
     {
-        auto& view = GetAllEntitiesWith<AudioListenerComponent>();
-        for (auto entity : view)
+        auto group = m_Registry.view<AudioListenerComponent>();
+        for (auto entity : group)
         {
-            auto& audioListenerComponent = view.get<AudioListenerComponent>(entity);
+            auto& audioListenerComponent = group.get<AudioListenerComponent>(entity);
 
             if (audioListenerComponent.IsPrimary)
             {
@@ -518,10 +518,10 @@ namespace Turbo
 
     Entity Scene::FindEntityByName(const std::string& name)
     {
-        auto& view = GetAllEntitiesWith<TagComponent>();
+        auto view = m_Registry.view<TagComponent>();
         for (auto e : view)
         {
-            auto& tag = m_Registry.get<TagComponent>(e).Tag;
+            auto& tag = view.get<TagComponent>(e).Tag;
 
             if (tag == name)
                 return Entity{ e, this };
@@ -534,23 +534,36 @@ namespace Turbo
     {
         // Point lights
         {
-            auto view = GetAllEntitiesWith<TransformComponent, PointLightComponent>();
-            for (auto entity : view)
+            auto group = m_Registry.group<PointLightComponent>(entt::get<TransformComponent>);
+            for (auto entity : group)
             {
-                auto& [transform, plc] = view.get<TransformComponent, PointLightComponent>(entity);
+                const auto& [transform, plc] = group.get<TransformComponent, PointLightComponent>(entity);
 
                 // Rotation does not matter, but i think scale will matter
                 // TODO: Figure out how to composose scale of the ligth and intesity
-                drawList->AddPointLight(transform.Translation, plc.Intensity, plc.Radius, plc.FallOff, (i32)entity);
+                drawList->AddPointLight(transform.Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
+            }
+        }
+
+        // Spotlights
+        {
+            auto group = m_Registry.group<SpotLightComponent>(entt::get<TransformComponent>);
+            for (auto entity : group)
+            {
+                const auto& [transform, slc] = group.get<TransformComponent, SpotLightComponent>(entity);
+                glm::vec3 direction = -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(0.0f, 0.0f, 1.0f));
+                drawList->AddLine(direction, direction * 10.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+                drawList->AddSpotLight(transform.Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
             }
         }
 
         // Static meshes
         {
-            auto view = GetAllEntitiesWith<TransformComponent, StaticMeshRendererComponent>();
-            for (auto entity : view)
+            auto group = m_Registry.group<StaticMeshRendererComponent>(entt::get<TransformComponent>);
+
+            for (auto entity : group)
             {
-                const auto& [transform, smr] = view.get<TransformComponent, StaticMeshRendererComponent>(entity);
+                const auto& [transform, smr] = group.get<TransformComponent, StaticMeshRendererComponent>(entity);
                 auto mesh = AssetManager::GetAsset<StaticMesh>(smr.Mesh);
                 if (mesh == nullptr)
                     continue;
@@ -563,11 +576,11 @@ namespace Turbo
         {
             // Sprites
             {
-                auto view = GetAllEntitiesWith<TransformComponent, SpriteRendererComponent>();
+                auto group = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
 
-                for (auto entity : view)
+                for (auto entity : group)
                 {
-                    const auto& [transform, src] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                    const auto& [transform, src] = group.get<TransformComponent, SpriteRendererComponent>(entity);
                     auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
                     drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
                 }
@@ -575,33 +588,33 @@ namespace Turbo
 
             // Circles
             {
-                auto view = GetAllEntitiesWith<TransformComponent, CircleRendererComponent>();
+                auto group = m_Registry.group<CircleRendererComponent>(entt::get<TransformComponent>);
 
-                for (auto entity : view)
+                for (auto entity : group)
                 {
-                    const auto& [transform, crc] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                    const auto& [transform, crc] = group.get<TransformComponent, CircleRendererComponent>(entity);
                     drawList->AddCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
                 }
             }
 
             // Text
             {
-                auto view = GetAllEntitiesWith<TransformComponent, TextComponent>();
+                auto group = m_Registry.group<TextComponent>(entt::get<TransformComponent>);
 
-                for (auto entity : view)
+                for (auto entity : group)
                 {
-                    const auto& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+                    const auto& [transform, tc] = group.get<TransformComponent, TextComponent>(entity);
                     drawList->AddString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
                 }
             }
 
             // Lines
             {
-                auto view = GetAllEntitiesWith<TransformComponent, LineRendererComponent>();
+                auto group = m_Registry.group<LineRendererComponent>(entt::get<TransformComponent>);
 
-                for (auto entity : view)
+                for (auto entity : group)
                 {
-                    const auto& [transform, lrc] = view.get<TransformComponent, LineRendererComponent>(entity);
+                    const auto& [transform, lrc] = group.get<TransformComponent, LineRendererComponent>(entity);
                     drawList->AddLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
                 }
             }

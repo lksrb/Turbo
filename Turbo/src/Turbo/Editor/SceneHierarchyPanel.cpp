@@ -441,6 +441,7 @@ namespace Turbo
             DisplayAddComponentEntry<TextComponent>("Text Component");
             DisplayAddComponentEntry<StaticMeshRendererComponent>("Static Mesh Renderer");
             DisplayAddComponentEntry<PointLightComponent>("Point Light");
+            DisplayAddComponentEntry<SpotLightComponent>("Spot Light");
             DisplayAddComponentEntry<AudioSourceComponent>("Audio Source Component");
             DisplayAddComponentEntry<AudioListenerComponent>("Audio Listener Component");
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
@@ -629,9 +630,18 @@ namespace Turbo
 
         Utils::DrawComponent<PointLightComponent>("Point Light", entity, [](auto& component)
         {
+            ImGui::ColorEdit3("Radiance", glm::value_ptr(component.Radiance));
             ImGui::InputFloat("Radius", &component.Radius, 0.025f);
             ImGui::InputFloat("Intensity", &component.Intensity, 0.025f);
             ImGui::InputFloat("Fall Off", &component.FallOff, 0.025f);
+        });
+
+        Utils::DrawComponent<SpotLightComponent>("Spot Light", entity, [](auto& component)
+        {
+            ImGui::ColorEdit3("Radiance", glm::value_ptr(component.Radiance));
+            ImGui::InputFloat("Intensity", &component.Intensity, 0.025f);
+            ImGui::InputFloat("Inner Cone", &component.InnerCone, 0.025f);
+            ImGui::InputFloat("Outer Cone", &component.OuterCone, 0.025f);
         });
 
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)

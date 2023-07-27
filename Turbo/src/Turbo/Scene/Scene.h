@@ -65,14 +65,10 @@ namespace Turbo
             return m_Registry.view<Components...>();
         }
 
-        template<typename Func>
-        inline void EachEntity(Func&& func)
+        template<typename Component, typename...Components>
+        inline auto GroupAllEntitiesWith()
         {
-            m_Registry.each([&](auto id)
-            {
-                Entity entity = { id, this };
-                func(entity);
-            });
+            return m_Registry.group<Component>(entt::get<Components...>);
         }
 
         Entity FindEntityByUUID(UUID uuid);

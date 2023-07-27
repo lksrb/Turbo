@@ -18,6 +18,8 @@ namespace Turbo
     class Asset
     {
     public:
+        virtual ~Asset() = default;
+
         virtual AssetType GetAssetType() const = 0;
 
         static const char* StringifyAssetType(AssetType type);

@@ -336,6 +336,7 @@ namespace Turbo
             VkImage selectionBufferAttachment = m_TargerRenderPass->GetConfig().
                 TargetFrameBuffer->GetAttachment(FrameBuffer::AttachmentType_SelectionBuffer).As<VulkanImage2D>()->GetImage();
 
+            // TODO: Abstract this
             // Handle layout transition
             {
                 VkImageMemoryBarrier imageBarrier = {};

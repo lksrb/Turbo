@@ -279,7 +279,7 @@ namespace Turbo
 
         // Sort entities
         std::map<UUID, entt::entity> sortedEntityMap;
-        auto view = m_Scene->GetAllEntitiesWith<IDComponent>();
+        auto view = m_Scene->m_Registry.view<IDComponent>();
         for (auto entity : view)
             sortedEntityMap[view.get<IDComponent>(entity).ID] = entity;
 
@@ -449,9 +449,24 @@ namespace Turbo
             out << YAML::BeginMap;
 
             auto& pointLightComponent = entity.GetComponent<PointLightComponent>();
+            out << YAML::Key << "Radiance" << YAML::Value << pointLightComponent.Radiance;
             out << YAML::Key << "Radius" << YAML::Value << pointLightComponent.Radius;
             out << YAML::Key << "Intensity" << YAML::Value << pointLightComponent.Intensity;
             out << YAML::Key << "FallOff" << YAML::Value << pointLightComponent.FallOff;
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<SpotLightComponent>())
+        {
+            out << YAML::Key << "SpotLightComponent";
+            out << YAML::BeginMap;
+
+            auto& spotLightComponent = entity.GetComponent<SpotLightComponent>();
+            out << YAML::Key << "Radiance" << YAML::Value << spotLightComponent.Radiance;
+            out << YAML::Key << "Intensity" << YAML::Value << spotLightComponent.Intensity;
+            out << YAML::Key << "InnerCone" << YAML::Value << spotLightComponent.InnerCone;
+            out << YAML::Key << "OuterCone" << YAML::Value << spotLightComponent.OuterCone;
+            
             out << YAML::EndMap;
         }
 
@@ -711,9 +726,20 @@ namespace Turbo
         if (pointLightComponent)
         {
             auto& plc = deserializedEntity.AddComponent<PointLightComponent>();
+            plc.Radiance = pointLightComponent["Radiance"].as<glm::vec3>();
             plc.Radius = pointLightComponent["Radius"].as<f32>();
             plc.Intensity = pointLightComponent["Intensity"].as<f32>();
             plc.FallOff = pointLightComponent["FallOff"].as<f32>();
+        }
+
+        auto spotLightComponent = entity["SpotLightComponent"];
+        if (spotLightComponent)
+        {
+            auto& slc = deserializedEntity.AddComponent<SpotLightComponent>();
+            slc.Radiance = spotLightComponent["Radiance"].as<glm::vec3>();
+            slc.Intensity = spotLightComponent["Intensity"].as<f32>();
+            slc.InnerCone = spotLightComponent["InnerCone"].as<f32>();
+            slc.OuterCone = spotLightComponent["OuterCone"].as<f32>();
         }
 
         auto scriptComponent = entity["ScriptComponent"];
