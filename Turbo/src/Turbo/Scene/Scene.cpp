@@ -550,9 +550,10 @@ namespace Turbo
             auto group = m_Registry.group<SpotLightComponent>(entt::get<TransformComponent>);
             for (auto entity : group)
             {
+                // TODO: Create debug cone 
                 const auto& [transform, slc] = group.get<TransformComponent, SpotLightComponent>(entity);
                 glm::vec3 direction = -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(0.0f, 0.0f, 1.0f));
-                drawList->AddLine(direction, direction * 10.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+                drawList->AddLine(transform.Translation, transform.Translation + direction * 10.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
                 drawList->AddSpotLight(transform.Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
             }
         }
