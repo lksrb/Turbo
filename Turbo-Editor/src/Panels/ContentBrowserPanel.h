@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Turbo/Editor/EditorPanel.h>
-#include <Turbo/Renderer/Texture2D.h>
+#include <Turbo/Renderer/Texture.h>
 #include <Turbo/Scene/Scene.h>
 
 namespace Turbo::Ed

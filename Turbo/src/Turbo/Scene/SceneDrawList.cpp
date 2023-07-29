@@ -32,6 +32,7 @@ namespace Turbo
         // This will be the main framebuffer
         FrameBuffer::Config frameBufferConfig = {};
         frameBufferConfig.Attachments = { FrameBuffer::AttachmentType_Color, FrameBuffer::AttachmentType_SelectionBuffer, FrameBuffer::AttachmentType_Depth };
+        frameBufferConfig.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
         m_TargetFrameBuffer = FrameBuffer::Create(frameBufferConfig);
         // Main render pass
         RenderPass::Config config = {};
@@ -50,7 +51,7 @@ namespace Turbo
         m_DrawList2D->Initialize();
 
         // NOTE: First pass should clear everything
-        // Cube pass
+        // Geometry pass
         {
             m_MeshTransformBuffer = VertexBuffer::Create(MaxTransforms * sizeof(TransformData));
 
@@ -92,8 +93,27 @@ namespace Turbo
 
         m_ContainerDiffuse = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_albedo.jpg");
         m_ContainerSpecular = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_metallic.jpg");
-
         m_CubeMaterial = Material::Create({ m_GeometryShader });
+
+        {
+            m_SkyboxShader = ShaderLibrary::Get("Skybox");
+
+            GraphicsPipeline::Config config = {};
+            config.Renderpass = m_GeometryRenderPass;
+            config.DepthTesting = true;
+            config.Shader = m_SkyboxShader;
+            config.Topology = PrimitiveTopology::Triangle;
+            config.Layout = VertexBufferLayout
+            {
+                { { AttributeType::Vec3, "a_Position" } }
+            };
+            m_SkyboxPipeline = GraphicsPipeline::Create(config);
+            m_SkyboxPipeline->Invalidate();
+
+            m_SkyboxMaterial = Material::Create({ m_SkyboxShader });
+            m_DefaultSkybox = TextureCube::Create({});
+            m_SkyboxMaterial->Set("u_TextureCube", m_DefaultSkybox);
+        }
     }
 
     void SceneDrawList::SetSceneData(const SceneRendererData& data)
@@ -109,6 +129,7 @@ namespace Turbo
             UBCamera camera;
             camera.InversedViewMatrix = data.InversedViewMatrix;
             camera.ViewProjectionMatrix = data.ViewProjectionMatrix;
+            camera.InversedViewProjectionMatrix = data.InversedViewProjectionMatrix;
 
             m_UniformBufferSet->SetData(0, 0, &camera);
         });
@@ -130,10 +151,12 @@ namespace Turbo
 
     void SceneDrawList::End()
     {
+        m_RenderCommandBuffer->Begin();
+
+        // Vertex buffers need render command buffer to copy data into GPU
         PreRender();
 
-        m_RenderCommandBuffer->Begin();
-        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_GeometryRenderPass, { 0.0f, 0.0f, 0.0f, 1 });
+        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_GeometryRenderPass);
 
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerSpecular, 1);
@@ -144,6 +167,10 @@ namespace Turbo
             auto& transformMap = m_MeshTransformMap.at(mk);
             Renderer::DrawStaticMesh(m_RenderCommandBuffer, drawCommand.Mesh, m_MeshTransformBuffer, m_UniformBufferSet, m_GeometryPipeline, transformMap.TransformOffset, drawCommand.SubmeshIndex, drawCommand.InstanceCount);
         }
+
+        // Render skybox
+        // NOTE: Not sure if rendering it here is the most efficient thing
+        Renderer::DrawSkybox(m_RenderCommandBuffer, m_SkyboxPipeline, m_UniformBufferSet);
 
         Renderer::EndRenderPass(m_RenderCommandBuffer);
 
@@ -180,7 +207,7 @@ namespace Turbo
             }
         }
 
-        m_MeshTransformBuffer->SetData(transformData.data(), transformData.size() * sizeof(TransformData));
+        m_MeshTransformBuffer->SetData(m_RenderCommandBuffer, transformData.data(), transformData.size() * sizeof(TransformData));
     }
 
     void SceneDrawList::AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity)

@@ -1,9 +1,11 @@
 #include "tbopch.h"
 #include "VulkanTexture2D.h"
 
+#include "VulkanBuffer.h"
+#include "VulkanUtils.h"
+
 #include "Turbo/Renderer/RendererContext.h"
 
-#include "Turbo/Platform/Vulkan/VulkanBuffer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #pragma warning(push, 0)
@@ -12,30 +14,6 @@
 
 namespace Turbo
 {
-    namespace Utils
-    {
-        static u32 BytesPerPixelFromFormat(ImageFormat format)
-        {
-            switch (format)
-            {
-                case ImageFormat_RGB_Unorm:
-                case ImageFormat_RGB_SRGB:
-                    return 3;
-                case ImageFormat_RGBA_SRGB:
-                case ImageFormat_RGBA_Unorm:
-                case ImageFormat_BGRA_Unorm:
-                case ImageFormat_BGRA_SRGB:
-                case ImageFormat_R_SInt:
-                    return 4;
-                case ImageFormat_RGBA32F:
-                    return 4 * 4;
-            }
-
-            TBO_ENGINE_ASSERT(false, "Invalid format!");
-            return 0;
-        }
-    }
-
     VulkanTexture2D::VulkanTexture2D(u32 color)
     {
         // Create storage for the loaded texture
@@ -57,9 +35,10 @@ namespace Turbo
             int texWidth = 0, texHeight = 0, texChannel = 0;
 
             // Vertical flip of the texture
-            stbi_set_flip_vertically_on_load(1);
 
+            stbi_set_flip_vertically_on_load(1);
             pixels = stbi_load(m_Config.Path.c_str(), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
+            stbi_set_flip_vertically_on_load(0);
 
             // Texture could not be loaded
             if (texWidth * texHeight <= 0)
@@ -83,7 +62,7 @@ namespace Turbo
             // Free pixels
             stbi_image_free(pixels);
         }
-        
+
         m_IsLoaded = true;
     }
 
@@ -92,7 +71,11 @@ namespace Turbo
     {
         // Decode png
         int width, height, channels;
+
+        // Vertical flip of the texture
+        stbi_set_flip_vertically_on_load(1);
         u8* pixels = stbi_load_from_memory((const stbi_uc*)data, (int)size, &width, &height, &channels, STBI_rgb_alpha);
+        stbi_set_flip_vertically_on_load(0);
 
         m_Config.Width = width;
         m_Config.Height = height;
@@ -126,19 +109,18 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         RendererBuffer::Config config = {};
-        config.Size = m_Config.Width * m_Config.Height * Utils::BytesPerPixelFromFormat(m_Config.Format);
+        config.Size = m_Config.Width * m_Config.Height * Vulkan::BytesPerPixelFromFormat(m_Config.Format);
         config.UsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         config.MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         config.Temporary = true;
-
         VulkanBuffer stagingBuffer(config);
         stagingBuffer.SetData(pixels);
 
         // Executing command buffers
-         // Pipeline barrier, transition image layout
+        // Pipeline barrier, transition image layout
         VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
         {
-            VkImageMemoryBarrier barrier{};
+            VkImageMemoryBarrier barrier = {};
             barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -162,67 +144,60 @@ namespace Turbo
                 1, &barrier
             );
         }
+
+        // Copy buffer to image barrier
+        {
+            VkBufferImageCopy region{};
+            region.bufferOffset = 0;
+            region.bufferRowLength = 0;
+            region.bufferImageHeight = 0;
+
+            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            region.imageSubresource.mipLevel = 0;
+            region.imageSubresource.baseArrayLayer = 0;
+            region.imageSubresource.layerCount = 1;
+
+            region.imageOffset = { 0, 0, 0 };
+            region.imageExtent = { m_Config.Width, m_Config.Height, 1 };
+
+            vkCmdCopyBufferToImage(
+                commandBuffer,
+                stagingBuffer.GetHandle(),
+                m_TextureImage.As<VulkanImage2D>()->GetImage(),
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1,
+                &region
+            );
+        }
+
+        // Pipeline barrier, transition image layout 2
+        {
+            VkImageMemoryBarrier barrier{};
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.image = m_TextureImage.As<VulkanImage2D>()->GetImage();
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            barrier.subresourceRange.baseMipLevel = 0;
+            barrier.subresourceRange.levelCount = 1;
+            barrier.subresourceRange.baseArrayLayer = 0;
+            barrier.subresourceRange.layerCount = 1;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            vkCmdPipelineBarrier(
+                commandBuffer,
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier
+            );
+        }
+
         RendererContext::FlushCommandBuffer(commandBuffer);
-        {
-            // Copy buffer to image barrier
-            VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
-            {
-                VkBufferImageCopy region{};
-                region.bufferOffset = 0;
-                region.bufferRowLength = 0;
-                region.bufferImageHeight = 0;
-
-                region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                region.imageSubresource.mipLevel = 0;
-                region.imageSubresource.baseArrayLayer = 0;
-                region.imageSubresource.layerCount = 1;
-
-                region.imageOffset = { 0, 0, 0 };
-                region.imageExtent = { m_Config.Width, m_Config.Height, 1 };
-
-                vkCmdCopyBufferToImage(
-                    commandBuffer,
-                    stagingBuffer.GetHandle(),
-                    m_TextureImage.As<VulkanImage2D>()->GetImage(),
-                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                    1,
-                    &region
-                );
-            }
-            RendererContext::FlushCommandBuffer(commandBuffer);
-        }
-
-        {
-            // Pipeline barrier, transition image layout 2
-            VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
-            {
-                VkImageMemoryBarrier barrier{};
-                barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                barrier.image = m_TextureImage.As<VulkanImage2D>()->GetImage();
-                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                barrier.subresourceRange.baseMipLevel = 0;
-                barrier.subresourceRange.levelCount = 1;
-                barrier.subresourceRange.baseArrayLayer = 0;
-                barrier.subresourceRange.layerCount = 1;
-                barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-                vkCmdPipelineBarrier(
-                    commandBuffer,
-                    VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    0,
-                    0, nullptr,
-                    0, nullptr,
-                    1, &barrier
-                );
-            }
-
-            RendererContext::FlushCommandBuffer(commandBuffer);
-        }
     }
 
     void VulkanTexture2D::CreateImage2D()

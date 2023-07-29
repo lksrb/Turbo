@@ -141,8 +141,7 @@ namespace Turbo
 
     struct LineRendererComponent
     {
-        glm::vec3 Position0{ 0.0f };
-        glm::vec3 Position1{ 0.0f };
+        glm::vec3 Destination{ 1.0f, 0.0f, 0.0f };
         glm::vec4 Color{ 1.0f };
 
         LineRendererComponent() = default;

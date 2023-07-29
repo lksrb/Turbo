@@ -5,7 +5,7 @@
 
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Asset/AssetManager.h"
-#include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Texture.h"
 #include "Turbo/Script/Script.h"
 #include "Turbo/UI/UI.h"
 #include "Turbo/UI/Widgets.h"
@@ -332,30 +332,104 @@ namespace Turbo
             if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
                 m_SelectedEntity = {};
 
+            ImGui::SetNextWindowSize(ImVec2(175, 0), ImGuiCond_Always);
             // Right-click on blank space
             if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
             {
-                if (ImGui::MenuItem("Create Empty Entity"))
+                if (ImGui::MenuItem("Create Empty"))
                     m_SelectedEntity = m_Context->CreateEntity();
 
-                if (ImGui::BeginMenu("Create 2D"))
+                if (ImGui::BeginMenu("2D"))
                 {
                     if (ImGui::MenuItem("Sprite"))
                     {
-
+                        m_SelectedEntity = m_Context->CreateEntity("Sprite");
+                        m_SelectedEntity.AddComponent<SpriteRendererComponent>();
                     }
 
+                    if (ImGui::MenuItem("Circle"))
+                    {
+                        m_SelectedEntity = m_Context->CreateEntity("Circle");
+                        m_SelectedEntity.AddComponent<CircleRendererComponent>();
+                    }
+
+                    if (ImGui::MenuItem("Line"))
+                    {
+                        m_SelectedEntity = m_Context->CreateEntity("Line");
+                        m_SelectedEntity.AddComponent<LineRendererComponent>();
+                    }
+
+                    if (ImGui::MenuItem("Text"))
+                    {
+                        // TODO: Font assets
+                        //m_SelectedEntity = m_Context->CreateEntity("Text");
+                        //m_SelectedEntity.AddComponent<TextComponent>();
+                    }
 
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Create 3D"))
+                if (ImGui::BeginMenu("3D"))
                 {
                     if (ImGui::MenuItem("Cube"))
+                    {
+                        //m_SelectedEntity = m_Context->CreateEntity("Cube");
+                        //auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        //smr.Mesh = AssetManager::ImportAsset();
+                    }
+
+                    if (ImGui::MenuItem("Cone"))
                     {
 
                     }
 
+                    if (ImGui::MenuItem("Cylinder"))
+                    {
+
+                    }
+
+                    if (ImGui::MenuItem("Plane"))
+                    {
+
+                    }
+
+                    if (ImGui::MenuItem("Sphere"))
+                    {
+
+                    }
+
+                    if (ImGui::MenuItem("Capsule"))
+                    {
+
+                    }
+
+                    if (ImGui::MenuItem("Torus"))
+                    {
+
+                    }
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Lights"))
+                {
+                    if (ImGui::MenuItem("Point Light"))
+                    {
+                        m_SelectedEntity = m_Context->CreateEntity("Point light");
+                        m_SelectedEntity.AddComponent<PointLightComponent>();
+                    }
+
+                    if (ImGui::MenuItem("Spotlight"))
+                    {
+                        m_SelectedEntity = m_Context->CreateEntity("Spotlight");
+                        m_SelectedEntity.Transform().Rotation.x = glm::radians(-90.0f);
+                        m_SelectedEntity.AddComponent<SpotLightComponent>();
+                    }
+
+                    if (ImGui::MenuItem("Directional Light"))
+                    {
+                        // TODO:
+                    }
                     ImGui::EndMenu();
                 }
 
@@ -525,8 +599,7 @@ namespace Turbo
 
         Utils::DrawComponent<LineRendererComponent>("Line Renderer", entity, [](auto& component)
         {
-            ImGui::DragFloat3("Position 0", glm::value_ptr(component.Position0), 0.5f);
-            ImGui::DragFloat3("Position 1", glm::value_ptr(component.Position1), 0.5f);
+            ImGui::DragFloat3("Destination", glm::value_ptr(component.Destination), 0.5f);
             ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
         });
 

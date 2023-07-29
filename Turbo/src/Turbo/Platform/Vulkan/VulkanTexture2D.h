@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Texture.h"
 #include "Turbo/Renderer/Image2D.h"
 
 #include "Turbo/Platform/Vulkan/VulkanImage2D.h"

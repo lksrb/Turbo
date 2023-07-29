@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Turbo/Renderer/Shader.h"
-#include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Texture.h"
 #include "Turbo/Renderer/RendererBuffer.h"
 
 #include <glm/glm.hpp>
@@ -22,6 +22,7 @@ namespace Turbo
         virtual void Set(const std::string& resourceName, const glm::mat4& matrix) = 0;
         virtual void Set(const std::string& resourceName, const void* data, size_t size) = 0;
         virtual void Set(const std::string& resourceName, const Ref<Texture2D>& texture, u32 index) = 0;
+        virtual void Set(const std::string& resourceName, const Ref<TextureCube>& texture) = 0;
 
         virtual void Update() = 0;
     protected:

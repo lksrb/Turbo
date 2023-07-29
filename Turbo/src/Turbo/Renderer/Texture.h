@@ -20,10 +20,10 @@ namespace Turbo
             u32 Width = 1;
             u32 Height = 1;
         };
-        
+
         Texture2D() = default;
         Texture2D(const Texture2D::Config& config);
-        virtual ~Texture2D();
+        virtual ~Texture2D() = default;
 
         static Ref<Texture2D> Create(const Texture2D::Config& config, const void* data, u64 size);
         static Ref<Texture2D> Create(const std::string& filepath);
@@ -45,5 +45,26 @@ namespace Turbo
     protected:
         bool m_IsLoaded = false;
         Texture2D::Config m_Config;
+    };
+
+    class TextureCube : public Asset
+    {
+    public:
+        struct Config
+        {
+            std::string Path; // Path to one file that contains all 6 texture (something like minecraft)
+            u32 Width = 1;
+            u32 Height = 1;
+        };
+
+        TextureCube(const TextureCube::Config& config);
+        virtual ~TextureCube() = default;
+
+        static Ref<TextureCube> Create(const TextureCube::Config& config);
+
+        const TextureCube::Config& GetConfig() const { return m_Config; }
+        AssetType GetAssetType() const override { return AssetType_Count; /* TODO: Create asset */ };
+    protected:
+        TextureCube::Config m_Config;
     };
 }

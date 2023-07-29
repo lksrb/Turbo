@@ -5,18 +5,14 @@
 
 namespace Turbo
 {
-    IndexBuffer::IndexBuffer(const IndexBuffer::Config& config)
-        : m_Config(config)
+    Ref<IndexBuffer> IndexBuffer::Create(const std::vector<u32>& indices)
     {
+        return IndexBuffer::Create(indices.data(), (u32)indices.size());
     }
 
-    IndexBuffer::~IndexBuffer()
+    Ref<IndexBuffer> IndexBuffer::Create(const u32* indices, u32 count)
     {
-    }
-
-    Ref<IndexBuffer> IndexBuffer::Create(const IndexBuffer::Config& config)
-    {
-        return Ref<VulkanIndexBuffer>::Create(config);
+        return Ref<VulkanIndexBuffer>::Create(indices, count);
     }
 
 }

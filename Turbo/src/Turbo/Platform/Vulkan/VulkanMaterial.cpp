@@ -5,6 +5,7 @@
 
 #include "VulkanShader.h"
 #include "VulkanTexture2D.h"
+#include "VulkanTextureCube.h"
 
 namespace Turbo
 {
@@ -56,6 +57,26 @@ namespace Turbo
         vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
     }
 
+    void VulkanMaterial::Set(const std::string& resourceName, const Ref<TextureCube>& texture)
+    {
+        VkDevice device = RendererContext::GetDevice();
+
+        // Find specific resource write descriptor
+        auto& resource = m_DescriptorWrites.find(resourceName.c_str());
+        TBO_ENGINE_ASSERT(resource != m_DescriptorWrites.end()); // No such descriptor exists
+
+        auto vkTextureCube = texture.As<VulkanTextureCube>();
+
+        auto& descWrite = m_DescriptorWrites[resourceName];
+        VkDescriptorImageInfo imageInfo = {};
+        imageInfo.sampler = vkTextureCube->GetSampler();
+        imageInfo.imageView = vkTextureCube->GetImageView();
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        descWrite.pImageInfo = &imageInfo;
+
+        vkUpdateDescriptorSets(device, 1, &descWrite, 0, nullptr);
+    }
+
     void VulkanMaterial::Update()
     {
         // Invalidate descriptor sets
@@ -67,7 +88,7 @@ namespace Turbo
 
         // Creating default samplers, because Vulkan does not support empty samplers (only if extension is enabled, which is a bit problematic)
         VkSampler defaultSampler = VK_NULL_HANDLE;
-        VkSamplerCreateInfo samplerInfo{};
+        VkSamplerCreateInfo samplerInfo = {};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
         samplerInfo.magFilter = VK_FILTER_LINEAR;
         samplerInfo.minFilter = VK_FILTER_LINEAR;
@@ -98,35 +119,6 @@ namespace Turbo
         Ref<VulkanShader> shader = m_Config.MaterialShader.As<VulkanShader>();
         VulkanShader::Resources resources = shader->GetResources();
         {
-#if OLD
-            // Uniform buffers
-            for (auto& uniformBuffer : resources.UniformBuffers)
-            {
-                // Create new vulkan buffer for resource
-                RendererBuffer::Config bufferConfig = {};
-                bufferConfig.Size = uniformBuffer.Size;
-                bufferConfig.UsageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-                bufferConfig.MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-                m_UniformBufferMap[uniformBuffer.Name] = Ref<VulkanBuffer>::Create(bufferConfig);
-
-                VkDescriptorBufferInfo bufferInfo{};
-                bufferInfo.buffer = m_UniformBufferMap[uniformBuffer.Name]->GetHandle();
-                bufferInfo.offset = 0;
-                bufferInfo.range = uniformBuffer.Size;
-
-                VkWriteDescriptorSet descriptorWrite = {};
-                descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrite.dstSet = shader->GetDescriptorSet();
-                descriptorWrite.dstBinding = uniformBuffer.Binding;
-                descriptorWrite.dstArrayElement = 0;
-                descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                descriptorWrite.descriptorCount = 1;
-                descriptorWrite.pBufferInfo = &bufferInfo;
-
-                vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
-            }
-#endif
-
             // Texture samplers
             if(resources.TextureSamplerArray.Size)
             {
@@ -140,7 +132,7 @@ namespace Turbo
                     m_TextureDescriptorInfos[i].sampler = defaultSampler;
                 }
 
-                VkWriteDescriptorSet descriptorWrite{};
+                VkWriteDescriptorSet descriptorWrite = {};
                 descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 descriptorWrite.dstSet = shader->GetDescriptorSet();
                 descriptorWrite.dstBinding = resources.TextureSamplerArray.Binding;
@@ -152,6 +144,27 @@ namespace Turbo
                 vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 
                 m_DescriptorWrites[resources.TextureSamplerArray.Name] = descriptorWrite;
+            }
+
+            for (auto& samplerCubeInfo : resources.SamplerCubeInfos)
+            {
+                VkDescriptorImageInfo imageInfo = {};
+                imageInfo.sampler = defaultSampler;
+                imageInfo.imageView = nullptr;
+                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                VkWriteDescriptorSet descriptorWrite = {};
+                descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrite.dstSet = shader->GetDescriptorSet();
+                descriptorWrite.dstBinding = samplerCubeInfo.Binding;
+                descriptorWrite.dstArrayElement = 0;
+                descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                descriptorWrite.descriptorCount = 1;
+                descriptorWrite.pImageInfo = &imageInfo;
+
+                vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+
+                m_DescriptorWrites[samplerCubeInfo.Name] = descriptorWrite;
             }
         }
     }

@@ -26,7 +26,7 @@ namespace Turbo
             VkFenceCreateInfo fence_create_info = {};
             fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
             fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-            for (auto& fence : m_WaitFences) 
+            for (auto& fence : m_WaitFences)
             {
                 TBO_VK_ASSERT(vkCreateFence(device, &fence_create_info, nullptr, &fence));
             }
@@ -54,35 +54,42 @@ namespace Turbo
 
     void VulkanRenderCommandBuffer::Begin()
     {
-        Renderer::Submit([this]()
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        VkCommandBuffer commandBuffer = m_CommandBuffers[currentFrame];
+        VkFence waitFence = m_WaitFences[currentFrame];
+
+        Renderer::Submit([commandBuffer, waitFence]()
         {
             VkDevice device = RendererContext::GetDevice();
-            u32 currentFrame = Renderer::GetCurrentFrame();
 
-            TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_WaitFences[currentFrame], VK_TRUE, UINT64_MAX));
-            TBO_VK_ASSERT(vkResetFences(device, 1, &m_WaitFences[currentFrame]));
+            TBO_VK_ASSERT(vkWaitForFences(device, 1, &waitFence, VK_TRUE, UINT64_MAX));
+            TBO_VK_ASSERT(vkResetFences(device, 1, &waitFence));
 
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.pNext = nullptr;
             beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
             beginInfo.pInheritanceInfo = nullptr;
-            TBO_VK_ASSERT(vkBeginCommandBuffer(m_CommandBuffers[currentFrame], &beginInfo));
+            TBO_VK_ASSERT(vkBeginCommandBuffer(commandBuffer, &beginInfo));
         });
     }
 
     void VulkanRenderCommandBuffer::End()
     {
-        Renderer::Submit([this]()
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        VkCommandBuffer commandBuffer = m_CommandBuffers[currentFrame];
+        Renderer::Submit([commandBuffer]()
         {
-            u32 currentFrame = Renderer::GetCurrentFrame();
-            TBO_VK_ASSERT(vkEndCommandBuffer(m_CommandBuffers[currentFrame]));
+            TBO_VK_ASSERT(vkEndCommandBuffer(commandBuffer));
         });
     }
 
     void VulkanRenderCommandBuffer::Submit()
     {
-        Renderer::Submit([this]()
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        VkCommandBuffer commandBuffer = m_CommandBuffers[currentFrame];
+        VkFence waitFence = m_WaitFences[currentFrame];
+        Renderer::Submit([commandBuffer, waitFence]()
         {
             VkDevice device = RendererContext::GetDevice();
             u32 currentFrame = Renderer::GetCurrentFrame();
@@ -90,9 +97,9 @@ namespace Turbo
 
             VkSubmitInfo submit_info = {};
             submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submit_info.pCommandBuffers = &m_CommandBuffers[currentFrame];
+            submit_info.pCommandBuffers = &commandBuffer;
             submit_info.commandBufferCount = 1;
-            TBO_VK_ASSERT(vkQueueSubmit(graphicsQueue, 1, &submit_info, m_WaitFences[currentFrame]));
+            TBO_VK_ASSERT(vkQueueSubmit(graphicsQueue, 1, &submit_info, waitFence));
         });
     }
 

@@ -9,8 +9,8 @@ namespace Turbo
     class VulkanIndexBuffer : public IndexBuffer
     {
     public:
-        VulkanIndexBuffer(const IndexBuffer::Config& config);
-        ~VulkanIndexBuffer();
+        VulkanIndexBuffer(const u32* indices, u32 count);
+        ~VulkanIndexBuffer() = default;
         
         VkBuffer GetHandle() const { return m_Buffer; }
     private:

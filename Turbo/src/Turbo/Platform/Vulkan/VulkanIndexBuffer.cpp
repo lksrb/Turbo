@@ -7,9 +7,10 @@
 
 namespace Turbo
 {
-    VulkanIndexBuffer::VulkanIndexBuffer(const IndexBuffer::Config& config)
-        : IndexBuffer(config)
+    VulkanIndexBuffer::VulkanIndexBuffer(const u32* indices, u32 count)
     {
+        m_Size = count * sizeof(u32);
+
         VkDevice device = RendererContext::GetDevice();
 
         // Staging buffer
@@ -19,7 +20,7 @@ namespace Turbo
             VkBufferCreateInfo stagingCreateInfo = {};
             stagingCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
             stagingCreateInfo.pNext = nullptr;
-            stagingCreateInfo.size = m_Config.Size;
+            stagingCreateInfo.size = m_Size;
             stagingCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
             stagingCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -31,7 +32,7 @@ namespace Turbo
             VkMemoryAllocateInfo allocateInfo = {};
             allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocateInfo.pNext = nullptr;
-            allocateInfo.allocationSize = m_Config.Size;
+            allocateInfo.allocationSize = m_Size;
             allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequiremets.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
             TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &stagingBufferMemory));
@@ -43,7 +44,7 @@ namespace Turbo
             VkBufferCreateInfo createInfo = {};
             createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
             createInfo.pNext = nullptr;
-            createInfo.size = m_Config.Size;
+            createInfo.size = m_Size;
             createInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
             createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -55,7 +56,7 @@ namespace Turbo
             VkMemoryAllocateInfo allocateInfo = {};
             allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocateInfo.pNext = nullptr;
-            allocateInfo.allocationSize = m_Config.Size;
+            allocateInfo.allocationSize = m_Size;
             allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequiremets.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
             TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_BufferMemory));
@@ -65,21 +66,21 @@ namespace Turbo
         // Set data into the staging buffer
         {
             void* data;
-            vkMapMemory(device, stagingBufferMemory, 0, m_Config.Size, 0, &data);
-            memcpy(data, m_Config.Indices, m_Config.Size);
+            vkMapMemory(device, stagingBufferMemory, 0, m_Size, 0, &data);
+            memcpy(data, indices, m_Size);
             vkUnmapMemory(device, stagingBufferMemory);
         }
 
         // Transfer indices immediately to GPU
-        RendererContext::ImmediateSubmit([this, stagingBuffer](VkCommandBuffer buffer)
+        RendererContext::ImmediateSubmit([this, stagingBuffer](VkCommandBuffer commandBuffer)
         {
             VkDevice device = RendererContext::GetDevice();
 
             VkBufferCopy copyRegion{};
             copyRegion.srcOffset = 0; // Optional
             copyRegion.dstOffset = 0; // Optional
-            copyRegion.size = m_Config.Size;
-            vkCmdCopyBuffer(buffer, stagingBuffer, m_Buffer, 1, &copyRegion);
+            copyRegion.size = m_Size;
+            vkCmdCopyBuffer(commandBuffer, stagingBuffer, m_Buffer, 1, &copyRegion);
         });
 
         // Destroy staging buffer
@@ -93,9 +94,5 @@ namespace Turbo
             vkDestroyBuffer(device, buffer, nullptr);
             vkFreeMemory(device, bufferMemory, nullptr);
         });
-    }
-
-    VulkanIndexBuffer::~VulkanIndexBuffer()
-    {
     }
 }

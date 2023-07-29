@@ -3,38 +3,10 @@
 
 #include "Turbo/Renderer/RendererContext.h"
 
+#include "Turbo/Platform/Vulkan/VulkanUtils.h"
+
 namespace Turbo
 {
-    namespace Utils
-    {
-        static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-        {
-            VkDevice device = RendererContext::GetDevice();
-
-            VkPhysicalDeviceMemoryProperties memProperties;
-            vkGetPhysicalDeviceMemoryProperties(RendererContext::GetPhysicalDevice(), &memProperties);
-            for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-            {
-                if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-                {
-                    return i;
-                }
-            }
-
-            for (uint32_t i = 0; i < memProperties.memoryHeapCount; i++)
-            {
-                if ((typeFilter & (1 << i)) && (memProperties.memoryHeaps[i].flags & properties) == properties)
-                {
-                    return i;
-                }
-            }
-
-
-            TBO_ENGINE_ASSERT(false, "Could not find proper memory type.");
-            return 0;
-        }
-    }
-
     // For debug purposes
     static std::vector<VulkanImage2D*> s_LiveInstances;
 
@@ -92,10 +64,6 @@ namespace Turbo
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        VkFormatProperties validProperties;
-        vkGetPhysicalDeviceFormatProperties(RendererContext::GetPhysicalDevice(), static_cast<VkFormat>(m_Config.Format), &validProperties);
-
         TBO_VK_ASSERT(vkCreateImage(device, &imageCreateInfo, nullptr, &m_Image));
 
         // Image memory
@@ -105,13 +73,13 @@ namespace Turbo
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
 
-        allocInfo.memoryTypeIndex = Utils::FindMemoryType(memRequirements.memoryTypeBits, m_Config.MemoryStorage);
+        allocInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequirements.memoryTypeBits, m_Config.MemoryStorage);
 
         TBO_VK_ASSERT(vkAllocateMemory(device, &allocInfo, nullptr, &m_ImageMemory));
         TBO_VK_ASSERT(vkBindImageMemory(device, m_Image, m_ImageMemory, 0));
 
         // Image view
-        VkImageViewCreateInfo createInfo{};
+        VkImageViewCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         createInfo.image = m_Image;
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -120,27 +88,23 @@ namespace Turbo
         createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        VkImageSubresourceRange image_range = { m_Config.Aspect, 0, 1, 0, 1 };
-        createInfo.subresourceRange = image_range;
+        createInfo.subresourceRange = { m_Config.Aspect, 0, 1, 0, 1 };
         TBO_VK_ASSERT(vkCreateImageView(device, &createInfo, nullptr, &m_ImageView));
 
         // Sampler
-        VkSamplerCreateInfo samplerInfo{};
+        VkSamplerCreateInfo samplerInfo = {};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
         samplerInfo.magFilter = static_cast<VkFilter>(m_Config.Filter);
         samplerInfo.minFilter = static_cast<VkFilter>(m_Config.Filter);
         samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-        /*samplerInfo.anisotropyEnable = VK_TRUE;
-        samplerInfo.maxAnisotropy = device->GetPhysicalDevice().GetSupportDetails().Properties.limits.maxSamplerAnisotropy;*/
         samplerInfo.anisotropyEnable = VK_FALSE;
         samplerInfo.maxAnisotropy = 1.0f;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
         samplerInfo.unnormalizedCoordinates = VK_FALSE;
         samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
 
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
         samplerInfo.mipLodBias = 0.0f;

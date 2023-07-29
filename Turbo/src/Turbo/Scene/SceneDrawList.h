@@ -93,6 +93,7 @@ namespace Turbo
         struct UBCamera
         {
             glm::mat4 ViewProjectionMatrix;
+            glm::mat4 InversedViewProjectionMatrix;
             glm::mat4 InversedViewMatrix;
         };
 
@@ -188,6 +189,10 @@ namespace Turbo
         SceneRendererData m_SceneRendererData;
 
         LightEnvironment m_LightEnvironment;
+        Ref<Material> m_SkyboxMaterial;
+        Ref<Shader> m_SkyboxShader;
+        Ref<GraphicsPipeline> m_SkyboxPipeline;
+        Ref<TextureCube> m_DefaultSkybox;
 
         Ref<Shader> m_GeometryShader;
         Ref<GraphicsPipeline> m_GeometryPipeline;

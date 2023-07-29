@@ -5,18 +5,13 @@
 
 namespace Turbo
 {
-    VertexBuffer::VertexBuffer(const VertexBuffer::Config& config)
-        : m_Config(config)
+    Ref<VertexBuffer> VertexBuffer::Create(const void* vertices, u64 size)
     {
+        return Ref<VulkanVertexBuffer>::Create(vertices, size);
     }
 
-    Ref<VertexBuffer> VertexBuffer::Create(const VertexBuffer::Config& config)
+    Ref<VertexBuffer> VertexBuffer::Create(u64 size)
     {
-        return Ref<VulkanVertexBuffer>::Create(config);
+        return Ref<VulkanVertexBuffer>::Create(nullptr, size);
     }
-
-    VertexBuffer::~VertexBuffer()
-    {
-    }
-
 }

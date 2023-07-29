@@ -75,5 +75,4 @@ namespace Turbo
     {
         memcpy(m_Data, data, m_Config.Size);
     }
-
 }

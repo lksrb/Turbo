@@ -7,7 +7,7 @@
 #include "IndexBuffer.h"
 #include "Image2D.h"
 #include "Material.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "RendererContext.h"
 #include "RenderPass.h"
 #include "FrameBuffer.h"
@@ -24,6 +24,7 @@ namespace Turbo
     struct SceneRendererData
     {
         glm::mat4 ViewProjectionMatrix = glm::mat4(1.0f);
+        glm::mat4 InversedViewProjectionMatrix = glm::mat4(1.0f);
         glm::mat4 InversedViewMatrix = glm::mat4(1.0f);
         glm::mat4 ViewMatrix = glm::mat4(1.0f);
     };
@@ -199,7 +200,6 @@ namespace Turbo
         Fly<Ref<RendererBuffer>> m_SelectionBuffers;
 
         SceneRendererData m_SceneData;
-        glm::vec4 m_ClearColor = glm::vec4{ 0.0f };
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }

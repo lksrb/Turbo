@@ -26,4 +26,4 @@
 #include "Turbo/Solution/Project.h"
 
 #include "Turbo/Renderer/EditorCamera.h"
-#include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Texture.h"

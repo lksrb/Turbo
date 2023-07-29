@@ -23,6 +23,7 @@ namespace Turbo
         s_ShaderLibrary.LoadedShaders["Renderer2D_Line"] = Shader::Create({ ShaderLanguage::GLSL, "Resources/Shaders/Renderer2D_Line.glsl" });
         s_ShaderLibrary.LoadedShaders["Renderer2D_Text"] = Shader::Create({ ShaderLanguage::GLSL, "Resources/Shaders/Renderer2D_Text.glsl" });
         s_ShaderLibrary.LoadedShaders["StaticMesh"] = Shader::Create({ ShaderLanguage::GLSL, "Resources/Shaders/StaticMesh.glsl" });
+        s_ShaderLibrary.LoadedShaders["Skybox"] = Shader::Create({ ShaderLanguage::GLSL, "Resources/Shaders/Skybox.glsl" });
 
         for (auto& [_, shader] : s_ShaderLibrary.LoadedShaders)
         {

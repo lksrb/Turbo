@@ -94,7 +94,7 @@ namespace Turbo::Ed
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             UI::ScopedStyleColor buttonColor(ImGuiCol_Button, { 0.2f, 0.3f, 0.8f, 0.8f }, selected);
             UI::ScopedStyleColor buttonHoveredColor(ImGuiCol_ButtonHovered, { 0.2f, 0.3f, 0.8f, 0.6f }, selected);
-            if (UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, { 0,0 }, { 1,1 }))
+            if (UI::ImageButton(icon, { thumbnailSize, thumbnailSize }, ImVec2(0, 1), ImVec2(1, 0)))
             {
                 s_SelectedPath = path;
             }

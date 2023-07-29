@@ -18,6 +18,7 @@ namespace Turbo
         void Set(const std::string& resourceName, const glm::mat4& matrix) override;
         void Set(const std::string& resourceName, const void* data, size_t size) override;
         void Set(const std::string& resourceName, const Ref<Texture2D>& texture, u32 index) override;
+        void Set(const std::string& resourceName, const Ref<TextureCube>& texture) override;
 
         void Update() override;
     private:

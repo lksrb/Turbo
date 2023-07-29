@@ -44,6 +44,13 @@ namespace Turbo
             u32 Size = 0;
         };
 
+        struct SamplerCubeInfo
+        {
+            std::string Name;
+            u32 Binding;
+            u32 DescriptorSet;
+        };
+
         struct PushConstantRange
         {
             u32 Offset;
@@ -55,6 +62,7 @@ namespace Turbo
         {
             std::vector<UniformBufferInfo> UniformBuffers;
             TextureSamplerArrayInfo TextureSamplerArray;
+            std::vector<SamplerCubeInfo> SamplerCubeInfos;
             std::vector<PushConstantRange> PushConstantRanges;
         };
 

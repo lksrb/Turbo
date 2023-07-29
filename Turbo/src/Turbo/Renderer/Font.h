@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Texture.h"
 
 #include <filesystem>
 

@@ -28,9 +28,6 @@ namespace Turbo
         // Render command buffer
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
 
-        // Default clear color
-        m_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-
         auto window = Engine::Get().GetViewportWindow();
         m_ViewportWidth = window->GetWidth();
         m_ViewportHeight = window->GetHeight();
@@ -262,7 +259,26 @@ namespace Turbo
     void DrawList2D::End()
     {
         m_RenderCommandBuffer->Begin();
-        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargerRenderPass, m_ClearColor);
+
+        // NOTE: Vertex buffers need render command buffer to copy data into GPU so they dont have to create their own
+        // SetData - vkCmdCopyBuffer
+        // Quads
+        u32 dataSize = (u32)((u8*)m_QuadVertexBufferPointer - (u8*)m_QuadVertexBufferBase);
+        m_QuadVertexBuffer->SetData(m_RenderCommandBuffer, m_QuadVertexBufferBase, dataSize);
+
+        // Circles
+        dataSize = (u32)((u8*)m_CircleVertexBufferPointer - (u8*)m_CircleVertexBufferBase);
+        m_CircleVertexBuffer->SetData(m_RenderCommandBuffer, m_CircleVertexBufferBase, dataSize);
+
+        // Lines
+        dataSize = (u32)((u8*)m_LineVertexBufferPointer - (u8*)m_LineVertexBufferBase);
+        m_LineVertexBuffer->SetData(m_RenderCommandBuffer, m_LineVertexBufferBase, dataSize);
+
+        // Text
+        dataSize = (u32)((u8*)m_TextVertexBufferPointer - (u8*)m_TextVertexBufferBase);
+        m_TextVertexBuffer->SetData(m_RenderCommandBuffer, m_TextVertexBufferBase, dataSize);
+
+        Renderer::BeginRenderPass(m_RenderCommandBuffer, m_TargerRenderPass);
 
         // Quads
         if (m_QuadIndexCount)
@@ -276,9 +292,6 @@ namespace Turbo
                     m_QuadMaterial->Set("u_Textures", m_WhiteTexture, i);
             }
 
-            u32 dataSize = (u32)((u8*)m_QuadVertexBufferPointer - (u8*)m_QuadVertexBufferBase);
-            m_QuadVertexBuffer->SetData(m_QuadVertexBufferBase, dataSize);
-
             Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
 
             m_Statistics.DrawCalls++;
@@ -287,9 +300,6 @@ namespace Turbo
         // Circles
         if (m_CircleIndexCount)
         {
-            u32 dataSize = (u32)((u8*)m_CircleVertexBufferPointer - (u8*)m_CircleVertexBufferBase);
-            m_CircleVertexBuffer->SetData(m_CircleVertexBufferBase, dataSize);
-
             Renderer::DrawIndexed(m_RenderCommandBuffer, m_CircleVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_CirclePipeline, m_CircleShader, m_CircleIndexCount);
             m_Statistics.DrawCalls++;
         }
@@ -297,9 +307,6 @@ namespace Turbo
         // Lines
         if (m_LineVertexCount)
         {
-            u32 dataSize = (u32)((u8*)m_LineVertexBufferPointer - (u8*)m_LineVertexBufferBase);
-            m_LineVertexBuffer->SetData(m_LineVertexBufferBase, dataSize);
-
             Renderer::SetLineWidth(m_RenderCommandBuffer, m_LineWidth);
             Renderer::Draw(m_RenderCommandBuffer, m_LineVertexBuffer, m_UniformBufferSet, m_LinePipeline, m_LineShader, m_LineVertexCount);
             m_Statistics.DrawCalls++;
@@ -316,9 +323,6 @@ namespace Turbo
                 else
                     m_TextMaterial->Set("u_Textures", Font::GetDefaultFont()->GetAtlasTexture(), i);
             }
-
-            u32 dataSize = (u32)((u8*)m_TextVertexBufferPointer - (u8*)m_TextVertexBufferBase);
-            m_TextVertexBuffer->SetData(m_TextVertexBufferBase, dataSize);
 
             Renderer::DrawIndexed(m_RenderCommandBuffer, m_TextVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_TextPipeline, m_TextShader, m_TextIndexCount);
             m_Statistics.DrawCalls++;

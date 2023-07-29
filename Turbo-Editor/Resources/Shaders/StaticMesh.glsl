@@ -19,6 +19,7 @@ layout(location = 7) in int a_EntityID;
 layout(std140, set = 0, binding = 0) uniform Camera 
 {
     mat4 u_ViewProjection;
+    mat4 u_InversedViewProjection;
     mat4 u_InversedViewMatrix;
 };
 

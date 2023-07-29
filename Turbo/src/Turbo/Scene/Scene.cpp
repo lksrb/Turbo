@@ -202,6 +202,7 @@ namespace Turbo
             rendererData.ViewProjectionMatrix = editorCamera.GetViewProjection();
             rendererData.ViewMatrix = cameraView;
             rendererData.InversedViewMatrix = glm::inverse(cameraView);
+            rendererData.InversedViewProjectionMatrix = glm::inverse(rendererData.ViewProjectionMatrix);
             drawList->SetSceneData(rendererData);
 
             RenderScene(drawList);
@@ -314,12 +315,13 @@ namespace Turbo
             glm::mat4 cameraTransform = cameraEntity.Transform().GetTransform();
             glm::mat4 inversedCameraTransform = cameraEntity.Transform().GetTransform();
             camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-            camera.SetViewMatrix(glm::inverse(cameraEntity.Transform().GetTransform()));
+            camera.SetViewMatrix(glm::inverse(inversedCameraTransform));
 
             SceneRendererData rendererData = {};
             rendererData.ViewProjectionMatrix = camera.GetViewProjection();
             rendererData.InversedViewMatrix = inversedCameraTransform;
             rendererData.ViewMatrix = glm::inverse(inversedCameraTransform);
+            rendererData.InversedViewProjectionMatrix = glm::inverse(rendererData.ViewProjectionMatrix);
             drawList->SetSceneData(rendererData);
 
             RenderScene(drawList);
@@ -616,7 +618,7 @@ namespace Turbo
                 for (auto entity : group)
                 {
                     const auto& [transform, lrc] = group.get<TransformComponent, LineRendererComponent>(entity);
-                    drawList->AddLine(lrc.Position0, lrc.Position1, lrc.Color, (i32)entity);
+                    drawList->AddLine(transform.Translation, lrc.Destination, lrc.Color, (i32)entity);
                 }
             }
         }

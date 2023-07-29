@@ -77,29 +77,16 @@
 			}
 		}
 
-		public Vector3 Position0
+		public Vector3 Destination
 		{
 			get
 			{
-				InternalCalls.Component_LineRenderer_Get_Position0(Entity.ID, out Vector3 position0);
-				return position0;
-			}
-			set
-			{
-				InternalCalls.Component_LineRenderer_Set_Position0(Entity.ID, ref value);
-			}
-		}
-
-		public Vector3 Position1
-		{
-			get
-			{
-				InternalCalls.Component_LineRenderer_Get_Position1(Entity.ID, out Vector3 position1);
+				InternalCalls.Component_LineRenderer_Get_Destination(Entity.ID, out Vector3 position1);
 				return position1;
 			}
 			set
 			{
-				InternalCalls.Component_LineRenderer_Set_Position1(Entity.ID, ref value);
+				InternalCalls.Component_LineRenderer_Set_Destination(Entity.ID, ref value);
 			}
 		}
 	}

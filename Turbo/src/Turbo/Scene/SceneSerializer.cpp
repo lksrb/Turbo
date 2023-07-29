@@ -397,8 +397,7 @@ namespace Turbo
             out << YAML::BeginMap;
 
             auto& lineRendererComponent = entity.GetComponent<LineRendererComponent>();
-            out << YAML::Key << "Position0" << YAML::Value << lineRendererComponent.Position0;
-            out << YAML::Key << "Position1" << YAML::Value << lineRendererComponent.Position1;
+            out << YAML::Key << "Destination" << YAML::Value << lineRendererComponent.Destination;
             out << YAML::Key << "Color" << YAML::Value << lineRendererComponent.Color;
 
             out << YAML::EndMap;
@@ -673,8 +672,7 @@ namespace Turbo
         if (lineRendererComponent)
         {
             auto& lrc = deserializedEntity.AddComponent<LineRendererComponent>();
-            lrc.Position0 = lineRendererComponent["Position0"].as<glm::vec3>();
-            lrc.Position1 = lineRendererComponent["Position1"].as<glm::vec3>();
+            lrc.Destination = lineRendererComponent["Destination"].as<glm::vec3>();
             lrc.Color = lineRendererComponent["Color"].as<glm::vec4>();
         }
 

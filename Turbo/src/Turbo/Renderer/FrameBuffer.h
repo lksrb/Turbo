@@ -4,6 +4,8 @@
 
 #include "Turbo/Renderer/Image2D.h"
 
+#include <glm/glm.hpp>
+
 namespace Turbo
 {
     class RenderPass;
@@ -14,9 +16,9 @@ namespace Turbo
         enum AttachmentType : u32
         {
             AttachmentType_Color = 0,
-            AttachmentType_SelectionBuffer,
-            AttachmentType_Depth,
-            AttachmentType_Count
+            AttachmentType_SelectionBuffer = 1,
+            AttachmentType_Depth = 2,
+            AttachmentType_Count = 3
         };
 
         struct Attachment
@@ -32,6 +34,8 @@ namespace Turbo
         struct Config
         {
             std::vector<Attachment> Attachments;
+            glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+
             u32 Width;
             u32 Height;
         };

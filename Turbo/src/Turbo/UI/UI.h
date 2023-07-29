@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Turbo/Renderer/Image2D.h"
-#include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Texture.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>

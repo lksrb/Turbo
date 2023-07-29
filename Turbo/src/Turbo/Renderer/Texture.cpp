@@ -1,16 +1,13 @@
 #include "tbopch.h"
-#include "Texture2D.h"
+#include "Texture.h"
 
 #include "Turbo/Platform/Vulkan/VulkanTexture2D.h"
+#include "Turbo/Platform/Vulkan/VulkanTextureCube.h"
 
 namespace Turbo
 {
     Texture2D::Texture2D(const Texture2D::Config& config)
         : m_Config(config)
-    {
-    }
-
-    Texture2D::~Texture2D()
     {
     }
 
@@ -35,4 +32,15 @@ namespace Turbo
     {
         return Ref<VulkanTexture2D>::Create(config);
     }
+
+    TextureCube::TextureCube(const TextureCube::Config& config)
+        : m_Config(config)
+    {
+    }
+
+    Ref<TextureCube> TextureCube::Create(const TextureCube::Config& config)
+    {
+        return Ref<VulkanTextureCube>::Create(config);
+    }
+
 }

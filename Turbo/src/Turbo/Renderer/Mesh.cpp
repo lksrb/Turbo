@@ -86,9 +86,7 @@ namespace Turbo
         ProcessNode(scene, scene->mRootNode);
 
         // Allocate GPU resources
-        m_VertexBuffer = VertexBuffer::Create({ m_Vertices.size() * sizeof(Vertex) });
-        m_VertexBuffer->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
-
+        m_VertexBuffer = VertexBuffer::Create(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
         m_IndexBuffer = IndexBuffer::Create(m_Indices);
 
         m_Loaded = true;

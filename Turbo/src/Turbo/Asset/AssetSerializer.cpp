@@ -2,7 +2,7 @@
 #include "AssetSerializer.h"
 
 #include "Turbo/Core/FileSystem.h"
-#include "Turbo/Renderer/Texture2D.h"
+#include "Turbo/Renderer/Texture.h"
 #include "Turbo/Solution/Project.h"
 #include "Turbo/Renderer/Mesh.h"
 

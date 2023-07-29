@@ -451,34 +451,19 @@ namespace Turbo
 
 #pragma region LineRendererComponent
 
-    static void Component_LineRenderer_Get_Position0(UUID uuid, glm::vec3* position0)
+    static void Component_LineRenderer_Get_Destination(UUID uuid, glm::vec3* destination)
     {
         Entity entity = GetEntity(uuid);
         if (entity)
-            *position0 = entity.GetComponent<LineRendererComponent>().Position0;
+            *destination = entity.GetComponent<LineRendererComponent>().Destination;
     }
 
-    static void Component_LineRenderer_Set_Position0(UUID uuid, glm::vec3* position0)
+    static void Component_LineRenderer_Set_Destination(UUID uuid, glm::vec3* destination)
     {
         Entity entity = GetEntity(uuid);
 
         if (entity)
-            entity.GetComponent<LineRendererComponent>().Position0 = *position0;
-    }
-
-    static void Component_LineRenderer_Get_Position1(UUID uuid, glm::vec3* position1)
-    {
-        Entity entity = GetEntity(uuid);
-        if (entity)
-            *position1 = entity.GetComponent<LineRendererComponent>().Position1;
-    }
-
-    static void Component_LineRenderer_Set_Position1(UUID uuid, glm::vec3* position1)
-    {
-        Entity entity = GetEntity(uuid);
-
-        if (entity)
-            entity.GetComponent<LineRendererComponent>().Position1 = *position1;
+            entity.GetComponent<LineRendererComponent>().Destination = *destination;
     }
 
     static void Component_LineRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
@@ -1123,10 +1108,8 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_Transform_Set_Scale);
 
         // Line Renderer
-        TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Position0);
-        TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Position0);
-        TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Position1);
-        TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Position1);
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Destination);
+        TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Destination);
         TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Color);
         TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Color);
 

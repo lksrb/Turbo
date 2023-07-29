@@ -8,7 +8,6 @@
 
 #include "Turbo/Renderer/RendererContext.h"
 
-
 #include <fstream>
 #include <sstream>
 #include <filesystem>
@@ -449,7 +448,7 @@ namespace Turbo
             for (auto& pushConstantBuffer : resources.push_constant_buffers)
             {
                 const auto& bufferType = compiler.get_type(pushConstantBuffer.base_type_id);
-                
+
                 auto& pushConstant = m_Resources.PushConstantRanges.emplace_back();
                 pushConstant.Size = (u32)compiler.get_declared_struct_size(bufferType);
                 pushConstant.Offset = 0;
@@ -461,9 +460,21 @@ namespace Turbo
             {
                 const auto& bufferType = compiler.get_type(textureSampler.type_id); // TODO: Rewrite this to handle more situation, namely more "sampled_images"
 
-                m_Resources.TextureSamplerArray.Binding = compiler.get_decoration(textureSampler.id, spv::DecorationBinding);
-                m_Resources.TextureSamplerArray.Size = bufferType.array[0];
-                m_Resources.TextureSamplerArray.Name = compiler.get_name(textureSampler.id);
+                // TODO: MAKE THIS DYNAMIC
+                // To differentiate between sampler2D and samplerCube
+                if (bufferType.image.dim == spv::Dim2D)
+                {
+                    m_Resources.TextureSamplerArray.Binding = compiler.get_decoration(textureSampler.id, spv::DecorationBinding);
+                    m_Resources.TextureSamplerArray.Size = bufferType.array[0];
+                    m_Resources.TextureSamplerArray.Name = compiler.get_name(textureSampler.id);
+                }
+                else if (bufferType.image.dim == spv::DimCube)
+                {
+                    auto& samplerCubeInfo = m_Resources.SamplerCubeInfos.emplace_back();
+                    samplerCubeInfo.Binding = compiler.get_decoration(textureSampler.id, spv::DecorationBinding);
+                    samplerCubeInfo.DescriptorSet = compiler.get_decoration(textureSampler.id, spv::DecorationDescriptorSet);
+                    samplerCubeInfo.Name = compiler.get_name(textureSampler.id);
+                }
             }
         }
     }
@@ -507,7 +518,7 @@ namespace Turbo
         //{
         //
         //}
-        
+
 
         // Texture samplers
         if (m_Resources.TextureSamplerArray.Size)
@@ -521,15 +532,29 @@ namespace Turbo
             descriptorBinding.pImmutableSamplers = nullptr; // Optional
         }
 
+        // Sampler Cube
+        for(auto& samplerCubeInfo : m_Resources.SamplerCubeInfos)
+        {
+            auto& descriptorBinding = descriptorSetLayoutBindings.emplace_back();
+            descriptorBinding = {};
+            descriptorBinding.binding = samplerCubeInfo.Binding;
+            descriptorBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            descriptorBinding.descriptorCount = 1;
+            descriptorBinding.pImmutableSamplers = nullptr; // Optional
+        }
+
         // Pool
         {
             // Pool size
             std::vector<VkDescriptorPoolSize> poolSizes;
 
             if (m_Resources.UniformBuffers.size() > 0)
-                poolSizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<u32>(m_Resources.UniformBuffers.size()) });
+                poolSizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, (u32)m_Resources.UniformBuffers.size() });
             if (m_Resources.TextureSamplerArray.Size > 0)
                 poolSizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_Resources.TextureSamplerArray.Size });
+            if (m_Resources.SamplerCubeInfos.size() > 0)
+                poolSizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, (u32)m_Resources.SamplerCubeInfos.size() });
 
             if (poolSizes.size() == 0)
                 return; // Do not create any descriptor sets or layouts

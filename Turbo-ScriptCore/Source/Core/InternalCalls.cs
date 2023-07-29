@@ -136,16 +136,10 @@ namespace Turbo
 		internal extern static void Component_LineRenderer_Set_Color(ulong uuid, ref Color color);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_LineRenderer_Get_Position0(ulong uuid, out Vector3 position0);
+		internal extern static void Component_LineRenderer_Get_Destination(ulong uuid, out Vector3 position1);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_LineRenderer_Set_Position0(ulong uuid, ref Vector3 position0);
-
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_LineRenderer_Get_Position1(ulong uuid, out Vector3 position1);
-
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_LineRenderer_Set_Position1(ulong uuid, ref Vector3 position1);
+		internal extern static void Component_LineRenderer_Set_Destination(ulong uuid, ref Vector3 position1);
 
 		#endregion
 

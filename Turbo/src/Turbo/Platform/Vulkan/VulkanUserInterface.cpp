@@ -178,8 +178,7 @@ namespace Turbo
         ImGui_ImplVulkan_DestroyFontUploadObjects();
 
         // Create secondary command buffers for each frame in flight
-        m_SecondaryBuffers.resize(framesInFlight);
-        RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers.data(), framesInFlight);
+        RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers.Data(), framesInFlight);
     }
     void VulkanUserInterface::BeginUI()
     {

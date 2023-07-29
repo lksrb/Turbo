@@ -19,8 +19,11 @@ namespace Turbo
         VkFramebuffer GetHandle() const;
         void Invalidate(u32 width, u32 height) override;
 
+        const std::vector<VkClearValue>& GetClearValues() const { return m_ClearValues; }
+
         Ref<Image2D> GetAttachment(AttachmentType type, u32 index = 0) const override;
     private:
+        std::vector<VkClearValue> m_ClearValues;
         AttachmentResources m_AttachmentResources;
         Fly<VkFramebuffer> m_Framebuffers;
     };

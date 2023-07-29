@@ -12,6 +12,7 @@ namespace Turbo
     VulkanFrameBuffer::VulkanFrameBuffer(const FrameBuffer::Config& config)
         : FrameBuffer(config)
     {
+        m_ClearValues.reserve(config.Attachments.size());
     }
 
     VulkanFrameBuffer::~VulkanFrameBuffer()
@@ -62,12 +63,10 @@ namespace Turbo
             });
         }
 
-        //m_Framebuffers.resize(framesInFlight);
-
-        u32 index = 0;
         for (const auto& [type, count] : m_Config.Attachments)
         {
-            m_AttachmentResources[type].resize(count);
+            m_AttachmentResources[type].clear();
+            m_AttachmentResources[type].reserve(count);
             if (type == FrameBuffer::AttachmentType_Color)
             {
                 Image2D::Config config = {};
@@ -78,30 +77,16 @@ namespace Turbo
                 config.Tiling = ImageTiling_Optimal;
                 config.DebugName = "FrameBuffer-ColorAttachment";
 
-                auto& fifResource = m_AttachmentResources[type][index];
+                auto& fifResource = m_AttachmentResources[type].emplace_back();
                 for (u32 i = 0; i < fifResource.Size(); ++i)
                 {
                     fifResource[i] = Image2D::Create(config);
                     fifResource[i]->Invalidate(width, height);
                 }
-            } 
-            else if (type == FrameBuffer::AttachmentType_Depth)
-            {
-                Image2D::Config config = {};
-                config.Format = ImageFormat_D32_SFloat_S8_UInt;
-                config.Aspect = ImageAspect_Depth;
-                config.MemoryStorage = MemoryStorage_DeviceLocal;
-                config.Usage = ImageUsage_DepthStencilSttachment;
-                config.Tiling = ImageTiling_Optimal;
-                config.DebugName = "FrameBuffer-DepthAttachment";
 
-                auto& fifResource = m_AttachmentResources[type][index];
-                for (u32 i = 0; i < fifResource.Size(); ++i)
-                {
-                    fifResource[i] = Image2D::Create(config);
-                    fifResource[i]->Invalidate(width, height);
-                }
-            }
+                auto& clearValue = m_ClearValues.emplace_back();
+                clearValue.color = { m_Config.ClearColor.r, m_Config.ClearColor.g, m_Config.ClearColor.b, m_Config.ClearColor.a };
+            } 
             else if (type == FrameBuffer::AttachmentType_SelectionBuffer)
             {
                 Image2D::Config config = {};
@@ -112,12 +97,36 @@ namespace Turbo
                 config.Tiling = ImageTiling_Optimal;
                 config.DebugName = "FrameBuffer-SelectionBufferAttachment";
 
-                auto& fifResource = m_AttachmentResources[type][index];
+                auto& fifResource = m_AttachmentResources[type].emplace_back();
                 for (u32 i = 0; i < fifResource.Size(); ++i)
                 {
                     fifResource[i] = Image2D::Create(config);
                     fifResource[i]->Invalidate(width, height);
                 }
+                auto& clearValue = m_ClearValues.emplace_back();
+                clearValue.color.int32[0] = -1;
+                clearValue.color.int32[1] = -1;
+                clearValue.color.int32[2] = -1;
+                clearValue.color.int32[3] = -1;
+            }
+            else if (type == FrameBuffer::AttachmentType_Depth)
+            {
+                Image2D::Config config = {};
+                config.Format = ImageFormat_D32_SFloat_S8_UInt;
+                config.Aspect = ImageAspect_Depth;
+                config.MemoryStorage = MemoryStorage_DeviceLocal;
+                config.Usage = ImageUsage_DepthStencilSttachment;
+                config.Tiling = ImageTiling_Optimal;
+                config.DebugName = "FrameBuffer-DepthAttachment";
+
+                auto& fifResource = m_AttachmentResources[type].emplace_back();
+                for (u32 i = 0; i < fifResource.Size(); ++i)
+                {
+                    fifResource[i] = Image2D::Create(config);
+                    fifResource[i]->Invalidate(width, height);
+                }
+                auto& clearValue = m_ClearValues.emplace_back();
+                clearValue.depthStencil = { 1.0f, 0 };
             }
         }
         // TODO: Multiple attachments issue

@@ -1045,6 +1045,9 @@ namespace Turbo::Ed
             for (auto entity : pointlights)
             {
                 const auto& transform = pointlights.get<TransformComponent>(entity);
+
+                glm::mat4 offsetTransform = transform.GetTransform();
+                //m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
                 m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_PointLightIcon, 1.0f, (i32)entity);
             }
 

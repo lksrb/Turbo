@@ -7,20 +7,11 @@ namespace Turbo
     class IndexBuffer
     {
     public:
-        struct Config
-        {
-            size_t Size;
-            const u32* Indices;
+        virtual ~IndexBuffer() = default;
 
-            Config(u32* indices, size_t size) : Indices(indices), Size(size) {}
-            Config(const std::vector<u32>& indices) : Indices(indices.data()), Size(indices.size() * sizeof(u32)) {}
-        };
-
-        static Ref<IndexBuffer> Create(const IndexBuffer::Config& config);
-        virtual ~IndexBuffer();
+        static Ref<IndexBuffer> Create(const std::vector<u32>& indices);
+        static Ref<IndexBuffer> Create(const u32* indices, u32 count);
     protected:
-        IndexBuffer(const IndexBuffer::Config& config);
-
-        IndexBuffer::Config m_Config;
+        u64 m_Size = 0;
     };
 }
