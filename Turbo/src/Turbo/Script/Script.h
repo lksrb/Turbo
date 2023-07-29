@@ -47,13 +47,13 @@ namespace Turbo
         static void OnNewFrame(FTime ts);
 
         static void CopyScriptClassFields(Entity source, Entity destination);
-        static const ScriptClassMap& GetScriptClassMap();;
+        static const ScriptClassMap& GetScriptClassMap();
         static UUID GetUUIDFromMonoObject(MonoObject* instance);
         static Ref<ScriptInstance> FindEntityInstance(UUID uuid);
         static Ref<ScriptClass> FindEntityClass(const std::string& name);
         static Ref<ScriptClass> GetEntityBaseClass();
-        static void CollectGarbage();
     private:
+        static void CollectGarbage();
         static void InitMono();
         static void ShutdownMono();
         static void LoadCoreAssembly(const std::filesystem::path& path);

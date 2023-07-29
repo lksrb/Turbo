@@ -85,6 +85,7 @@ namespace Turbo
         if (pixels)
         {
             SetData(pixels);
+            stbi_image_free(pixels);
         }
 
         m_IsLoaded = true;

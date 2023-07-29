@@ -147,8 +147,12 @@ namespace Turbo
         MonoVTable* FrameVTable = nullptr;
     };
 
+    static constexpr bool s_EnableScriptEngine = true;
+
     void Script::Init()
     {
+        if constexpr (!s_EnableScriptEngine)
+            return;
         s_Data = new Script::Data;
 
         // Initialize mono C# virtual machine
@@ -321,11 +325,15 @@ namespace Turbo
 
     Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)
     {
+        TBO_ENGINE_ASSERT(s_Data);
         return s_Data->EntityScriptFieldInstances[uuid];
     }
 
     void Script::LoadProjectAssembly(const std::filesystem::path& path)
     {
+        if constexpr (!s_EnableScriptEngine)
+            return;
+
         s_Data->ProjectAssemblyPath = path;
 
         // Clear all registered classes
@@ -507,6 +515,9 @@ namespace Turbo
 
     void Script::ReloadAssemblies()
     {
+        if constexpr (!s_EnableScriptEngine)
+            return;
+
         TBO_ENGINE_ASSERT(!s_Data->CoreAssemblyPath.empty());
         TBO_ENGINE_ASSERT(!s_Data->ProjectAssemblyPath.empty());
 
@@ -529,6 +540,9 @@ namespace Turbo
 
     void Script::Shutdown()
     {
+        if constexpr (!s_EnableScriptEngine)
+            return;
+
         CollectGarbage();
 
         ShutdownMono();

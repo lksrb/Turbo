@@ -10,13 +10,11 @@ extern Turbo::Application* Turbo::CreateApplication();
 
 int main(int argc, char* argv[])
 {
-    Turbo::Memory::Initialize();
     {
         Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
         engine->Run();
         delete engine;
     }
-    Turbo::Memory::Shutdown();
 
     return 0;
 }
@@ -25,13 +23,9 @@ int main(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    Turbo::Memory::Initialize();
-    {
-        Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
-        engine->Run();
-        delete engine;
-    }
-    Turbo::Memory::Shutdown();
+    Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
+    engine->Run();
+    delete engine;
 
     return 0;
 }
@@ -40,13 +34,9 @@ int main(int argc, char* argv[])
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    Turbo::Memory::Initialize();
-    {
-        Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
-        engine->Run();
-        delete engine;
-    }
-    Turbo::Memory::Shutdown();
+    Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
+    engine->Run();
+    delete engine;
 
     return 0;
 }

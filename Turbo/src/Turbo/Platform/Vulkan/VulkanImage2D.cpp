@@ -7,13 +7,9 @@
 
 namespace Turbo
 {
-    // For debug purposes
-    static std::vector<VulkanImage2D*> s_LiveInstances;
-
     VulkanImage2D::VulkanImage2D(const Image2D::Config& config) 
         : Image2D(config)
     {
-        s_LiveInstances.emplace_back(this);
     }
 
     VulkanImage2D::~VulkanImage2D()
@@ -27,9 +23,6 @@ namespace Turbo
             vkFreeMemory(device, imageMemory, nullptr);
             vkDestroyImageView(device, imageView, nullptr);
         });
-
-        auto it = std::find(s_LiveInstances.begin(), s_LiveInstances.end(), this);
-        s_LiveInstances.erase(it);
     }
 
     void VulkanImage2D::Invalidate(u32 width, u32 height)

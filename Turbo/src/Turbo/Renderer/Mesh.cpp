@@ -25,25 +25,28 @@ namespace Turbo
         }
     }
 
-    struct LogDebugStream : public Assimp::LogStream
+    struct DebugLogStream : public Assimp::LogStream
     {
-        static Assimp::Importer Importer;
-
-        static void Initialize()
-        {
-            if (Assimp::DefaultLogger::isNullLogger())
-            {
-                Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
-                Assimp::DefaultLogger::get()->attachStream(new LogDebugStream, Assimp::Logger::Err | Assimp::Logger::Warn);
-            }
-        }
-
         virtual void write(const char* message) override
         {
             TBO_ENGINE_ERROR("Assimp: {}", message);
         }
     };
 
+    // FIXME: This should now start and shutdown everytime we load a mesh
+    struct DebugLog
+    {
+        static void Initialize()
+        {
+            Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
+            Assimp::DefaultLogger::get()->attachStream(new DebugLogStream, Assimp::Logger::Err | Assimp::Logger::Warn);
+        }
+
+        static void Shutdown()
+        {
+            Assimp::DefaultLogger::kill();
+        }
+    };
 
     static u32 s_AssimpImporterFlags =
         aiProcess_Triangulate // Ensures that everything is a triangle
@@ -57,8 +60,10 @@ namespace Turbo
     StaticMesh::StaticMesh(std::string_view filePath)
         : m_FilePath(filePath)
     {
-        LogDebugStream::Initialize();
+        // Temporary solution to memoryleaks
+        DebugLog::Initialize();
         Load();
+        DebugLog::Shutdown();
     }
 
     StaticMesh::~StaticMesh()
@@ -73,7 +78,7 @@ namespace Turbo
     void StaticMesh::Load()
     {
         Assimp::Importer importer;
-        
+
         // aiProcess_FlipUVs - Flip UVs but I think vulkan already has fliped UVs
         const aiScene* scene = importer.ReadFile(m_FilePath.data(), s_AssimpImporterFlags);
 
