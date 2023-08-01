@@ -25,6 +25,14 @@ namespace Turbo
         Texture2D(const Texture2D::Config& config);
         virtual ~Texture2D() = default;
 
+        template<u64 Size>
+        static Ref<Texture2D> Create(const std::array<u8, Size>& data)
+        {
+            Texture2D::Config config;
+            config.Filter = ImageFilter_Linear;
+            config.Format = ImageFormat_RGBA_SRGB;
+            return Create(config, data.data(), data.size());
+        }
         static Ref<Texture2D> Create(const Texture2D::Config& config, const void* data, u64 size);
         static Ref<Texture2D> Create(const std::string& filepath);
         static Ref<Texture2D> Create(const Texture2D::Config& config);

@@ -35,6 +35,8 @@
 
 namespace Turbo::Ed
 {
+
+
     namespace Utils
     {
         static void FindAndReplace(std::string& content, const char* oldText, std::string newText)
@@ -135,18 +137,12 @@ namespace Turbo::Ed
         m_ViewportDrawList = Ref<SceneDrawList>::Create(SceneDrawList::Config{ m_ViewportWidth, m_ViewportHeight });
 
         // TODO: Find some better icons
-        {
-            using namespace Icons;
-            Texture2D::Config config = {};
-            config.Format = ImageFormat_RGBA_SRGB;
-            config.Filter = ImageFilter_Linear;
-            m_PlayIcon = Texture2D::Create(config, PlayButton.data(), PlayButton.size());
-            m_StopIcon = Texture2D::Create(config, StopButton.data(), StopButton.size());
-            m_ResetCameraRotationIcon = Texture2D::Create(config, ResetCameraRotationButton.data(), ResetCameraRotationButton.size());
-            m_PointLightIcon = Texture2D::Create(config, PointLight.data(), PointLight.size());
-            m_CameraIcon = Texture2D::Create(config, Camera.data(), Camera.size());
-            m_SpotLightIcon = Texture2D::Create(config, SpotLight.data(), SpotLight.size());
-        }
+        m_PlayIcon = Texture2D::Create(Icons::PlayButton);
+        m_StopIcon = Texture2D::Create(Icons::StopButton);
+        m_ResetCameraRotationIcon = Texture2D::Create(Icons::ResetCameraRotationButton);
+        m_PointLightIcon = Texture2D::Create(Icons::PointLight);
+        m_CameraIcon = Texture2D::Create(Icons::Camera);
+        m_SpotLightIcon = Texture2D::Create(Icons::SpotLight);
 
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
 

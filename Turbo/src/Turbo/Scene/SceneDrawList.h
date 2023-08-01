@@ -10,11 +10,6 @@
 
 namespace Turbo
 {
-    struct SceneEnvironment
-    {
-
-    };
-
     class SceneDrawList
     {
     public:
@@ -155,10 +150,10 @@ namespace Turbo
 
             bool operator<(const MeshKey& other) const
             {
-                if ((size_t)Mesh.Get() < (size_t)other.Mesh.Get())
+                if ((u64)Mesh.Get() < (u64)other.Mesh.Get())
                     return true;
 
-                return (size_t)Mesh.Get() == (size_t)other.Mesh.Get() && SubmeshIndex < other.SubmeshIndex;
+                return (u64)Mesh.Get() == (u64)other.Mesh.Get() && SubmeshIndex < other.SubmeshIndex;
             }
         };
 

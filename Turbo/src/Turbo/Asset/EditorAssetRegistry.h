@@ -1,14 +1,13 @@
 #pragma once
 
 #include "AssetRegistryBase.h"
-#include "AssetImporter.h"
 
 namespace Turbo
 {
     class EditorAssetRegistry : public AssetRegistryBase
     {
     public:
-        EditorAssetRegistry();
+        EditorAssetRegistry() = default;
         ~EditorAssetRegistry();
         
         // FIXME: Bad solution for this
@@ -28,12 +27,12 @@ namespace Turbo
             
             // Serialize metadata
             auto& metadata = GetAssetMetadata(handle);
-            TBO_ENGINE_ASSERT(AssetImporter::Serialize(metadata, asset));
+            Asset::Serialize(metadata, asset);
 
             m_LoadedAssets[handle] = asset;
             return asset;
         }
-
+        void Init() override;
         void ImportAsset(const std::filesystem::path& filepath) override;
         bool IsAssetHandleValid(AssetHandle handle) const override;
         bool IsAssetLoaded(AssetHandle handle) const override;
@@ -43,9 +42,11 @@ namespace Turbo
         const AssetRegistry& GetRegisteredAssets() const { return m_AssetRegistry; }
         const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }
     private:
+        void LoadDefaultAssets();
         bool Deserialize();
         bool Serialize();
 
+        AssetMap m_MemoryOnlyAssets;
         AssetRegistry m_AssetRegistry;
         AssetMap m_LoadedAssets;
     };

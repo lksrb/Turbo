@@ -43,7 +43,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
-      Mesh: 6075040000650103437
+      Mesh: 12308649729680930100
   - Entity: 6721799575610402783
     Parent: 0
     Children:
@@ -55,7 +55,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.999999762, 0.999433339, 0.9994331]
     StaticMeshRendererComponent:
-      Mesh: 1241539050212899818
+      Mesh: 6245595848809202549
   - Entity: 8780368876233980909
     Parent: 16517776011071118611
     Children:
@@ -128,7 +128,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
-      Mesh: 7671040854140009362
+      Mesh: 6412956475930430895
   - Entity: 11763059056531762380
     Parent: 0
     Children:
@@ -136,7 +136,7 @@ Entities:
     TagComponent:
       Tag: Pointlight1
     TransformComponent:
-      Translation: [-0.305796623, 1.54533422, 0.810638905]
+      Translation: [-3.26628447, 1.54533422, -0.705636263]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
@@ -151,11 +151,11 @@ Entities:
     TagComponent:
       Tag: Backpack
     TransformComponent:
-      Translation: [6.91056681, 4.25412512, 0.0276318155]
+      Translation: [5.27263546, 2.63303256, -1.57684946]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
-      Mesh: 7671040854140009362
+      Mesh: 6412956475930430895
   - Entity: 12870213262659731857
     Parent: 0
     Children:
@@ -226,11 +226,11 @@ Entities:
     TagComponent:
       Tag: Cube2
     TransformComponent:
-      Translation: [1.78363061, -6.3795886, 2.39314771]
+      Translation: [10.5575266, -6.3795886, 2.39314771]
       Rotation: [0, 5.96046448e-08, 0]
       Scale: [1, 0.99994415, 0.999958515]
     StaticMeshRendererComponent:
-      Mesh: 343049561117589508
+      Mesh: 13490518766218475614
   - Entity: 17163525840914876706
     Parent: 0
     Children:
@@ -242,4 +242,4 @@ Entities:
       Rotation: [1.57079637, 0, 0]
       Scale: [20, 19.9998569, 0.99999553]
     StaticMeshRendererComponent:
-      Mesh: 343049561117589508
+      Mesh: 13490518766218475614

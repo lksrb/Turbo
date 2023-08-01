@@ -1,13 +1,25 @@
 AssetRegistry:
-  - Asset: 343049561117589508
-    Path: Meshes/Cube.fbx
-    Type: StaticMesh
-  - Asset: 1241539050212899818
+  - Asset: 371799936710321440
+    Path: Meshes/Cube.gltf
+    Type: MeshSource
+  - Asset: 398144102440300627
     Path: Meshes/Human.fbx
+    Type: MeshSource
+  - Asset: 6245595848809202549
+    Path: Meshes/Human.tmesh
     Type: StaticMesh
-  - Asset: 6075040000650103437
+  - Asset: 6412956475930430895
+    Path: Meshes/Backpack/Backpack.tmesh
+    Type: StaticMesh
+  - Asset: 8204765381314040431
     Path: Meshes/Sphere.fbx
-    Type: StaticMesh
-  - Asset: 7671040854140009362
+    Type: MeshSource
+  - Asset: 10397313867192618123
     Path: Meshes/Backpack/Backpack.fbx
+    Type: MeshSource
+  - Asset: 12308649729680930100
+    Path: Meshes/Sphere.tmesh
+    Type: StaticMesh
+  - Asset: 13490518766218475614
+    Path: Meshes/Cube.tmesh
     Type: StaticMesh

@@ -16,12 +16,8 @@ namespace Turbo::Ed
 
     ContentBrowserPanel::ContentBrowserPanel()
     {
-        using namespace Icons;
-        Texture2D::Config config = {};
-        config.Format = ImageFormat_RGBA_SRGB;
-        config.Filter = ImageFilter_Linear;
-        m_DirectoryIcon = Texture2D::Create(config, Directory.data(), Directory.size());
-        m_FileIcon = Texture2D::Create(config, File.data(), File.size());
+        m_DirectoryIcon = Texture2D::Create(Icons::Directory);
+        m_FileIcon = Texture2D::Create(Icons::File);
     }
 
     ContentBrowserPanel::~ContentBrowserPanel()

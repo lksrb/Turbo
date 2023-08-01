@@ -148,7 +148,7 @@ namespace Turbo
 
         // Copy buffer to image barrier
         {
-            VkBufferImageCopy region{};
+            VkBufferImageCopy region = {};
             region.bufferOffset = 0;
             region.bufferRowLength = 0;
             region.bufferImageHeight = 0;
@@ -173,7 +173,7 @@ namespace Turbo
 
         // Pipeline barrier, transition image layout 2
         {
-            VkImageMemoryBarrier barrier{};
+            VkImageMemoryBarrier barrier = {};
             barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

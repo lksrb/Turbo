@@ -21,7 +21,11 @@ namespace Turbo
         s_ActiveProject = project;
 
         if (s_ActiveProject)
+        {
             s_ActiveProject->m_AssetRegistry = Ref<EditorAssetRegistry>::Create();
+            // Due to how things work now this split is necessary
+            s_ActiveProject->m_AssetRegistry->Init();
+        }
     }
 
 }

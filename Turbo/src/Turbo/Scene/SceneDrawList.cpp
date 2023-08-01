@@ -181,7 +181,7 @@ namespace Turbo
         // Depth buffer remains uncleared so we can easily figure out the depth to avoid overdrawing
         m_DrawList2D->End();
 
-        //UpdateStatistics();
+        UpdateStatistics();
     }
 
     void SceneDrawList::PreRender()
@@ -212,16 +212,17 @@ namespace Turbo
 
     void SceneDrawList::AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity)
     {
-        u32 submeshIndex = 0;
-        for (auto& submesh : mesh->GetSubmeshes())
+        const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
+        for (u32 submeshIndex : mesh->GetSubmeshIndices())
         {
+            const auto& submesh = submeshes[submeshIndex];
             glm::mat4 submeshTransform = transform * submesh.Transform;
 
             MeshKey key = { mesh, submeshIndex };
             auto& drawCommand = m_DrawCommands[key];
             drawCommand.Mesh = mesh;
             drawCommand.InstanceCount++;
-            drawCommand.SubmeshIndex = submeshIndex++;
+            drawCommand.SubmeshIndex = submeshIndex;
 
             // If a mesh is a duplicate, draw it as a another instance of the original mesh but with different transform
             // Store those transforms in a map and then offset them in PreRender 

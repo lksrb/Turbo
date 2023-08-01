@@ -144,7 +144,7 @@ namespace Turbo
         TBO_VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool));
 #ifdef TBO_PLATFORM_WIN32
         Win32_Window* window = dynamic_cast<Win32_Window*>(viewportWindow);
-        TBO_ENGINE_ASSERT(ImGui_ImplWin32_Init(window->GetHandle()));
+        ImGui_ImplWin32_Init(window->GetHandle());
 #endif
         // Custom CreateVkSurface function
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
@@ -211,9 +211,8 @@ namespace Turbo
             VkCommandBuffer currentbuffer = swapChain->GetCurrentRenderCommandBuffer();
             TBO_VK_ASSERT(vkBeginCommandBuffer(currentbuffer, &beginInfo));
 
-            VkClearValue clear_values[2]{};
-            clear_values[0].color = { {0.0f, 0.0f,0.0f, 1.0f} };
-            clear_values[1].depthStencil = { 1.0f, 0 };
+            VkClearValue clearValue;
+            clearValue.color = { {0.0f, 0.0f,0.0f, 1.0f} };
 
             VkRenderPassBeginInfo renderPassBeginInfo = {};
             renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -221,50 +220,32 @@ namespace Turbo
             renderPassBeginInfo.renderArea.offset.x = 0;
             renderPassBeginInfo.renderArea.offset.y = 0;
             renderPassBeginInfo.renderArea.extent = { width, height };
-            renderPassBeginInfo.clearValueCount = 2; // Color
-            renderPassBeginInfo.pClearValues = clear_values;
+            renderPassBeginInfo.clearValueCount = 1;
+            renderPassBeginInfo.pClearValues = &clearValue;
             renderPassBeginInfo.framebuffer = swapChain->GetCurrentFramebuffer();
 
-            vkCmdBeginRenderPass(currentbuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+            vkCmdBeginRenderPass(currentbuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-            // ImGui secondary command buffer can be recorded pararelly 
             {
-                VkCommandBufferInheritanceInfo inheritanceInfo = {};
-                inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-                inheritanceInfo.renderPass = swapChain->GetRenderPass();
-                inheritanceInfo.framebuffer = swapChain->GetCurrentFramebuffer();
+                VkViewport viewport = {};
+                viewport.x = 0.0f;
+                viewport.y = 0.0f;
+                viewport.width = (f32)width;
+                viewport.height = -(f32)height;
+                viewport.minDepth = 0.0f;
+                viewport.maxDepth = 1.0f;
+                vkCmdSetViewport(currentbuffer, 0, 1, &viewport);
 
-                VkCommandBufferBeginInfo cmdBufInfo = {};
-                cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-                cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-                cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
+                VkRect2D scissor = {};
+                scissor.extent.width = width;
+                scissor.extent.height = height;
+                scissor.offset.x = 0;
+                scissor.offset.y = 0;
+                vkCmdSetScissor(currentbuffer, 0, 1, &scissor);
 
-                TBO_VK_ASSERT(vkBeginCommandBuffer(m_SecondaryBuffers[currentFrame], &cmdBufInfo));
-                {
-                    VkViewport viewport = {};
-                    viewport.x = 0.0f;
-                    viewport.y = 0.0f;
-                    viewport.width = (f32)width;
-                    viewport.height = -(f32)height;
-                    viewport.minDepth = 0.0f;
-                    viewport.maxDepth = 1.0f;
-                    vkCmdSetViewport(m_SecondaryBuffers[currentFrame], 0, 1, &viewport);
-
-                    VkRect2D scissor = {};
-                    scissor.extent.width = width;
-                    scissor.extent.height = height;
-                    scissor.offset.x = 0;
-                    scissor.offset.y = 0;
-                    vkCmdSetScissor(m_SecondaryBuffers[currentFrame], 0, 1, &scissor);
-
-                    // Record dear imgui primitives into command buffer
-                    ImDrawData* main_draw_data = ImGui::GetDrawData();
-                    ImGui_ImplVulkan_RenderDrawData(main_draw_data, m_SecondaryBuffers[currentFrame]);
-                }
-                TBO_VK_ASSERT(vkEndCommandBuffer(m_SecondaryBuffers[currentFrame]));
-
-                // Execute imgui secondary command buffer
-                vkCmdExecuteCommands(currentbuffer, 1, &m_SecondaryBuffers[currentFrame]);
+                // Record dear imgui primitives into command buffer
+                ImDrawData* main_draw_data = ImGui::GetDrawData();
+                ImGui_ImplVulkan_RenderDrawData(main_draw_data, currentbuffer);
             }
 
             vkCmdEndRenderPass(currentbuffer);

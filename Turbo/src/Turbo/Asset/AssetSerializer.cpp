@@ -1,6 +1,8 @@
 #include "tbopch.h"
 #include "AssetSerializer.h"
 
+#include "AssetManager.h"
+
 #include "Turbo/Core/FileSystem.h"
 #include "Turbo/Renderer/Texture.h"
 #include "Turbo/Solution/Project.h"
@@ -112,21 +114,94 @@ namespace Turbo
         return result;
     }
 
-	bool StaticMeshSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
-	{
+    bool MeshSourceSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+    {
         // TODO: Figure out what should be serialized
         return true;
-	}
+    }
 
-	Ref<Asset> StaticMeshSerializer::TryLoad(const AssetMetadata& metadata)
-	{
+    Ref<Asset> MeshSourceSerializer::TryLoad(const AssetMetadata& metadata)
+    {
         auto path = Project::GetAssetsPath() / metadata.FilePath;
-        Ref<StaticMesh> result = StaticMesh::Create(path.string());
-        if (!result->IsLoaded())
+        Ref<MeshSource> meshSource = Ref<MeshSource>::Create(path.string());
+        if (!meshSource->IsLoaded())
             return nullptr;
 
-        return result;
+        return meshSource;
+    }
 
-	}
+    Ref<Asset> StaticMeshSerializer::Create(const AssetMetadata& metadata, const Ref<Asset>& primaryAsset) const
+    {
+        auto path = Project::GetAssetsPath() / metadata.FilePath;
+        Ref<MeshSource> meshSource = primaryAsset.As<MeshSource>();
+        return Ref<StaticMesh>::Create(meshSource);
+    }
+
+    bool StaticMeshSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+    {
+        auto path = Project::GetAssetsPath() / metadata.FilePath;
+
+        auto staticMesh = asset.As<StaticMesh>();
+
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Mesh" << YAML::Value;
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "MeshSource" << YAML::Value << staticMesh->GetMeshSource()->Handle;
+            out << YAML::Key << "SubmeshIndices" << YAML::Value << YAML::Flow << staticMesh->GetSubmeshIndices();
+            out << YAML::EndMap;
+        }
+        out << YAML::EndMap;
+
+        std::ofstream stream(path);
+        if (!stream)
+            return false;
+
+        stream << out.c_str();
+
+        return true;
+    }
+
+    Ref<Asset> StaticMeshSerializer::TryLoad(const AssetMetadata& metadata)
+    {
+        auto path = Project::GetAssetsPath() / metadata.FilePath;
+
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(path.string());
+        }
+        catch (YAML::Exception e)
+        {
+            TBO_ENGINE_ERROR(e.what());
+            return false;
+        }
+
+        if (!data["Mesh"])
+        {
+            TBO_ENGINE_ERROR("File does not contain mesh data!");
+            return false;
+        }
+
+        auto meshData = data["Mesh"];
+        AssetHandle meshSourceHandle = meshData["MeshSource"].as<u64>();
+
+        // NOTE: This is a bit problematic since we deserialize assets in sequence.
+        // Could be solved by loading primary assets first and then load secondary assets
+        Ref<MeshSource> meshSource = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
+
+        auto submeshIndices = meshData["SubmeshIndices"];
+        std::vector<u32> indices;
+        indices.reserve(submeshIndices.size());
+        for (auto& index : submeshIndices)
+        {
+            indices.emplace_back(index.as<u32>());
+        }
+
+        TBO_ENGINE_ASSERT(indices.size() != 0);
+
+        return Ref<StaticMesh>::Create(meshSource, indices);
+    }
 
 }

@@ -324,8 +324,10 @@ namespace Turbo
     {
         Renderer::Submit([=]()
         {
-            Ref<VertexBuffer> vertexBuffer = mesh->GetVertexBuffer();
-            Ref<VertexBuffer> indexBuffer = mesh->GetIndexBuffer();
+            Ref<MeshSource> meshSource = mesh->GetMeshSource();
+
+            Ref<VertexBuffer> vertexBuffer = meshSource->GetVertexBuffer();
+            Ref<VertexBuffer> indexBuffer = meshSource->GetIndexBuffer();
             Ref<VulkanShader> shader = pipeline->GetConfig().Shader.As<VulkanShader>();
 
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
@@ -341,7 +343,7 @@ namespace Turbo
             const auto& resources = shader->GetResources();
             UpdateWriteDescriptors(uniformBufferSet, shader, resources.UniformBuffers); // TODO: We need separate write descriptors for each shader
 
-            const auto& submesh = mesh->GetSubmeshes()[subMeshIndex];
+            const auto& submesh = meshSource->GetSubmeshes()[subMeshIndex];
 
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);

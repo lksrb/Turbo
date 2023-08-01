@@ -33,21 +33,6 @@ namespace Turbo
         }
     };
 
-    // FIXME: This should now start and shutdown everytime we load a mesh
-    struct DebugLog
-    {
-        static void Initialize()
-        {
-            Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
-            Assimp::DefaultLogger::get()->attachStream(new DebugLogStream, Assimp::Logger::Err | Assimp::Logger::Warn);
-        }
-
-        static void Shutdown()
-        {
-            Assimp::DefaultLogger::kill();
-        }
-    };
-
     static u32 s_AssimpImporterFlags =
         aiProcess_Triangulate // Ensures that everything is a triangle
         | aiProcess_GenNormals // Generate normals if needed
@@ -56,37 +41,56 @@ namespace Turbo
         | aiProcess_JoinIdenticalVertices // Optimizes the mesh
         | aiProcess_ValidateDataStructure;
 
+    // FIXME: This should now start and shutdown everytime we load a mesh
+    struct AssimpLoader
+    {
+        Assimp::Importer Importer;
 
-    StaticMesh::StaticMesh(std::string_view filePath)
+        AssimpLoader()
+        {
+            Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
+            Assimp::DefaultLogger::get()->attachStream(new DebugLogStream, Assimp::Logger::Err | Assimp::Logger::Warn);
+        }
+
+        ~AssimpLoader()
+        {
+            Assimp::DefaultLogger::kill();
+        }
+
+        const aiScene* ReadFile(std::string_view filepath) 
+        { 
+            const aiScene* scene = Importer.ReadFile(filepath.data(), s_AssimpImporterFlags); 
+
+            if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+            {
+                TBO_ENGINE_ERROR("Could not load static mesh! {}", Importer.GetErrorString());
+                return nullptr;
+            }
+
+            return scene;
+        }
+    };
+
+    // Relying on static initialization
+    static AssimpLoader s_AssimpLoader;
+
+    // ###############################################################################################################
+    // ##################                                MeshSource                                 ##################
+    // ###############################################################################################################
+
+    MeshSource::MeshSource(std::string_view filePath)
         : m_FilePath(filePath)
     {
-        // Temporary solution to memoryleaks
-        DebugLog::Initialize();
         Load();
-        DebugLog::Shutdown();
     }
 
-    StaticMesh::~StaticMesh()
+    void MeshSource::Load()
     {
-    }
-
-    Ref<StaticMesh> StaticMesh::Create(std::string_view filePath)
-    {
-        return Ref<StaticMesh>::Create(filePath);
-    }
-
-    void StaticMesh::Load()
-    {
-        Assimp::Importer importer;
-
         // aiProcess_FlipUVs - Flip UVs but I think vulkan already has fliped UVs
-        const aiScene* scene = importer.ReadFile(m_FilePath.data(), s_AssimpImporterFlags);
+        const aiScene* scene = s_AssimpLoader.ReadFile(m_FilePath);
 
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-        {
-            TBO_ENGINE_ERROR("Could not load static mesh! {}", importer.GetErrorString());
+        if (!scene)
             return;
-        }
 
         ProcessNode(scene, scene->mRootNode);
 
@@ -98,7 +102,7 @@ namespace Turbo
     }
 
     // Flattens the hierarchy 
-    void StaticMesh::ProcessNode(const aiScene* scene, aiNode* node)
+    void MeshSource::ProcessNode(const aiScene* scene, aiNode* node)
     {
         u32 vertexCount = 0;
         u32 indexCount = 0;
@@ -129,7 +133,6 @@ namespace Turbo
                 }
             }
 
-
             // Indices
             for (u32 i = 0; i < mesh->mNumFaces; i++)
             {
@@ -146,7 +149,7 @@ namespace Turbo
         TraverseNodes(scene->mRootNode);
     }
 
-    void StaticMesh::TraverseNodes(aiNode* node, glm::mat4 parentTransform, u32 level)
+    void MeshSource::TraverseNodes(aiNode* node, glm::mat4 parentTransform, u32 level)
     {
         glm::mat4 localTransform = Utils::Mat4FromAssimpMat4(node->mTransformation);
         glm::mat4 transform = parentTransform * localTransform;
@@ -155,11 +158,32 @@ namespace Turbo
         {
             u32 mesh = node->mMeshes[i];
             auto& submesh = m_Submeshes[mesh];
-            submesh.Name = node->mName.C_Str();
+            //submesh.Name = node->mName.C_Str();
             submesh.Transform = transform;
         }
 
         for (u32 i = 0; i < node->mNumChildren; i++)
             TraverseNodes(node->mChildren[i], transform, level + 1);
     }
+
+    // ###############################################################################################################
+    // ##################                               Static Mesh                                 ##################
+    // ###############################################################################################################
+
+    StaticMesh::StaticMesh(const Ref<MeshSource>& meshSource, const std::vector<u32>& submeshIndices)
+        : m_MeshSource(meshSource), m_SubmeshIndices(submeshIndices)
+    {
+    }
+
+    StaticMesh::StaticMesh(const Ref<MeshSource>& meshSource)
+    {
+        // Default setting
+        auto& submeshes = meshSource->GetSubmeshes();
+        m_SubmeshIndices.resize(submeshes.size());
+        for (u32 i = 0; i < m_SubmeshIndices.size(); i++)
+        {
+            m_SubmeshIndices[i] = i;
+        }
+    }
+
 }

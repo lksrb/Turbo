@@ -1,8 +1,6 @@
 #include "tbopch.h"
 #include "EditorAssetRegistry.h"
 
-#include "AssetImporter.h"
-
 #include "Turbo/Core/FileSystem.h"
 #include "Turbo/Solution/Project.h"
 
@@ -16,41 +14,86 @@ namespace Turbo
     {
         static AssetType GetAssetTypeFromExtension(const std::filesystem::path& extension)
         {
-            if (extension == ".png") return AssetType_Texture2D;
-            if (extension == ".fbx") return AssetType_StaticMesh;
+            if (extension == ".png")   return AssetType_Texture2D;
+            if (extension == ".fbx" || extension == ".gltf")   return AssetType_MeshSource;
+            if (extension == ".tmesh") return AssetType_StaticMesh;
 
             TBO_ENGINE_ASSERT(false, "Unsupported extension!");
 
             return AssetType_Count;
         }
 
-        static std::filesystem::path ReplaceExtension(std::filesystem::path filepath)
+        static std::filesystem::path GetSecondaryAssetExtension(AssetType secondaryAssetType)
         {
-            auto extension = filepath.extension();
-
             // Those are special cases where we want to have separate file to refence an asset
-            if (extension == ".png") return FileSystem::ReplaceExtension(filepath, ".ttex");
 
-            return filepath;
+            switch (secondaryAssetType)
+            {
+                case AssetType_Texture2D:  return ".ttex"; // TODO:
+                case AssetType_StaticMesh: return ".tmesh";
+            }
+
+            TBO_ENGINE_ASSERT(false, "Unknown primrary asset type!");
+            return "";
+        }
+
+
+        static AssetClassification GetClassification(AssetType type)
+        {
+            switch (type)
+            {
+                case AssetType_Texture2D:  return AssetClassification_Secondary;
+                case AssetType_MeshSource: return AssetClassification_Primary;
+                case AssetType_StaticMesh: return AssetClassification_Secondary;
+            }
+
+            TBO_ENGINE_ASSERT(false);
+
+            return AssetClassification_None;
         }
 
         static std::filesystem::path GetMetadataPath(const std::filesystem::path& filepath)
         {
             auto assetsPath = Project::GetAssetsPath();
             auto metadataPath = std::filesystem::relative(filepath, assetsPath);
-            return ReplaceExtension(metadataPath);
+            return metadataPath;
+        }
+
+        static std::filesystem::path GetSecondaryAssetPath(const std::filesystem::path& filepath, AssetType secondaryAssetType)
+        {
+            auto extension = Utils::GetSecondaryAssetExtension(secondaryAssetType);
+            auto metadataPath = Utils::GetMetadataPath(filepath);
+            return FileSystem::ReplaceExtension(metadataPath, extension);
+        }
+
+        static AssetType GetSecondaryAssetTypeFromPrimary(AssetType primary)
+        {
+            switch (primary)
+            {
+                case AssetType_Texture2D:  return AssetType_Texture2D;
+                case AssetType_MeshSource: return AssetType_StaticMesh;
+            }
+
+            TBO_ENGINE_ASSERT(false);
+
+            return AssetType_Count;
         }
     }
 
-    EditorAssetRegistry::EditorAssetRegistry()
-    {
-        Deserialize();
-    }
+    static std::array<AssetMetadata, 2> s_DefaultAssetPaths = {
+        AssetMetadata{ "Meshes/Default/Cube.fbx", AssetType_MeshSource },
+        AssetMetadata{ "Meshes/Default/Sphere.fbx", AssetType_MeshSource }
+    };
 
     EditorAssetRegistry::~EditorAssetRegistry()
     {
         Serialize();
-        //m_LoadedAssets.clear();
+    }
+
+    void EditorAssetRegistry::Init()
+    {
+        Deserialize();
+        LoadDefaultAssets();
     }
 
     bool EditorAssetRegistry::IsAssetHandleValid(AssetHandle handle) const
@@ -71,8 +114,13 @@ namespace Turbo
         if (!IsAssetLoaded(handle))
         {
             auto& metadata = m_AssetRegistry.at(handle);
-            // Load asset?
-            return nullptr;
+            Ref<Asset> asset = Asset::TryLoad(metadata);
+            if (!asset)
+                return nullptr;
+
+            metadata.IsLoaded = true;
+            m_LoadedAssets[asset->Handle] = asset;
+            m_AssetRegistry[asset->Handle] = metadata;
         }
 
         return m_LoadedAssets.at(handle);
@@ -90,25 +138,70 @@ namespace Turbo
 
     void EditorAssetRegistry::ImportAsset(const std::filesystem::path& filepath)
     {
-        // Generates ID
-        AssetHandle assetHandle;
-
         // Create metadata specific to the asset type
         AssetMetadata metadata;
         metadata.Type = Utils::GetAssetTypeFromExtension(filepath.extension());
         metadata.FilePath = Utils::GetMetadataPath(filepath);
+        metadata.Classification = Utils::GetClassification(metadata.Type);
 
-        // Serialize data
-        TBO_ENGINE_ASSERT(AssetImporter::Serialize(metadata));
+        // Primary asset - Does not appear on disk, is only registered in asset registry file, must be loaded first
+        // Secondary asset - Is present on disk aswell as is registered in asset registry file, must be loaded second
 
-        // Load data
-        Ref<Asset> asset = AssetImporter::TryLoad(metadata);
-
-        if (asset)
+        if (metadata.Classification == AssetClassification_Primary)
         {
-            asset->Handle = assetHandle;
-            m_LoadedAssets[assetHandle] = asset;
-            m_AssetRegistry[assetHandle] = metadata;
+            // Create primary asset and load it
+            Ref<Asset> primaryAsset = Asset::TryLoad(metadata);
+            TBO_ENGINE_ASSERT(primaryAsset);
+            if (primaryAsset)
+            {
+                metadata.IsLoaded = true;
+                m_LoadedAssets[primaryAsset->Handle] = primaryAsset;
+                m_AssetRegistry[primaryAsset->Handle] = metadata;
+            }
+
+            // Create secondary asset and load it with the primary asset 
+            AssetMetadata secondaryMetadata;
+            secondaryMetadata.Type = Utils::GetSecondaryAssetTypeFromPrimary(metadata.Type);
+            secondaryMetadata.FilePath = Utils::GetSecondaryAssetPath(filepath, secondaryMetadata.Type);
+            secondaryMetadata.Classification = AssetClassification_Secondary;
+
+            // Create secondary asset and load it
+            auto secondaryAsset = Asset::Create(secondaryMetadata, primaryAsset);
+            TBO_ENGINE_ASSERT(secondaryAsset);
+
+            if (secondaryAsset)
+            {
+                secondaryMetadata.IsLoaded = true;
+                m_LoadedAssets[secondaryAsset->Handle] = secondaryAsset;
+                m_AssetRegistry[secondaryAsset->Handle] = secondaryMetadata;
+            }
+
+            // And serialize it
+            Asset::Serialize(secondaryMetadata, secondaryAsset);
+
+        }
+        else // metadata.Classification == AssetClassification_Secondary
+        {
+            // TODO:
+            TBO_ENGINE_ASSERT(false);
+            Ref<Asset> secondaryAsset = Asset::TryLoad(metadata);
+            //Ref<Asset> primaryAsset = GetAsset()
+            // Try to get primary asset
+            // If the primary asset is present but not load it, load it aswell
+            // Create secondary asset
+        }
+    }
+
+    void EditorAssetRegistry::LoadDefaultAssets()
+    {
+        for (auto& metadata : s_DefaultAssetPaths)
+        {
+            Ref<Asset> asset = Asset::TryLoad(metadata);
+            if (asset)
+            {
+                metadata.IsLoaded = true;
+                m_MemoryOnlyAssets[asset->Handle] = asset;
+            }
         }
     }
 
@@ -144,11 +237,25 @@ namespace Turbo
                 auto& metadata = m_AssetRegistry[handle];
                 metadata.FilePath = path;
                 metadata.Type = assetType;
-                m_LoadedAssets[handle] = AssetImporter::TryLoad(metadata);
+                metadata.Classification = Utils::GetClassification(metadata.Type);
 
                 TBO_ENGINE_TRACE("Asset: {}", (u64)handle);
                 TBO_ENGINE_TRACE("   Type: {}", stringAssetType);
                 TBO_ENGINE_TRACE("   Path: {}", path);
+            }
+
+            // Load primary assets
+            for (auto& [handle, metadata] : m_AssetRegistry)
+            {
+                if (metadata.Classification == AssetClassification_Primary)
+                    m_LoadedAssets[handle] = Asset::TryLoad(metadata);
+            }
+
+            // Load secondary assets
+            for (auto& [handle, metadata] : m_AssetRegistry)
+            {
+                if (metadata.Classification == AssetClassification_Secondary)
+                    m_LoadedAssets[handle] = Asset::TryLoad(metadata);
             }
         }
 
@@ -157,7 +264,7 @@ namespace Turbo
 
     bool EditorAssetRegistry::Serialize()
     {
-       auto path = Project::GetAssetRegistryPath();
+        auto path = Project::GetAssetRegistryPath();
 
         YAML::Emitter out;
         {

@@ -373,9 +373,9 @@ namespace Turbo
                 {
                     if (ImGui::MenuItem("Cube"))
                     {
-                        //m_SelectedEntity = m_Context->CreateEntity("Cube");
+                        //m_SelectedEntity = m_Context->CreateEntity("DefaultCube");
                         //auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
-                        //smr.Mesh = AssetManager::ImportAsset();
+                        //smr.Mesh = AssetManager::CreateAssetFromMemory();
                     }
 
                     if (ImGui::MenuItem("Cone"))

@@ -7,7 +7,7 @@
 
 namespace Turbo
 {
-    class AssetRegistryBase
+    class TBO_NOVTABLE AssetRegistryBase
     {
     public:
         using AssetMap = std::map<AssetHandle, Ref<Asset>>;
@@ -16,6 +16,7 @@ namespace Turbo
         AssetRegistryBase() = default;
         virtual ~AssetRegistryBase() = default;
 
+        virtual void Init() = 0;
         virtual void ImportAsset(const std::filesystem::path& filepath) = 0;
         virtual bool IsAssetHandleValid(AssetHandle handle) const = 0;
 
