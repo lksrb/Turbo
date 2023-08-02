@@ -14,10 +14,10 @@
 #define CheckPLATFORMError CheckError()
 #define TBO_MAX_CHARS 512
 
-namespace Turbo
-{
-    namespace
-    {
+namespace Turbo {
+
+    namespace {
+
         static int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
         {
             if (uMsg == BFFM_INITIALIZED)
@@ -42,10 +42,8 @@ namespace Turbo
         }
     }
 
-    struct Win32_Platform
-    {
-        struct
-        {
+    struct Win32_Platform {
+        struct {
             u64 Frequency;
             u64 Offset;
         } Timer;
@@ -104,7 +102,7 @@ namespace Turbo
         size_t titleSize = strlen(title) + 1;
         WCHAR wtitle[TBO_MAX_CHARS] = {};
         mbstowcs_s(NULL, &wtitle[0], titleSize, title, titleSize - 1);
-        
+
         // Open browser folder dialog
         BROWSEINFO bi = { 0 };
         bi.lpszTitle = wtitle;

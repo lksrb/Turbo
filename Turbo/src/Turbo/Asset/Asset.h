@@ -11,41 +11,43 @@ namespace Turbo
     enum AssetType : u32
     {
         AssetType_Texture2D = 0,
-        AssetType_MeshSource,
-        AssetType_StaticMesh,
+        AssetType_MeshSource = 1,
+        AssetType_StaticMesh = 2,
 
         // Also serves purpose as invalid value
-        AssetType_Count
+        AssetType_Count = 3
     };
 
-    enum AssetClassification : u32
+    enum DefaultAsset : u32 {
+        DefaultAsset_Cube = 0,
+        DefaultAsset_Sphere = 1,
+
+        DefaultAsset_Count = 2
+    };
+
+    enum AssetFlag : u32
     {
-        AssetClassification_None = 0,
-        AssetClassification_Primary,
-        AssetClassification_Secondary
+        AssetFlag_None = 0,
+        AssetFlag_Loaded = TBO_BIT(0), // Is asset loaded
+        AssetFlag_Default = TBO_BIT(1) // Is asset a default asset
     };
-
-    enum AssetFlags_ : u32
-    {
-        AssetFlags_None = 0,
-        AssetFlags_Loaded = TBO_BIT(0)
-    };
-
-    using AssetFlags = u32;
 
     struct AssetMetadata
     {
         std::filesystem::path FilePath;
         AssetType Type = AssetType_Count;
         bool IsLoaded = false;
-        AssetClassification Classification = AssetClassification_None;
     };
 
     class Asset
     {
     public:
+        using AssetFlags = u32;
         virtual ~Asset() = default;
         virtual AssetType GetAssetType() const = 0;
+        void SetFlags(AssetFlag flags, bool enable = true);
+
+        AssetFlags Flags;
         AssetHandle Handle; // Generates ID
     public:
         static const char* StringifyAssetType(AssetType type);
@@ -53,6 +55,6 @@ namespace Turbo
 
         static bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset = nullptr);
         static Ref<Asset> TryLoad(const AssetMetadata& metadata);
-        static Ref<Asset> Create(const AssetMetadata& metadata, const Ref<Asset>& primaryAsset);
+        static Ref<Asset> Create(const AssetMetadata& metadata, const Ref<Asset>& sourceAsset);
     };
 }

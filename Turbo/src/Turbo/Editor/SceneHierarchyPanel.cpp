@@ -2,6 +2,7 @@
 #include "SceneHierarchyPanel.h"
 
 #include "Turbo/Core/Platform.h"
+#include "Turbo/Core/FileSystem.h"
 
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Asset/AssetManager.h"
@@ -62,10 +63,10 @@
 
 #pragma endregion
 
-namespace Turbo
-{
-    namespace Utils
-    {
+namespace Turbo {
+
+    namespace Utils {
+
         template<typename T, typename UIFunction>
         static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
         {
@@ -332,12 +333,15 @@ namespace Turbo
             if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
                 m_SelectedEntity = {};
 
-            ImGui::SetNextWindowSize(ImVec2(175, 0), ImGuiCond_Always);
             // Right-click on blank space
+            ImGui::SetNextWindowSize(ImVec2(175, 0), ImGuiCond_Always);
             if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
             {
                 if (ImGui::MenuItem("Create Empty"))
+                {
                     m_SelectedEntity = m_Context->CreateEntity();
+                    m_SetFocusKeyboard = true;
+                }
 
                 if (ImGui::BeginMenu("2D"))
                 {
@@ -345,18 +349,21 @@ namespace Turbo
                     {
                         m_SelectedEntity = m_Context->CreateEntity("Sprite");
                         m_SelectedEntity.AddComponent<SpriteRendererComponent>();
+                        m_SetFocusKeyboard = true;
                     }
 
                     if (ImGui::MenuItem("Circle"))
                     {
                         m_SelectedEntity = m_Context->CreateEntity("Circle");
                         m_SelectedEntity.AddComponent<CircleRendererComponent>();
+                        m_SetFocusKeyboard = true;
                     }
 
                     if (ImGui::MenuItem("Line"))
                     {
                         m_SelectedEntity = m_Context->CreateEntity("Line");
                         m_SelectedEntity.AddComponent<LineRendererComponent>();
+                        m_SetFocusKeyboard = true;
                     }
 
                     if (ImGui::MenuItem("Text"))
@@ -373,14 +380,11 @@ namespace Turbo
                 {
                     if (ImGui::MenuItem("Cube"))
                     {
-                        //m_SelectedEntity = m_Context->CreateEntity("DefaultCube");
-                        //auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
-                        //smr.Mesh = AssetManager::CreateAssetFromMemory();
+                        UI::OpenPopup("Create Cube");
                     }
 
                     if (ImGui::MenuItem("Cone"))
                     {
-
                     }
 
                     if (ImGui::MenuItem("Cylinder"))
@@ -395,7 +399,7 @@ namespace Turbo
 
                     if (ImGui::MenuItem("Sphere"))
                     {
-
+                        UI::OpenPopup("Create Sphere");
                     }
 
                     if (ImGui::MenuItem("Capsule"))
@@ -417,6 +421,7 @@ namespace Turbo
                     {
                         m_SelectedEntity = m_Context->CreateEntity("Point light");
                         m_SelectedEntity.AddComponent<PointLightComponent>();
+                        m_SetFocusKeyboard = true;
                     }
 
                     if (ImGui::MenuItem("Spotlight"))
@@ -424,6 +429,7 @@ namespace Turbo
                         m_SelectedEntity = m_Context->CreateEntity("Spotlight");
                         m_SelectedEntity.Transform().Rotation.x = glm::radians(-90.0f);
                         m_SelectedEntity.AddComponent<SpotLightComponent>();
+                        m_SetFocusKeyboard = true;
                     }
 
                     if (ImGui::MenuItem("Directional Light"))
@@ -435,9 +441,28 @@ namespace Turbo
 
                 ImGui::EndPopup();
             }
+
             ImGui::End();
 
+            // TODO: Maybe abstract even more?
+            UI::Widgets::CreateMeshPopup("Create Cube", DefaultAsset_Cube, [this](const std::string& assetName, const Ref<Asset>& asset)
+            {
+                m_SelectedEntity = m_Context->CreateEntity(assetName);
+                auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                smr.Mesh = asset->Handle;
+                m_SetFocusKeyboard = true;
+            });
+
+            UI::Widgets::CreateMeshPopup("Create Sphere", DefaultAsset_Sphere, [this](const std::string& assetName, const Ref<Asset>& asset)
+            {
+                m_SelectedEntity = m_Context->CreateEntity(assetName);
+                auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                smr.Mesh = asset->Handle;
+                m_SetFocusKeyboard = true;
+            });
+
             ImGui::Begin("Properties");
+
             if (m_SelectedEntity)
             {
                 DrawComponents(m_SelectedEntity);
@@ -493,6 +518,12 @@ namespace Turbo
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
             strncpy_s(buffer, sizeof(buffer), tag.c_str(), sizeof(buffer));
+
+            if (m_SetFocusKeyboard)
+            {
+                m_SetFocusKeyboard = false;
+                ImGui::SetKeyboardFocusHere();
+            }
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
                 tag = buffer;

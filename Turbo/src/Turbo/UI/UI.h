@@ -28,6 +28,8 @@ namespace Turbo::UI
                 ImGui::PushStyleColor(idx, color);
         }
 
+        ScopedStyleColor(const ScopedStyleColor&) = delete;
+
         ~ScopedStyleColor()
         {
             if (Set)
@@ -53,11 +55,34 @@ namespace Turbo::UI
                 ImGui::PushStyleVar(idx, value);
         }
 
+        ScopedStyleVar(const ScopedStyleVar&) = delete;
+
         ~ScopedStyleVar()
         {
             if (Set)
                 ImGui::PopStyleVar();
         }
+    private:
+        bool Set = false;
+    };
+
+    struct ScopedDisableVar
+    {
+        ScopedDisableVar(bool predicate = true)
+            : Set(predicate)
+        {
+            if (Set)
+                ImGui::BeginDisabled();
+        }
+
+        ScopedDisableVar(const ScopedDisableVar&) = delete;
+
+        ~ScopedDisableVar()
+        {
+            if (Set)
+                ImGui::EndDisabled();
+        }
+
     private:
         bool Set = false;
     };
@@ -77,7 +102,13 @@ namespace Turbo::UI
     bool DragLong(const char* label, long long* v, float v_speed = 1.0f, long long v_min = 0, long long v_max = 0, const char* format = NULL, ImGuiSliderFlags flags = 0);
     bool DragULong(const char* label, unsigned long long* v, float v_speed = 1.0f, unsigned long long v_min = 0, unsigned long long v_max = ULONG_MAX, const char* format = NULL, ImGuiSliderFlags flags = 0);
 
-    // Manipulatine drawing
+    // Popups
+    void OpenPopup(const char* name, ImGuiPopupFlags flags = 0);
+
+    bool BeginPopupModal(const char* name, ImGuiWindowFlags flags = 0);
+    void EndPopupModal();
+
+    // Manipulate drawing
     void OffsetCursorPos(const ImVec2& offset);
     void OffsetCursorPosX(float xOffset);
     void OffsetCursorPosY(float yOffset);

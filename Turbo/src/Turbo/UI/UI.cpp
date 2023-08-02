@@ -63,13 +63,42 @@ namespace Turbo
         return ImGui::DragScalar(label, ImGuiDataType_U64, v, v_speed, &v_min, &v_max, format, flags);
     }
 
-	void UI::OffsetCursorPos(const ImVec2& offset)
+    // Popups
+	void UI::OpenPopup(const char* name, ImGuiPopupFlags flags)
 	{
+        ImGuiID popup_id = ImHashStr(name); // Hashing every frame might not be the best solution
+        ImGui::PushOverrideID(popup_id);
+        ImGui::OpenPopup(name, flags);
+        ImGui::PopID();
+	}
+
+    bool UI::BeginPopupModal(const char* name, ImGuiWindowFlags flags)
+    {
+        ImGuiID popup_id = ImHashStr(name);
+        ImGui::PushOverrideID(popup_id);
+        bool opened = ImGui::BeginPopupModal(name, nullptr, flags);
+        if(!opened)
+            ImGui::PopID();
+        return opened;
+    }
+
+    void UI::EndPopupModal()
+    {
+        bool isOpened = ImGui::GetCurrentWindow()->Active;
+        ImGui::EndPopup();
+
+        if (isOpened)
+            ImGui::PopID();
+    }
+
+    // Manipulate drawing
+    void UI::OffsetCursorPos(const ImVec2& offset)
+    {
         auto cursorPos = ImGui::GetCursorPos();
         cursorPos.x += offset.x;
         cursorPos.y += offset.y;
         ImGui::SetCursorPos(cursorPos);
-	}
+    }
 
     void UI::OffsetCursorPosX(float xOffset)
     {
@@ -81,8 +110,9 @@ namespace Turbo
         OffsetCursorPos(ImVec2(0.0f, yOffset));
     }
 
-	bool UI::BeginDragDropTargetWindow()
-	{
+    // Drag & Drop
+    bool UI::BeginDragDropTargetWindow()
+    {
         ImGuiWindow* window = ImGui::GetCurrentWindow();
         ImRect windowContent = window->ContentRegionRect;
 
@@ -91,7 +121,7 @@ namespace Turbo
         windowContent.Min.y = window->ContentRegionRect.Min.y + window->Scroll.y;
 
         return ImGui::BeginDragDropTargetCustom(windowContent, window->ID);
-	}
+    }
 
     void UI::EndDragDropTargetWindow()
     {

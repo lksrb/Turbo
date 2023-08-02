@@ -163,7 +163,7 @@ namespace Turbo::Ed
             {
                 // NOTE: Its users responsibility to move assets to Assets directory
                 // TODO: Make a popup warning about this
-                auto& filepath = Platform::OpenFileDialog(L"Import Asset", L"", m_CurrentDirectory);
+                auto& filepath = Platform::OpenFileDialog(L"Import Asset", L"Asset Source (*.fbx, *.png)\0*.fbx;*.png\0", m_CurrentDirectory);
 
                 if (!filepath.empty())
                 {

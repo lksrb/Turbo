@@ -1,25 +1,27 @@
+AssetDefaults:
+  - Asset: 3137858138016629028
+    Name: Cube
+  - Asset: 17910658117398205926
+    Name: Sphere
 AssetRegistry:
-  - Asset: 371799936710321440
-    Path: Meshes/Cube.gltf
-    Type: MeshSource
-  - Asset: 398144102440300627
+  - Asset: 4307021594378382582
+    Path: Meshes/Ground.tmesh
+    Type: StaticMesh
+  - Asset: 5366999175797075346
     Path: Meshes/Human.fbx
     Type: MeshSource
-  - Asset: 6245595848809202549
-    Path: Meshes/Human.tmesh
-    Type: StaticMesh
-  - Asset: 6412956475930430895
-    Path: Meshes/Backpack/Backpack.tmesh
-    Type: StaticMesh
-  - Asset: 8204765381314040431
-    Path: Meshes/Sphere.fbx
-    Type: MeshSource
-  - Asset: 10397313867192618123
-    Path: Meshes/Backpack/Backpack.fbx
-    Type: MeshSource
-  - Asset: 12308649729680930100
-    Path: Meshes/Sphere.tmesh
-    Type: StaticMesh
-  - Asset: 13490518766218475614
+  - Asset: 7376761225378303696
     Path: Meshes/Cube.tmesh
     Type: StaticMesh
+  - Asset: 10730187893971202533
+    Path: Meshes/Sphere.tmesh
+    Type: StaticMesh
+  - Asset: 12274184092980606656
+    Path: Meshes/Human.tmesh
+    Type: StaticMesh
+  - Asset: 14265248938592391798
+    Path: Meshes/Backpack/Backpack.tmesh
+    Type: StaticMesh
+  - Asset: 16683166863070861384
+    Path: Meshes/Backpack/Backpack.fbx
+    Type: MeshSource

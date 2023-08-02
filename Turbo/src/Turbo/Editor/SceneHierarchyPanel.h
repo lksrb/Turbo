@@ -35,6 +35,7 @@ namespace Turbo
     private:
         bool m_IsFocused = false;
 
+        bool m_SetFocusKeyboard = false;
         std::filesystem::path m_AssetsPath;
         Ref<Scene> m_Context;
         Entity m_SelectedEntity;

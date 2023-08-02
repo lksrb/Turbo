@@ -4,19 +4,18 @@
 
 #include <chrono>
 
-namespace Turbo
-{
-	class ScopeTimer 
-	{
-	public:
+namespace Turbo {
+
+    class ScopeTimer {
+    public:
         ScopeTimer(std::string_view name, bool output = true);
         ~ScopeTimer();
 
         f32 Stop();
-	private:
-		std::chrono::time_point<std::chrono::steady_clock> m_Start, m_End;
+    private:
+        std::chrono::time_point<std::chrono::steady_clock> m_Start, m_End;
         std::string_view m_Name;
-		bool m_Output;
-	};
+        bool m_Output;
+    };
 }
 

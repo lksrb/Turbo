@@ -4,6 +4,7 @@
 #include "Turbo/Debug/ScopeTimer.h"
 
 #include <Windows.h>
+#include <Shlwapi.h>
 
 namespace Turbo
 {

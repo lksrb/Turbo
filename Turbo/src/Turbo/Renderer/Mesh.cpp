@@ -71,7 +71,7 @@ namespace Turbo
         }
     };
 
-    // Relying on static initialization
+    // Relying on static initialization/destruction
     static AssimpLoader s_AssimpLoader;
 
     // ###############################################################################################################
@@ -176,6 +176,7 @@ namespace Turbo
     }
 
     StaticMesh::StaticMesh(const Ref<MeshSource>& meshSource)
+        : m_MeshSource(meshSource)
     {
         // Default setting
         auto& submeshes = meshSource->GetSubmeshes();

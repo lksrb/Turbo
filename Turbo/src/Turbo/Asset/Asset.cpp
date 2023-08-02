@@ -22,6 +22,18 @@ namespace Turbo
 
     static AssetHandler s_AssetHandler;
 
+    void Asset::SetFlags(AssetFlag flags, bool enable)
+    {
+        if (enable)
+        {
+            Flags |= flags;
+        }
+        else
+        {
+            Flags &= ~flags;
+        }
+    }
+
     const char* Asset::StringifyAssetType(AssetType type)
     {
         static const char* s_StringifiedAssetTypeMap[AssetType_Count] =
@@ -56,9 +68,9 @@ namespace Turbo
         return s_AssetHandler.Serializers[metadata.Type]->TryLoad(metadata);
     }
 
-    Ref<Asset> Asset::Create(const AssetMetadata& metadata, const Ref<Asset>& primaryAsset)
+    Ref<Asset> Asset::Create(const AssetMetadata& metadata, const Ref<Asset>& sourceAsset)
     {
-        return s_AssetHandler.Serializers[metadata.Type]->Create(metadata, primaryAsset);
+        return s_AssetHandler.Serializers[metadata.Type]->Create(metadata, sourceAsset);
     }
 
 }

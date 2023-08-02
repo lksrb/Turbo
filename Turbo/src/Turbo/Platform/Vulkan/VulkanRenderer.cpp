@@ -157,7 +157,7 @@ namespace Turbo
 
     void Renderer::SetLineWidth(Ref<RenderCommandBuffer> commandBuffer, f32 lineWidth)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, lineWidth]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
             vkCmdSetLineWidth(vkCommandBuffer, lineWidth);
@@ -190,7 +190,7 @@ namespace Turbo
 
     void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, renderPass]()
         {
             const auto& framebufferConfig = renderPass->GetConfig().TargetFrameBuffer->GetConfig();
 
@@ -218,7 +218,7 @@ namespace Turbo
 
     void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
             vkCmdEndRenderPass(vkCommandBuffer);
@@ -227,7 +227,7 @@ namespace Turbo
 
     void Renderer::Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 vertexCount)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, vertexBuffer, uniformBufferSet, pipeline, shader, vertexCount]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
@@ -253,7 +253,7 @@ namespace Turbo
 
     void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, vertexBuffer, indexBuffer, uniformBufferSet, pipeline, shader, indexCount]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
@@ -281,7 +281,7 @@ namespace Turbo
 
     void Renderer::PushConstant(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, u32 size, const void* data)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, pipeline, size, data]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
             VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
@@ -292,7 +292,7 @@ namespace Turbo
 
     void Renderer::DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 instanceCount, u32 indicesPerInstance)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, vertexBuffer, instanceBuffer, indexBuffer, uniformBufferSet, pipeline, instanceCount, indicesPerInstance]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
@@ -322,7 +322,7 @@ namespace Turbo
 
     void Renderer::DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 transformOffset, u32 subMeshIndex, u32 instanceCount)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, mesh, transformBuffer, uniformBufferSet, pipeline, transformOffset, subMeshIndex, instanceCount]()
         {
             Ref<MeshSource> meshSource = mesh->GetMeshSource();
 
@@ -359,7 +359,7 @@ namespace Turbo
 
     void Renderer::DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet)
     {
-        Renderer::Submit([=]()
+        Renderer::Submit([commandBuffer, pipeline, uniformBufferSet]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 

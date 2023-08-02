@@ -2,14 +2,15 @@
 
 #include "AssetRegistryBase.h"
 
-namespace Turbo
-{
-    class EditorAssetRegistry : public AssetRegistryBase
-    {
+namespace Turbo {
+
+    class EditorAssetRegistry : public AssetRegistryBase {
     public:
+        using DefaultAssetRegistry = std::array<Ref<Asset>, DefaultAsset_Count>;
+
         EditorAssetRegistry() = default;
         ~EditorAssetRegistry();
-        
+
         // FIXME: Bad solution for this
         template<typename T, typename... Args>
         Ref<T> RecreateAsset(AssetHandle handle, Args&&... args)
@@ -24,7 +25,7 @@ namespace Turbo
                 if (!asset.As<Texture2D>()->IsLoaded())
                     return nullptr;
             }
-            
+
             // Serialize metadata
             auto& metadata = GetAssetMetadata(handle);
             Asset::Serialize(metadata, asset);
@@ -39,14 +40,17 @@ namespace Turbo
         Ref<Asset> GetAsset(AssetHandle handle) override;
         const AssetMetadata& GetAssetMetadata(AssetHandle handle) const override;
 
+        Ref<Asset> CreateFromDefaultAsset(std::string_view assetName, DefaultAsset defaultAsset);
+
         const AssetRegistry& GetRegisteredAssets() const { return m_AssetRegistry; }
         const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }
     private:
-        void LoadDefaultAssets();
         bool Deserialize();
         bool Serialize();
+        void LoadDefaultAssets();
 
-        AssetMap m_MemoryOnlyAssets;
+        AssetMap m_DefaultAssetMap;
+        DefaultAssetRegistry m_DefaultAssetRegistry;
         AssetRegistry m_AssetRegistry;
         AssetMap m_LoadedAssets;
     };

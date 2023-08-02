@@ -130,10 +130,10 @@ namespace Turbo
         return meshSource;
     }
 
-    Ref<Asset> StaticMeshSerializer::Create(const AssetMetadata& metadata, const Ref<Asset>& primaryAsset) const
+    Ref<Asset> StaticMeshSerializer::Create(const AssetMetadata& metadata, const Ref<Asset>& sourceAsset) const
     {
         auto path = Project::GetAssetsPath() / metadata.FilePath;
-        Ref<MeshSource> meshSource = primaryAsset.As<MeshSource>();
+        Ref<MeshSource> meshSource = sourceAsset.As<MeshSource>();
         return Ref<StaticMesh>::Create(meshSource);
     }
 
@@ -190,6 +190,12 @@ namespace Turbo
         // NOTE: This is a bit problematic since we deserialize assets in sequence.
         // Could be solved by loading primary assets first and then load secondary assets
         Ref<MeshSource> meshSource = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
+
+        if (!meshSource)
+        {
+            TBO_ENGINE_ERROR("MeshSource is missing!");
+            return nullptr;
+        }
 
         auto submeshIndices = meshData["SubmeshIndices"];
         std::vector<u32> indices;
