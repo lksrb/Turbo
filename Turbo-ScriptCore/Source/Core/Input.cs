@@ -2,9 +2,9 @@
 {
 	public enum CursorMode : uint
 	{
-		CursorMode_Hidden = 0,
-		CursorMode_Arrow,
-		CursorMode_Hand,
+		Arrow = 0,
+		Hidden,
+		Locked,
 	}
 
 	public static class Input
@@ -16,13 +16,10 @@
 
 		public static void SetCursorMode(CursorMode cursorMode) => InternalCalls.Input_SetCursorMode(cursorMode);
 
-		public static Vector2 MousePosition
+		public static Vector2 GetMousePosition()
 		{
-			get
-			{
-				InternalCalls.Input_GetMousePosition(out Vector2 mousePosition);
-				return mousePosition;
-			}
+			InternalCalls.Input_GetMousePosition(out Vector2 mousePosition);
+			return mousePosition;
 		}
 
 

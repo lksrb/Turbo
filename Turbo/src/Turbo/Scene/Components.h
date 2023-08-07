@@ -18,8 +18,8 @@
 
 #include "Turbo/Core/Math.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     class Entity;
 
     struct TagComponent

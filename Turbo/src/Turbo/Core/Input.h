@@ -7,16 +7,18 @@ namespace Turbo
 {
     enum CursorMode : u32
     {
-        CursorMode_Hidden = 0,
-        CursorMode_Arrow,
-        CursorMode_Hand,
+        CursorMode_Normal = 0,
+        CursorMode_Hidden = 1,
+        CursorMode_Locked = 2,
 
-        CursorMode_Count
+        CursorMode_Count = 3
     };
 
     class Input
     {
     public:
+        static void Update();
+
         static bool IsKeyPressed(const KeyCode keyCode);
         static bool IsKeyReleased(const KeyCode keyCode);
 
@@ -26,7 +28,6 @@ namespace Turbo
         static void SetCursorMode(CursorMode cursorMode);
         static CursorMode GetCursorMode();
 
-        static i32 GetMouseX();
-        static i32 GetMouseY();
+        static std::pair<i32, i32> GetMousePosition();
     };
 }

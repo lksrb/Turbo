@@ -164,7 +164,9 @@ namespace Turbo::Ed {
             case SceneMode::Edit:
             {
                 if (m_ViewportHovered)
+                {
                     m_EditorCamera.OnUpdate(Time.DeltaTime);
+                }
 
                 m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, Time.DeltaTime);
                 break;
@@ -344,40 +346,8 @@ namespace Turbo::Ed {
                 ImGui::EndDragDropTarget();
             }
 
-            // Right-click on viewport to access the magic menu
-            if (!m_EditorCamera.IsControlling())
-            {
-                ImGui::SetNextWindowSize({ 200.0f, 400.0f });
-
-                if (ImGui::BeginPopupContextWindow("##ViewportContextMenu"))
-                {
-                    ImGui::MenuItem("Scene", nullptr, false, false);
-                    ImGui::Separator();
-                    if (ImGui::MenuItem("New Entity", nullptr, false, m_EditorScene))
-                    {
-                        TBO_WARN("Entity Added!");
-                        Entity e = m_EditorScene->CreateEntity();
-
-                        auto& transform = e.Transform();
-
-                        static f32 x = 0.0f;
-                        transform.Translation.y = x;
-                        ++x;
-                    }
-
-                    if (ImGui::MenuItem("New Camera Entity", nullptr, false, m_EditorScene))
-                    {
-                        TBO_WARN("Camera Added!");
-                        auto& camera = m_EditorScene->CreateEntity().AddComponent<CameraComponent>();
-                        camera.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-
             // Gizmos
-            m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
-
+            // 
             // FIXME: Temporary solution
             if (m_SelectedEntity && m_GizmoType != -1 && m_SceneMode != SceneMode::Play)
             {
@@ -401,7 +371,7 @@ namespace Turbo::Ed {
 
                 // Entity transform
                 auto& transformComponent = m_SelectedEntity.Transform();
-                glm::mat4 transform = transformComponent.GetTransform();
+                glm::mat4 transform = m_CurrentScene->GetWorldSpaceTransformMatrix(m_SelectedEntity);
 
                 // Snapping
                 bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -418,13 +388,24 @@ namespace Turbo::Ed {
 
                 if (ImGuizmo::IsUsing())
                 {
+                    Entity parent = m_CurrentScene->FindEntityByUUID(m_SelectedEntity.GetParentUUID());
+
+                    TransformComponent& entityTransform = m_SelectedEntity.Transform();
+
+                    if (parent)
+                    {
+                        glm::mat4 parentTransform = m_CurrentScene->GetWorldSpaceTransformMatrix(parent);
+                        // Cancel parents transforms
+                        transform = glm::inverse(parentTransform) * transform;
+                    }
+
                     glm::vec3 translation, rotation, scale;
                     Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                    glm::vec3 deltaRotation = rotation - transformComponent.Rotation;
-                    transformComponent.Translation = translation;
-                    transformComponent.Rotation += deltaRotation;
-                    transformComponent.Scale = scale;
+                    glm::vec3 deltaRotation = rotation - entityTransform.Rotation;
+                    entityTransform.Translation = translation;
+                    entityTransform.Rotation += deltaRotation;
+                    entityTransform.Scale = scale;
                 }
             }
 
@@ -516,6 +497,9 @@ namespace Turbo::Ed {
             ImGui::EndMenuBar();
         }
 
+        // TODO: Figure out where this goes
+        m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
+
         if (m_ShowDemoWindow)
             ImGui::ShowDemoWindow();
 
@@ -585,14 +569,11 @@ namespace Turbo::Ed {
 
     bool Editor::OnKeyPressed(KeyPressedEvent& e)
     {
-        if (e.GetRepeatCount() > 1)
-            return false;
-
+        bool isRepeated = e.IsRepeated();
         bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
         bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
 
-        bool sceneHierarchyPanelFocused = m_PanelManager->GetPanel<SceneHierarchyPanel>()->IsFocused();
         bool isPlayMode = m_SceneMode == SceneMode::Play;
 
         switch (e.GetKeyCode())
@@ -600,31 +581,40 @@ namespace Turbo::Ed {
             // Gizmos
             case Key::Q:
             {
-                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
+                if (m_ViewportHovered && !ImGuizmo::IsUsing())
                     m_GizmoType = -1;
                 break;
             }
             case Key::W:
             {
-                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
+                if (m_ViewportHovered && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                 break;
             }
             case Key::E:
             {
-                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
+                if (m_ViewportHovered && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                 break;
             }
             case Key::R:
             {
-                if (!sceneHierarchyPanelFocused && !ImGuizmo::IsUsing())
+                if (m_ViewportHovered && !ImGuizmo::IsUsing())
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                break;
+            }
+            case Key::F:
+            {
+                if (!isRepeated && m_SelectedEntity && m_ViewportHovered && !ImGuizmo::IsUsing())
+                {
+                    m_EditorCamera.Focus(m_SelectedEntity.Transform().Translation);
+                }
+
                 break;
             }
             case Key::D:
             {
-                if (control)
+                if (!isRepeated && control)
                 {
                     m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
                     if (m_SelectedEntity)
@@ -639,22 +629,26 @@ namespace Turbo::Ed {
             case Key::Escape:
             {
                 // Set cursor back
-                Input::SetCursorMode(CursorMode_Arrow);
+                Input::SetCursorMode(CursorMode_Normal);
+
                 break;
             }
             // Menu
             case Key::S:
             {
-                if (control && shift)
-                    SaveSceneAs();
-                else if (control)
-                    SaveScene();
+                if (!isRepeated)
+                {
+                    if (control && shift)
+                        SaveSceneAs();
+                    else if (control)
+                        SaveScene();
 
+                }
                 break;
             }
             case Key::O:
             {
-                if (control)
+                if (!isRepeated && control)
                     OpenProject();
                 break;
             }
@@ -982,7 +976,7 @@ namespace Turbo::Ed {
         }
 
         // Reset cursor
-        Input::SetCursorMode(CursorMode_Arrow);
+        Input::SetCursorMode(CursorMode_Normal);
 
         m_PanelManager->SetSceneContext(m_CurrentScene);
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
@@ -1037,31 +1031,30 @@ namespace Turbo::Ed {
         // Icons
         if (m_ShowSceneIcons)
         {
-            // Point lights
-            auto pointlights = m_CurrentScene->GroupAllEntitiesWith<PointLightComponent, TransformComponent>();
-            for (auto entity : pointlights)
+            // Cameras
+            auto cameras = m_CurrentScene->GetAllEntitiesWith<CameraComponent>();
+            for (auto e : cameras)
             {
-                const auto& transform = pointlights.get<TransformComponent>(entity);
+                Entity entity = { e , m_CurrentScene.Get() };
+                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_CameraIcon, 1.0f, (i32)e);
+            }
 
-                glm::mat4 offsetTransform = transform.GetTransform();
+            // Point lights
+            auto pointlights = m_CurrentScene->GetAllEntitiesWith<PointLightComponent>();
+            for (auto e : pointlights)
+            {
+                Entity entity = { e , m_CurrentScene.Get() };
+                // TODO: Outlines
                 //m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
-                m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_PointLightIcon, 1.0f, (i32)entity);
+                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, {1.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, m_PointLightIcon, 1.0f, (i32)e);
             }
 
             // Spotlights
-            auto spotlights = m_CurrentScene->GroupAllEntitiesWith<SpotLightComponent, TransformComponent>();
-            for (auto entity : spotlights)
+            auto spotlights = m_CurrentScene->GetAllEntitiesWith<SpotLightComponent>();
+            for (auto e : spotlights)
             {
-                const auto& transform = spotlights.get<TransformComponent>(entity);
-                m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_SpotLightIcon, 1.0f, (i32)entity);
-            }
-
-            // Cameras
-            auto cameras = m_CurrentScene->GetAllEntitiesWith<CameraComponent, TransformComponent>();
-            for (auto entity : cameras)
-            {
-                const auto& transform = cameras.get<TransformComponent>(entity);
-                m_ViewportDrawList->AddBillboardQuad(transform.Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_CameraIcon, 1.0f, (i32)entity);
+                Entity entity = { e , m_CurrentScene.Get() };
+                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_SpotLightIcon, 1.0f, (i32)e);
             }
         }
     }

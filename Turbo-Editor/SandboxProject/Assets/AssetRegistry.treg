@@ -5,6 +5,9 @@ AssetRegistry:
   - Asset: 3215580691506807390
     Path: Meshes/Default/Cone.tmesh
     Type: StaticMesh
+  - Asset: 3410154700432275184
+    Path: Meshes/Default/Capsule.tmesh
+    Type: StaticMesh
   - Asset: 3411376591522269393
     Path: Meshes/Default/Cube.tmesh
     Type: StaticMesh
@@ -16,6 +19,9 @@ AssetRegistry:
     Type: StaticMesh
   - Asset: 7338600381720551882
     Path: Sources/Default/Cylinder.fbx
+    Type: MeshSource
+  - Asset: 7897496334454700555
+    Path: Sources/Default/Capsule.fbx
     Type: MeshSource
   - Asset: 9694007235022222327
     Path: Meshes/Backpack/Backpack.tmesh

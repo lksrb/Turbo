@@ -19,6 +19,25 @@ namespace Turbo
 
 		public override string ToString() => $"(x: {X}, y: {Y}, z: {Z})";
 
+		public static Vector3 Cos(Vector3 vector)
+		{
+			return new Vector3(Mathf.Cos(vector.X), Mathf.Cos(vector.Y), Mathf.Cos(vector.Z));
+		}
+
+		public static Vector3 Sin(Vector3 vector)
+		{
+			return new Vector3(Mathf.Sin(vector.X), Mathf.Sin(vector.Y), Mathf.Sin(vector.Z));
+		}
+
+		public static Vector3 Cross(Vector3 x, Vector3 y)
+		{
+			return new Vector3(
+				x.Y * y.Z - y.Y * x.Z,
+				x.Z * y.X - y.Z * x.X,
+				x.X * y.Y - y.X * x.Y
+			);
+		}
+
 		public static Vector3 Zero => new Vector3(0.0f, 0.0f, 0.0f);
 		public static Vector3 Up => new Vector3(0.0f, 1.0f, 0.0f);
 		public static Vector3 Right => new Vector3(1.0f, 0.0f, 0.0f);

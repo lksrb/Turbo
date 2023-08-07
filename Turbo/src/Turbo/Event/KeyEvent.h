@@ -23,16 +23,16 @@ namespace Turbo
     class KeyPressedEvent : public KeyEvent 
     {
     public:
-        KeyPressedEvent(const KeyCode code, u16 repeatCount)
-            : KeyEvent(code), m_RepeatCount(repeatCount)
+        KeyPressedEvent(const KeyCode code, bool repeat)
+            : KeyEvent(code), m_IsRepeated(repeat)
         {
         }
 
-        u16 GetRepeatCount() const { return m_RepeatCount; }
+        bool IsRepeated() const { return m_IsRepeated; }
 
         EVENT_CLASS_TYPE(KeyPressed)
     private:
-        u16 m_RepeatCount;
+        bool m_IsRepeated;
     };
 
     class KeyReleasedEvent : public KeyEvent 

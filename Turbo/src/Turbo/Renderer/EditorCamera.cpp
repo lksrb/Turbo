@@ -63,7 +63,8 @@ namespace Turbo
 
         if (m_IsControlling)
         {
-            const glm::vec2& mouse = { Input::GetMouseX(), Input::GetMouseY() };
+            auto [mouseX, mouseY] = Input::GetMousePosition();
+            glm::vec2 mouse = { (f32)mouseX, (f32)mouseY };
             glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
             m_InitialMousePosition = mouse;
 
@@ -82,6 +83,20 @@ namespace Turbo
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(TBO_BIND_FN(EditorCamera::OnMouseScroll));
+    }
+
+    void EditorCamera::Focus(const glm::vec3& translation)
+    {
+        m_FocalPoint = translation;
+        constexpr f32 minFocusDistance = 100.0f;
+        if (m_Distance > minFocusDistance)
+        {
+            const f32 distance = m_Distance - minFocusDistance;
+            MouseZoom(distance / ZoomSpeed());
+        }
+
+        m_Position = m_FocalPoint - GetForwardDirection() * m_Distance;
+        UpdateView();
     }
 
     void EditorCamera::ResetRotation()

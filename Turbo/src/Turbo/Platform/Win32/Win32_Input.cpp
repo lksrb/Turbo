@@ -10,27 +10,28 @@
 
 #define TBO_HOLD 0x8000
 
-namespace Turbo
-{
+namespace Turbo {
     struct InputData
     {
         std::array<HCURSOR, CursorMode_Count> Cursors;
-        CursorMode Mode;
+        CursorMode Mode = CursorMode_Normal;
+        CursorMode LastMode = CursorMode_Normal;
+        POINT RestoreCursorPos = {};
+        POINT LastCursorPos = {};
+        POINT VirtualCursorPos = {};
 
         InputData()
         {
+            Cursors[CursorMode_Normal] = LoadCursor(NULL, IDC_ARROW);
             Cursors[CursorMode_Hidden] = nullptr;
-            Cursors[CursorMode_Arrow] = LoadCursor(NULL, IDC_ARROW);
-            Cursors[CursorMode_Hand] = LoadCursor(NULL, IDC_HAND);
-
-            Mode = CursorMode_Arrow;
+            Cursors[CursorMode_Locked] = nullptr;
         }
     };
 
     static InputData s_Data;
 
-    namespace Utils
-    {
+    namespace Utils {
+
         static bool IsViewportFocused()
         {
             bool enableUI = Engine::Get().GetApplication()->GetConfig().EnableUI;
@@ -45,6 +46,22 @@ namespace Turbo
         }
     }
 
+    void Input::Update()
+    {
+        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
+        s_Data.LastCursorPos = window->GetLastCursorPosition();
+        s_Data.VirtualCursorPos = window->GetVirtualCursorPosition();
+
+        if (s_Data.Mode == CursorMode_Locked)
+        {
+            // Center cursor 
+            if (s_Data.LastCursorPos.x != window->GetWidth() / 2 || s_Data.LastCursorPos.y != window->GetHeight() / 2)
+            {
+                POINT pos = { (LONG)window->GetWidth() / 2, (LONG)window->GetHeight() / 2 };
+                window->SetCursorPosition(pos);
+            }
+        }
+    }
 
     bool Input::IsKeyPressed(const KeyCode keyCode)
     {
@@ -81,7 +98,38 @@ namespace Turbo
             return;
         }
 
+        s_Data.LastMode = s_Data.Mode;
         s_Data.Mode = cursorMode;
+
+        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
+
+        if (s_Data.Mode == CursorMode_Locked)
+        {
+            // Store cursor position
+            ::GetCursorPos(&s_Data.RestoreCursorPos);
+            ::ScreenToClient(window->GetHandle(), &s_Data.RestoreCursorPos);
+
+            // Center cursor 
+            RECT area;
+            ::GetClientRect(window->GetHandle(), &area);
+            ::SetCursorPos(area.right / 2, area.bottom / 2);
+
+            // Ensure that the cursor stays inside screen
+            RECT clipRect;
+            ::GetClientRect(window->GetHandle(), &clipRect);
+            ::ClientToScreen(window->GetHandle(), (POINT*)&clipRect.left);
+            ::ClientToScreen(window->GetHandle(), (POINT*)&clipRect.right);
+            ::ClipCursor(&clipRect);
+        }
+
+        if (s_Data.LastMode == CursorMode_Locked)
+        {
+            window->SetCursorPosition(s_Data.RestoreCursorPos);
+
+            // Unlocks cursor from window
+            ::ClipCursor(NULL);
+        }
+
         ::SetCursor(s_Data.Cursors[cursorMode]);
     }
 
@@ -90,24 +138,12 @@ namespace Turbo
         return s_Data.Mode;
     }
 
-    i32 Input::GetMouseX()
+    std::pair<i32, i32> Input::GetMousePosition()
     {
         Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
-
-        POINT mousePosition = { -1, -1 };
-        GetCursorPos(&mousePosition);
-        //ScreenToClient(window->GetHandle(), &mousePosition);
-
-        return mousePosition.x;
+        POINT mousePosition = s_Data.Mode != CursorMode_Locked ? s_Data.LastCursorPos : s_Data.VirtualCursorPos;
+        return { mousePosition.x, mousePosition.y };
     }
-    i32 Input::GetMouseY()
-    {
-        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
 
-        POINT mousePosition = { -1, -1 };
-        GetCursorPos(&mousePosition);
-        //ScreenToClient(window->GetHandle(), &mousePosition);
 
-        return mousePosition.y;
-    }
 }

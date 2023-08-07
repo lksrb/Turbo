@@ -1,17 +1,5 @@
 Scene: StartScene
 Entities:
-  - Entity: 1622259911025475548
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Human
-    TransformComponent:
-      Translation: [0.421571255, 0, -32.2376251]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    StaticMeshRendererComponent:
-      Mesh: 15173728770675198862
   - Entity: 7307812893521663871
     Parent: 0
     Children:
@@ -33,14 +21,35 @@ Entities:
     TagComponent:
       Tag: Spotlight
     TransformComponent:
-      Translation: [0.330727577, 29.9847527, 0.0389959514]
+      Translation: [0.330727577, 200, 0.0389977731]
       Rotation: [-1.57079637, 0, 0]
-      Scale: [1, 0.999775708, 0.999775708]
+      Scale: [1, 0.999749899, 0.999749899]
     SpotLightComponent:
       Radiance: [1, 1, 1]
-      Intensity: 5
+      Intensity: 3
       InnerCone: 12.5
       OuterCone: 17.5
+  - Entity: 9379112465173313586
+    Parent: 17758440140024707462
+    Children:
+      []
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0.0769729614, 1.32054043, -3.10868311]
+      Rotation: [0, 4.40457133e-20, 1.56319619e-13]
+      Scale: [0.99999392, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
   - Entity: 9851504607898728242
     Parent: 7307812893521663871
     Children:
@@ -48,7 +57,7 @@ Entities:
     TagComponent:
       Tag: RightPointLight
     TransformComponent:
-      Translation: [15.1909056, 8.84332371, -4.15714693]
+      Translation: [-0.434687376, 2.30730534, -24.3346195]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
@@ -56,30 +65,18 @@ Entities:
       Radius: 10
       Intensity: 5
       FallOff: 1
-  - Entity: 11900888592832993983
+  - Entity: 12739171548365996964
     Parent: 0
     Children:
       []
     TagComponent:
-      Tag: Cube
+      Tag: Ground
     TransformComponent:
-      Translation: [-5.3409729, 0.448863983, 0]
+      Translation: [-3.83438897, -22.2794914, -2.77853441]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [100, 1.00000012, 100.000031]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
-  - Entity: 15446134605719858571
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Cylinder
-    TransformComponent:
-      Translation: [-5.05792809, 0, -4.79626179]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    StaticMeshRendererComponent:
-      Mesh: 4550927646632324055
   - Entity: 16237566845937793509
     Parent: 7307812893521663871
     Children:
@@ -95,27 +92,24 @@ Entities:
       Radius: 10
       Intensity: 5
       FallOff: 1
-  - Entity: 16716205608470457050
+  - Entity: 17758440140024707462
     Parent: 0
     Children:
-      []
+      - UUID: 9379112465173313586
     TagComponent:
-      Tag: Torus
+      Tag: Player
     TransformComponent:
-      Translation: [-3.68266892, 0, 8.2564888]
+      Translation: [-5.34057522, -8.24575615, 7.65948105]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
-      Mesh: 5163550985720168621
-  - Entity: 17080666099359376190
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Cone
-    TransformComponent:
-      Translation: [7.23438644, 2.99142075, 3.7252903e-09]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    StaticMeshRendererComponent:
-      Mesh: 3215580691506807390
+      Mesh: 3410154700432275184
+    ScriptComponent:
+      ClassName: Sandbox.ExampleEntity
+      Fields:
+        - Name: MouseSensitivity
+          Type: Float
+          Data: 0
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 0

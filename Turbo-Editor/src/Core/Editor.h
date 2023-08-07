@@ -4,14 +4,17 @@
 
 namespace Turbo::Ed {
 
-    class Editor : public Application {
+    class Editor : public Application
+    {
     public:
-        enum class SceneMode : u32 {
+        enum class SceneMode : u32
+        {
             Edit = 0,
             Play
         };
 
-        enum class DevEnv : u32 {
+        enum class DevEnv : u32
+        {
             None = 0,
             VS2022
         };

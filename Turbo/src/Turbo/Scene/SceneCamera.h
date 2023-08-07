@@ -38,7 +38,7 @@ namespace Turbo
     private:
         void RecalculateProjection();
     private:
-        ProjectionType m_ProjectionType = ProjectionType::Orthographic;
+        ProjectionType m_ProjectionType = ProjectionType::Perspective;
 
         f32 m_OrthographicSize = 10.0;
         f32 m_OrthographicNear = -1.0, m_OrthographicFar = 1.0;

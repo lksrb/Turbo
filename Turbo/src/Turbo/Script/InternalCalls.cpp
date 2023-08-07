@@ -121,8 +121,9 @@ namespace Turbo
     }
     static void Input_GetMousePosition(glm::vec2* mousePosition)
     {
-        mousePosition->x = (f32)Input::GetMouseX();
-        mousePosition->y = (f32)Input::GetMouseY();
+        auto [x, y] = Input::GetMousePosition();
+        mousePosition->x = (f32)x;
+        mousePosition->y = (f32)y;
     }
 
     static void Input_SetCursorMode(u32 cursorMode)

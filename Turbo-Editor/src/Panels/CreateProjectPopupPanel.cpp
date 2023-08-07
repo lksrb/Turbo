@@ -9,8 +9,8 @@
 
 #include <filesystem>
 
-namespace Turbo::Ed
-{
+namespace Turbo::Ed {
+
     static char s_ProjectName[64]{ 0 };
     static char s_ProjectDirectoryPath[256]{ 0 };
     static char s_ProjectFullPath[256]{ 0 };
@@ -68,7 +68,7 @@ namespace Turbo::Ed
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 2.0f);
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2.0f);
-            if(ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f })) // OpenBrowseFolderDialog just freeze entire application and does not load
+            if (ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f })) // OpenBrowseFolderDialog just freeze entire application and does not load
             {
                 const std::filesystem::path& filepath = Platform::OpenBrowseFolderDialog("Select Location", s_ProjectDirectoryPath);
 

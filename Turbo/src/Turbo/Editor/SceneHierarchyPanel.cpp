@@ -347,11 +347,11 @@ namespace Turbo {
 
         if (m_Context)
         {
-            auto& view = m_Context->GetAllEntitiesWith<RelationshipComponent>();
+            auto view = m_Context->GetAllEntitiesWith<RelationshipComponent>();
             for (auto e : view)
             {
                 Entity entity = { e, m_Context.Get() };
-                const auto& relationShipComponent = entity.GetComponent<RelationshipComponent>();
+                const auto& relationShipComponent = view.get<RelationshipComponent>(e);
 
                 // If entity is root, then do draw
                 if (relationShipComponent.Parent == 0)
@@ -480,6 +480,12 @@ namespace Turbo {
                         // TODO:
                     }
                     ImGui::EndMenu();
+                }
+
+                if (ImGui::MenuItem("Camera"))
+                {
+                    m_SelectedEntity = m_Context->CreateEntity("Camera");
+                    m_SelectedEntity.AddComponent<CameraComponent>();
                 }
 
                 ImGui::EndPopup();
@@ -949,6 +955,7 @@ namespace Turbo {
                 if (childEntity)
                 {
                     childEntity.SetParent(entity);
+                    m_Context->ConvertToLocalSpace(childEntity);
                 }
             }
 
@@ -977,10 +984,10 @@ namespace Turbo {
             if (parent && ImGui::MenuItem("Unparent Entity"))
             {
                 //GetParent(nullptr); FIXME: Why does scene hierarchy panel includes WinUser.h ???
-                auto a = GetParent(nullptr);
-
+                
                 parent.RemoveChild(entity);
                 entity.SetParentUUID(0);
+                m_Context->ConvertToWorldSpace(entity);
             }
 
             ImGui::Separator();

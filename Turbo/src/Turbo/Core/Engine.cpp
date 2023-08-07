@@ -15,8 +15,8 @@
 
 #pragma endregion
 
-namespace Turbo
-{
+namespace Turbo {
+
     Engine::Engine(ApplicationCreateCallback callback)
         : m_ApplicationCreateCallback(callback)
     {
@@ -141,7 +141,7 @@ namespace Turbo
                     Renderer::Render();
                     m_ViewportWindow->SwapFrame();
                 }
-                
+
             }
         }
 

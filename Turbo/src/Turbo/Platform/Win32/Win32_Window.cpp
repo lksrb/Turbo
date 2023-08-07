@@ -19,8 +19,7 @@
 // Copy this line into your .cpp file to forward declare the function.
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-namespace Turbo
-{
+namespace Turbo {
     LRESULT CALLBACK Win32_Window::Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         // User Interface
@@ -47,10 +46,16 @@ namespace Turbo
 
     Win32_Window::~Win32_Window()
     {
-        //m_Swapchain.Reset();
-
         ::DestroyWindow(m_Handle);
         ::UnregisterClass(s_ClassName, m_Instance);
+    }
+
+    void Win32_Window::SetCursorPosition(POINT cursorPos)
+    {
+        m_LastCursorPosition = cursorPos;
+
+        ::ClientToScreen(m_Handle, &cursorPos);
+        ::SetCursorPos(cursorPos.x, cursorPos.y);
     }
 
     void Win32_Window::InitializeSwapchain()
@@ -180,6 +185,21 @@ namespace Turbo
 
                 break;
             }
+            case WM_MOUSEMOVE:
+            {
+                const int x = GET_X_LPARAM(lParam);
+                const int y = GET_Y_LPARAM(lParam);
+
+                const int dx = x - m_LastCursorPosition.x;
+                const int dy = y - m_LastCursorPosition.y;
+
+                m_VirtualCursorPosition.x += dx;
+                m_VirtualCursorPosition.y += dy;
+
+                m_LastCursorPosition.x = x;
+                m_LastCursorPosition.y = y;
+                break;
+            }
 
             // Window events
             case WM_CLOSE:
@@ -249,25 +269,20 @@ namespace Turbo
             {
                 if (wParam < 256) // ?? 
                 {
-                    bool isKeyDown = WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
-                    Win32Code key = (Win32Code)wParam;
+                    bool isKeyDown = uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
 
-                    static Win32Code s_LastKey = -1;
-                    static Win32Code s_RepeatCounter = 1;
-
-                    s_RepeatCounter = s_LastKey == key ? s_RepeatCounter + 1 : 1;
-                    s_LastKey = key;
-
-                    KeyCode keyCode = Utils::GetKeyCodeFromWin32Code(key);
+                    KeyCode keyCode = Utils::GetKeyCodeFromWin32Code((Win32Code)wParam);
 
                     if (isKeyDown)
                     {
-                        KeyPressedEvent e(keyCode, s_RepeatCounter); // TODO: Repeat counter
+                        // Checking the previous keystate 
+                        bool isRepeated = lParam & 0x40000000;
+
+                        KeyPressedEvent e(keyCode, isRepeated);
                         m_Callback(e);
                     }
                     else
                     {
-                        s_LastKey = -1;
                         KeyReleasedEvent e(keyCode);
                         m_Callback(e);
                     }
@@ -294,18 +309,8 @@ namespace Turbo
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
         }
-#if 0
-        void* stack_ptr = _AddressOfReturnAddress();
-        void* base_ptr = nullptr;
-        MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery(&base_ptr, &mbi, sizeof(mbi)) != 0)
-        {
-            base_ptr = mbi.AllocationBase;
-        }
-        size_t current_stack_usage = (char*)stack_ptr - (char*)base_ptr;
 
-        TBO_ENGINE_INFO((current_stack_usage / 1024));
-#endif
+        Input::Update();
     }
 
     void Win32_Window::Show()

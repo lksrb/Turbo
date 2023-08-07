@@ -9,7 +9,8 @@
 
 namespace Turbo {
 
-    struct FilterResult {
+    struct FilterResult
+    {
         u32 CorrectLetters = 0;
         std::pair<AssetHandle, AssetMetadata> AssetData;
 
@@ -50,7 +51,7 @@ namespace Turbo {
         }
 
         auto& assetRegistry = Project::GetActive()->GetEditorAssetRegistry()->GetRegisteredAssets();
-        if(assetRegistry.size()) 
+        if (assetRegistry.size())
         {
             ImGui::BeginChild(TBO_RESULTS_ID);
 

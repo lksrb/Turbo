@@ -83,6 +83,11 @@ namespace Turbo
         Scene::Statistics GetStatistics() const { return m_Statistics; }
 
         bool IsRunning() const { return m_Running; }
+
+        glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
+        void ConvertToLocalSpace(Entity entity);
+        void ConvertToWorldSpace(Entity entity);
+        TransformComponent GetWorldSpaceTransform(Entity entity);
     private:
         void RenderScene(Ref<SceneDrawList> drawList);
     private:

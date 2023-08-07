@@ -12,9 +12,9 @@
 
 #include <thread>
 
-namespace Turbo 
-{
-    using ApplicationCreateCallback = Application* (*)();
+namespace Turbo {
+
+    using ApplicationCreateCallback = Application*(*)();
 
     class Engine
     {
@@ -58,7 +58,7 @@ namespace Turbo
 
         void Initialize();
         void Shutdown();
-        
+
         void OnEvent(Event& event);
 
         void ExecuteMainThreadQueue();

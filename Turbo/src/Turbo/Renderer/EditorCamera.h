@@ -41,6 +41,7 @@ namespace Turbo
 
         bool IsControlling() const { return m_IsControlling; }
 
+        void Focus(const glm::vec3& translation);
         void ResetRotation();
     private:
         void UpdateProjection();

@@ -15,10 +15,8 @@
 #include "Turbo/Physics/Physics2D.h" // <-- TODO: Remove
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
-namespace Turbo
-{
-    namespace Utils
-    {
+namespace Turbo {
+    namespace Utils {
         template<typename... Components>
         static void CopyComponent(entt::registry& dst, entt::registry& src, const EntityMap& enttMap)
         {
@@ -69,6 +67,8 @@ namespace Turbo
     {
         std::unique_ptr<PhysicsWorld2D> World;
     };
+
+    static entt::observer s_Observer;
 
     Scene::Scene()
     {
@@ -312,15 +312,14 @@ namespace Turbo
                 return;
 
             SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-            glm::mat4 cameraTransform = cameraEntity.Transform().GetTransform();
-            glm::mat4 inversedCameraTransform = cameraEntity.Transform().GetTransform();
+            glm::mat4 cameraTransform = GetWorldSpaceTransformMatrix(cameraEntity);
             camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-            camera.SetViewMatrix(glm::inverse(inversedCameraTransform));
+            camera.SetViewMatrix(glm::inverse(cameraTransform));
 
             SceneRendererData rendererData = {};
             rendererData.ViewProjectionMatrix = camera.GetViewProjection();
-            rendererData.InversedViewMatrix = inversedCameraTransform;
-            rendererData.ViewMatrix = glm::inverse(inversedCameraTransform);
+            rendererData.InversedViewMatrix = cameraTransform;
+            rendererData.ViewMatrix = glm::inverse(cameraTransform);
             rendererData.InversedViewProjectionMatrix = glm::inverse(rendererData.ViewProjectionMatrix);
             drawList->SetSceneData(rendererData);
 
@@ -457,7 +456,7 @@ namespace Turbo
         return m_Registry.valid(entity);
     }
 
-	Entity Scene::FindPrimaryCameraEntity()
+    Entity Scene::FindPrimaryCameraEntity()
     {
         // Find entity with camera component
         auto view = m_Registry.view<CameraComponent>();
@@ -532,6 +531,52 @@ namespace Turbo
         return Entity{};
     }
 
+    glm::mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
+    {
+        glm::mat4 transform(1.0f);
+
+        Entity parent = FindEntityByUUID(entity.GetParentUUID());
+        if (parent)
+            transform = GetWorldSpaceTransformMatrix(parent);
+
+        return transform * entity.Transform().GetTransform();
+    }
+
+    void Scene::ConvertToLocalSpace(Entity entity)
+    {
+        Entity parent = FindEntityByUUID(entity.GetParentUUID());
+
+        if (!parent)
+            return;
+
+        auto& transform = entity.Transform();
+        glm::mat4 parentTransform = GetWorldSpaceTransformMatrix(parent);
+
+        glm::mat4 localTransform = glm::inverse(parentTransform) * transform.GetTransform();
+        Math::DecomposeTransform(localTransform, transform.Translation, transform.Rotation, transform.Scale);
+    }
+
+    void Scene::ConvertToWorldSpace(Entity entity)
+    {
+        Entity parent = FindEntityByUUID(entity.GetParentUUID());
+
+        if (!parent)
+            return;
+
+        glm::mat4 transform = GetWorldSpaceTransformMatrix(entity);
+        auto& entityTransform = entity.Transform();
+        Math::DecomposeTransform(transform, entityTransform.Translation, entityTransform.Rotation, entityTransform.Scale);
+    }
+
+    // TODO: Implement WorldTransformComponent
+    TransformComponent Scene::GetWorldSpaceTransform(Entity entity)
+    {
+        glm::mat4 worldTransform = GetWorldSpaceTransformMatrix(entity);
+        TransformComponent transform;
+        transform.SetTransform(worldTransform);
+        return transform;
+    }
+
     void Scene::RenderScene(Ref<SceneDrawList> drawList)
     {
         // Point lights
@@ -560,18 +605,25 @@ namespace Turbo
             }
         }
 
+        struct WorldTransformComponent
+        {
+            glm::mat4 WorldTransform;
+        };
+
         // Static meshes
         {
             auto group = m_Registry.group<StaticMeshRendererComponent>(entt::get<TransformComponent>);
 
             for (auto entity : group)
             {
-                const auto& [transform, smr] = group.get<TransformComponent, StaticMeshRendererComponent>(entity);
+                const auto& [tc, smr] = group.get<TransformComponent, StaticMeshRendererComponent>(entity);
                 auto mesh = AssetManager::GetAsset<StaticMesh>(smr.Mesh);
                 if (mesh == nullptr)
                     continue;
 
-                drawList->AddStaticMesh(mesh, transform.GetTransform(), (i32)entity);
+                glm::mat4 transform = GetWorldSpaceTransformMatrix({ entity, this });
+
+                drawList->AddStaticMesh(mesh, transform, (i32)entity);
             }
         }
 

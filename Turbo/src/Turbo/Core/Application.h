@@ -9,9 +9,11 @@ namespace Turbo {
 
     class Engine;
 
-    class Application {
+    class Application
+    {
     public:
-        struct Config {
+        struct Config
+        {
             std::string Title;
             u32 Width;
             u32 Height;

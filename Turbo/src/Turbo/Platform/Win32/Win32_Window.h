@@ -18,6 +18,9 @@ namespace Turbo
 
         HINSTANCE GetInstance() const { return m_Instance; }
         HWND GetHandle() const { return m_Handle; }
+        POINT GetLastCursorPosition() { return m_LastCursorPosition; }
+        POINT GetVirtualCursorPosition() const { return m_VirtualCursorPosition; }
+        void SetCursorPosition(POINT cursorPos);
 
         void InitializeSwapchain() override;
         void AcquireNewFrame() override;
@@ -28,6 +31,8 @@ namespace Turbo
 
         static LRESULT CALLBACK Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     private:
+        POINT m_LastCursorPosition = {};
+        POINT m_VirtualCursorPosition = {}; // To keep track of cursor position even if its disabled
         HWND m_Handle = nullptr;
         HINSTANCE m_Instance = nullptr;
     };
