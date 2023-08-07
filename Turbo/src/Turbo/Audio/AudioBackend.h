@@ -8,11 +8,10 @@
 
 namespace Turbo
 {
-    class AudioBackend
+    class AudioBackend : public RefCounted
     {
     public:
-        AudioBackend();
-        virtual ~AudioBackend();
+        virtual ~AudioBackend() = default;
 
         virtual void OnRuntimeStart() = 0;
         virtual void OnRuntimeStop() = 0;

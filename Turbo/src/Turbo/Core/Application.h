@@ -5,15 +5,13 @@
 #include "Turbo/Event/Event.h"
 #include "Turbo/Renderer/DrawList2D.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     class Engine;
 
-    class Application
-    {
+    class Application {
     public:
-        struct Config
-        {
+        struct Config {
             std::string Title;
             u32 Width;
             u32 Height;

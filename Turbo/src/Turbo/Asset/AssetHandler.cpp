@@ -1,5 +1,5 @@
 #include "tbopch.h"
-#include "AssetSerializer.h"
+#include "AssetHandler.h"
 
 #include "AssetManager.h"
 
@@ -10,10 +10,10 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace Turbo
-{
-    namespace Utils
-    {
+namespace Turbo {
+
+    namespace Utils {
+
         static const char* StringifyImageFilter(ImageFilter filter)
         {
             static const char* s_FilterTypeStrings[] = { "Nearest", "Linear" };
@@ -55,7 +55,7 @@ namespace Turbo
         }
     }
 
-    bool Texture2DSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+    bool Texture2DHandler::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
     {
         auto path = Project::GetAssetsPath() / metadata.FilePath;
 
@@ -85,7 +85,7 @@ namespace Turbo
 
         return true;
     }
-    Ref<Asset> Texture2DSerializer::TryLoad(const AssetMetadata& metadata)
+    Ref<Asset> Texture2DHandler::TryLoad(const AssetMetadata& metadata)
     {
         auto assetsPath = Project::GetAssetsPath();
         auto path = assetsPath / metadata.FilePath;
@@ -98,7 +98,7 @@ namespace Turbo
         catch (YAML::Exception e)
         {
             TBO_ENGINE_ERROR(e.what());
-            return false;
+            return nullptr;
         }
 
         auto texturePath = assetsPath / data["TexturePath"].as<std::string>();
@@ -114,13 +114,7 @@ namespace Turbo
         return result;
     }
 
-    bool MeshSourceSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
-    {
-        // TODO: Figure out what should be serialized
-        return true;
-    }
-
-    Ref<Asset> MeshSourceSerializer::TryLoad(const AssetMetadata& metadata)
+    Ref<Asset> MeshSourceHandler::TryLoad(const AssetMetadata& metadata)
     {
         auto path = Project::GetAssetsPath() / metadata.FilePath;
         Ref<MeshSource> meshSource = Ref<MeshSource>::Create(path.string());
@@ -130,14 +124,7 @@ namespace Turbo
         return meshSource;
     }
 
-    Ref<Asset> StaticMeshSerializer::Create(const AssetMetadata& metadata, const Ref<Asset>& sourceAsset) const
-    {
-        auto path = Project::GetAssetsPath() / metadata.FilePath;
-        Ref<MeshSource> meshSource = sourceAsset.As<MeshSource>();
-        return Ref<StaticMesh>::Create(meshSource);
-    }
-
-    bool StaticMeshSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+    bool StaticMeshHandler::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
     {
         auto path = Project::GetAssetsPath() / metadata.FilePath;
 
@@ -163,7 +150,7 @@ namespace Turbo
         return true;
     }
 
-    Ref<Asset> StaticMeshSerializer::TryLoad(const AssetMetadata& metadata)
+    Ref<Asset> StaticMeshHandler::TryLoad(const AssetMetadata& metadata)
     {
         auto path = Project::GetAssetsPath() / metadata.FilePath;
 
@@ -175,20 +162,19 @@ namespace Turbo
         catch (YAML::Exception e)
         {
             TBO_ENGINE_ERROR(e.what());
-            return false;
+            return nullptr;
         }
 
         if (!data["Mesh"])
         {
             TBO_ENGINE_ERROR("File does not contain mesh data!");
-            return false;
+            return nullptr;
         }
 
         auto meshData = data["Mesh"];
         AssetHandle meshSourceHandle = meshData["MeshSource"].as<u64>();
 
-        // NOTE: This is a bit problematic since we deserialize assets in sequence.
-        // Could be solved by loading primary assets first and then load secondary assets
+        // Get asset
         Ref<MeshSource> meshSource = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
 
         if (!meshSource)
@@ -197,17 +183,7 @@ namespace Turbo
             return nullptr;
         }
 
-        auto submeshIndices = meshData["SubmeshIndices"];
-        std::vector<u32> indices;
-        indices.reserve(submeshIndices.size());
-        for (auto& index : submeshIndices)
-        {
-            indices.emplace_back(index.as<u32>());
-        }
-
-        TBO_ENGINE_ASSERT(indices.size() != 0);
-
-        return Ref<StaticMesh>::Create(meshSource, indices);
+        return Ref<StaticMesh>::Create(meshSource, meshData["SubmeshIndices"].as<std::vector<u32>>());
     }
 
 }

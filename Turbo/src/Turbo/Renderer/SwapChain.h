@@ -5,7 +5,7 @@
 
 namespace Turbo
 {
-    class SwapChain
+    class SwapChain : public RefCounted
     {
     public:
         static Ref<SwapChain> Create();

@@ -134,7 +134,7 @@ namespace Turbo
 
         std::unordered_map<UUID, Ref<ScriptInstance>> ScriptInstances;
 
-        Scene* SceneContext = nullptr;
+        Ref<Scene> SceneContext = nullptr;
 
         Scope<FileWatcher> ProjectPathWatcher;
         bool AssemblyReloadPending = false;
@@ -167,9 +167,9 @@ namespace Turbo
         TBO_ENGINE_INFO("Successfully initialized mono!");
     }
 
-    void Script::OnRuntimeStart(Scene* scene)
+    void Script::OnRuntimeStart(const Ref<Scene>& context)
     {
-        s_Data->SceneContext = scene;
+        s_Data->SceneContext = context;
 #if 0
         // Loop through all script instances and copy Entity references
         for (auto& [uuid, instance] : s_Data->ScriptInstances)
@@ -562,7 +562,7 @@ namespace Turbo
         s_Data->RootDomain = nullptr;
     }
 
-    Scene* Script::GetCurrentScene()
+    Ref<Scene> Script::GetCurrentScene()
     {
         return s_Data->SceneContext;
     }

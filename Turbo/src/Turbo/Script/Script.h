@@ -22,7 +22,7 @@ namespace Turbo
 
         static void Init();
         static void Shutdown();
-        static void OnRuntimeStart(Scene* scene);
+        static void OnRuntimeStart(const Ref<Scene>& context);
         static void OnRuntimeStop();
 
         static void CreateScriptInstance(Entity entity);
@@ -39,7 +39,7 @@ namespace Turbo
 
         static bool ScriptClassExists(const std::string& className);
 
-        static Scene* GetCurrentScene();
+        static Ref<Scene> GetCurrentScene();
 
         static MonoImage* GetCoreAssemblyImage();
         static MonoDomain* GetAppDomain();

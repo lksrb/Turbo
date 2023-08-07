@@ -7,14 +7,6 @@
 
 namespace Turbo
 {
-    AudioBackend::AudioBackend()
-    {
-    }
-
-    AudioBackend::~AudioBackend()
-    {
-    }
-
     Ref<AudioBackend> AudioBackend::Create()
     {
         switch(Audio::GetAudioBackend())

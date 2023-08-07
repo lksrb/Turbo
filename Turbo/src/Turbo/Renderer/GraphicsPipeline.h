@@ -15,7 +15,7 @@ namespace Turbo
         Line
     };
 
-    class GraphicsPipeline
+    class GraphicsPipeline : public RefCounted
     {
     public:
         struct Config 

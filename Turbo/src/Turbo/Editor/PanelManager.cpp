@@ -1,15 +1,7 @@
 #include "tbopch.h"
 #include "PanelManager.h"
 
-namespace Turbo
-{
-    PanelManager::PanelManager()
-    {
-    }
-
-    PanelManager::~PanelManager()
-    {
-    }
+namespace Turbo {
 
     void PanelManager::OnProjectChanged(const Ref<Project>& project)
     {

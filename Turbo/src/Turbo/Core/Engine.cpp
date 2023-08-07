@@ -37,9 +37,6 @@ namespace Turbo
         // Call client function
         m_Application = m_ApplicationCreateCallback();
 
-        // Initialize platform (Timers, dialogs, ...)
-        Platform::Init();
-
         // Initialize render context (VulkanContext)
         RendererContext::Init();
 
@@ -84,18 +81,16 @@ namespace Turbo
 
         RendererContext::WaitIdle();
 
-        delete m_ViewportWindow;
         delete m_Application;
+        delete m_ViewportWindow;
 
         Script::Shutdown();
         Audio::Shutdown();
 
         Renderer::Shutdown();
-        m_UserInterface.Reset();
+        m_UserInterface.reset();
 
         RendererContext::Shutdown();
-
-        Platform::Shutdown();
 
         TBO_ENGINE_WARN("Engine shut down!");
     }

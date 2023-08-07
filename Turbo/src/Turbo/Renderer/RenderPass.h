@@ -6,7 +6,7 @@
 
 namespace Turbo
 {
-    class RenderPass
+    class RenderPass : public RefCounted
     {
     public:
         struct Config

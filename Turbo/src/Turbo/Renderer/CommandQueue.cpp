@@ -3,11 +3,10 @@
 
 namespace Turbo
 {
-    CommandQueue::CommandQueue()
+    CommandQueue::CommandQueue(u64 size)
     {
-        // Allocate 10 MB
-        m_Buffer = m_BufferPointer = new u8[10 * 1024 * 1024];
-        memset(m_BufferPointer, 0, 10 * 1024 * 1024);
+        m_Buffer = m_BufferPointer = new u8[size];
+        memset(m_BufferPointer, 0, size);
     }
 
     CommandQueue::~CommandQueue()

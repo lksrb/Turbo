@@ -7,13 +7,12 @@
 
 #include "Asset.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     class Entity;
     class Scene;
 
-    class AssetManager
-    {
+    class AssetManager {
     public:
         template<typename T = Asset>
         static Ref<T> GetAsset(AssetHandle handle)
@@ -29,7 +28,7 @@ namespace Turbo
 
         static const AssetMetadata& GetAssetMetadata(AssetHandle handle);
 
-        static void ImportAsset(const std::filesystem::path& filepath);
+        static AssetHandle ImportAsset(const std::filesystem::path& filepath);
 
         static bool IsAssetHandleValid(AssetHandle handle);
         static bool IsAssetLoaded(AssetHandle handle);
@@ -40,5 +39,5 @@ namespace Turbo
         static Entity DeserializePrefab(const std::filesystem::path& filepath, Scene* scene, glm::vec3 translation = glm::vec3(0.0f));
     private:
     };
-}
 
+}

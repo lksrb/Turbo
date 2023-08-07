@@ -10,7 +10,7 @@ namespace Turbo
 {
     class RenderPass;
 
-    class FrameBuffer
+    class FrameBuffer : public RefCounted
     {
     public:
         enum AttachmentType : u32
@@ -18,6 +18,7 @@ namespace Turbo
             AttachmentType_Color = 0,
             AttachmentType_SelectionBuffer = 1,
             AttachmentType_Depth = 2,
+
             AttachmentType_Count = 3
         };
 

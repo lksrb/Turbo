@@ -20,10 +20,11 @@
 
 #include <Turbo/Renderer/Font.h>
 #include <Turbo/UI/UI.h>
+#include <imgui_internal.h>
+#include <ImGuizmo.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <ImGuizmo.h>
 
 #include <filesystem>
 #include <sstream>
@@ -33,12 +34,10 @@
 #define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
 #endif
 
-namespace Turbo::Ed
-{
+namespace Turbo::Ed {
 
+    namespace Utils {
 
-    namespace Utils
-    {
         static void FindAndReplace(std::string& content, const char* oldText, std::string newText)
         {
             std::replace(newText.begin(), newText.end(), '\\', '/');
@@ -94,8 +93,8 @@ namespace Turbo::Ed
         {
             switch (ide)
             {
-                case Editor::DevEnv_None: return L"none";
-                case Editor::DevEnv_VS2022: return L"vs2022";
+                case Editor::DevEnv::None: return L"none";
+                case Editor::DevEnv::VS2022: return L"vs2022";
             }
 
             TBO_ENGINE_ERROR("Invalid IDE!");
@@ -121,7 +120,7 @@ namespace Turbo::Ed
         m_MSBuildPath = Utils::GetMSBuildPath();
 
         // Panels
-        m_PanelManager = Ref<PanelManager>::Create();
+        m_PanelManager = CreateScope<PanelManager>();
         m_PanelManager->AddPanel<SceneHierarchyPanel>();
         m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
@@ -134,12 +133,12 @@ namespace Turbo::Ed
         m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(Editor::CreateProject));
 
         // Render 
-        m_ViewportDrawList = Ref<SceneDrawList>::Create(SceneDrawList::Config{ m_ViewportWidth, m_ViewportHeight });
+        m_ViewportDrawList = Ref<SceneDrawList>::Create(m_ViewportWidth, m_ViewportHeight);
 
         // TODO: Find some better icons
         m_PlayIcon = Texture2D::Create(Icons::PlayButton);
         m_StopIcon = Texture2D::Create(Icons::StopButton);
-        m_ResetCameraRotationIcon = Texture2D::Create(Icons::ResetCameraRotationButton);
+        m_Reset2DIcon = Texture2D::Create(Icons::Reset2DButton);
         m_PointLightIcon = Texture2D::Create(Icons::PointLight);
         m_CameraIcon = Texture2D::Create(Icons::Camera);
         m_SpotLightIcon = Texture2D::Create(Icons::SpotLight);
@@ -162,7 +161,7 @@ namespace Turbo::Ed
 
         switch (m_SceneMode)
         {
-            case SceneMode_Edit:
+            case SceneMode::Edit:
             {
                 if (m_ViewportHovered)
                     m_EditorCamera.OnUpdate(Time.DeltaTime);
@@ -170,7 +169,7 @@ namespace Turbo::Ed
                 m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, Time.DeltaTime);
                 break;
             }
-            case SceneMode_Play:
+            case SceneMode::Play:
             {
                 m_CurrentScene->OnRuntimeUpdate(m_ViewportDrawList, Time.DeltaTime);
                 break;
@@ -249,19 +248,19 @@ namespace Turbo::Ed
 
             ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
             f32 size = ImGui::GetWindowHeight() - 4.0f;
-            Ref<Texture2D> icon = m_SceneMode == SceneMode_Edit ? m_PlayIcon : m_StopIcon;
+            Ref<Texture2D> icon = m_SceneMode == SceneMode::Edit ? m_PlayIcon : m_StopIcon;
             ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
             if (UI::ImageButton(icon, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
             {
-                if (m_SceneMode == SceneMode_Edit)
+                if (m_SceneMode == SceneMode::Edit)
                     OnScenePlay();
-                else if (m_SceneMode == SceneMode_Play)
+                else if (m_SceneMode == SceneMode::Play)
                     OnSceneStop();
             }
 
             ImGui::SameLine();
 
-            if (UI::ImageButton(m_ResetCameraRotationIcon, ImVec2(size, size), ImVec2(0, 1), ImVec2(1, 0), 0))
+            if (UI::ImageButton(m_Reset2DIcon, ImVec2(size, size), ImVec2(0, 1), ImVec2(1, 0), 0))
             {
                 m_EditorCamera.ResetRotation();
             }
@@ -289,7 +288,7 @@ namespace Turbo::Ed
 
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
-            Engine::Get().GetUserInterface()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+            Engine::Get().SetUIBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
             ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
             ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -336,7 +335,7 @@ namespace Turbo::Ed
                     {
                         OpenScene(path);
                     }
-                    else if (path.extension() == ".tprefab" && m_SceneMode == SceneMode_Edit) // Only in edit mode for now
+                    else if (path.extension() == ".tprefab" && m_SceneMode == SceneMode::Edit) // Only in edit mode for now
                     {
                         TBO_VERIFY(AssetManager::DeserializePrefab(path, m_CurrentScene.Get()), "Successfully deserialized prefab!");
                     }
@@ -380,11 +379,11 @@ namespace Turbo::Ed
             m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
 
             // FIXME: Temporary solution
-            if (m_SelectedEntity && m_GizmoType != -1 && m_SceneMode != SceneMode_Play)
+            if (m_SelectedEntity && m_GizmoType != -1 && m_SceneMode != SceneMode::Play)
             {
                 glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
-                if (m_SceneMode == SceneMode_Play)
+                if (m_SceneMode == SceneMode::Play)
                 {
                     Entity cameraEntity = m_RuntimeScene->FindPrimaryCameraEntity();
                     if (cameraEntity)
@@ -439,7 +438,7 @@ namespace Turbo::Ed
             {
                 if (ImGui::BeginMenu("New"))
                 {
-                    bool isInEditMode = m_SceneMode == SceneMode_Edit;
+                    bool isInEditMode = m_SceneMode == SceneMode::Edit;
 
                     if (ImGui::MenuItem("Project...", nullptr, nullptr, isInEditMode))
                     {
@@ -491,7 +490,7 @@ namespace Turbo::Ed
                     }
                 }
 
-                if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_SceneMode == SceneMode_Edit))
+                if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_SceneMode == SceneMode::Edit))
                 {
                     Script::ReloadAssemblies();
                 }
@@ -574,7 +573,7 @@ namespace Turbo::Ed
     {
         m_PanelManager->OnEvent(e);
 
-        if (m_SceneMode == SceneMode_Edit && m_ViewportHovered)
+        if (m_SceneMode == SceneMode::Edit && m_ViewportHovered)
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
@@ -594,7 +593,7 @@ namespace Turbo::Ed
         bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
 
         bool sceneHierarchyPanelFocused = m_PanelManager->GetPanel<SceneHierarchyPanel>()->IsFocused();
-        bool isPlayMode = m_SceneMode == SceneMode_Play;
+        bool isPlayMode = m_SceneMode == SceneMode::Play;
 
         switch (e.GetKeyCode())
         {
@@ -681,6 +680,8 @@ namespace Turbo::Ed
         {
             if (m_ViewportHovered && (ImGuizmo::IsOver() == false || m_GizmoType == -1) && !Input::IsKeyPressed(Key::LeftAlt))
             {
+                ImGui::ClearActiveID();
+
                 if (m_HoveredEntity)
                 {
                     m_SelectedEntity = m_HoveredEntity;
@@ -771,7 +772,7 @@ namespace Turbo::Ed
             // Execute premake and wait for it to finish"
             Platform::Execute(config.ProjectDirectory / TBO_GEN_SOLUTION_FILE, Utils::GetIDEToString(m_CurrentIDE), config.ProjectDirectory, true);
 
-            if (m_CurrentIDE == DevEnv_VS2022)
+            if (m_CurrentIDE == DevEnv::VS2022)
             {
                 // Execute MSBuild and wait for it 
                 Platform::Execute(m_MSBuildPath, L"", config.ProjectDirectory, true);
@@ -827,7 +828,7 @@ namespace Turbo::Ed
         // Save current scene
         SaveScene();
 
-        std::filesystem::path scenePath = Project::GetAssetsPath() / "Scenes\\TestScene.tscene";
+        std::filesystem::path scenePath = Project::GetAssetsPath() / "Scenes/TestScene.tscene";
 
         Ref<Scene> newScene = Ref<Scene>::Create();
         newScene->CreateEntity("Start entity!");
@@ -936,7 +937,7 @@ namespace Turbo::Ed
         // Clear logs
         EditorConsolePanel::Clear();
 
-        m_SceneMode = SceneMode_Play;
+        m_SceneMode = SceneMode::Play;
 
         m_RuntimeScene = Scene::Copy(m_EditorScene);
         m_RuntimeScene->OnRuntimeStart();
@@ -961,7 +962,7 @@ namespace Turbo::Ed
 
     void Editor::OnSceneStop()
     {
-        m_SceneMode = SceneMode_Edit;
+        m_SceneMode = SceneMode::Edit;
 
         m_RuntimeScene->OnRuntimeStop();
         m_RuntimeScene.Reset();
@@ -989,7 +990,7 @@ namespace Turbo::Ed
 
     void Editor::Close()
     {
-        if (m_SceneMode == SceneMode_Play)
+        if (m_SceneMode == SceneMode::Play)
         {
             OnSceneStop();
         }

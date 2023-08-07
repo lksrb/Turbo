@@ -7,6 +7,9 @@
 #include "Turbo/Core/FileSystem.h"
 #include "Turbo/Solution/Project.h"
 
+#include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
+
 namespace Turbo::UI {
 
     static u32 FilterResults(std::string_view input, std::string_view name)
@@ -160,7 +163,7 @@ namespace Turbo::UI {
 
         return yesno;
     }
-
+#if 0
     void Widgets::CreateMeshPopup(const char* popupName, DefaultAsset defaultAsset, const CreateMeshPopupFunc& func)
     {
         auto window = ImGui::GetCurrentWindow();
@@ -171,8 +174,7 @@ namespace Turbo::UI {
         {
             static std::string s_AssetName;
             constexpr f32 offset = 2.926f;
-
-            bool pathExists = FileSystem::Exists(Project::GetAssetsPath() / std::string(s_AssetName).append(".tmesh"));
+            bool pathExists = FileSystem::Exists(Project::GetAssetsPath() / fmt::format("Meshes/{}.tmesh", s_AssetName));
             ImGui::Text("Name: ");
             ImGui::SameLine();
             // This will stop SetKeyboardFocusHere from grabbing focus from other items
@@ -212,5 +214,6 @@ namespace Turbo::UI {
             UI::EndPopupModal();
         }
     }
+#endif
 
 }

@@ -6,7 +6,7 @@
 
 namespace Turbo
 {
-    class ScriptClass
+    class ScriptClass : public RefCounted
     {
     public:
         using ScriptFields = std::unordered_map<std::string, ScriptField>;

@@ -4,12 +4,16 @@
 
 namespace Turbo
 {
+    // Kinda cool
+    constexpr inline u64 operator"" _MB(u64 value) noexcept { return value * 1024ull * 1024ull; }
+
     class CommandQueue
     {
     public:
         using RenderCommandFn = void(*)(void*);
 
-        CommandQueue();
+        // Default allocate 10 megabytes
+        CommandQueue(u64 size = 10_MB);
         ~CommandQueue();
 
         CommandQueue(const CommandQueue&) = delete;

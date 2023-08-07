@@ -5,6 +5,7 @@
 #include "Turbo/Core/FileSystem.h"
 
 #include "Turbo/Audio/Audio.h"
+#include "Turbo/Renderer/Mesh.h"
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Renderer/Texture.h"
 #include "Turbo/Script/Script.h"
@@ -12,6 +13,13 @@
 #include "Turbo/UI/Widgets.h"
 
 #include <glm/gtc/type_ptr.hpp>
+
+#include <IconsFontAwesome6.h>
+#include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
+
+#include <windows.h>
+#include <Shlwapi.h>
 
 #pragma region Defines
 
@@ -303,6 +311,26 @@ namespace Turbo {
             if (type < s_TypeFunctionsSR.size())
                 s_TypeFunctionsSR[type](name, instance);
         }
+
+        static AssetHandle GetOrLoadDefaultAsset(std::string_view meshSource, std::string_view mesh)
+        {
+            //constexpr std::string_view meshSource = "Sources/Default/Cube.fbx";
+            //constexpr std::string_view mesh = "Meshes/Default/Cube.tmesh";
+            auto assetRegistry = Project::GetActive()->GetEditorAssetRegistry();
+
+            if (assetRegistry->IsAssetImported(meshSource))
+            {
+                return assetRegistry->ImportAsset(Project::GetAssetsPath() / mesh);
+            }
+            else // Not imported
+            {
+                // We need to import source asset and then create actual mesh asset
+                AssetHandle sourceHandle = assetRegistry->ImportAsset(Project::GetAssetsPath() / meshSource);
+                return assetRegistry->CreateAsset<StaticMesh>(Project::GetAssetsPath() / mesh, sourceHandle)->Handle;
+            }
+        }
+
+#define TBO_GET_OR_CREATE_DEFAULT_ASSET(name) Utils::GetOrLoadDefaultAsset("Sources/Default/" name ".fbx", "Meshes/Default/" name ".tmesh")
     }
 
     SceneHierarchyPanel::SceneHierarchyPanel()
@@ -380,36 +408,51 @@ namespace Turbo {
                 {
                     if (ImGui::MenuItem("Cube"))
                     {
-                        UI::OpenPopup("Create Cube");
+                        m_SelectedEntity = m_Context->CreateEntity("Cube");
+                        auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        smr.Mesh = TBO_GET_OR_CREATE_DEFAULT_ASSET("Cube");
                     }
 
                     if (ImGui::MenuItem("Cone"))
                     {
+                        m_SelectedEntity = m_Context->CreateEntity("Cone");
+                        auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        smr.Mesh = TBO_GET_OR_CREATE_DEFAULT_ASSET("Cone");
                     }
 
                     if (ImGui::MenuItem("Cylinder"))
                     {
-
+                        m_SelectedEntity = m_Context->CreateEntity("Cylinder");
+                        auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        smr.Mesh = TBO_GET_OR_CREATE_DEFAULT_ASSET("Cylinder");
                     }
 
                     if (ImGui::MenuItem("Plane"))
                     {
-
+                        m_SelectedEntity = m_Context->CreateEntity("Plane");
+                        auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        smr.Mesh = TBO_GET_OR_CREATE_DEFAULT_ASSET("Plane");
                     }
 
                     if (ImGui::MenuItem("Sphere"))
                     {
-                        UI::OpenPopup("Create Sphere");
+                        m_SelectedEntity = m_Context->CreateEntity("Sphere");
+                        auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        smr.Mesh = TBO_GET_OR_CREATE_DEFAULT_ASSET("Sphere");
                     }
 
                     if (ImGui::MenuItem("Capsule"))
                     {
-
+                        m_SelectedEntity = m_Context->CreateEntity("Capsule");
+                        auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        smr.Mesh = TBO_GET_OR_CREATE_DEFAULT_ASSET("Capsule");
                     }
 
                     if (ImGui::MenuItem("Torus"))
                     {
-
+                        m_SelectedEntity = m_Context->CreateEntity("Torus");
+                        auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
+                        smr.Mesh = TBO_GET_OR_CREATE_DEFAULT_ASSET("Torus");
                     }
 
                     ImGui::EndMenu();
@@ -443,23 +486,6 @@ namespace Turbo {
             }
 
             ImGui::End();
-
-            // TODO: Maybe abstract even more?
-            UI::Widgets::CreateMeshPopup("Create Cube", DefaultAsset_Cube, [this](const std::string& assetName, const Ref<Asset>& asset)
-            {
-                m_SelectedEntity = m_Context->CreateEntity(assetName);
-                auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
-                smr.Mesh = asset->Handle;
-                m_SetFocusKeyboard = true;
-            });
-
-            UI::Widgets::CreateMeshPopup("Create Sphere", DefaultAsset_Sphere, [this](const std::string& assetName, const Ref<Asset>& asset)
-            {
-                m_SelectedEntity = m_Context->CreateEntity(assetName);
-                auto& smr = m_SelectedEntity.AddComponent<StaticMeshRendererComponent>();
-                smr.Mesh = asset->Handle;
-                m_SetFocusKeyboard = true;
-            });
 
             ImGui::Begin("Properties");
 
@@ -996,5 +1022,4 @@ namespace Turbo {
             }
         }
     }
-
 }

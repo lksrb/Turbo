@@ -52,7 +52,6 @@ namespace Turbo
         ~DrawList2D();
 
         void Initialize();
-        static Ref<DrawList2D> Create() { return Ref<DrawList2D>::Create(); }
 
         void Begin();
         void End();

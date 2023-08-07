@@ -1,41 +1,17 @@
 Scene: StartScene
 Entities:
-  - Entity: 4612066891137863114
+  - Entity: 1622259911025475548
     Parent: 0
     Children:
       []
     TagComponent:
-      Tag: Cube
+      Tag: Human
     TransformComponent:
-      Translation: [0, 4.72466183, 5.88088036]
+      Translation: [0.421571255, 0, -32.2376251]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
-      Mesh: 7376761225378303696
-  - Entity: 5368470983537262473
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Human1
-    TransformComponent:
-      Translation: [-0.146454811, 8.85534477, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    StaticMeshRendererComponent:
-      Mesh: 12274184092980606656
-  - Entity: 7229811443155883697
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Backpack
-    TransformComponent:
-      Translation: [4.44736884e-07, 12.528451, -2.32536793]
-      Rotation: [-3.14159203, 0, -3.14159226]
-      Scale: [1.5, 1.5, 1.5]
-    StaticMeshRendererComponent:
-      Mesh: 14265248938592391798
+      Mesh: 15173728770675198862
   - Entity: 7307812893521663871
     Parent: 0
     Children:
@@ -50,18 +26,6 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 7397252331717513879
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [40, 1, 40]
-    StaticMeshRendererComponent:
-      Mesh: 4307021594378382582
   - Entity: 9209333782188216007
     Parent: 7307812893521663871
     Children:
@@ -92,27 +56,30 @@ Entities:
       Radius: 10
       Intensity: 5
       FallOff: 1
-  - Entity: 15120497435686810087
+  - Entity: 11900888592832993983
     Parent: 0
     Children:
       []
     TagComponent:
-      Tag: Camera
+      Tag: Cube
     TransformComponent:
-      Translation: [-1.38561225, 30.3675575, 60.5490227]
-      Rotation: [-0.402366549, 0, 0]
-      Scale: [0.999999762, 0.999999583, 0.999999583]
-    CameraComponent:
-      Camera:
-        ProjectionType: 0
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 1
-      Primary: true
-      FixedAspectRatio: false
+      Translation: [-5.3409729, 0.448863983, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+  - Entity: 15446134605719858571
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Cylinder
+    TransformComponent:
+      Translation: [-5.05792809, 0, -4.79626179]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 4550927646632324055
   - Entity: 16237566845937793509
     Parent: 7307812893521663871
     Children:
@@ -128,15 +95,27 @@ Entities:
       Radius: 10
       Intensity: 5
       FallOff: 1
-  - Entity: 16964708206130669763
+  - Entity: 16716205608470457050
     Parent: 0
     Children:
       []
     TagComponent:
-      Tag: w
+      Tag: Torus
     TransformComponent:
-      Translation: [5.57045555, 5.24379635, 6.91006088]
+      Translation: [-3.68266892, 0, 8.2564888]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     StaticMeshRendererComponent:
-      Mesh: 10730187893971202533
+      Mesh: 5163550985720168621
+  - Entity: 17080666099359376190
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Cone
+    TransformComponent:
+      Translation: [7.23438644, 2.99142075, 3.7252903e-09]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 3215580691506807390

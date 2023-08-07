@@ -5,22 +5,14 @@
 
 namespace Turbo
 {
-    UserInterface::UserInterface()
-    {
-    }
-
-    UserInterface::~UserInterface()
-    {
-    }
-
 	void UserInterface::SetBlockEvents(bool blockEvents)
 	{
         m_BlockEvents = blockEvents;
 	}
 
-	Ref<UserInterface> UserInterface::Create()
+	Scope<UserInterface> UserInterface::Create()
     {
-        return Ref<VulkanUserInterface>::Create();
+        return CreateScope<VulkanUserInterface>();
     }
 }
 

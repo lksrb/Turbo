@@ -7,14 +7,10 @@
 #include <type_traits>
 #include <vector>
 
-namespace Turbo
-{
-    class PanelManager
-    {
-    public:
-        PanelManager();
-        ~PanelManager();
+namespace Turbo {
 
+    class PanelManager {
+    public:
         template<typename T, typename... Args>
         Ref<T> AddPanel(Args&&... args)
         {

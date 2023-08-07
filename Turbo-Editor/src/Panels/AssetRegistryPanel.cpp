@@ -3,12 +3,13 @@
 
 #include "Turbo/UI/UI.h"
 
+#include <misc/cpp/imgui_stdlib.h>
+
 #define TBO_RESULTS_ID 6479874
 
-namespace Turbo
-{
-    struct FilterResult
-    {
+namespace Turbo {
+
+    struct FilterResult {
         u32 CorrectLetters = 0;
         std::pair<AssetHandle, AssetMetadata> AssetData;
 
@@ -35,7 +36,6 @@ namespace Turbo
             return;
 
         ImGui::Begin("Asset Registry", &m_Open);
-
         {
             UI::ScopedStyleVar styleVar(ImGuiStyleVar_FrameRounding, 10.0f);
             UI::ScopedStyleVar styleVar1(ImGuiStyleVar_FramePadding, ImVec2(3.0f, 3.0f));
@@ -49,9 +49,10 @@ namespace Turbo
             ImGui::PopItemWidth();
         }
 
+        auto& assetRegistry = Project::GetActive()->GetEditorAssetRegistry()->GetRegisteredAssets();
+        if(assetRegistry.size()) 
         {
             ImGui::BeginChild(TBO_RESULTS_ID);
-            auto& assetRegistry = Project::GetActive()->GetEditorAssetRegistry()->GetRegisteredAssets();
 
             std::vector<FilterResult> filteredAssets;
             filteredAssets.reserve(assetRegistry.size());

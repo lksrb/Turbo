@@ -4,9 +4,6 @@
 #include "Turbo/Renderer/Texture.h"
 
 #include <imgui.h>
-#include <imgui_internal.h>
-#include <misc/cpp/imgui_stdlib.h>
-#include <IconsFontAwesome6.h>
 
 #include <climits>
 
@@ -105,7 +102,7 @@ namespace Turbo::UI
     // Popups
     void OpenPopup(const char* name, ImGuiPopupFlags flags = 0);
 
-    bool BeginPopupModal(const char* name, ImGuiWindowFlags flags = 0);
+    bool BeginPopupModal(const char* name, bool* p_open = nullptr, ImGuiWindowFlags flags = 0);
     void EndPopupModal();
 
     // Manipulate drawing

@@ -2,40 +2,29 @@
 #include "Asset.h"
 
 #include "AssetRegistryBase.h"
-#include "AssetSerializer.h"
+#include "AssetHandler.h"
 
 #include "Turbo/Core/Scopes.h"
 
-namespace Turbo
-{
-    struct AssetHandler
-    {
-        Scope<AssetSerializer> Serializers[AssetType_Count];
+namespace Turbo {
 
-        AssetHandler()
+    struct AssetHandlers {
+        Scope<AssetHandler> Serializers[AssetType_Count];
+
+        AssetHandlers()
         {
-            Serializers[AssetType_Texture2D] = CreateScope<Texture2DSerializer>();
-            Serializers[AssetType_MeshSource] = CreateScope<MeshSourceSerializer>();
-            Serializers[AssetType_StaticMesh] = CreateScope<StaticMeshSerializer>();
+            Serializers[AssetType_Texture2D] = CreateScope<Texture2DHandler>();
+            Serializers[AssetType_MeshSource] = CreateScope<MeshSourceHandler>();
+            Serializers[AssetType_StaticMesh] = CreateScope<StaticMeshHandler>();
         }
     };
 
-    static AssetHandler s_AssetHandler;
-
-    void Asset::SetFlags(AssetFlag flags, bool enable)
-    {
-        if (enable)
-        {
-            Flags |= flags;
-        }
-        else
-        {
-            Flags &= ~flags;
-        }
-    }
+    static AssetHandlers s_AssetHandlers;
 
     const char* Asset::StringifyAssetType(AssetType type)
     {
+        TBO_ENGINE_ASSERT(type < AssetType_Count, "Unknown asset type!");
+
         static const char* s_StringifiedAssetTypeMap[AssetType_Count] =
         {
             "Texture2D",
@@ -60,17 +49,11 @@ namespace Turbo
 
     bool Asset::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)
     {
-        return s_AssetHandler.Serializers[metadata.Type]->Serialize(metadata, asset);
+        return s_AssetHandlers.Serializers[metadata.Type]->Serialize(metadata, asset);
     }
 
     Ref<Asset> Asset::TryLoad(const AssetMetadata& metadata)
     {
-        return s_AssetHandler.Serializers[metadata.Type]->TryLoad(metadata);
+        return s_AssetHandlers.Serializers[metadata.Type]->TryLoad(metadata);
     }
-
-    Ref<Asset> Asset::Create(const AssetMetadata& metadata, const Ref<Asset>& sourceAsset)
-    {
-        return s_AssetHandler.Serializers[metadata.Type]->Create(metadata, sourceAsset);
-    }
-
 }

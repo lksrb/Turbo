@@ -1,27 +1,37 @@
-AssetDefaults:
-  - Asset: 3137858138016629028
-    Name: Cube
-  - Asset: 17910658117398205926
-    Name: Sphere
 AssetRegistry:
-  - Asset: 4307021594378382582
-    Path: Meshes/Ground.tmesh
-    Type: StaticMesh
-  - Asset: 5366999175797075346
-    Path: Meshes/Human.fbx
+  - Asset: 385693336446331931
+    Path: Meshes/Backpack/Backpack.fbx
     Type: MeshSource
-  - Asset: 7376761225378303696
-    Path: Meshes/Cube.tmesh
+  - Asset: 3215580691506807390
+    Path: Meshes/Default/Cone.tmesh
     Type: StaticMesh
-  - Asset: 10730187893971202533
-    Path: Meshes/Sphere.tmesh
+  - Asset: 3411376591522269393
+    Path: Meshes/Default/Cube.tmesh
     Type: StaticMesh
-  - Asset: 12274184092980606656
-    Path: Meshes/Human.tmesh
+  - Asset: 4550927646632324055
+    Path: Meshes/Default/Cylinder.tmesh
     Type: StaticMesh
-  - Asset: 14265248938592391798
+  - Asset: 5163550985720168621
+    Path: Meshes/Default/Torus.tmesh
+    Type: StaticMesh
+  - Asset: 7338600381720551882
+    Path: Sources/Default/Cylinder.fbx
+    Type: MeshSource
+  - Asset: 9694007235022222327
     Path: Meshes/Backpack/Backpack.tmesh
     Type: StaticMesh
-  - Asset: 16683166863070861384
-    Path: Meshes/Backpack/Backpack.fbx
+  - Asset: 12236788305104757714
+    Path: Sources/Default/Cube.fbx
+    Type: MeshSource
+  - Asset: 12349315777828625957
+    Path: Sources/Default/Cone.fbx
+    Type: MeshSource
+  - Asset: 15173728770675198862
+    Path: Meshes/Human.tmesh
+    Type: StaticMesh
+  - Asset: 17677522167731554913
+    Path: Meshes/Human.fbx
+    Type: MeshSource
+  - Asset: 17745811398343166228
+    Path: Sources/Default/Torus.fbx
     Type: MeshSource

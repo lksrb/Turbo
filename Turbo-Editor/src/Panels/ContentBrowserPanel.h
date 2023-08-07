@@ -17,6 +17,8 @@ namespace Turbo::Ed
 
         void OnSceneContextChanged(const Ref<Scene>& context) override;
     private:
+        bool Filter(const std::filesystem::path& extention);
+
         Ref<Texture2D> m_DirectoryIcon, m_FileIcon;
 
         Ref<Scene> m_Context;

@@ -2,21 +2,18 @@
 
 #include <Turbo.h>
 
-namespace Turbo::Ed
-{
-    class Editor : public Application
-    {
+namespace Turbo::Ed {
+
+    class Editor : public Application {
     public:
-        enum SceneMode : u32
-        {
-            SceneMode_Edit = 0,
-            SceneMode_Play
+        enum class SceneMode : u32 {
+            Edit = 0,
+            Play
         };
 
-        enum DevEnv : u32
-        {
-            DevEnv_None = 0,
-            DevEnv_VS2022
+        enum class DevEnv : u32 {
+            None = 0,
+            VS2022
         };
 
         Editor(const Application::Config& config);
@@ -62,20 +59,20 @@ namespace Turbo::Ed
         EditorCamera m_EditorCamera;
         bool m_ShowPhysics2DColliders = false, m_ShowSceneIcons = true;
         bool m_ViewportHovered = false, m_ViewportFocused = false;
-        Ref<Texture2D> m_PlayIcon, m_StopIcon, m_ResetCameraRotationIcon, 
+        Ref<Texture2D> m_PlayIcon, m_StopIcon, m_Reset2DIcon,
             m_PointLightIcon, m_SpotLightIcon, m_CameraIcon;
         Ref<SceneDrawList> m_ViewportDrawList;
-        SceneMode m_SceneMode = SceneMode_Edit;
+        SceneMode m_SceneMode = SceneMode::Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
 
         std::filesystem::path m_EditorScenePath;
         std::filesystem::path m_CurrentPath;
 
-        DevEnv m_CurrentIDE = DevEnv_VS2022;
+        DevEnv m_CurrentIDE = DevEnv::VS2022;
         std::filesystem::path m_MSBuildPath;
 
         Entity m_SelectedEntity, m_HoveredEntity;
 
-        Ref<PanelManager> m_PanelManager;
+        Scope<PanelManager> m_PanelManager;
     };
 }

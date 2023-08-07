@@ -14,7 +14,7 @@ namespace Turbo
         Audio::BackendType AudioBackendType = Audio::BackendType::XAudio2;
         Ref<AudioBackend> CurrentAudioBackend;
 
-        Scene* Context = nullptr;
+        Ref<Scene> Context;
     };
 
     static AudioData s_Data;
@@ -30,7 +30,7 @@ namespace Turbo
         s_Data.Context = nullptr;
     }
 
-    void Audio::OnRuntimeStart(Scene* context)
+    void Audio::OnRuntimeStart(const Ref<Scene>& context)
     {
         s_Data.Context = context;
 

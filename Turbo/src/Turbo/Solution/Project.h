@@ -1,16 +1,15 @@
 #pragma once
 
 #include "Turbo/Core/Common.h"
-#include "Turbo/Scene/Scene.h"
 
 #include "Turbo/Asset/AssetRegistryBase.h"
 #include "Turbo/Asset/EditorAssetRegistry.h"
 
-#include <vector>
-
 namespace Turbo
 {
-    class Project
+    class Scene;
+
+    class Project : public RefCounted
     {
     public:
         struct Config
@@ -51,6 +50,9 @@ namespace Turbo
             return s_ActiveProject->m_Config.ProjectDirectory; 
         }
 
+        /**
+         * @return Full path to asset folder
+         */
         static const std::filesystem::path GetAssetsPath()
         {
             TBO_ENGINE_ASSERT(s_ActiveProject);

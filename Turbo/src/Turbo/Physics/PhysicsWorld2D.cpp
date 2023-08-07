@@ -13,7 +13,7 @@ namespace Turbo
     private:
         void BeginContact(b2Contact* contact) override
         {
-            Scene* context = Script::GetCurrentScene();
+            auto context = Script::GetCurrentScene();
 
             b2Fixture* fixtureA = contact->GetFixtureA();
             b2Fixture* fixtureB = contact->GetFixtureB();
@@ -39,7 +39,7 @@ namespace Turbo
 
         void EndContact(b2Contact* contact) override
         {
-            Scene* context = Script::GetCurrentScene();
+            auto context = Script::GetCurrentScene();
 
             b2Fixture* fixtureA = contact->GetFixtureA();
             b2Fixture* fixtureB = contact->GetFixtureB();
@@ -84,7 +84,7 @@ namespace Turbo
         /// closest hit, 1 to continue
         float ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float fraction) override
         {
-            Scene* context = Script::GetCurrentScene();
+            auto context = Script::GetCurrentScene();
 
             b2FixtureUserData data = fixture->GetUserData();
             m_HitEntity = context->FindEntityByUUID((u64)data.pointer);

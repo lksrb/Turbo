@@ -6,7 +6,7 @@ namespace Turbo
 {
     enum class VertexBufferType : u32 { None = 0, Static, Dynamic };
 
-    class VertexBuffer
+    class VertexBuffer : public RefCounted
     {
     public:
 

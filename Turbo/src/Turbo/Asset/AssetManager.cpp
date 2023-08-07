@@ -9,8 +9,8 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace YAML
-{
+namespace YAML {
+
     Node LoadFile(const std::filesystem::path& filename)
     {
         std::ifstream fin(filename);
@@ -22,8 +22,7 @@ namespace YAML
     }
 
     template<>
-    struct convert<glm::vec3>
-    {
+    struct convert<glm::vec3> {
         static Node encode(const glm::vec3& rhs)
         {
             Node node;
@@ -47,10 +46,9 @@ namespace YAML
     };
 }
 
-namespace Turbo
-{
-    struct CachedNode
-    {
+namespace Turbo {
+
+    struct CachedNode {
         YAML::Node Node;
         size_t LastWriteTime = 0;
         Entity CachedPrefabEntity;
@@ -59,8 +57,7 @@ namespace Turbo
     static std::unordered_map<std::filesystem::path, CachedNode> s_CachedNodes(10);
     static Ref<Scene> s_CacheScene = Ref<Scene>::Create();
 
-    namespace Utils
-    {
+    namespace Utils {
         static void SerializeRecursively(YAML::Emitter& out, Scene* scene, Entity entity)
         {
             SceneSerializer::SerializeEntity(out, entity);
@@ -148,26 +145,6 @@ namespace Turbo
         }
     }
 
-    const AssetMetadata& AssetManager::GetAssetMetadata(AssetHandle handle)
-    {
-        return Project::GetActive()->m_AssetRegistry->GetAssetMetadata(handle);
-    }
-
-    void AssetManager::ImportAsset(const std::filesystem::path& filepath)
-    {
-        Project::GetActive()->m_AssetRegistry->ImportAsset(filepath);
-    }
-
-    bool AssetManager::IsAssetHandleValid(AssetHandle handle)
-	{
-        return Project::GetActive()->m_AssetRegistry->IsAssetHandleValid(handle);
-	}
-
-    bool AssetManager::IsAssetLoaded(AssetHandle handle)
-    {
-        return Project::GetActive()->m_AssetRegistry->IsAssetLoaded(handle);
-    }
-
     bool AssetManager::SerializeToPrefab(const std::filesystem::path& filepath, Entity entity)
     {
         std::string filename = entity.GetName();
@@ -202,7 +179,7 @@ namespace Turbo
 #if 1
         if (!std::filesystem::exists(filepath))
         {
-            if(s_CachedNodes.find(filepath) != s_CachedNodes.end())
+            if (s_CachedNodes.find(filepath) != s_CachedNodes.end())
                 s_CachedNodes.erase(filepath);
 
             return {};
@@ -284,6 +261,29 @@ namespace Turbo
 
         return parent;
 #endif
+    }
+}
+
+namespace Turbo {
+
+    const AssetMetadata& AssetManager::GetAssetMetadata(AssetHandle handle)
+    {
+        return Project::GetActive()->m_AssetRegistry->GetAssetMetadata(handle);
+    }
+
+    AssetHandle AssetManager::ImportAsset(const std::filesystem::path& filepath)
+    {
+        return Project::GetActive()->m_AssetRegistry->ImportAsset(filepath);
+    }
+
+    bool AssetManager::IsAssetHandleValid(AssetHandle handle)
+    {
+        return Project::GetActive()->m_AssetRegistry->IsAssetHandleValid(handle);
+    }
+
+    bool AssetManager::IsAssetLoaded(AssetHandle handle)
+    {
+        return Project::GetActive()->m_AssetRegistry->IsAssetLoaded(handle);
     }
 
 }

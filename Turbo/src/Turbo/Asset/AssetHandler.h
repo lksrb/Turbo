@@ -2,34 +2,28 @@
 
 #include "Asset.h"
 
-namespace Turbo
-{
-    class AssetSerializer
-    {
+namespace Turbo {
+
+    class TBO_NOVTABLE AssetHandler {
     public:
-        virtual Ref<Asset> Create(const AssetMetadata& metadata, const Ref<Asset>& sourceAsset) const { return nullptr; };
         virtual bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const = 0;
         virtual Ref<Asset> TryLoad(const AssetMetadata& metadata) = 0;
     };
 
-    class Texture2DSerializer : public AssetSerializer
-    {
+    class Texture2DHandler : public AssetHandler {
     public:
         bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
         Ref<Asset> TryLoad(const AssetMetadata& metadata) override;
     };
 
-    class MeshSourceSerializer : public AssetSerializer
-    {
+    class MeshSourceHandler : public AssetHandler {
     public:
-        bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
+        bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override { return true; }
         Ref<Asset> TryLoad(const AssetMetadata& metadata) override;
     };
 
-    class StaticMeshSerializer : public AssetSerializer
-    {
+    class StaticMeshHandler : public AssetHandler {
     public:
-        Ref<Asset> Create(const AssetMetadata& metadata, const Ref<Asset>& sourceAsset) const override;
         bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
         Ref<Asset> TryLoad(const AssetMetadata& metadata) override;
     };

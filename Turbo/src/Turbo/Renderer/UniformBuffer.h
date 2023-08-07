@@ -8,7 +8,7 @@
 
 namespace Turbo
 {
-    class UniformBuffer
+    class UniformBuffer : public RefCounted
     {
     public:
         struct Config
@@ -31,7 +31,7 @@ namespace Turbo
         UniformBuffer::Config m_Config;
     };
 
-    class UniformBufferSet
+    class UniformBufferSet : public RefCounted
     {
     public:
         UniformBufferSet();

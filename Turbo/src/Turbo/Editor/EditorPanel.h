@@ -5,7 +5,7 @@
 
 namespace Turbo
 {
-    class TBO_NOVTABLE EditorPanel
+    class TBO_NOVTABLE EditorPanel : public RefCounted
     {
     public:
         virtual ~EditorPanel() = default;

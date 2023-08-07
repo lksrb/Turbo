@@ -6,7 +6,7 @@
 
 namespace Turbo
 {
-    class Font
+    class Font : public RefCounted
     {
     public:
         struct MSDFData;

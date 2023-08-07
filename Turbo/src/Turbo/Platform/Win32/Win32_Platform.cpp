@@ -11,7 +11,6 @@
 #include <shellapi.h>
 #include <cwchar>
 
-#define CheckPLATFORMError CheckError()
 #define TBO_MAX_CHARS 512
 
 namespace Turbo {
@@ -47,29 +46,22 @@ namespace Turbo {
             u64 Frequency;
             u64 Offset;
         } Timer;
+
+        Win32_Platform()
+        {
+            ::QueryPerformanceFrequency((LARGE_INTEGER*)&Timer.Frequency);
+            ::QueryPerformanceCounter((LARGE_INTEGER*)&Timer.Offset);
+        }
     };
 
-    static Win32_Platform* s_RendererContext = nullptr;
-
-    void Platform::Init()
-    {
-        s_RendererContext = new Win32_Platform;
-
-        ::QueryPerformanceFrequency((LARGE_INTEGER*)&s_RendererContext->Timer.Frequency);
-        ::QueryPerformanceCounter((LARGE_INTEGER*)&s_RendererContext->Timer.Offset);
-    }
-
-    void Platform::Shutdown()
-    {
-        delete s_RendererContext;
-    }
+    static Win32_Platform s_PlatformContext;
 
     f32 Platform::GetTime()
     {
         u64 timerValue;
         ::QueryPerformanceCounter((LARGE_INTEGER*)&timerValue);
 
-        return (static_cast<f32>(timerValue - s_RendererContext->Timer.Offset) / (s_RendererContext->Timer.Frequency));
+        return (static_cast<f32>(timerValue - s_PlatformContext.Timer.Offset) / (s_PlatformContext.Timer.Frequency));
     }
 
     std::filesystem::path Platform::OpenFileDialog(const wchar_t* title, const wchar_t* filter, const std::filesystem::path& initialDir)

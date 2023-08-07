@@ -30,7 +30,7 @@ namespace Turbo
 
     bool FileSystem::Exists(const std::filesystem::path& path)
     {
-        return std::filesystem::exists(path);
+        return ::PathFileExists(path.c_str());
     }
 
     std::filesystem::path FileSystem::ReplaceExtension(std::filesystem::path filepath, const std::filesystem::path& extension)

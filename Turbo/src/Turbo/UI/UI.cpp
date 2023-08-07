@@ -72,11 +72,11 @@ namespace Turbo
         ImGui::PopID();
 	}
 
-    bool UI::BeginPopupModal(const char* name, ImGuiWindowFlags flags)
+    bool UI::BeginPopupModal(const char* name, bool* p_open, ImGuiWindowFlags flags)
     {
         ImGuiID popup_id = ImHashStr(name);
         ImGui::PushOverrideID(popup_id);
-        bool opened = ImGui::BeginPopupModal(name, nullptr, flags);
+        bool opened = ImGui::BeginPopupModal(name, p_open, flags);
         if(!opened)
             ImGui::PopID();
         return opened;

@@ -8,19 +8,16 @@
 
 #include <map>
 
-namespace Turbo
-{
-    class SceneDrawList
-    {
+namespace Turbo {
+
+    class SceneDrawList : public RefCounted {
     public:
-        struct Config
-        {
+        struct Config {
             u32 ViewportWidth;
             u32 ViewportHeight;
         };
 
-        struct Statistics
-        {
+        struct Statistics {
             DrawList2D::Statistics Statistics2D;
 
             u32 DrawCalls;
@@ -39,7 +36,7 @@ namespace Turbo
             }
         };
 
-        SceneDrawList(const SceneDrawList::Config& config);
+        SceneDrawList(u32 width, u32 height);
         ~SceneDrawList();
 
         void Begin();
@@ -48,11 +45,11 @@ namespace Turbo
         void AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity = -1);
         void AddPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f);
         void AddSpotLight(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 5.0f, f32 innerCone = 12.5f, f32 outerCone = 17.5f);
-        
+
         void AddQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
         void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity = -1);
-        void AddBillboardQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, const glm::vec4& color = {1.0f, 1.0f, 1.0f, 1.0f}, Ref<Texture2D> texture = nullptr, f32 tiling = 1.0f, i32 entity = -1);
+        void AddBillboardQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f }, Ref<Texture2D> texture = nullptr, f32 tiling = 1.0f, i32 entity = -1);
 
         void AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity = -1);
         void AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
@@ -85,23 +82,20 @@ namespace Turbo
         // For now
         static constexpr u32 MaxTransforms = 4096;
 
-        struct UBCamera
-        {
+        struct UBCamera {
             glm::mat4 ViewProjectionMatrix;
             glm::mat4 InversedViewProjectionMatrix;
             glm::mat4 InversedViewMatrix;
         };
 
-        struct TransformData
-        {
+        struct TransformData {
             glm::vec4 Tranform[4];
             i32 EntityID;
         };
 
         // Match the layout in shader
         // Padding set to 16 because of std140 
-        struct alignas(16) PointLight
-        {
+        struct alignas(16) PointLight {
             glm::vec4 Position;
             glm::vec3 Radiance;
 
@@ -110,8 +104,7 @@ namespace Turbo
             f32 FallOff;
         };
 
-        struct alignas(16) SpotLight
-        {
+        struct alignas(16) SpotLight {
             glm::vec4 Position;
             glm::vec4 Direction;
             glm::vec3 Radiance;
@@ -124,48 +117,43 @@ namespace Turbo
         // Match the layout in shader
         // Padding set to 16 because of std140 
         // FIXME: Padding fuckery, currently works for 64 but other numbers are not tested
-        struct alignas(16) LightEnvironment
-        {
+        struct alignas(16) LightEnvironment {
             PointLight PointLights[MaxPointLights];
             u32 PointLightCount = 0;
             SpotLight SpotLights[MaxSpotLights];
             u32 SpotLightCount = 0;
-            
+
             inline PointLight& EmplacePointLight() { TBO_ENGINE_ASSERT(PointLightCount < MaxPointLights); return PointLights[PointLightCount++]; }
             inline SpotLight& EmplaceSpotLight() { TBO_ENGINE_ASSERT(SpotLightCount < MaxSpotLights); return SpotLights[SpotLightCount++]; }
         };
 
-        struct DirectionalLight
-        {
+        struct DirectionalLight {
             glm::vec3 Direction;
         };
 
         // Uniquely describes a mesh
         // We can recycle meshes when they have same mesh and material
         // by adding another instance of the mesh
-        struct MeshKey
-        {
-            Ref<StaticMesh> Mesh; // TODO: Assets
+        struct MeshKey {
+            AssetHandle MeshHandle;
             u32 SubmeshIndex = 0;
 
             bool operator<(const MeshKey& other) const
             {
-                if ((u64)Mesh.Get() < (u64)other.Mesh.Get())
+                if (MeshHandle < other.MeshHandle)
                     return true;
 
-                return (u64)Mesh.Get() == (u64)other.Mesh.Get() && SubmeshIndex < other.SubmeshIndex;
+                return MeshHandle == other.MeshHandle && SubmeshIndex < other.SubmeshIndex;
             }
         };
 
-        struct DrawCommand
-        {
+        struct DrawCommand {
             Ref<StaticMesh> Mesh;
             u32 SubmeshIndex = 0;
             u32 InstanceCount = 0;
         };
 
-        struct MeshTransformMap
-        {
+        struct MeshTransformMap {
             std::vector<TransformData> Transforms;
             u32 TransformOffset;
         };
@@ -194,7 +182,7 @@ namespace Turbo
         Ref<RenderPass> m_GeometryRenderPass;
 
         Ref<RenderPass> m_FinalRenderPass;
-        Ref<DrawList2D> m_DrawList2D;
+        Scope<DrawList2D> m_DrawList2D;
         Ref<FrameBuffer> m_TargetFrameBuffer;
 
         SceneDrawList::Statistics m_Statistics;

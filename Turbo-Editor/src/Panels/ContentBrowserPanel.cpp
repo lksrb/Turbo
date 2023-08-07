@@ -7,12 +7,12 @@
 #include <Turbo/Solution/Project.h>
 #include <Turbo/Scene/Scene.h>
 #include <Turbo/Scene/Entity.h>
+#include <Turbo/Renderer/Mesh.h>
 #include <Turbo/Asset/AssetManager.h>
 
 #include <filesystem>
 
-namespace Turbo::Ed
-{
+namespace Turbo::Ed {
 
     ContentBrowserPanel::ContentBrowserPanel()
     {
@@ -75,17 +75,18 @@ namespace Turbo::Ed
         for (auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
         {
             const auto& path = directoryEntry.path();
+            bool isDirectory = directoryEntry.is_directory();
 
             // Filter
-            if (path.extension() == ".csproj" || path.extension() == ".user")
+            if (!isDirectory && Filter(path.extension()))
                 continue;
 
-            const auto& relativePath = std::filesystem::relative(path, m_BasePath.c_str());
-            const std::string& filenameString = relativePath.filename().string();
+            auto relativePath = std::filesystem::relative(path, m_BasePath.c_str());
+            std::string filenameString = relativePath.filename().string();
             bool selected = s_SelectedPath == path;
 
             ImGui::PushID(filenameString.c_str());
-            Ref<Texture2D> icon = directoryEntry.is_directory() ? m_DirectoryIcon : m_FileIcon;
+            Ref<Texture2D> icon = isDirectory ? m_DirectoryIcon : m_FileIcon;
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             UI::ScopedStyleColor buttonColor(ImGuiCol_Button, { 0.2f, 0.3f, 0.8f, 0.8f }, selected);
@@ -148,9 +149,9 @@ namespace Turbo::Ed
             s_SelectedPath = "";
         }
 
-        ImGui::Columns();
-        ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
-        ImGui::SliderFloat("Thumbnail Padding", &padding, 0, 32);
+        //ImGui::Columns();
+        //ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
+        //ImGui::SliderFloat("Thumbnail Padding", &padding, 0, 32);
 
         if (ImGui::BeginPopupContextWindow("##ContentBrowserPanel"))
         {
@@ -163,11 +164,24 @@ namespace Turbo::Ed
             {
                 // NOTE: Its users responsibility to move assets to Assets directory
                 // TODO: Make a popup warning about this
-                auto& filepath = Platform::OpenFileDialog(L"Import Asset", L"Asset Source (*.fbx, *.png)\0*.fbx;*.png\0", m_CurrentDirectory);
+                auto filepath = Platform::OpenFileDialog(L"Import Asset", L"Assets (*.tmesh, *.fbx, *.png)\0*.tmesh;*.fbx;*.png\0", m_CurrentDirectory);
 
                 if (!filepath.empty())
                 {
-                    AssetManager::ImportAsset(filepath);
+                    AssetHandle handle = AssetManager::ImportAsset(filepath);
+                    if (AssetManager::GetAssetMetadata(handle).Type == AssetType_MeshSource)
+                    {
+                        filepath.replace_extension(".tmesh");
+                        bool isAlreadyImported = Project::GetActive()->GetEditorAssetRegistry()->IsAssetImported(filepath);
+                        if (!isAlreadyImported)
+                        {
+                            Project::GetActive()->GetEditorAssetRegistry()->CreateAsset<StaticMesh>(filepath, handle);
+                        }
+                        else
+                        {
+                            TBO_CONSOLE_WARN("Asset already imported!");
+                        }
+                    }
                 }
             }
 
@@ -185,6 +199,13 @@ namespace Turbo::Ed
     void ContentBrowserPanel::OnSceneContextChanged(const Ref<Scene>& context)
     {
         m_Context = context;
+    }
+
+    bool ContentBrowserPanel::Filter(const std::filesystem::path& extension)
+    {
+        static std::unordered_set<std::filesystem::path> s_PermitLookup { ".tmesh", ".tscene", ".png", ".jpg", ".cs", ".ttex" };
+            
+        return !m_ShowAllFiles && s_PermitLookup.find(extension) == s_PermitLookup.end();
     }
 
 }

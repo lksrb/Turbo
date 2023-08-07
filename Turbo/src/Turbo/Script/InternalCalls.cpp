@@ -26,7 +26,7 @@ namespace Turbo
 {
     static Entity GetEntity(u64 uuid)
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         Entity entity = context->FindEntityByUUID(uuid);
 
         if (!entity)
@@ -43,19 +43,19 @@ namespace Turbo
 
     static u32 Application_GetWidth()
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         return context->GetViewportWidth();
     }
 
     static u32 Application_GetHeight()
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         return context->GetViewportHeight();
     }
 
     static void Application_Close()
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         Engine::Get().Close();
     }
 
@@ -136,7 +136,7 @@ namespace Turbo
 
     static u64 Physics2D_RayCast(glm::vec2 a, glm::vec2 b)
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
 
         PhysicsWorld2D* physicsWorld2d = context->GetPhysicsWorld2D();
 
@@ -154,7 +154,7 @@ namespace Turbo
     static u64 Scene_CreateEntity(u64 parentUUID, MonoString* name)
     {
         char* cString = mono_string_to_utf8(name);
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         Entity entity = context->CreateEntity(cString);
         TBO_ENGINE_ASSERT(entity);
         mono_free(cString);
@@ -169,14 +169,14 @@ namespace Turbo
     static void Scene_DestroyEntity(u64 uuid)
     {
         Entity entity = GetEntity(uuid);
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene().Get(); // FIXME: lambda cannot accept const ref
         context->GetPostUpdateFuncs().push_back([context, entity]() { context->DestroyEntity(entity); });
     }
 
     // TODO: MOVE! WHERE??????????????
     static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         Entity entity = context->FindPrimaryCameraEntity();
         TBO_ENGINE_ASSERT(entity);
 
@@ -195,7 +195,7 @@ namespace Turbo
 
     static void Scene_WorldToScreenPosition(glm::vec3 worldPosition, glm::vec2* screenPosition) // FIXME: Raycasting
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         Entity entity = context->FindPrimaryCameraEntity();
         TBO_ENGINE_ASSERT(entity);
 
@@ -222,7 +222,7 @@ namespace Turbo
         std::string name = cString;
         mono_free(cString);
 
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         Entity entity = context->FindEntityByName(name);
 
         if (entity)
@@ -330,7 +330,7 @@ namespace Turbo
     // FIXME: Temporary
     static void TryInvokeOnCreateRecursively(Entity entity)
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
 
         // Call C# Entity::OnCreate method
         if (entity.HasComponent<ScriptComponent>())
@@ -349,12 +349,12 @@ namespace Turbo
 
     static u64 Entity_InstantiatePrefabWithTranslation(MonoString* monoString, glm::vec3* translation)
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         char* cString = mono_string_to_utf8(monoString);
         std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
         mono_free(cString);
 
-        Entity entity = AssetManager::DeserializePrefab(prefabPath, context, *translation);
+        Entity entity = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
 
         if (entity)
         {
@@ -369,12 +369,12 @@ namespace Turbo
 
     static u64 Entity_InstantiateChildPrefabWithTranslation(u64 uuid, MonoString* monoString, glm::vec3* translation)
     {
-        Scene* context = Script::GetCurrentScene();
+        auto context = Script::GetCurrentScene();
         char* cString = mono_string_to_utf8(monoString);
         std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
         mono_free(cString);
 
-        Entity child = AssetManager::DeserializePrefab(prefabPath, context, *translation);
+        Entity child = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
 
         if (child)
         {
@@ -718,7 +718,7 @@ namespace Turbo
 
     static void Component_Rigidbody2D_ApplyLinearImpulse(UUID uuid, glm::vec2* impulse, glm::vec2* worldPosition, bool wake)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -729,7 +729,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(UUID uuid, glm::vec2* impulse, bool wake)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -739,7 +739,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_ApplyForceToCenter(UUID uuid, glm::vec2* force, bool wake)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -749,7 +749,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_Set_LinearVelocity(UUID uuid, glm::vec2* velocity)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -759,7 +759,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_Get_LinearVelocity(UUID uuid, glm::vec2* velocity)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -772,7 +772,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_ApplyTorque(UUID uuid, f32 torque, bool wake)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -783,7 +783,7 @@ namespace Turbo
 
     static f32 Component_Rigidbody2D_Get_GravityScale(UUID uuid)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -792,7 +792,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_Set_GravityScale(UUID uuid, f32 gravityScale)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -802,7 +802,7 @@ namespace Turbo
 
     static Rigidbody2DComponent::BodyType Component_Rigidbody2D_Get_BodyType(UUID uuid)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -812,7 +812,7 @@ namespace Turbo
 
     static void Component_Rigidbody2D_Set_BodyType(UUID uuid, Rigidbody2DComponent::BodyType type)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -822,7 +822,7 @@ namespace Turbo
 
     static void Component_Rigidbody2D_Set_Enabled(UUID uuid, bool enabled)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -832,7 +832,7 @@ namespace Turbo
 
     static bool Component_Rigidbody2D_Get_Enabled(UUID uuid)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -842,7 +842,7 @@ namespace Turbo
 
     static void Component_Rigidbody2D_Set_ContactEnabled(UUID uuid, bool enabled)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 
@@ -852,7 +852,7 @@ namespace Turbo
 
     static bool Component_Rigidbody2D_Get_ContactEnabled(UUID uuid)
     {
-        Scene* scene = Script::GetCurrentScene();
+        auto scene = Script::GetCurrentScene();
         Entity entity = scene->FindEntityByUUID(uuid);
         TBO_ENGINE_ASSERT(entity);
 

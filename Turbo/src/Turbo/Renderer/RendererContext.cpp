@@ -75,10 +75,10 @@ namespace Turbo
         VkDebugUtilsMessengerEXT DebugMessenger = VK_NULL_HANDLE;
         GPUDevice Device;
 
-        CommandQueue ResourceQueue;
-        CommandQueue RuntimeResourceQueue;
-        bool ValidationLayerEnabled = true;
         u32 FramesInFlight = 2;
+        CommandQueue ResourceQueue;
+        std::array<CommandQueue, 2> RuntimeResourceQueues = {};
+        bool ValidationLayerEnabled = true;
     };
 
     static RendererContextInternal* s_RendererContext;
@@ -96,7 +96,11 @@ namespace Turbo
     void RendererContext::Shutdown()
     {
         GetResourceQueue().Execute();
-        GetResourceRuntimeQueue().Execute();
+
+        // We cannot address current resource free queue via Renderer::GetCurrentFrame 
+        // because swapchain is already destroyed
+        for (auto& queue : s_RendererContext->RuntimeResourceQueues)
+            queue.Execute();
 
         vkDestroySurfaceKHR(s_RendererContext->Instance, s_RendererContext->Surface, nullptr);
 
@@ -254,7 +258,8 @@ namespace Turbo
 
     CommandQueue& RendererContext::GetResourceRuntimeQueue()
     {
-        return s_RendererContext->RuntimeResourceQueue;
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        return s_RendererContext->RuntimeResourceQueues[currentFrame];
     }
 
     const SwapchainSupportDetails& RendererContext::GetSwapchainSupportDetails()

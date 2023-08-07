@@ -6,7 +6,7 @@
 
 namespace Turbo
 {
-    class ScriptInstance
+    class ScriptInstance : public RefCounted
     {
     private:
         static inline u8 s_FieldValueBuffer[16];

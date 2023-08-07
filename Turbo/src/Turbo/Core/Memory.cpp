@@ -1,7 +1,7 @@
 #include "tbopch.h"
 #include "Memory.h"
 
-#ifdef TBO_PROFILE_MEMORY
+#ifdef TBO_TRACK_MEMORY
     #define _CRTDBG_MAP_ALLOC
     #include <stdlib.h>
     #include <crtdbg.h>
@@ -9,7 +9,7 @@
 
 namespace Turbo {
 
-#ifdef TBO_PROFILE_MEMORY
+#ifdef TBO_TRACK_MEMORY
     struct MemoryInternal {
 
         MemoryInternal()

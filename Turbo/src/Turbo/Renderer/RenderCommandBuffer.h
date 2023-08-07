@@ -5,7 +5,7 @@
 namespace Turbo
 {
     // Set of command buffers
-    class RenderCommandBuffer
+    class RenderCommandBuffer : public RefCounted
     {
     public:
         RenderCommandBuffer();

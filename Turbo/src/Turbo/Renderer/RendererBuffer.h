@@ -20,7 +20,7 @@ namespace Turbo
     using BufferUsageFlags = u32;
     using MemoryPropertyFlags = u32;
 
-    class RendererBuffer
+    class RendererBuffer : public RefCounted
     {
     public:
         struct Config

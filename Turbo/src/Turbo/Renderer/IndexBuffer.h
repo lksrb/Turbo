@@ -4,7 +4,7 @@
 
 namespace Turbo
 {
-    class IndexBuffer
+    class IndexBuffer : public RefCounted
     {
     public:
         virtual ~IndexBuffer() = default;

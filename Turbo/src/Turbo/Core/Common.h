@@ -11,8 +11,6 @@
 
 #define TBO_NOVTABLE __declspec(novtable) 
 
-#define TBO_INTERFACE struct __declspec(novtable)
-
 #define TBO_BIT(x) 1 << x
 
 #include "Turbo/Core/Log.h"

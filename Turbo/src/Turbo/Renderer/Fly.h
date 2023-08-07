@@ -13,7 +13,7 @@ namespace Turbo
     class Fly
     {
     public:
-        Fly() : m_Data({}), m_Size(RendererContext::FramesInFlight()) {}
+        Fly() : m_Data{}, m_Size(RendererContext::FramesInFlight()) {}
         ~Fly() = default;
 
         u32 Size() const { return m_Size; }

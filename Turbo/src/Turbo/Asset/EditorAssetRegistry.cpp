@@ -23,84 +23,22 @@ namespace Turbo {
             return AssetType_Count;
         }
 
-        static std::filesystem::path GetSecondaryAssetExtension(AssetType secondaryAssetType)
-        {
-            // Those are special cases where we want to have separate file to refence an asset
-
-            switch (secondaryAssetType)
-            {
-                case AssetType_Texture2D:  return ".ttex"; // TODO:
-                case AssetType_StaticMesh: return ".tmesh";
-            }
-
-            TBO_ENGINE_ASSERT(false, "Unknown primrary asset type!");
-            return "";
-        }
-
         static std::filesystem::path GetMetadataPath(const std::filesystem::path& filepath)
         {
             auto assetsPath = Project::GetAssetsPath();
             auto metadataPath = std::filesystem::relative(filepath, assetsPath);
             return metadataPath;
         }
+    }
 
-        static std::filesystem::path GetSecondaryAssetPath(const std::filesystem::path& filepath, AssetType secondaryAssetType)
-        {
-            auto extension = Utils::GetSecondaryAssetExtension(secondaryAssetType);
-            auto metadataPath = Utils::GetMetadataPath(filepath);
-            return FileSystem::ReplaceExtension(metadataPath, extension);
-        }
-
-        static AssetType GetAssetTypeFromSource(AssetType primary)
-        {
-            switch (primary)
-            {
-                case AssetType_Texture2D:  return AssetType_Texture2D;
-                case AssetType_MeshSource: return AssetType_StaticMesh;
-            }
-
-            TBO_ENGINE_ASSERT(false);
-
-            return AssetType_Count;
-        }
-
-        static std::filesystem::path GetPathFromAssetType(std::string_view assetName, AssetType assetType)
-        {
-            if (assetType == AssetType_StaticMesh) return fmt::format("Meshes/{}.tmesh", assetName);
-
-            TBO_ENGINE_ASSERT(false, "Could not generate path from this assetType!");
-
-            return "";
-        }
-
-        static DefaultAsset GetDefaultAssetFromString(std::string_view defaultAsset)
-        {
-            if (defaultAsset == "Cube") return DefaultAsset_Cube;
-            if (defaultAsset == "Sphere") return DefaultAsset_Sphere;
-
-            TBO_ENGINE_ASSERT(false, "Unknown default asset!");
-
-            return DefaultAsset_Count;
-        }
-
-        static AssetMetadata CreateMetadata(const std::filesystem::path& filepath)
-        {
-            AssetMetadata metadata;
-            metadata.Type = GetAssetTypeFromExtension(filepath.extension());
-            metadata.FilePath = GetMetadataPath(filepath);
-            return metadata;
-        }
+    EditorAssetRegistry::EditorAssetRegistry()
+    {
+        Deserialize();
     }
 
     EditorAssetRegistry::~EditorAssetRegistry()
     {
         Serialize();
-    }
-
-    void EditorAssetRegistry::Init()
-    {
-        LoadDefaultAssets();
-        Deserialize();
     }
 
     bool EditorAssetRegistry::IsAssetHandleValid(AssetHandle handle) const
@@ -115,7 +53,7 @@ namespace Turbo {
 
     Ref<Asset> EditorAssetRegistry::GetAsset(AssetHandle handle)
     {
-        if (!IsAssetHandleValid(handle) && m_DefaultAssetMap.find(handle) == m_DefaultAssetMap.end())
+        if (!IsAssetHandleValid(handle))
             return nullptr;
 
         if (!IsAssetLoaded(handle))
@@ -127,8 +65,8 @@ namespace Turbo {
 
             metadata.IsLoaded = true;
             asset->Handle = handle;
-            m_LoadedAssets[asset->Handle] = asset;
-            m_AssetRegistry[asset->Handle] = metadata;
+            m_LoadedAssets[handle] = asset;
+            m_AssetRegistry[handle] = metadata;
         }
 
         return m_LoadedAssets.at(handle);
@@ -144,42 +82,31 @@ namespace Turbo {
         return m_AssetRegistry.at(handle);
     }
 
-    void EditorAssetRegistry::ImportAsset(const std::filesystem::path& filepath)
+    AssetHandle EditorAssetRegistry::ImportAsset(const std::filesystem::path& filepath)
     {
-        // Create metadata
-        AssetMetadata sourceMetadata = Utils::CreateMetadata(filepath);
+        AssetMetadata metadata = CreateMetadata(filepath);
 
-        // Create asset source and load it
-        Ref<Asset> sourceAsset = Asset::TryLoad(sourceMetadata);
-        if (!sourceAsset)
+        // NOTE: This isnt ideal solution but good enough
+        if (IsAssetImported(metadata.FilePath))
         {
-            TBO_ENGINE_ERROR("Could not load source asset!");
-            return;
+            //TBO_CONSOLE_WARN("Asset already loaded!");
+            return GetAsset(m_PathRegistry.at(metadata.FilePath))->Handle;
         }
 
-        sourceMetadata.IsLoaded = true;
-        m_LoadedAssets[sourceAsset->Handle] = sourceAsset;
-        m_AssetRegistry[sourceAsset->Handle] = sourceMetadata;
-
-        // Create asset and load it with the primary asset 
-        AssetMetadata metadata;
-        metadata.Type = Utils::GetAssetTypeFromSource(sourceMetadata.Type);
-        metadata.FilePath = Utils::GetSecondaryAssetPath(filepath, metadata.Type);
-
-        // Create asset and load it
-        Ref<Asset> asset = Asset::Create(metadata, sourceAsset);
+        // Create asset source and load it
+        Ref<Asset> asset = Asset::TryLoad(metadata);
         if (!asset)
         {
-            TBO_ENGINE_ERROR("Could not create source asset!");
-            return;
+            TBO_ENGINE_ERROR("Could not load source asset!");
+            return 0;
         }
 
         metadata.IsLoaded = true;
         m_LoadedAssets[asset->Handle] = asset;
         m_AssetRegistry[asset->Handle] = metadata;
+        m_PathRegistry[metadata.FilePath] = asset->Handle;
 
-        // And serialize it
-        Asset::Serialize(metadata, asset);
+        return asset->Handle;
     }
 
     bool EditorAssetRegistry::Deserialize()
@@ -197,31 +124,13 @@ namespace Turbo {
             return false;
         }
 
-        if (!data["AssetDefaults"])
-            return false;
-
-        auto defaults = data["AssetDefaults"];
-        TBO_ENGINE_ASSERT(defaults); // TODO: If defaults are not present, load them?
-
-        for (auto node : defaults)
-        {
-            AssetHandle handle = node["Asset"].as<u64>();
-            DefaultAsset defaultAsset = Utils::GetDefaultAssetFromString(node["Name"].as<std::string>());
-            Ref<Asset> asset = m_DefaultAssetRegistry[defaultAsset];
-
-            asset->Handle = handle;
-            m_LoadedAssets[handle] = asset;
-            m_DefaultAssetMap[handle] = asset;
-        }
-
-
         if (!data["AssetRegistry"])
             return false;
 
         auto assets = data["AssetRegistry"];
         if (assets)
         {
-            TBO_ENGINE_TRACE("Asset Registry deserialization: ");
+            TBO_ENGINE_TRACE("Asset Registry: ");
             for (auto asset : assets)
             {
                 AssetHandle handle = asset["Asset"].as<u64>();
@@ -232,6 +141,7 @@ namespace Turbo {
                 auto& metadata = m_AssetRegistry[handle];
                 metadata.FilePath = path;
                 metadata.Type = assetType;
+                m_PathRegistry[metadata.FilePath] = handle;
 
                 TBO_ENGINE_TRACE("Asset: {}", (u64)handle);
                 TBO_ENGINE_TRACE("   Type: {}", stringAssetType);
@@ -249,26 +159,8 @@ namespace Turbo {
         YAML::Emitter out;
         {
             out << YAML::BeginMap;
-            // Serialize default asset first with their handles
-            // This is important since we dont want duplicate mesh sources when creating same meshes unless client explicitly creates one
-            out << YAML::Key << "AssetDefaults" << YAML::Value;
 
-            out << YAML::BeginSeq;
-            for (u32 defaultAsset = 0; defaultAsset < DefaultAsset_Count; defaultAsset++)
-            {
-                static std::array<const char*, DefaultAsset_Count> s_StringifiedDefaultAsset =
-                {
-                    "Cube",
-                    "Sphere"
-                };
-                out << YAML::BeginMap;
-                out << YAML::Key << "Asset" << YAML::Value << m_DefaultAssetRegistry[defaultAsset]->Handle;
-                out << YAML::Key << "Name" << YAML::Value << s_StringifiedDefaultAsset[defaultAsset];
-                out << YAML::EndMap;
-            }
-            out << YAML::EndSeq;
-
-            // Serialize main asset registry
+            // Serialize asset registry
             out << YAML::Key << "AssetRegistry" << YAML::Value;
             out << YAML::BeginSeq;
             for (auto& [handle, metadata] : m_AssetRegistry)
@@ -279,6 +171,7 @@ namespace Turbo {
                 out << YAML::Key << "Type" << YAML::Value << Asset::StringifyAssetType(metadata.Type);
                 out << YAML::EndMap;
             }
+
             out << YAML::EndSeq;
             out << YAML::EndMap;
         }
@@ -289,75 +182,28 @@ namespace Turbo {
 
         stream << out.c_str();
 
+        // ... and serialize all loaded assets, if they also have some unique aspects that needs serialization
+        for (auto& [handle, asset] : m_LoadedAssets)
+        {
+            Asset::Serialize(m_AssetRegistry.at(handle), asset);
+        }
+
         TBO_ENGINE_INFO("Asset Registry serialized!");
 
         return true;
     }
 
-    /**
-     * Only creates default assets so later in Deserialize function we can add them into loaded asset with deserialized handle ID
-     */
-    void EditorAssetRegistry::LoadDefaultAssets()
+    bool EditorAssetRegistry::IsAssetImported(const std::filesystem::path& filepath)
     {
-        // TODO: Embed default assets?
-        static std::array<const char*, DefaultAsset_Count> s_DefaultAsset = {
-            "Meshes/Default/Cube.fbx",
-            "Meshes/Default/Sphere.fbx"
-        };
-
-        for (u32 i = 0; i < DefaultAsset_Count; i++)
-        { 
-            AssetMetadata metadata;
-            metadata.FilePath = s_DefaultAsset[i];
-            metadata.Type = AssetType_MeshSource;
-            Ref<Asset> asset = Asset::TryLoad(metadata);
-            if (!asset)
-            {
-                TBO_ENGINE_ERROR("Could not load {}!", s_DefaultAsset[i]);
-                continue;
-            }
-            asset->SetFlags(AssetFlag_Default);
-            asset->SetFlags(AssetFlag_Loaded);
-            metadata.IsLoaded = true;
-            m_DefaultAssetRegistry[i] = asset;
-        }
+        return m_PathRegistry.find(filepath) != m_PathRegistry.end();
     }
 
-    Ref<Asset> EditorAssetRegistry::CreateFromDefaultAsset(std::string_view assetName, DefaultAsset defaultAsset)
+    AssetMetadata EditorAssetRegistry::CreateMetadata(const std::filesystem::path& filepath)
     {
-        if (defaultAsset >= DefaultAsset_Count)
-        {
-            TBO_ENGINE_ERROR("Invalid default asset index!");
-            return nullptr;
-        }
-
-        Ref<Asset> primaryAsset = m_DefaultAssetRegistry[defaultAsset];
-
-        // Create secondary asset and load it with the primary asset 
-        AssetMetadata secondaryMetadata;
-        secondaryMetadata.Type = Utils::GetAssetTypeFromSource(primaryAsset->GetAssetType());
-        secondaryMetadata.FilePath = Utils::GetPathFromAssetType(assetName, secondaryMetadata.Type);
-
-        // Create secondary asset and load it
-        auto secondaryAsset = Asset::Create(secondaryMetadata, primaryAsset);
-        if (!secondaryAsset)
-        {
-            TBO_ENGINE_ERROR("Could not create asset!");
-            return nullptr;
-        }
-
-        // And serialize it
-        if (!Asset::Serialize(secondaryMetadata, secondaryAsset))
-        {
-            TBO_ENGINE_ERROR("Could not serialize asset!");
-            return nullptr;
-        }
-
-        secondaryMetadata.IsLoaded = true;
-        m_LoadedAssets[secondaryAsset->Handle] = secondaryAsset;
-        m_AssetRegistry[secondaryAsset->Handle] = secondaryMetadata;
-
-        return secondaryAsset;
+        AssetMetadata metadata;
+        metadata.Type = Utils::GetAssetTypeFromExtension(filepath.extension());
+        metadata.FilePath = Utils::GetMetadataPath(filepath);
+        return metadata;
     }
 
 }

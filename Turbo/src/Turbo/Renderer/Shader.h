@@ -20,7 +20,7 @@ namespace Turbo
         HLSL
     };
 
-    class Shader
+    class Shader : public RefCounted
     {  
     public:
         struct Config

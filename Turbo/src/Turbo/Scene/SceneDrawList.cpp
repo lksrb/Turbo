@@ -13,9 +13,11 @@
 
 namespace Turbo
 {
-    SceneDrawList::SceneDrawList(const SceneDrawList::Config& config)
-        : m_Config(config)
+    SceneDrawList::SceneDrawList(u32 width, u32 height)
     {
+        m_Config.ViewportWidth = width;
+        m_Config.ViewportHeight = height;
+
         Init();
     }
 
@@ -46,7 +48,7 @@ namespace Turbo
         m_TargetFrameBuffer->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
 
         // Create draw list for 2D
-        m_DrawList2D = DrawList2D::Create();
+        m_DrawList2D = CreateScope<DrawList2D>();
         m_DrawList2D->SetTargetRenderPass(m_FinalRenderPass);
         m_DrawList2D->Initialize();
 
@@ -218,7 +220,7 @@ namespace Turbo
             const auto& submesh = submeshes[submeshIndex];
             glm::mat4 submeshTransform = transform * submesh.Transform;
 
-            MeshKey key = { mesh, submeshIndex };
+            MeshKey key = { mesh->Handle, submeshIndex };
             auto& drawCommand = m_DrawCommands[key];
             drawCommand.Mesh = mesh;
             drawCommand.InstanceCount++;

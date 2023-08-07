@@ -3,8 +3,10 @@
 #include <Turbo/Core/Platform.h>
 #include <Turbo/Solution/Project.h>
 
+#include <Turbo/UI/UI.h>
+#include <imgui_internal.h>
 #include <IconsFontAwesome6.h>
-#include <imgui.h>
+
 #include <filesystem>
 
 namespace Turbo::Ed
@@ -34,7 +36,7 @@ namespace Turbo::Ed
         ImGui::SetNextWindowSizeConstraints({ 640, 360 }, viewport->Size);
         ImGui::SetNextWindowSize({ viewport->Size.x / 2, viewport->Size.y / 2 }, ImGuiCond_FirstUseEver);
 
-        if (ImGui::BeginPopupModal("New Project...", &m_Open))
+        if (UI::BeginPopupModal("New Project...", &m_Open))
         {
             memset(s_ProjectFullPath, 0, sizeof(s_ProjectFullPath));
 
@@ -102,13 +104,14 @@ namespace Turbo::Ed
             ImGui::PopStyleColor(3);
             ImGui::PopStyleVar();
 
-            ImGui::EndPopup();
+            UI::EndPopupModal();
         }
     }
 
     void CreateProjectPopupPanel::Open()
     {
-        ImGui::OpenPopup("New Project...");
+        m_Open = true;
+        UI::OpenPopup("New Project...");
     }
 
 }

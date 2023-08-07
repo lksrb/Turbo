@@ -73,7 +73,7 @@ namespace Turbo
     using MemoryStorage = u32;
     using ImageUsage = u32;
 
-    class Image2D
+    class Image2D : public RefCounted
     {
     public:
         struct Config

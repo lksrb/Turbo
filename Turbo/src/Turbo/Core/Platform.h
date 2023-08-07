@@ -13,9 +13,6 @@ namespace Turbo
     class Platform
     {
     public:
-        static void Init();
-        static void Shutdown();
-
         static f32 GetTime();
 
         // Dialogs

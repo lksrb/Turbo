@@ -6,15 +6,15 @@ namespace Turbo {
 
     class EditorAssetRegistry : public AssetRegistryBase {
     public:
-        using DefaultAssetRegistry = std::array<Ref<Asset>, DefaultAsset_Count>;
-
-        EditorAssetRegistry() = default;
+        EditorAssetRegistry();
         ~EditorAssetRegistry();
 
         // FIXME: Bad solution for this
         template<typename T, typename... Args>
         Ref<T> RecreateAsset(AssetHandle handle, Args&&... args)
         {
+            static_assert(std::is_base_of<Asset, T>::value, "Class must be derived from \"Asset\" base class!");
+
             if (!IsAssetLoaded(handle))
                 return nullptr;
 
@@ -33,24 +33,48 @@ namespace Turbo {
             m_LoadedAssets[handle] = asset;
             return asset;
         }
-        void Init() override;
-        void ImportAsset(const std::filesystem::path& filepath) override;
+
+        template<typename T, typename... Args>
+        Ref<T> CreateAsset(const std::filesystem::path& path, Args... args)
+        {
+            static_assert(std::is_base_of<Asset, T>::value, "Class must be derived from \"Asset\" base class!");
+            
+            Ref<Asset> asset;
+            if constexpr (std::is_same_v<StaticMesh, T>)
+            {
+                auto sourceAsset = GetAsset(args...);
+                asset = Ref<StaticMesh>::Create(sourceAsset);
+            }
+            else
+            {
+                static_assert(false, "Unknown asset type!");
+            }
+
+            AssetMetadata metadata = CreateMetadata(path);
+            m_AssetRegistry[asset->Handle] = metadata;
+            m_LoadedAssets[asset->Handle] = asset;
+            m_PathRegistry[metadata.FilePath] = asset->Handle;
+
+            Asset::Serialize(metadata, asset);
+
+            return asset;
+        }
+
+        AssetHandle ImportAsset(const std::filesystem::path& filepath) override;
+        bool IsAssetImported(const std::filesystem::path& filepath);
         bool IsAssetHandleValid(AssetHandle handle) const override;
         bool IsAssetLoaded(AssetHandle handle) const override;
         Ref<Asset> GetAsset(AssetHandle handle) override;
         const AssetMetadata& GetAssetMetadata(AssetHandle handle) const override;
 
-        Ref<Asset> CreateFromDefaultAsset(std::string_view assetName, DefaultAsset defaultAsset);
-
         const AssetRegistry& GetRegisteredAssets() const { return m_AssetRegistry; }
         const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }
     private:
+        AssetMetadata CreateMetadata(const std::filesystem::path& filepath);
         bool Deserialize();
         bool Serialize();
-        void LoadDefaultAssets();
 
-        AssetMap m_DefaultAssetMap;
-        DefaultAssetRegistry m_DefaultAssetRegistry;
+        std::unordered_map<std::filesystem::path, AssetHandle> m_PathRegistry;
         AssetRegistry m_AssetRegistry;
         AssetMap m_LoadedAssets;
     };

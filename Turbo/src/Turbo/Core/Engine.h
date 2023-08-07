@@ -40,7 +40,6 @@ namespace Turbo
         void Close();
 
         Window* GetViewportWindow() const { return m_ViewportWindow; }
-        Ref<UserInterface> GetUserInterface() const { return m_UserInterface; }
 
         template<typename F>
         void SubmitToMainThread(F&& func)
@@ -50,6 +49,7 @@ namespace Turbo
             m_MainThreadQueue.emplace_back(func);
         }
 
+        void SetUIBlockEvents(bool blockEvents) { m_UserInterface->SetBlockEvents(blockEvents); }
         bool IsClosing() const { return !m_Running; }
 
         Application* GetApplication() const { return m_Application; }
@@ -72,7 +72,7 @@ namespace Turbo
         std::vector<std::function<void()>> m_MainThreadQueue;
         std::mutex m_MainThreadQueueMutex;
 
-        Ref<UserInterface> m_UserInterface;
+        Scope<UserInterface> m_UserInterface;
 
         // User
         Application* m_Application = nullptr;

@@ -21,7 +21,7 @@ namespace Turbo
         static void Init();
         static void Shutdown();
 
-        static void OnRuntimeStart(Scene* context);
+        static void OnRuntimeStart(const Ref<Scene>& context);
         static void OnRuntimeStop();
 
         static void Play(UUID uuid, bool loop);

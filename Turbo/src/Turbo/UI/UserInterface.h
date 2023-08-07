@@ -5,11 +5,12 @@
 
 namespace Turbo 
 {
-    class UserInterface 
+    class UserInterface
     {
     public:
-        static Ref<UserInterface> Create();
-        virtual ~UserInterface();
+        virtual ~UserInterface() = default;
+
+        static Scope<UserInterface> Create();
 
         virtual void BeginUI() = 0;
         virtual void EndUI() = 0;
@@ -18,8 +19,6 @@ namespace Turbo
 
         void SetBlockEvents(bool blockEvents);
     protected:
-        UserInterface();
-
         bool m_BlockEvents = true;
     };
 }

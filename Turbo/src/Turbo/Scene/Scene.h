@@ -19,7 +19,7 @@ namespace Turbo
     using EntityMap = std::unordered_map<UUID, entt::entity>;
     using UUIDMap = std::map<entt::entity, UUID>;
 
-    class Scene
+    class Scene : public RefCounted
     {
     public:
         struct Statistics

@@ -6,13 +6,11 @@
 
 #include <glm/glm.hpp>
 
-namespace Turbo
-{
-    class Material
-    {
+namespace Turbo {
+
+    class Material : public RefCounted {
     public:
-        struct Config
-        {
+        struct Config {
             Ref<Shader> MaterialShader;
         };
 
