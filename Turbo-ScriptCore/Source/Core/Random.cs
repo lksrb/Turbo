@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Turbo
+﻿namespace Turbo
 {
 	public class Random
 	{

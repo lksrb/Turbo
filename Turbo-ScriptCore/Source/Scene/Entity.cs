@@ -71,7 +71,7 @@ namespace Turbo
 
 			if (HasComponent<T>() == false)
 			{
-				Log.Error($"Entity doesn't have this component! { componentType.Name }");
+				Log.Error($"Entity doesn't have this component! {componentType.Name}");
 				return;
 			}
 

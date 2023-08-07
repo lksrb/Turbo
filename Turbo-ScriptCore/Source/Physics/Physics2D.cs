@@ -1,6 +1,4 @@
-﻿using Turbo;
-
-namespace Turbo
+﻿namespace Turbo
 {
 	public struct RayCast2D
 	{

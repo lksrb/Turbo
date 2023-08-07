@@ -16,8 +16,8 @@
 
 		public static void SetCursorMode(CursorMode cursorMode) => InternalCalls.Input_SetCursorMode(cursorMode);
 
-		public static Vector2 MousePosition 
-		{	
+		public static Vector2 MousePosition
+		{
 			get
 			{
 				InternalCalls.Input_GetMousePosition(out Vector2 mousePosition);

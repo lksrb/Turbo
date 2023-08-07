@@ -1,6 +1,4 @@
-﻿using Turbo;
-
-namespace Turbo
+﻿namespace Turbo
 {
 	public static class Camera
 	{

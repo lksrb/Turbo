@@ -141,7 +141,7 @@ namespace Turbo
 		{
 			get
 			{
-				switch(index)
+				switch (index)
 				{
 					case 0: return R;
 					case 1: return G;

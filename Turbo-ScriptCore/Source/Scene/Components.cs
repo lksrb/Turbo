@@ -282,7 +282,7 @@
 
 		public CollisionFilter Filter
 		{
-			get 
+			get
 			{
 				InternalCalls.Component_BoxCollider2D_Get_CollisionFilter(Entity.ID, out ushort category, out ushort mask);
 				return new CollisionFilter(category, mask);
