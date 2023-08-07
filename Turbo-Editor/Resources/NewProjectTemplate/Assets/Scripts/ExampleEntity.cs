@@ -1,6 +1,6 @@
 using Turbo;
 
-namespace ExampleNamespace
+namespace Sandbox
 {
 	public class ExampleEntity : Entity
     {
