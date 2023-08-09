@@ -218,14 +218,24 @@ namespace Turbo
         return {};
     }
 
-    static Rigidbody2DComponent::BodyType RigidBody2DBodyTypeFromString(const std::string& bodyTypeString)
+    // TODO: Merge these functions
+    static Rigidbody2DComponent::BodyType RigidBody2DBodyTypeFromString(std::string_view bodyType)
     {
-        if (bodyTypeString == "Static")    return Rigidbody2DComponent::BodyType_Static;
-        if (bodyTypeString == "Dynamic")   return Rigidbody2DComponent::BodyType_Dynamic;
-        if (bodyTypeString == "Kinematic") return Rigidbody2DComponent::BodyType_Kinematic;
+        if (bodyType == "Static")    return Rigidbody2DComponent::BodyType_Static;
+        if (bodyType == "Dynamic")   return Rigidbody2DComponent::BodyType_Dynamic;
+        if (bodyType == "Kinematic") return Rigidbody2DComponent::BodyType_Kinematic;
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
         return Rigidbody2DComponent::BodyType_Static;
+    }
+
+    static RigidbodyComponent::BodyType RigidBodyBodyTypeFromString(std::string_view bodyType)
+    {
+        if (bodyType == "Static")    return RigidbodyComponent::BodyType_Static;
+        if (bodyType == "Dynamic")   return RigidbodyComponent::BodyType_Dynamic;
+
+        TBO_ENGINE_ASSERT(false, "Unknown body type");
+        return RigidbodyComponent::BodyType_Static;
     }
 
     SceneSerializer::SceneSerializer(Ref<Scene> scene)
@@ -607,6 +617,20 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<RigidbodyComponent>())
+        {
+            static const char* s_StringifiedBodyTypes[2] = { "Static", "Dynamic"};
+
+            out << YAML::Key << "RigidbodyComponent";
+            out << YAML::BeginMap;
+
+            auto& rbComponent = entity.GetComponent<RigidbodyComponent>();
+            out << YAML::Key << "BodyType" << YAML::Value << s_StringifiedBodyTypes[rbComponent.Type];
+            out << YAML::Key << "GravityScale" << YAML::Value << rbComponent.GravityScale;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap; // Entity
     }
 
@@ -852,6 +876,14 @@ namespace Turbo
             cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<f32>();
             cc2d.IsSensor = circleCollider2DComponent["IsSensor"].as<bool>();
             deserializedEntity.AddComponent<CircleCollider2DComponent>(cc2d);
+        }
+
+        auto rigidbodyComponent = entity["RigidbodyComponent"];
+        if (rigidbodyComponent)
+        {
+            auto& rb = deserializedEntity.AddComponent<RigidbodyComponent>();
+            rb.Type = RigidBodyBodyTypeFromString(rigidbodyComponent["BodyType"].as<std::string>());
+            rb.GravityScale = rigidbodyComponent["GravityScale"].as<f32>();
         }
     }
 }

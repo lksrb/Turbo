@@ -58,7 +58,7 @@ namespace Turbo
             Escape = 38,
             Tab = 39,
 
-            KeyCodeMax = 40
+            KeyCodeCount = 40
         };
     }
 }

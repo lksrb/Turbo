@@ -12,7 +12,7 @@
 #include "Turbo/Script/Script.h"
 #include "Turbo/Renderer/Mesh.h"
 
-#include "Turbo/Physics/Physics2D.h" // <-- TODO: Remove
+#include "Turbo/Physics/PhysicsWorld.h"
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
 namespace Turbo {
@@ -68,12 +68,18 @@ namespace Turbo {
         std::unique_ptr<PhysicsWorld2D> World;
     };
 
-    static entt::observer s_Observer;
+    struct PhysicsWorldComponent
+    {
+        std::unique_ptr<PhysicsWorld> World;
+    };
 
     Scene::Scene()
     {
+        m_Registry.reserve(200);
+
         m_SceneEntity = m_Registry.create();
         m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
+        m_Registry.emplace<PhysicsWorldComponent>(m_SceneEntity, std::make_unique<PhysicsWorld>(this)).World;
 
         m_Registry.on_construct<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentConstruct>(this);
         m_Registry.on_destroy<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentDestroy>(this);
@@ -87,8 +93,6 @@ namespace Turbo {
         m_Registry.on_construct<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentConstruct>(this);
         m_Registry.on_update<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentUpdate>(this);
         m_Registry.on_destroy<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentDestroy>(this);
-
-        m_Registry.reserve(200);
     }
 
     Scene::~Scene()
@@ -142,6 +146,10 @@ namespace Turbo {
             }
         }
 
+        // Physics 3D
+        auto& physicsWorld3d = m_Registry.get<PhysicsWorldComponent>(m_SceneEntity).World;
+        physicsWorld3d->OnRuntimeStart();
+
         Audio::OnRuntimeStart(this);
         Script::OnRuntimeStart(this);
 
@@ -183,6 +191,9 @@ namespace Turbo {
         Script::OnRuntimeStop();
         Audio::OnRuntimeStop();
 
+        auto& physicsWorld3d = m_Registry.get<PhysicsWorldComponent>(m_SceneEntity).World;
+        physicsWorld3d->OnRuntimeStop();
+
         m_Running = false;
     }
 
@@ -213,18 +224,24 @@ namespace Turbo {
     {
         Script::OnNewFrame(ts);
 
+        auto& physicsWorld2d = m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
         // Update 2D Physics
         {
-            auto& world = m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
-            world->Step(ts);
+            physicsWorld2d->Simulate(ts);
 
             // Retrieve transform from Box2D and copy settings to it
             auto view = m_Registry.view<Rigidbody2DComponent>();
             for (auto e : view)
             {
                 Entity entity = { e, this };
-                world->RetrieveTransform(entity);
+                physicsWorld2d->RetrieveTransform(entity);
             }
+        }
+
+        auto& physicsWorld = m_Registry.get<PhysicsWorldComponent>(m_SceneEntity).World;
+        // Update 3D Physics
+        {
+            physicsWorld->Simulate(ts);
         }
 
         // Find primary audio listener
@@ -244,10 +261,8 @@ namespace Turbo {
 
                 if (audioListenerEntity.HasComponent<Rigidbody2DComponent>())
                 {
-                    auto& rb2d = audioListenerEntity.GetComponent<Rigidbody2DComponent>();
-                    b2Body* body = (b2Body*)rb2d.RuntimeBody;
-                    b2Vec2 b2Vel = body->GetLinearVelocity();
-                    velocity = { b2Vel.x, b2Vel.y, 0.0f };
+                    glm::vec2 vel2d = physicsWorld2d->RetrieveLinearVelocity(audioListenerEntity);
+                    velocity = { vel2d.x, vel2d.y, 0.0f };
                 }
             }
 
@@ -275,12 +290,8 @@ namespace Turbo {
                 glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
                 if (entity.HasComponent<Rigidbody2DComponent>())
                 {
-                    auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-                    b2Body* body = (b2Body*)rb2d.RuntimeBody;
-                    const auto& linearVelocity = body->GetLinearVelocity();
-
-                    // 2D velocity
-                    velocity = { linearVelocity.x, linearVelocity.y, 0.0f };
+                    glm::vec2 vel2d = physicsWorld2d->RetrieveLinearVelocity(entity);
+                    velocity = { vel2d.x, vel2d.y, 0.0f };
                 }
 
                 Audio::CalculateSpatial(id.ID, transform.Translation, transform.Rotation, velocity);
@@ -604,11 +615,6 @@ namespace Turbo {
                 drawList->AddSpotLight(transform.Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
             }
         }
-
-        struct WorldTransformComponent
-        {
-            glm::mat4 WorldTransform;
-        };
 
         // Static meshes
         {

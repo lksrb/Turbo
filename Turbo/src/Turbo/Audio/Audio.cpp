@@ -27,7 +27,7 @@ namespace Turbo
     void Audio::Shutdown()
     {
         s_Data.CurrentAudioBackend.Reset();
-        s_Data.Context = nullptr;
+        s_Data.Context.Reset();
     }
 
     void Audio::OnRuntimeStart(const Ref<Scene>& context)
@@ -40,8 +40,7 @@ namespace Turbo
     void Audio::OnRuntimeStop()
     {
         s_Data.CurrentAudioBackend->OnRuntimeStop();
-
-        s_Data.Context = nullptr;
+        s_Data.Context.Reset();
     }
 
     void Audio::Play(UUID uuid, bool loop)

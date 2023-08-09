@@ -55,7 +55,6 @@ namespace Turbo {
     };
 
     static std::unordered_map<std::filesystem::path, CachedNode> s_CachedNodes(10);
-    static Ref<Scene> s_CacheScene = Ref<Scene>::Create();
 
     namespace Utils {
         static void SerializeRecursively(YAML::Emitter& out, Scene* scene, Entity entity)

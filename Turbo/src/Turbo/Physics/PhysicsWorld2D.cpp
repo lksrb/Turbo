@@ -236,7 +236,7 @@ namespace Turbo
         return s_RayCastCallback.m_HitEntity;
     }
 
-    void PhysicsWorld2D::Step(FTime ts)
+    void PhysicsWorld2D::Simulate(FTime ts)
     {
         constexpr i32 velocityIterations = 6;
         constexpr i32 positionIterations = 2;
@@ -263,5 +263,14 @@ namespace Turbo
         body->SetType(Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type));
         body->SetGravityScale(rb2d.GravityScale);
     }
+
+    glm::vec2 PhysicsWorld2D::RetrieveLinearVelocity(Entity entity)
+	{
+        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        b2Vec2 b2Vel = body->GetLinearVelocity();
+
+        return { b2Vel.x, b2Vel.y };
+	}
 
 }

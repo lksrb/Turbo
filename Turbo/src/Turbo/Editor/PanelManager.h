@@ -3,9 +3,7 @@
 #include "EditorPanel.h"
 
 #include "Turbo/Core/Common.h"
-
-#include <type_traits>
-#include <vector>
+#include "Turbo/Scene/Scene.h"
 
 namespace Turbo {
 

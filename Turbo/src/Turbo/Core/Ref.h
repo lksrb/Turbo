@@ -11,7 +11,8 @@ namespace Turbo {
         bool IsAlive(void* instance);
     }
 
-    class RefCounted {
+    class RefCounted
+    {
     public:
         u32 GetRefCount() const { return m_RefCount.load(); }
 
@@ -26,23 +27,20 @@ namespace Turbo {
         friend class Ref;
     };
 
+
     template<typename T>
-    class Ref {
+    class Ref
+    {
     public:
         Ref() : m_Instance(nullptr) {}
+
         Ref(std::nullptr_t n) : m_Instance(nullptr) {}
 
         Ref(T* instance)
             : m_Instance(instance)
         {
-            static_assert(std::is_base_of<RefCounted, T>::value, "Class must be RefCounted!");
+            static_assert(std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!");
 
-            IncRef();
-        }
-
-        Ref(const Ref<T>& other)
-            : m_Instance(other.m_Instance)
-        {
             IncRef();
         }
 
@@ -50,13 +48,25 @@ namespace Turbo {
         Ref(const Ref<T2>& other)
         {
             m_Instance = (T*)other.m_Instance;
-
             IncRef();
+        }
+
+        template<typename T2>
+        Ref(Ref<T2>&& other)
+        {
+            m_Instance = (T*)other.m_Instance;
+            other.m_Instance = nullptr;
         }
 
         ~Ref()
         {
             DecRef();
+        }
+
+        Ref(const Ref<T>& other)
+            : m_Instance(other.m_Instance)
+        {
+            IncRef();
         }
 
         Ref& operator=(std::nullptr_t)
@@ -68,14 +78,10 @@ namespace Turbo {
 
         Ref& operator=(const Ref<T>& other)
         {
-            // Increase ref count to the other ref
             other.IncRef();
-
-            // Decreace ref count to this, cause it is assign operator
             DecRef();
 
             m_Instance = other.m_Instance;
-
             return *this;
         }
 
@@ -89,31 +95,15 @@ namespace Turbo {
             return *this;
         }
 
-        bool operator==(const Ref<T>& other) const
+        template<typename T2>
+        Ref& operator=(Ref<T2>&& other)
         {
-            return m_Instance == other.m_Instance;
+            DecRef();
+
+            m_Instance = other.m_Instance;
+            other.m_Instance = nullptr;
+            return *this;
         }
-
-        bool operator!=(const Ref<T>& other) const
-        {
-            return !(*this == other);
-        }
-
-        template<typename... Args>
-        static Ref<T> Create(Args&&... args)
-        {
-#ifdef TBO_TRACK_MEMORY
-            return Ref<T>(new(typeid(T).name()) T(std::forward<Args>(args)...));
-#else
-            return Ref<T>(new T(std::forward<Args>(args)...));
-#endif
-        }
-
-        bool operator==(std::nullptr_t) { return m_Instance == nullptr; }
-        bool operator==(std::nullptr_t) const { return m_Instance == nullptr; }
-
-        bool operator/=(std::nullptr_t) { return !(*this == nullptr); }
-        bool operator/=(std::nullptr_t) const { return !(*this == nullptr); }
 
         operator bool() { return m_Instance != nullptr; }
         operator bool() const { return m_Instance != nullptr; }
@@ -130,8 +120,6 @@ namespace Turbo {
         void Reset(T* instance = nullptr)
         {
             DecRef();
-
-            // New instance
             m_Instance = instance;
         }
 
@@ -141,6 +129,33 @@ namespace Turbo {
             return Ref<T2>(*this);
         }
 
+        template<typename... Args>
+        static Ref<T> Create(Args&&... args)
+        {
+#if TBO_TRACK_MEMORY
+            return Ref<T>(new(typeid(T).name()) T(std::forward<Args>(args)...));
+#else
+            return Ref<T>(new T(std::forward<Args>(args)...));
+#endif
+        }
+
+        bool operator==(const Ref<T>& other) const
+        {
+            return m_Instance == other.m_Instance;
+        }
+
+        bool operator!=(const Ref<T>& other) const
+        {
+            return !(*this == other);
+        }
+
+        bool EqualsObject(const Ref<T>& other)
+        {
+            if (!m_Instance || !other.m_Instance)
+                return false;
+
+            return *m_Instance == *other.m_Instance;
+        }
     private:
         void IncRef() const
         {
@@ -164,16 +179,15 @@ namespace Turbo {
                 }
             }
         }
-    private:
-        mutable T* m_Instance;
 
-        template<typename T2>
+        template<class T2>
         friend class Ref;
+        mutable T* m_Instance;
     };
 
-
     template<typename T>
-    class WeakRef {
+    class WeakRef
+    {
     public:
         WeakRef() = default;
 

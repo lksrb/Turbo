@@ -23,9 +23,10 @@ namespace Turbo
 
         Entity RayCast(glm::vec2 a, glm::vec2 b);
 
-        void Step(FTime ts);
+        void Simulate(FTime ts);
 
         void RetrieveTransform(Entity entity);
+        glm::vec2 RetrieveLinearVelocity(Entity entity);
     private:
         b2World* m_Box2DWorld = nullptr;
     };

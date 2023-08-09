@@ -261,6 +261,29 @@ namespace Turbo {
         CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
     };
 
+    // Physics 3D
+    struct RigidbodyComponent
+    {
+        enum BodyType : u32 { BodyType_Static = 0, BodyType_Dynamic };
+
+        BodyType Type = BodyType_Static;
+        f32 GravityScale = 1.0f;
+
+        u32 BodyHandle = 0;
+
+        RigidbodyComponent() = default;
+        RigidbodyComponent(const RigidbodyComponent&) = default;
+    };
+
+    struct BoxColliderComponent
+    {
+        glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
+        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+
+        BoxColliderComponent() = default;
+        BoxColliderComponent(const BoxColliderComponent&) = default;
+    };
+
     template<typename... Components>
     struct ComponentGroup
     {
@@ -269,5 +292,5 @@ namespace Turbo {
 
     using AllComponents =
         ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, ScriptComponent,
-        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
+        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidbodyComponent>;
 }

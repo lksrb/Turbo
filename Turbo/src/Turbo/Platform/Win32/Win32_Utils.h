@@ -18,7 +18,7 @@ namespace Turbo
     {
         static inline Win32Code GetWin32CodeFromKeyCode(const KeyCode keyCode)
         {
-            static Win32Code s_WinCodes[Key::KeyCodeMax] = {
+            static constexpr std::array<Win32Code, Key::KeyCodeCount> s_WinCodes = {
                 // Alphabet
                 TBO_WINKEY(Key::A, 65),
                 TBO_WINKEY(Key::B, 66),
@@ -64,16 +64,19 @@ namespace Turbo
                 // General
                 TBO_WINKEY(Key::Space, VK_SPACE),
                 TBO_WINKEY(Key::Enter, VK_RETURN),
-                TBO_WINKEY(Key::Escape, VK_RETURN),
+                TBO_WINKEY(Key::Escape, VK_ESCAPE),
                 TBO_WINKEY(Key::Tab, VK_TAB),
             };
 
-            if (keyCode >= Key::KeyCodeMax)
+            if (keyCode >= Key::KeyCodeCount)
                 return keyCode;
 
             return s_WinCodes[keyCode];
         }
 
+        // TODO: Maybe there is a way to create a lookup map without std::map
+        // https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+        // Win32 keys are in order so maybe take advantage of that
         static inline KeyCode GetKeyCodeFromWin32Code(const Win32Code win32Code)
         {
             static std::map<Win32Code, KeyCode> s_KeyCodes = {

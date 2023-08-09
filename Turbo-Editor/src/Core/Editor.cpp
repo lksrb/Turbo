@@ -122,7 +122,7 @@ namespace Turbo::Ed {
         // Panels
         m_PanelManager = CreateScope<PanelManager>();
         m_PanelManager->AddPanel<SceneHierarchyPanel>();
-        m_PanelManager->AddPanel<QuickAccessPanel>();
+        //m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
         m_PanelManager->AddPanel<EditorConsolePanel>();
         m_PanelManager->AddPanel<AssetRegistryPanel>([this](AssetHandle handle)

@@ -42,6 +42,7 @@ project "Turbo"
         "%{IncludeDir.entt}",
         "%{IncludeDir.stb}",
         "%{IncludeDir.box2d}",
+        "%{IncludeDir.JoltPhysics}",
         "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.mono}",
         "%{IncludeDir.Assimp}"
@@ -91,7 +92,8 @@ project "Turbo"
            "%{Library.ShaderC_Debug}",
            "%{Library.SPIRV_Cross_Debug}",
            "%{Library.SPIRV_Cross_GLSL_Debug}",
-           "%{Library.Assimp_Debug}"
+           "%{Library.Assimp_Debug}",
+           "%{Library.JoltPhysics_Debug}" -- Maybe link with release for performance
         }
 
     filter "configurations:Release"
@@ -104,6 +106,7 @@ project "Turbo"
             "%{Library.ShaderC_Release}",
             "%{Library.SPIRV_Cross_Release}",
             "%{Library.SPIRV_Cross_GLSL_Release}",
-            "%{Library.Assimp_Release}"
+            "%{Library.Assimp_Release}",
+            "%{Library.JoltPhysics_Release}"
         }
 

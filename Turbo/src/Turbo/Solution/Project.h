@@ -5,9 +5,7 @@
 #include "Turbo/Asset/AssetRegistryBase.h"
 #include "Turbo/Asset/EditorAssetRegistry.h"
 
-namespace Turbo
-{
-    class Scene;
+namespace Turbo {
 
     class Project : public RefCounted
     {
@@ -39,15 +37,15 @@ namespace Turbo
             return s_ActiveProject->m_Config;
         }
 
-        static const std::string& GetProjectName() 
-        { 
+        static const std::string& GetProjectName()
+        {
             TBO_ENGINE_ASSERT(s_ActiveProject);
             return s_ActiveProject->m_Config.Name;
         }
-        static std::filesystem::path GetProjectDirectory() 
+        static std::filesystem::path GetProjectDirectory()
         {
             TBO_ENGINE_ASSERT(s_ActiveProject);
-            return s_ActiveProject->m_Config.ProjectDirectory; 
+            return s_ActiveProject->m_Config.ProjectDirectory;
         }
 
         /**

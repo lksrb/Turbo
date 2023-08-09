@@ -94,6 +94,7 @@ namespace Turbo {
                 bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
                 ImGui::PopStyleVar();
                 ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
+
                 if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
                 {
                     ImGui::OpenPopup("ComponentSettings");
@@ -102,7 +103,7 @@ namespace Turbo {
                 bool removeComponent = false;
                 if (ImGui::BeginPopup("ComponentSettings"))
                 {
-                    if (typeid(T) != typeid(TransformComponent) && ImGui::MenuItem("Remove component"))
+                    if (ImGui::MenuItem("Remove component") && typeid(T) != typeid(TransformComponent))
                         removeComponent = true;
 
                     ImGui::EndPopup();
@@ -186,7 +187,7 @@ namespace Turbo {
             ImGui::PopID();
         }
 
-        static void CallTypeSpecificFunctionNoSceneRunning(ScriptFieldType fieldType, const std::string& name, ScriptFieldInstance& instance, Ref<Scene> scene)
+        static void CallTypeSpecificFunctionNoSceneRunning(ScriptFieldType fieldType, const std::string& name, ScriptFieldInstance& instance, const Ref<Scene>& scene)
         {
             static std::array<std::function<void(const std::string& name, ScriptFieldInstance& instance)>, static_cast<size_t>(ScriptFieldType::Max)> s_TypeFunctionsNSR =
             {
@@ -581,11 +582,13 @@ namespace Turbo {
             DisplayAddComponentEntry<SpotLightComponent>("Spot Light");
             DisplayAddComponentEntry<AudioSourceComponent>("Audio Source Component");
             DisplayAddComponentEntry<AudioListenerComponent>("Audio Listener Component");
+            DisplayAddComponentEntry<ScriptComponent>("Script Component");
+            ImGui::Separator();
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
-            DisplayAddComponentEntry<ScriptComponent>("Script Component");
-
+            ImGui::Separator();
+            DisplayAddComponentEntry<RigidbodyComponent>("Rigid Body");
             ImGui::EndPopup();
         }
 
@@ -780,6 +783,35 @@ namespace Turbo {
             ImGui::InputFloat("Outer Cone", &component.OuterCone, 0.025f);
         });
 
+        Utils::DrawComponent<AudioSourceComponent>("Audio Source", entity, [&entity](auto& component)
+        {
+            static std::filesystem::path s_AudioSourcePath;
+
+            s_AudioSourcePath = component.AudioPath;
+
+            ImGui::InputText("Audio Path", &s_AudioSourcePath.filename().string(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::SameLine();
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 2.0f);
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2.0f);
+            if (ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f }))
+            {
+                s_AudioSourcePath = Platform::OpenFileDialog(L"Open Audio File", L"WAV File (*.wav)\0*.wav\0");
+                component.AudioPath = s_AudioSourcePath.string();
+                Audio::Register(entity.GetUUID(), component.AudioPath); // TOOD: Assets
+            }
+
+            ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 10.0f);
+            ImGui::Checkbox("Spatial", &component.Spatial);
+            ImGui::Checkbox("Play On Awake", &component.PlayOnAwake);
+            ImGui::Checkbox("Loop", &component.Loop);
+        });
+
+        Utils::DrawComponent<AudioListenerComponent>("Audio Listener", entity, [](auto& component)
+        {
+            ImGui::Checkbox("Primary", &component.IsPrimary);
+        });
+
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
         {
             const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
@@ -804,34 +836,6 @@ namespace Turbo {
             ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
             ImGui::Checkbox("Is Bullet", &component.IsBullet);
             ImGui::DragFloat("Gravity Scale", &component.GravityScale, 0.1f);
-        });
-        Utils::DrawComponent<AudioSourceComponent>("Audio Source Component", entity, [&entity](auto& component)
-        {
-            static std::filesystem::path s_AudioSourcePath;
-
-            s_AudioSourcePath = component.AudioPath;
-
-            ImGui::InputText("Audio Path", &s_AudioSourcePath.filename().string(), ImGuiInputTextFlags_ReadOnly);
-            ImGui::SameLine();
-
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 2.0f);
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2.0f);
-            if (ImGui::Button(ICON_FA_FOLDER, { 25.0f, 25.0f }))
-            {
-                s_AudioSourcePath = Platform::OpenFileDialog(L"Open Audio File", L"WAV File (*.wav)\0*.wav\0");
-                component.AudioPath = s_AudioSourcePath.string();
-                Audio::Register(entity.GetUUID(), component.AudioPath); // TOOD: Assets
-            }
-
-            ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 10.0f);
-            ImGui::Checkbox("Spatial", &component.Spatial);
-            ImGui::Checkbox("Play On Awake", &component.PlayOnAwake);
-            ImGui::Checkbox("Loop", &component.Loop);
-        });
-
-        Utils::DrawComponent<AudioListenerComponent>("Audio Listener Component", entity, [](auto& component)
-        {
-            ImGui::Checkbox("Primary", &component.IsPrimary);
         });
 
         Utils::DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
@@ -922,6 +926,31 @@ namespace Turbo {
                     }
                 }
             }
+        });
+
+        Utils::DrawComponent<RigidbodyComponent>("Rigid Body Component", entity, [&entity, m_Context = m_Context](auto& component)
+        {
+            const char* bodyTypeStrings[] = { "Static", "Dynamic" };
+            const char* currentBodyTypeString = bodyTypeStrings[(u32)component.Type];
+            if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
+            {
+                for (u32 i = 0; i < 2; i++)
+                {
+                    bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+                    if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+                    {
+                        currentBodyTypeString = bodyTypeStrings[i];
+                        component.Type = (RigidbodyComponent::BodyType)i;
+                    }
+
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+
+                ImGui::EndCombo();
+            }
+
+            ImGui::DragFloat("Gravity Scale", &component.GravityScale);
         });
     }
 
