@@ -4,18 +4,19 @@
 #include "AssetRegistryBase.h"
 #include "AssetHandler.h"
 
-#include "Turbo/Core/Scopes.h"
+#include "Turbo/Core/Owned.h"
 
 namespace Turbo {
 
-    struct AssetHandlers {
-        Scope<AssetHandler> Serializers[AssetType_Count];
+    struct AssetHandlers
+    {
+        Owned<AssetHandler> Serializers[AssetType_Count];
 
         AssetHandlers()
         {
-            Serializers[AssetType_Texture2D] = CreateScope<Texture2DHandler>();
-            Serializers[AssetType_MeshSource] = CreateScope<MeshSourceHandler>();
-            Serializers[AssetType_StaticMesh] = CreateScope<StaticMeshHandler>();
+            Serializers[AssetType_Texture2D] = CreateOwned<Texture2DHandler>();
+            Serializers[AssetType_MeshSource] = CreateOwned<MeshSourceHandler>();
+            Serializers[AssetType_StaticMesh] = CreateOwned<StaticMeshHandler>();
         }
     };
 

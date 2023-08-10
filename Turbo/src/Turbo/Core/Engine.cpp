@@ -6,9 +6,10 @@
 
 #include "Turbo/Core/Platform.h"
 
+#include "Turbo/Audio/Audio.h"
+#include "Turbo/Physics/Physics.h"
 #include "Turbo/Renderer/Renderer.h"
 #include "Turbo/Script/Script.h"
-#include "Turbo/Audio/Audio.h"
 
 #include <filesystem>
 #include <future>
@@ -61,11 +62,14 @@ namespace Turbo {
         // Initialize rendering
         Renderer::Init();
 
+        // Initialize audio engine
+        Audio::Init();
+
         // Initialize mono script engine
         Script::Init();
 
-        // Initialize audio engine
-        Audio::Init();
+        // Initialize physics engine
+        Physics::Init();
 
         if (m_Application->m_Config.EnableUI)
             m_UserInterface = UserInterface::Create();
@@ -84,6 +88,7 @@ namespace Turbo {
         delete m_Application;
         delete m_ViewportWindow;
 
+        Physics::Shutdown();
         Script::Shutdown();
         Audio::Shutdown();
 

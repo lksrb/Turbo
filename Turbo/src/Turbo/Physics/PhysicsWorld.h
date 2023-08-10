@@ -3,13 +3,10 @@
 #include "Turbo/Scene/Scene.h"
 
 #include <Jolt/Jolt.h>
-
-#include <Jolt/RegisterTypes.h>
-#include <Jolt/Core/Factory.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
-#include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
@@ -122,9 +119,7 @@ namespace Turbo {
     class PhysicsWorld
     {
     public:
-        // FIXME: Cannot pass Ref<Scene> because of weird behaviour with ref counting
-        // It seems that this and copy constructor also trigger destructor
-        PhysicsWorld(Scene* scene);
+        PhysicsWorld(WeakRef<Scene> scene);
         ~PhysicsWorld();
 
         void OnRuntimeStart();
@@ -149,9 +144,10 @@ namespace Turbo {
         MyContactListener m_ContactListener;
 
         // Physics system
-        JPH::PhysicsSystem* m_PhysicsSystem = nullptr;
+        Owned<JPH::PhysicsSystem> m_PhysicsSystem;
 
-        Scene* m_Scene;
+        // This cannot be a strong reference because Scene wont get deleted 
+        WeakRef<Scene> m_Scene;
     };
 
 }

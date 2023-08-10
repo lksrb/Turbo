@@ -120,12 +120,12 @@ namespace Turbo::Ed {
         m_MSBuildPath = Utils::GetMSBuildPath();
 
         // Panels
-        m_PanelManager = CreateScope<PanelManager>();
+        m_PanelManager = CreateOwned<PanelManager>();
         m_PanelManager->AddPanel<SceneHierarchyPanel>();
         //m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
         m_PanelManager->AddPanel<EditorConsolePanel>();
-        m_PanelManager->AddPanel<AssetRegistryPanel>([this](AssetHandle handle)
+        m_PanelManager->AddPanel<AssetRegistryPanel>([this](AssetHandle handle) // TODO: AssetRegistryPanel should own AssetEditorPanel
         {
             m_PanelManager->GetPanel<AssetEditorPanel>()->OpenAsset(handle);
         });
@@ -522,7 +522,7 @@ namespace Turbo::Ed {
             ImGui::Begin("Scene settings");
             if (m_CurrentScene)
             {
-                ImGui::Checkbox("Physics Colliders", &m_ShowPhysics2DColliders);
+                ImGui::Checkbox("Physics Colliders", &m_ShowPhysicsColliders);
                 ImGui::Checkbox("Show Scene Icons", &m_ShowSceneIcons);
             }
 
@@ -672,7 +672,7 @@ namespace Turbo::Ed {
     {
         if (e.GetMouseButton() == Mouse::ButtonLeft)
         {
-            if (m_ViewportHovered && (ImGuizmo::IsOver() == false || m_GizmoType == -1) && !Input::IsKeyPressed(Key::LeftAlt))
+            if (m_ViewportHovered && (ImGuizmo::IsOver() == false || m_GizmoType == -1) && !Input::IsKeyPressed(Key::LeftAlt) && m_SceneMode == SceneMode::Edit)
             {
                 ImGui::ClearActiveID();
 
@@ -872,7 +872,7 @@ namespace Turbo::Ed {
             }
         }
 
-        m_EditorScene = Ref<Scene>::Create();
+        m_EditorScene = Ref<Scene>::Create(true);
 
         // Set current scene
         m_CurrentScene = m_EditorScene;
@@ -995,13 +995,13 @@ namespace Turbo::Ed {
 
     void Editor::OnOverlayRender()
     {
-        if (m_ShowPhysics2DColliders)
+        if (m_ShowPhysicsColliders)
         {
-            // Box collider
-            auto bview = m_CurrentScene->GroupAllEntitiesWith<BoxCollider2DComponent, TransformComponent>();
-            for (auto entity : bview)
+            // Box2D colliders
+            auto box2dColliders = m_CurrentScene->GroupAllEntitiesWith<BoxCollider2DComponent, TransformComponent>();
+            for (auto entity : box2dColliders)
             {
-                auto& [transform, bc2d] = bview.get<TransformComponent, BoxCollider2DComponent>(entity);
+                auto& [bc2d, transform] = box2dColliders.get<BoxCollider2DComponent, TransformComponent>(entity);
 
                 glm::vec3 translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
                 glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
@@ -1013,18 +1013,45 @@ namespace Turbo::Ed {
                 m_ViewportDrawList->AddRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
 
-            // Circle collider
-            auto circleColliders = m_CurrentScene->GroupAllEntitiesWith<CircleCollider2DComponent, TransformComponent>();
-            for (auto entity : circleColliders)
+            // Circle2D colliders
+            auto circle2dColliders = m_CurrentScene->GroupAllEntitiesWith<CircleCollider2DComponent, TransformComponent>();
+            for (auto entity : circle2dColliders)
             {
-                auto& [transform, cc2d] = circleColliders.get<TransformComponent, CircleCollider2DComponent>(entity);
-
+                auto& [cc2d, transform] = circle2dColliders.get<CircleCollider2DComponent, TransformComponent>(entity);
                 glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
-                glm::vec3 scale = transform.Scale * glm::vec3(cc2d.Radius * 2.0f);
 
-                glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale);
+                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * cc2d.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+            }
 
-                m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
+            // Box colliders
+            auto boxColliders = m_CurrentScene->GroupAllEntitiesWith<BoxColliderComponent, TransformComponent>();
+            for (auto entity : boxColliders)
+            {
+                auto& [bc, transform] = boxColliders.get<BoxColliderComponent, TransformComponent>(entity);
+                glm::vec3 translation = transform.Translation + bc.Offset;
+                glm::vec3 scale = transform.Scale * (bc.Size * 2.0f);
+                glm::mat4 rotation = glm::toMat4(glm::quat(transform.Rotation));
+
+                glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), translation)
+                    * rotation
+                    * glm::scale(glm::mat4(1.0f), scale);
+
+                m_ViewportDrawList->AddBoxWireframe(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+            }
+
+            // Sphere colliders
+
+            auto sphereColliders = m_CurrentScene->GroupAllEntitiesWith<SphereColliderComponent, TransformComponent>();
+            for (auto entity : sphereColliders)
+            {
+                auto& [sc, transform] = sphereColliders.get<SphereColliderComponent, TransformComponent>(entity);
+
+                glm::vec3 translation = transform.Translation /* + sc.Offset */;
+
+                // Facing forward, up, right
+                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(glm::radians(90.0f), 0.0f, 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f, glm::radians(90.0f), 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
         }
 

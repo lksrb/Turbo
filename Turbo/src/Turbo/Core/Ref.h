@@ -130,10 +130,10 @@ namespace Turbo {
         }
 
         template<typename... Args>
-        static Ref<T> Create(Args&&... args)
+        static inline Ref<T> Create(Args&&... args)
         {
 #if TBO_TRACK_MEMORY
-            return Ref<T>(new(typeid(T).name()) T(std::forward<Args>(args)...));
+            return Ref<T>(new(__FILE__, __LINE__) T(std::forward<Args>(args)...));
 #else
             return Ref<T>(new T(std::forward<Args>(args)...));
 #endif

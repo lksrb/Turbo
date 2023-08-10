@@ -589,6 +589,8 @@ namespace Turbo {
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
             ImGui::Separator();
             DisplayAddComponentEntry<RigidbodyComponent>("Rigid Body");
+            DisplayAddComponentEntry<BoxColliderComponent>("Box Collider");
+            DisplayAddComponentEntry<SphereColliderComponent>("Sphere Collider");
             ImGui::EndPopup();
         }
 
@@ -928,7 +930,7 @@ namespace Turbo {
             }
         });
 
-        Utils::DrawComponent<RigidbodyComponent>("Rigid Body Component", entity, [&entity, m_Context = m_Context](auto& component)
+        Utils::DrawComponent<RigidbodyComponent>("Rigid Body Component", entity, [](auto& component)
         {
             const char* bodyTypeStrings[] = { "Static", "Dynamic" };
             const char* currentBodyTypeString = bodyTypeStrings[(u32)component.Type];
@@ -951,6 +953,19 @@ namespace Turbo {
             }
 
             ImGui::DragFloat("Gravity Scale", &component.GravityScale);
+        });
+
+        Utils::DrawComponent<BoxColliderComponent>("Box Collider Component", entity, [](auto& component)
+        {
+            ImGui::DragFloat3("Offset", glm::value_ptr(component.Offset));
+            ImGui::DragFloat3("Size", glm::value_ptr(component.Size));
+        });
+
+        Utils::DrawComponent<SphereColliderComponent>("Sphere Collider Component", entity, [](auto& component)
+        {
+            // TODO: Offset in local space
+            //ImGui::DragFloat3("Offset", glm::value_ptr(component.Offset));
+            ImGui::DragFloat("Radius", &component.Radius);
         });
     }
 

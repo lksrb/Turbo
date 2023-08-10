@@ -73,13 +73,19 @@ namespace Turbo {
         std::unique_ptr<PhysicsWorld> World;
     };
 
-    Scene::Scene()
+    Scene::Scene(bool isEditorScene)
+        : m_IsEditorScene(isEditorScene)
     {
         m_Registry.reserve(200);
 
         m_SceneEntity = m_Registry.create();
         m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
-        m_Registry.emplace<PhysicsWorldComponent>(m_SceneEntity, std::make_unique<PhysicsWorld>(this)).World;
+
+        // TODO: Maybe we need this even in editor scene for configuration
+        if (!m_IsEditorScene) 
+        {
+            m_Registry.emplace<PhysicsWorldComponent>(m_SceneEntity, std::make_unique<PhysicsWorld>(this));
+        }
 
         m_Registry.on_construct<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentConstruct>(this);
         m_Registry.on_destroy<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentDestroy>(this);
@@ -727,7 +733,7 @@ namespace Turbo {
 
     void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running)
+        if (m_IsEditorScene)
             return;
 
         auto& physicsWorld2d = m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
@@ -739,7 +745,7 @@ namespace Turbo {
     // On replacing component
     void Scene::OnBoxCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running)
+        if (m_IsEditorScene)
             return;
 
         // Destroys original box collider
@@ -751,7 +757,7 @@ namespace Turbo {
 
     void Scene::OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running)
+        if (m_IsEditorScene)
             return;
 
         auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
@@ -762,7 +768,7 @@ namespace Turbo {
 
     void Scene::OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
@@ -773,7 +779,7 @@ namespace Turbo {
 
     void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
@@ -784,7 +790,7 @@ namespace Turbo {
 
     void Scene::OnCircleCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
@@ -795,7 +801,7 @@ namespace Turbo {
 
     void Scene::OnCircleCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running)
+        if (m_IsEditorScene)
             return;
 
         // Destroys original box collider
@@ -807,7 +813,7 @@ namespace Turbo {
 
     void Scene::OnCircleCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
     {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         auto& physicsWorld2d = registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;

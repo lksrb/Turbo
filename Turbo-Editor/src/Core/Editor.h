@@ -60,7 +60,7 @@ namespace Turbo::Ed {
         bool m_ShowAssetRegistryPanel = false;
 
         EditorCamera m_EditorCamera;
-        bool m_ShowPhysics2DColliders = false, m_ShowSceneIcons = true;
+        bool m_ShowPhysicsColliders = false, m_ShowSceneIcons = true;
         bool m_ViewportHovered = false, m_ViewportFocused = false;
         Ref<Texture2D> m_PlayIcon, m_StopIcon, m_Reset2DIcon,
             m_PointLightIcon, m_SpotLightIcon, m_CameraIcon;
@@ -76,6 +76,6 @@ namespace Turbo::Ed {
 
         Entity m_SelectedEntity, m_HoveredEntity;
 
-        Scope<PanelManager> m_PanelManager;
+        Owned<PanelManager> m_PanelManager;
     };
 }

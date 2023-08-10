@@ -7,14 +7,71 @@ Entities:
     TagComponent:
       Tag: Cube
     TransformComponent:
-      Translation: [0, 0.65868187, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Translation: [0.558595896, 0.65868187, 0]
+      Rotation: [-2.84948325, 0.289195538, -0.304245174]
+      Scale: [18.7478848, 1.59999228, 0.999994278]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
       BodyType: Static
       GravityScale: 1
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 2656186853929453135
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Cube
+    TransformComponent:
+      Translation: [4.16905499, 0.675077558, 2.63008165]
+      Rotation: [-1.70760226, -0.0520975851, 0.237014458]
+      Scale: [18.7478676, 1.59992206, 0.999970555]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      GravityScale: 1
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 3855502201780798714
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Sphere
+    TransformComponent:
+      Translation: [2.98023224e-08, 13.2585144, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1.39999998, 1.39999998, 1.39999998]
+    StaticMeshRendererComponent:
+      Mesh: 5969331438052008515
+    RigidbodyComponent:
+      BodyType: Dynamic
+      GravityScale: 1
+    SphereColliderComponent:
+      Offset: [0, 1, 0]
+      Radius: 0.5
+  - Entity: 5448459495743016983
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Cube
+    TransformComponent:
+      Translation: [2.04072857, 6.77952576, 0]
+      Rotation: [0, 0, -0.270132601]
+      Scale: [17.75, 1.60000634, 0.999999404]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      GravityScale: 1
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
   - Entity: 7307812893521663871
     Parent: 0
     Children:
@@ -51,7 +108,7 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0.0769729614, 0, 0]
+      Translation: [0.0769729614, 3.7252903e-09, 0]
       Rotation: [0, 4.40457133e-20, 1.56319619e-13]
       Scale: [0.99999392, 1, 1]
     CameraComponent:
@@ -80,21 +137,6 @@ Entities:
       Radius: 10
       Intensity: 5
       FallOff: 1
-  - Entity: 9949434811503978543
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Cube
-    TransformComponent:
-      Translation: [0, 24.3933849, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    StaticMeshRendererComponent:
-      Mesh: 3411376591522269393
-    RigidbodyComponent:
-      BodyType: Dynamic
-      GravityScale: 1
   - Entity: 12411588137264639738
     Parent: 17758440140024707462
     Children:
@@ -142,7 +184,7 @@ Entities:
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [-5.41088772, 0, 7.46319199]
+      Translation: [1.99515331, 0, 23.6335163]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     ScriptComponent:
@@ -150,4 +192,4 @@ Entities:
       Fields:
         - Name: MouseSensitivity
           Type: Float
-          Data: 0.50999999
+          Data: 0.75999999

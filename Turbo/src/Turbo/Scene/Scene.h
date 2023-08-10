@@ -28,7 +28,7 @@ namespace Turbo
             u32 CurrentEntities = 0;
         };
 
-        Scene();
+        Scene(bool isEditorScene = false);
         ~Scene();
 
         void OnRuntimeStart();
@@ -65,10 +65,11 @@ namespace Turbo
             return m_Registry.view<Components...>();
         }
 
-        template<typename Component, typename...Components>
+        // Groups can own components, that means OwnedComponent can only be used by the same type of group.
+        template<typename OwnedComponent, typename...Components>
         inline auto GroupAllEntitiesWith()
         {
-            return m_Registry.group<Component>(entt::get<Components...>);
+            return m_Registry.group<OwnedComponent>(entt::get<Components...>);
         }
 
         Entity FindEntityByUUID(UUID uuid);
@@ -117,6 +118,7 @@ namespace Turbo
 
         std::vector<std::function<void()>> m_PostUpdateFuncs;
 
+        bool m_IsEditorScene = false;
         bool m_Running = false;
 
         Scene::Statistics m_Statistics;

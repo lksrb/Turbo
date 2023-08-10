@@ -72,7 +72,7 @@ namespace Turbo {
         std::vector<std::function<void()>> m_MainThreadQueue;
         std::mutex m_MainThreadQueueMutex;
 
-        Scope<UserInterface> m_UserInterface;
+        Owned<UserInterface> m_UserInterface;
 
         // User
         Application* m_Application = nullptr;

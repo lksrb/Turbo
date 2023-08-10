@@ -10,7 +10,7 @@ namespace Turbo
     public:
         virtual ~UserInterface() = default;
 
-        static Scope<UserInterface> Create();
+        static Owned<UserInterface> Create();
 
         virtual void BeginUI() = 0;
         virtual void EndUI() = 0;

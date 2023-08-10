@@ -1,31 +1,25 @@
 #pragma once
 
-#include "Turbo/Core/Assert.h"
-
 #include <memory>
-#include <new>
 
-//#define TBO_PROFILE_MEMORY
+namespace Turbo::Memory {
 
-namespace Turbo
-{
-    class Memory
-    {
-    public:
-        static void Initialize();
-        static void Shutdown();
-    };
 }
 
-namespace Turbo
-{
-    class Allocator
-    {
-        // TODO: Memory manager
-    };
-}
+#define TBO_TRACK_MEMORY 0
+
+#if TBO_TRACK_MEMORY
+
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size) _VCRT_ALLOCATOR
+void* __CRTDECL operator new(size_t size);
+
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size) _VCRT_ALLOCATOR
+void* __CRTDECL operator new(size_t size, const char* file, int line);
+
+void __CRTDECL operator delete(void* memory);
+void __CRTDECL operator delete(void* memory, const char* file, int line);
+
+#endif
 
 #include "Turbo/Core/Ref.h"
-#include "Turbo/Core/Scopes.h"
-
-
+#include "Turbo/Core/Owned.h"

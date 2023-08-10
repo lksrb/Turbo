@@ -2,15 +2,15 @@
 
 #include <memory>
 
-namespace Turbo
-{
-    // TODO: Scope class
+namespace Turbo {
+
+    // TODO: Owned class
 
     template<typename T>
-    using Scope = std::unique_ptr<T>;
+    using Owned = std::unique_ptr<T>;
 
     template<typename T, typename ... Args>
-    constexpr Scope<T> CreateScope(Args&& ... args)
+    constexpr inline Owned<T> CreateOwned(Args&& ... args)
     {
         return std::make_unique<T>(std::forward<Args>(args)...);
     }

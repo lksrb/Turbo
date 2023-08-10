@@ -11,8 +11,8 @@
 #include "Turbo/Platform/Vulkan/VulkanImage2D.h"
 #include "Turbo/Platform/Vulkan/VulkanShader.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     SceneDrawList::SceneDrawList(u32 width, u32 height)
     {
         m_Config.ViewportWidth = width;
@@ -48,7 +48,7 @@ namespace Turbo
         m_TargetFrameBuffer->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
 
         // Create draw list for 2D
-        m_DrawList2D = CreateScope<DrawList2D>();
+        m_DrawList2D = CreateOwned<DrawList2D>();
         m_DrawList2D->SetTargetRenderPass(m_FinalRenderPass);
         m_DrawList2D->Initialize();
 
@@ -260,6 +260,33 @@ namespace Turbo
         spotLight.OuterCone = glm::cos(glm::radians(outerCone));
     }
 
+    void SceneDrawList::AddBoxWireframe(const glm::mat4& transform, const glm::vec4& color, i32 entity)
+    {
+        std::array<glm::vec3, BoxWireframeVertices.size()> lineVertices;
+        for (u32 i = 0; i < BoxWireframeVertices.size(); ++i)
+        {
+            lineVertices[i] = transform * BoxWireframeVertices[i];
+        }
+
+        // Front
+        AddLine(lineVertices[0], lineVertices[1], color, entity);
+        AddLine(lineVertices[1], lineVertices[2], color, entity);
+        AddLine(lineVertices[2], lineVertices[3], color, entity);
+        AddLine(lineVertices[3], lineVertices[0], color, entity);
+
+        // Back
+        AddLine(lineVertices[4], lineVertices[5], color, entity);
+        AddLine(lineVertices[5], lineVertices[6], color, entity);
+        AddLine(lineVertices[6], lineVertices[7], color, entity);
+        AddLine(lineVertices[7], lineVertices[4], color, entity);
+
+        // Lines between front and back
+        AddLine(lineVertices[0], lineVertices[4], color, entity);
+        AddLine(lineVertices[1], lineVertices[5], color, entity);
+        AddLine(lineVertices[2], lineVertices[6], color, entity);
+        AddLine(lineVertices[3], lineVertices[7], color, entity);
+    }
+
     void SceneDrawList::UpdateStatistics()
     {
         m_Statistics.Statistics2D = m_DrawList2D->GetStatistics();
@@ -304,6 +331,11 @@ namespace Turbo
     void SceneDrawList::AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
     {
         m_DrawList2D->AddCircle(transform, color, thickness, fade, entity);
+    }
+
+    void SceneDrawList::AddDebugCircle(const glm::vec3& position, const glm::vec3& rotation, f32 radius, const glm::vec4& color, i32 entity)
+    {
+        m_DrawList2D->AddDebugCircle(position, rotation, radius, color, entity);
     }
 
     void SceneDrawList::AddRect(const glm::vec3& position, const glm::vec2& size, f32 rotation, const glm::vec4& color, i32 entity)

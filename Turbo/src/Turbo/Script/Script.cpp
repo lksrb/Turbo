@@ -136,7 +136,7 @@ namespace Turbo
 
         Ref<Scene> SceneContext = nullptr;
 
-        Scope<FileWatcher> ProjectPathWatcher;
+        Owned<FileWatcher> ProjectPathWatcher;
         bool AssemblyReloadPending = false;
         bool ProjectAssemblyDirty = false;
 
@@ -147,6 +147,8 @@ namespace Turbo
         MonoVTable* FrameVTable = nullptr;
     };
 
+    // This is here because CTRDBG false flags mono as a memory leak
+    // Possibly? Maybe it leaks idk
     static constexpr bool s_EnableScriptEngine = true;
 
     void Script::Init()
@@ -169,6 +171,9 @@ namespace Turbo
 
     void Script::OnRuntimeStart(const Ref<Scene>& context)
     {
+        if constexpr (!s_EnableScriptEngine)
+            return;
+
         s_Data->SceneContext = context;
 #if 0
         // Loop through all script instances and copy Entity references
@@ -201,6 +206,9 @@ namespace Turbo
 
     void Script::OnRuntimeStop()
     {
+        if constexpr (!s_EnableScriptEngine)
+            return;
+
         s_Data->SceneContext = nullptr;
         s_Data->ScriptInstances.clear();
 
@@ -345,7 +353,7 @@ namespace Turbo
         ReflectProjectAssembly();
 
         // Start watching the path
-        s_Data->ProjectPathWatcher = CreateScope<FileWatcher>(FileWatcher::NotifyEvent_All, false, Script::OnProjectDirectoryChange);
+        s_Data->ProjectPathWatcher = CreateOwned<FileWatcher>(FileWatcher::NotifyEvent_All, false, Script::OnProjectDirectoryChange);
         s_Data->ProjectPathWatcher->Watch(s_Data->ProjectAssemblyPath.parent_path());
         s_Data->AssemblyReloadPending = false;
 
@@ -579,6 +587,9 @@ namespace Turbo
 
     void Script::OnNewFrame(FTime ts)
     {
+        if constexpr (!s_EnableScriptEngine)
+            return;
+
         // TODO: Abstract this
         mono_field_static_set_value(s_Data->FrameVTable, s_Data->FrameTimeStepField, (void*)&ts);
     }
@@ -638,6 +649,9 @@ namespace Turbo
 
     Ref<ScriptClass> Script::FindEntityClass(const std::string& name)
     {
+        if constexpr (!s_EnableScriptEngine)
+            return nullptr;
+
         auto& it = s_Data->ScriptClasses.find(name);
 
         if (it == s_Data->ScriptClasses.end())

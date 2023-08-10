@@ -10,9 +10,9 @@ namespace Turbo
         m_BlockEvents = blockEvents;
 	}
 
-	Scope<UserInterface> UserInterface::Create()
+	Owned<UserInterface> UserInterface::Create()
     {
-        return CreateScope<VulkanUserInterface>();
+        return CreateOwned<VulkanUserInterface>();
     }
 }
 

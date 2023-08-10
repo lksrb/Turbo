@@ -247,6 +247,9 @@ namespace Turbo
     {
     }
 
+    // CRTDBG false flags mono and we dont want to serialize or deserialize script related things
+    static constexpr bool s_EnableScriptEngine = true;
+
     bool SceneSerializer::Deserialize(const std::filesystem::path& filepath)
     {
         YAML::Node data;
@@ -282,6 +285,9 @@ namespace Turbo
 
     bool SceneSerializer::Serialize(const std::filesystem::path& filepath)
     {
+        if constexpr (!s_EnableScriptEngine)
+            return true;
+
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << filepath.stem().string();
@@ -631,6 +637,30 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<BoxColliderComponent>())
+        {
+            out << YAML::Key << "BoxColliderComponent";
+            out << YAML::BeginMap;
+
+            auto& bcComponent = entity.GetComponent<BoxColliderComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << bcComponent.Offset;
+            out << YAML::Key << "Size" << YAML::Value << bcComponent.Size;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<SphereColliderComponent>())
+        {
+            out << YAML::Key << "SphereColliderComponent";
+            out << YAML::BeginMap;
+
+            auto& scComponent = entity.GetComponent<SphereColliderComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << scComponent.Offset;
+            out << YAML::Key << "Radius" << YAML::Value << scComponent.Radius;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap; // Entity
     }
 
@@ -765,56 +795,60 @@ namespace Turbo
         }
 
         auto scriptComponent = entity["ScriptComponent"];
-        if (scriptComponent)
+
+        if constexpr (s_EnableScriptEngine)
         {
-            std::string className = scriptComponent["ClassName"].as<std::string>();
-            Ref<ScriptClass> entityClass = Script::FindEntityClass(className);
-            if (entityClass)
+            if (scriptComponent)
             {
-                auto scriptFields = scriptComponent["Fields"];
-                if (scriptFields)
+                std::string className = scriptComponent["ClassName"].as<std::string>();
+                Ref<ScriptClass> entityClass = Script::FindEntityClass(className);
+                if (entityClass)
                 {
-                    const auto& fields = entityClass->GetFields();
-                    auto& entityFields = Script::GetEntityFieldMap(uuid);
-
-                    for (auto scriptField : scriptFields)
+                    auto scriptFields = scriptComponent["Fields"];
+                    if (scriptFields)
                     {
-                        std::string name = scriptField["Name"].as<std::string>();
-                        std::string typeString = scriptField["Type"].as<std::string>();
-                        ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
+                        const auto& fields = entityClass->GetFields();
+                        auto& entityFields = Script::GetEntityFieldMap(uuid);
 
-                        ScriptFieldInstance& fieldInstance = entityFields[name];
-
-                        if (fields.find(name) == fields.end())
-                            continue;
-
-                        fieldInstance.Field = fields.at(name);
-
-                        switch (type)
+                        for (auto scriptField : scriptFields)
                         {
-                            READ_SCRIPT_FIELD(Float, f32);
-                            READ_SCRIPT_FIELD(Double, f64);
-                            READ_SCRIPT_FIELD(Bool, bool);
-                            READ_SCRIPT_FIELD(Char, char);
-                            READ_SCRIPT_FIELD(Byte, i8);
-                            READ_SCRIPT_FIELD(Short, i16);
-                            READ_SCRIPT_FIELD(Int, i32);
-                            READ_SCRIPT_FIELD(Long, i64);
-                            READ_SCRIPT_FIELD(UByte, u8);
-                            READ_SCRIPT_FIELD(UShort, u16);
-                            READ_SCRIPT_FIELD(UInt, u32);
-                            READ_SCRIPT_FIELD(ULong, u64);
-                            READ_SCRIPT_FIELD(Vector2, glm::vec2);
-                            READ_SCRIPT_FIELD(Vector3, glm::vec3);
-                            READ_SCRIPT_FIELD(Vector4, glm::vec4);
-                            READ_SCRIPT_FIELD(Entity, UUID);
+                            std::string name = scriptField["Name"].as<std::string>();
+                            std::string typeString = scriptField["Type"].as<std::string>();
+                            ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
+
+                            ScriptFieldInstance& fieldInstance = entityFields[name];
+
+                            if (fields.find(name) == fields.end())
+                                continue;
+
+                            fieldInstance.Field = fields.at(name);
+
+                            switch (type)
+                            {
+                                READ_SCRIPT_FIELD(Float, f32);
+                                READ_SCRIPT_FIELD(Double, f64);
+                                READ_SCRIPT_FIELD(Bool, bool);
+                                READ_SCRIPT_FIELD(Char, char);
+                                READ_SCRIPT_FIELD(Byte, i8);
+                                READ_SCRIPT_FIELD(Short, i16);
+                                READ_SCRIPT_FIELD(Int, i32);
+                                READ_SCRIPT_FIELD(Long, i64);
+                                READ_SCRIPT_FIELD(UByte, u8);
+                                READ_SCRIPT_FIELD(UShort, u16);
+                                READ_SCRIPT_FIELD(UInt, u32);
+                                READ_SCRIPT_FIELD(ULong, u64);
+                                READ_SCRIPT_FIELD(Vector2, glm::vec2);
+                                READ_SCRIPT_FIELD(Vector3, glm::vec3);
+                                READ_SCRIPT_FIELD(Vector4, glm::vec4);
+                                READ_SCRIPT_FIELD(Entity, UUID);
+                            }
                         }
                     }
                 }
-            }
 
-            // [Runtime]: Creates script instance
-            deserializedEntity.AddComponent<ScriptComponent>(className);
+                // [Runtime]: Creates script instance
+                deserializedEntity.AddComponent<ScriptComponent>(className);
+            }
         }
 
         auto audioSourceComponent = entity["AudioSourceComponent"];
@@ -847,6 +881,8 @@ namespace Turbo
             rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
             rb2d.GravityScale = rigidbody2DComponent["GravityScale"].as<f32>();
             rb2d.IsBullet = rigidbody2DComponent["IsBullet"].as<bool>();
+
+            // [Runtime]: Triggers construct callback in the scene
             deserializedEntity.AddComponent<Rigidbody2DComponent>(rb2d);
         }
 
@@ -861,6 +897,8 @@ namespace Turbo
             bc2d.Restitution = boxCollider2DComponent["Restitution"].as<f32>();
             bc2d.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<f32>();
             bc2d.IsSensor = boxCollider2DComponent["IsSensor"].as<bool>();
+
+            // [Runtime]: Triggers construct callback in the scene
             deserializedEntity.AddComponent<BoxCollider2DComponent>(bc2d);
         }
 
@@ -875,15 +913,44 @@ namespace Turbo
             cc2d.Restitution = circleCollider2DComponent["Restitution"].as<f32>();
             cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<f32>();
             cc2d.IsSensor = circleCollider2DComponent["IsSensor"].as<bool>();
+
+            // [Runtime]: Triggers construct callback in the scene
             deserializedEntity.AddComponent<CircleCollider2DComponent>(cc2d);
         }
 
         auto rigidbodyComponent = entity["RigidbodyComponent"];
         if (rigidbodyComponent)
         {
-            auto& rb = deserializedEntity.AddComponent<RigidbodyComponent>();
+            RigidbodyComponent rb;
             rb.Type = RigidBodyBodyTypeFromString(rigidbodyComponent["BodyType"].as<std::string>());
             rb.GravityScale = rigidbodyComponent["GravityScale"].as<f32>();
+
+            // [Runtime]: Triggers construct callback in the scene
+            deserializedEntity.AddComponent<RigidbodyComponent>(rb);
+        }
+
+        // NOTE: Runtime update of the colliders might be problematic
+        auto boxColliderComponent = entity["BoxColliderComponent"];
+        if (boxColliderComponent)
+        {
+            BoxColliderComponent bc;
+            bc.Offset = boxColliderComponent["Offset"].as<glm::vec3>();
+            bc.Size = boxColliderComponent["Size"].as<glm::vec3>();
+
+            // [Runtime]: Triggers construct callback in the scene
+            deserializedEntity.AddComponent<BoxColliderComponent>(bc);
+        }
+
+        auto sphereColliderComponent = entity["SphereColliderComponent"];
+        if (sphereColliderComponent)
+        {
+            SphereColliderComponent sc;
+            sc.Offset = sphereColliderComponent["Offset"].as<glm::vec3>();
+            sc.Radius = sphereColliderComponent["Radius"].as<f32>();
+
+            // [Runtime]: Triggers construct callback in the scene
+            deserializedEntity.AddComponent<SphereColliderComponent>(sc);
         }
     }
+
 }

@@ -4,7 +4,7 @@
 #include "Turbo/Platform/Vulkan/VulkanUtils.h"
 
 namespace Turbo
-{
+{ 
     VulkanBuffer::VulkanBuffer(const RendererBuffer::Config& config)
         : RendererBuffer(config)
     {

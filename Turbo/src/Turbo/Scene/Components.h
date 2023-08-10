@@ -277,20 +277,29 @@ namespace Turbo {
 
     struct BoxColliderComponent
     {
-        glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
+        glm::vec3 Size = { 0.5f, 0.5f, 0.5f };
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent&) = default;
     };
 
+    struct SphereColliderComponent
+    {
+        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+        f32 Radius = 0.5f;
+
+        SphereColliderComponent() = default;
+        SphereColliderComponent(const SphereColliderComponent&) = default;
+    };
+
     template<typename... Components>
     struct ComponentGroup
     {
-        constexpr static size_t Size = sizeof...(Components);
+        constexpr static u64 Size = sizeof...(Components);
     };
 
     using AllComponents =
         ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, ScriptComponent,
-        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidbodyComponent>;
+        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidbodyComponent, BoxColliderComponent, SphereColliderComponent>;
 }

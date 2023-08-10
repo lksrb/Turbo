@@ -15,8 +15,8 @@
 
 #include "Turbo/Core/Engine.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     struct WriteDescriptorSetInfo
     {
         VkWriteDescriptorSet WriteDescriptorSet;
@@ -79,7 +79,7 @@ namespace Turbo
     void Renderer::Init()
     {
         s_Internal = new RendererInternal;
-       
+
         {
             // Since we dont need normals we can efficiently render cube map
             // NOTE: There is possibly a better way (could be quad?)

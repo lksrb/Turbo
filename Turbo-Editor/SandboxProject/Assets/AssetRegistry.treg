@@ -17,8 +17,14 @@ AssetRegistry:
   - Asset: 5163550985720168621
     Path: Meshes/Default/Torus.tmesh
     Type: StaticMesh
+  - Asset: 5969331438052008515
+    Path: Meshes/Default/Sphere.tmesh
+    Type: StaticMesh
   - Asset: 6036229564231096822
     Path: Meshes/Pistol_2.fbx
+    Type: MeshSource
+  - Asset: 6808730343166568602
+    Path: Sources/Default/Sphere.fbx
     Type: MeshSource
   - Asset: 7338600381720551882
     Path: Sources/Default/Cylinder.fbx

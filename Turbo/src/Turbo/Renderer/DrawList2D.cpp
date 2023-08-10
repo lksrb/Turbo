@@ -134,7 +134,7 @@ namespace Turbo
             config.Shader = m_LineShader;
             config.Renderpass = m_TargerRenderPass;
             config.Topology = PrimitiveTopology::Line;
-            config.DepthTesting = false;
+            config.DepthTesting = true;
             config.SubpassIndex = 2;
             config.Layout = VertexBufferLayout
             {
@@ -591,6 +591,29 @@ namespace Turbo
         m_CircleIndexCount += 6;
 
         m_Statistics.CircleCount++;
+    }
+
+    void DrawList2D::AddDebugCircle(const glm::vec3& position, const glm::vec3& rotation, f32 radius, const glm::vec4& color, i32 entity)
+    {
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+            * glm::rotate(glm::mat4(1.0f), rotation.x, { 1.0f, 0.0f, 0.0f })
+            * glm::rotate(glm::mat4(1.0f), rotation.y, { 0.0f, 1.0f, 0.0f })
+            * glm::rotate(glm::mat4(1.0f), rotation.z, { 0.0f, 0.0f, 1.0f })
+            * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
+
+        i32 segments = 32;
+        for (i32 i = 0; i < segments; i++)
+        {
+            f32 angle = 2.0f * glm::pi<f32>() * (f32)i / segments;
+            glm::vec4 startPosition = { glm::cos(angle), glm::sin(angle), 0.0f, 1.0f };
+
+            angle = 2.0f * glm::pi<f32>() * (f32)((i + 1) % segments) / segments;
+            glm::vec4 endPosition = { glm::cos(angle), glm::sin(angle), 0.0f, 1.0f };
+
+            glm::vec3 p0 = transform * startPosition;
+            glm::vec3 p1 = transform * endPosition;
+            AddLine(p0, p1, color, entity);
+        }
     }
 
     void DrawList2D::AddRect(const glm::mat4& transform, const glm::vec4& color, i32 entity)
