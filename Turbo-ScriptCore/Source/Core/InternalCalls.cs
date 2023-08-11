@@ -248,10 +248,10 @@ namespace Turbo
 
 		// BodyType
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static Rigidbody2DComponent.BodyType Component_Rigidbody2D_Get_BodyType(ulong uuid);
+		internal extern static RigidbodyType Component_Rigidbody2D_Get_BodyType(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_Rigidbody2D_Set_BodyType(ulong uuid, Rigidbody2DComponent.BodyType type);
+		internal extern static void Component_Rigidbody2D_Set_BodyType(ulong uuid, RigidbodyType type);
 
 		// Is Enabled
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -320,6 +320,25 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_CircleCollider2D_Get_CollisionFilter(ulong uuid, out ushort category, out ushort mask);
+
+		#endregion
+
+		#region RigidbodyComponent
+
+		// Linear velocity
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Get_LinearVelocity(ulong uuid, out Vector3 velocity);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Set_LinearVelocity(ulong uuid, ref Vector3 velocity);
+
+		// Rotate
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Rotate(ulong uuid, ref Vector3 velocity);
+
+		// Add force
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_AddForce(ulong uuid, ref Vector3 force, ForceMode mode);
 
 		#endregion
 

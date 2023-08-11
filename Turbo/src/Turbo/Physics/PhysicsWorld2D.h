@@ -3,11 +3,11 @@
 #include "Turbo/Core/Time.h"
 #include "Turbo/Scene/Entity.h"
 
-class b2World;
+#include <box2d/b2_world.h>
 
 namespace Turbo
 {
-    class PhysicsWorld2D
+    class PhysicsWorld2D : public RefCounted
     {
     public:
         PhysicsWorld2D(glm::vec2 gravity);
@@ -28,6 +28,6 @@ namespace Turbo
         void RetrieveTransform(Entity entity);
         glm::vec2 RetrieveLinearVelocity(Entity entity);
     private:
-        b2World* m_Box2DWorld = nullptr;
+        b2World m_Box2DWorld;
     };
 }

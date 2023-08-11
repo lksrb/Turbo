@@ -216,6 +216,8 @@ namespace Turbo {
         T& operator*() { return *m_Instance; }
         const T& operator*() const { return *m_Instance; }
 
+        T* Get() { return m_Instance; }
+        const T* Get() const { return m_Instance; }
 
         template<typename T2>
         WeakRef<T2> As() const

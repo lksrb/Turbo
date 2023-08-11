@@ -998,10 +998,11 @@ namespace Turbo::Ed {
         if (m_ShowPhysicsColliders)
         {
             // Box2D colliders
-            auto box2dColliders = m_CurrentScene->GroupAllEntitiesWith<BoxCollider2DComponent, TransformComponent>();
+            auto box2dColliders = m_CurrentScene->GetAllEntitiesWith<BoxCollider2DComponent>();
             for (auto entity : box2dColliders)
             {
-                auto& [bc2d, transform] = box2dColliders.get<BoxCollider2DComponent, TransformComponent>(entity);
+                auto& bc2d = box2dColliders.get<BoxCollider2DComponent>(entity);
+                TransformComponent transform = m_CurrentScene->GetWorldSpaceTransform({ entity, m_CurrentScene.Get() });
 
                 glm::vec3 translation = transform.Translation + glm::vec3(bc2d.Offset, 0.0f);
                 glm::vec3 scale = transform.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
@@ -1014,20 +1015,25 @@ namespace Turbo::Ed {
             }
 
             // Circle2D colliders
-            auto circle2dColliders = m_CurrentScene->GroupAllEntitiesWith<CircleCollider2DComponent, TransformComponent>();
+            auto circle2dColliders = m_CurrentScene->GetAllEntitiesWith<CircleCollider2DComponent>();
             for (auto entity : circle2dColliders)
             {
-                auto& [cc2d, transform] = circle2dColliders.get<CircleCollider2DComponent, TransformComponent>(entity);
+                auto& cc2d = circle2dColliders.get<CircleCollider2DComponent>(entity);
+                TransformComponent transform = m_CurrentScene->GetWorldSpaceTransform({ entity, m_CurrentScene.Get() });
+
                 glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
 
                 m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * cc2d.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
 
             // Box colliders
-            auto boxColliders = m_CurrentScene->GroupAllEntitiesWith<BoxColliderComponent, TransformComponent>();
+            auto boxColliders = m_CurrentScene->GetAllEntitiesWith<BoxColliderComponent>();
             for (auto entity : boxColliders)
             {
-                auto& [bc, transform] = boxColliders.get<BoxColliderComponent, TransformComponent>(entity);
+                auto& bc = boxColliders.get<BoxColliderComponent>(entity);
+
+                TransformComponent transform = m_CurrentScene->GetWorldSpaceTransform({ entity, m_CurrentScene.Get() });
+
                 glm::vec3 translation = transform.Translation + bc.Offset;
                 glm::vec3 scale = transform.Scale * (bc.Size * 2.0f);
                 glm::mat4 rotation = glm::toMat4(glm::quat(transform.Rotation));
@@ -1040,11 +1046,11 @@ namespace Turbo::Ed {
             }
 
             // Sphere colliders
-
-            auto sphereColliders = m_CurrentScene->GroupAllEntitiesWith<SphereColliderComponent, TransformComponent>();
+            auto sphereColliders = m_CurrentScene->GetAllEntitiesWith<SphereColliderComponent>();
             for (auto entity : sphereColliders)
             {
-                auto& [sc, transform] = sphereColliders.get<SphereColliderComponent, TransformComponent>(entity);
+                auto& sc = sphereColliders.get<SphereColliderComponent>(entity);
+                TransformComponent transform = m_CurrentScene->GetWorldSpaceTransform({ entity, m_CurrentScene.Get() });
 
                 glm::vec3 translation = transform.Translation /* + sc.Offset */;
 
@@ -1053,6 +1059,23 @@ namespace Turbo::Ed {
                 m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(glm::radians(90.0f), 0.0f, 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
                 m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f, glm::radians(90.0f), 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
+
+#if 0
+            // Capsule colliders
+            auto capsuleColliders = m_CurrentScene->GetAllEntitiesWith<CapsuleColliderComponent>();
+            for (auto entity : capsuleColliders)
+            {
+                auto& cc = capsuleColliders.get<CapsuleColliderComponent>(entity);
+                TransformComponent transform = m_CurrentScene->GetWorldSpaceTransform({ entity, m_CurrentScene.Get() });
+
+                glm::vec3 translation = transform.Translation /* + sc.Offset */;
+
+                // Facing forward, up, right
+                //m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(glm::radians(90.0f), 0.0f, 0.0f), transform.Scale.x * cc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                //m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f, glm::radians(90.0f), 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+            }
+#endif
         }
 
         // Icons

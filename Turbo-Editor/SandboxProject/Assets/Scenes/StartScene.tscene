@@ -7,14 +7,21 @@ Entities:
     TagComponent:
       Tag: Cube
     TransformComponent:
-      Translation: [0.558595896, 0.65868187, 0]
+      Translation: [-1.31700754, 7.50056887, -12.9029675]
       Rotation: [-2.84948325, 0.289195538, -0.304245174]
-      Scale: [18.7478848, 1.59999228, 0.999994278]
+      Scale: [18.7478848, 1.59970737, 0.999801695]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
       BodyType: Static
       GravityScale: 1
+      Mass: 1
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
     BoxColliderComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
@@ -25,7 +32,7 @@ Entities:
     TagComponent:
       Tag: Cube
     TransformComponent:
-      Translation: [4.16905499, 0.675077558, 2.63008165]
+      Translation: [0.568248153, 1.61746216, -13.5663614]
       Rotation: [-1.70760226, -0.0520975851, 0.237014458]
       Scale: [18.7478676, 1.59992206, 0.999970555]
     StaticMeshRendererComponent:
@@ -33,6 +40,13 @@ Entities:
     RigidbodyComponent:
       BodyType: Static
       GravityScale: 1
+      Mass: 1
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
     BoxColliderComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
@@ -43,7 +57,7 @@ Entities:
     TagComponent:
       Tag: Sphere
     TransformComponent:
-      Translation: [2.98023224e-08, 13.2585144, 0]
+      Translation: [10.7474079, 9.45388222, 0.260898471]
       Rotation: [0, 0, 0]
       Scale: [1.39999998, 1.39999998, 1.39999998]
     StaticMeshRendererComponent:
@@ -51,9 +65,42 @@ Entities:
     RigidbodyComponent:
       BodyType: Dynamic
       GravityScale: 1
+      Mass: 1
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
     SphereColliderComponent:
       Offset: [0, 1, 0]
       Radius: 0.5
+  - Entity: 4023183045295889645
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Capsule
+    TransformComponent:
+      Translation: [12.5457592, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 3410154700432275184
+    RigidbodyComponent:
+      BodyType: Dynamic
+      GravityScale: 1
+      Mass: 1
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    CapsuleColliderComponent:
+      Offset: [0, 0, 0]
+      Radius: 1
+      Height: 2
   - Entity: 5448459495743016983
     Parent: 0
     Children:
@@ -61,7 +108,7 @@ Entities:
     TagComponent:
       Tag: Cube
     TransformComponent:
-      Translation: [2.04072857, 6.77952576, 0]
+      Translation: [0.986070156, 2.97073174, -16.6257153]
       Rotation: [0, 0, -0.270132601]
       Scale: [17.75, 1.60000634, 0.999999404]
     StaticMeshRendererComponent:
@@ -69,9 +116,28 @@ Entities:
     RigidbodyComponent:
       BodyType: Static
       GravityScale: 1
+      Mass: 1
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
     BoxColliderComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
+  - Entity: 6604654774933100929
+    Parent: 9379112465173313586
+    Children:
+      []
+    TagComponent:
+      Tag: Gun
+    TransformComponent:
+      Translation: [-1.31357336, -1.14798379, -1.78684998]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.99987191, 1, 0.999877989]
+    StaticMeshRendererComponent:
+      Mesh: 14741445282963241461
   - Entity: 7307812893521663871
     Parent: 0
     Children:
@@ -104,12 +170,13 @@ Entities:
   - Entity: 9379112465173313586
     Parent: 17758440140024707462
     Children:
-      []
+      - UUID: 12411588137264639738
+      - UUID: 6604654774933100929
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0.0769729614, 3.7252903e-09, 0]
-      Rotation: [0, 4.40457133e-20, 1.56319619e-13]
+      Translation: [0.0769729614, 2.36270905, 0]
+      Rotation: [0, 0, 1.56319619e-13]
       Scale: [0.99999392, 1, 1]
     CameraComponent:
       Camera:
@@ -138,15 +205,15 @@ Entities:
       Intensity: 5
       FallOff: 1
   - Entity: 12411588137264639738
-    Parent: 17758440140024707462
+    Parent: 9379112465173313586
     Children:
       []
     TagComponent:
       Tag: Gun
     TransformComponent:
-      Translation: [1.48585796, -1.14798379, -1.76064968]
+      Translation: [1.28553772, -1.14798379, -1.78684998]
       Rotation: [0, 1.57079637, 0]
-      Scale: [0.999966204, 1, 0.999966204]
+      Scale: [0.99993068, 1, 0.999936759]
     StaticMeshRendererComponent:
       Mesh: 14741445282963241461
   - Entity: 12739171548365996964
@@ -161,6 +228,19 @@ Entities:
       Scale: [100, 1.00000012, 100.000031]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      GravityScale: 1
+      Mass: 1
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
   - Entity: 16237566845937793509
     Parent: 7307812893521663871
     Children:
@@ -180,16 +260,28 @@ Entities:
     Parent: 0
     Children:
       - UUID: 9379112465173313586
-      - UUID: 12411588137264639738
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [1.99515331, 0, 23.6335163]
+      Translation: [-0.694027424, 10.053606, 0.773605108]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     ScriptComponent:
-      ClassName: Sandbox.ExampleEntity
+      ClassName: Sandbox.PlayerManager
       Fields:
         - Name: MouseSensitivity
           Type: Float
           Data: 0.75999999
+    RigidbodyComponent:
+      BodyType: Dynamic
+      GravityScale: 1
+      Mass: 1
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: true
+      LockRotationY: true
+      LockRotationZ: true
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 4, 0.5]

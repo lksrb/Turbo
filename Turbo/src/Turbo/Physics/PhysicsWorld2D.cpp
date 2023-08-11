@@ -3,11 +3,18 @@
 
 #include "Physics2D.h"
 
+#include <box2d/b2_body.h>
+#include <box2d/b2_shape.h>
+#include <box2d/b2_polygon_shape.h>
+#include <box2d/b2_contact.h>
+#include <box2d/b2_circle_shape.h>
+#include <box2d/b2_fixture.h>
+
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Script/Script.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     class ContactListener2D : public b2ContactListener
     {
     private:
@@ -99,15 +106,13 @@ namespace Turbo
     static ContactListener2D s_ContactListener;
 
     PhysicsWorld2D::PhysicsWorld2D(glm::vec2 gravity)
+        : m_Box2DWorld(b2Vec2(gravity.x, gravity.y))
     {
-        m_Box2DWorld = new b2World(b2Vec2(gravity.x, gravity.y));
-        m_Box2DWorld->SetContactListener(&s_ContactListener);
+        m_Box2DWorld.SetContactListener(&s_ContactListener);
     }
 
     PhysicsWorld2D::~PhysicsWorld2D()
     {
-        delete m_Box2DWorld;
-        m_Box2DWorld = nullptr;
     }
 
     void PhysicsWorld2D::ConstructBody(Entity entity)
@@ -123,7 +128,7 @@ namespace Turbo
         bodyDef.angle = transform.Rotation.z;
 
         // Create body
-        b2Body* body = m_Box2DWorld->CreateBody(&bodyDef);
+        b2Body* body = m_Box2DWorld.CreateBody(&bodyDef);
         body->SetFixedRotation(rb2d.FixedRotation);
         body->SetEnabled(rb2d.Enabled);
         body->SetGravityScale(rb2d.GravityScale);
@@ -188,7 +193,7 @@ namespace Turbo
     void PhysicsWorld2D::DestroyPhysicsBody(Entity entity)
     {
         b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
-        m_Box2DWorld->DestroyBody(body);
+        m_Box2DWorld.DestroyBody(body);
     }
 
     void PhysicsWorld2D::DestroyBoxCollider(Entity entity)
@@ -232,7 +237,7 @@ namespace Turbo
     Entity PhysicsWorld2D::RayCast(glm::vec2 a, glm::vec2 b)
     {
         s_RayCastCallback.m_HitEntity = {};
-        m_Box2DWorld->RayCast(&s_RayCastCallback, b2Vec2(a.x, a.y), b2Vec2(b.x, b.y));
+        m_Box2DWorld.RayCast(&s_RayCastCallback, b2Vec2(a.x, a.y), b2Vec2(b.x, b.y));
         return s_RayCastCallback.m_HitEntity;
     }
 
@@ -241,7 +246,7 @@ namespace Turbo
         constexpr i32 velocityIterations = 6;
         constexpr i32 positionIterations = 2;
 
-        m_Box2DWorld->Step(ts, velocityIterations, positionIterations);
+        m_Box2DWorld.Step(ts, velocityIterations, positionIterations);
     }
 
     void PhysicsWorld2D::RetrieveTransform(Entity entity)
@@ -265,12 +270,12 @@ namespace Turbo
     }
 
     glm::vec2 PhysicsWorld2D::RetrieveLinearVelocity(Entity entity)
-	{
+    {
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
         b2Vec2 b2Vel = body->GetLinearVelocity();
 
         return { b2Vel.x, b2Vel.y };
-	}
+    }
 
 }

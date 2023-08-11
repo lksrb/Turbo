@@ -1,4 +1,7 @@
-﻿namespace Turbo
+﻿using System;
+using static Turbo.Rigidbody2DComponent;
+
+namespace Turbo
 {
 	public abstract class Component
 	{
@@ -175,24 +178,26 @@
 		}
 	}
 
-	// Physics
+	// Physics components
+	public enum RigidbodyType : uint { Static = 0, Dynamic /*, Kinematic */ };
+	public enum ForceMode : uint { Force = 0, Impulse }
+
+	// Physics 2D
 	public class Rigidbody2DComponent : Component
 	{
-		public enum BodyType : uint { Static = 0, Dynamic, Kinematic };
-
 		public float GravityScale
 		{
 			get => InternalCalls.Component_Rigidbody2D_Get_GravityScale(Entity.ID);
 			set => InternalCalls.Component_Rigidbody2D_Set_GravityScale(Entity.ID, value);
 		}
 
-		public BodyType Type
+		public RigidbodyType Type
 		{
 			get => InternalCalls.Component_Rigidbody2D_Get_BodyType(Entity.ID);
 			set => InternalCalls.Component_Rigidbody2D_Set_BodyType(Entity.ID, value);
 		}
 
-		public Vector2 Velocity
+		public Vector2 LinearVelocity
 		{
 			get
 			{
@@ -332,6 +337,48 @@
 			{
 				InternalCalls.Component_CircleCollider2D_Set_CollisionFilter(Entity.ID, value.CollisionCategory, value.CollisionMask);
 			}
+		}
+	}
+
+	// Physics 3D
+	public class RigidbodyComponent : Component
+	{
+		/*public float GravityScale
+		{
+			get => InternalCalls.Component_Rigidbody_Get_GravityScale(Entity.ID);
+			set => InternalCalls.Component_Rigidbody_Set_GravityScale(Entity.ID, value);
+		}
+*/
+
+		/*public BodyType Type
+		{
+			get => InternalCalls.Component_Rigidbody_Get_BodyType(Entity.ID);
+			set => InternalCalls.Component_Rigidbody_Set_BodyType(Entity.ID, value);
+		}
+*/
+
+		public Vector3 LinearVelocity
+		{
+			get
+			{
+				InternalCalls.Component_Rigidbody_Get_LinearVelocity(Entity.ID, out Vector3 velocity);
+				return velocity;
+			}
+			set
+			{
+				InternalCalls.Component_Rigidbody_Set_LinearVelocity(Entity.ID, ref value);
+			}
+		}
+
+		// In radians
+		public void Rotate(Vector3 rotation)
+		{
+			InternalCalls.Component_Rigidbody_Rotate(Entity.ID, ref rotation);
+		}
+
+		public void AddForce(Vector3 force, ForceMode mode)
+		{
+			InternalCalls.Component_Rigidbody_AddForce(Entity.ID, ref force, mode);
 		}
 	}
 }

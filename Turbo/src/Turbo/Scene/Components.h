@@ -20,7 +20,9 @@
 
 namespace Turbo {
 
-    class Entity;
+    enum class RigidbodyType : u32 { Static = 0, Dynamic, Kinematic };
+
+    using BodyHandle = u32;
 
     struct TagComponent
     {
@@ -212,8 +214,7 @@ namespace Turbo {
     // Physics 2D
     struct Rigidbody2DComponent
     {
-        enum BodyType : u32 { BodyType_Static = 0, BodyType_Dynamic, BodyType_Kinematic };
-        BodyType Type = BodyType_Static;
+        RigidbodyType Type = RigidbodyType::Static;
         bool FixedRotation = false;
         f32 GravityScale = 1.0f;
         bool Enabled = true;
@@ -262,14 +263,21 @@ namespace Turbo {
     };
 
     // Physics 3D
+    
     struct RigidbodyComponent
     {
-        enum BodyType : u32 { BodyType_Static = 0, BodyType_Dynamic };
-
-        BodyType Type = BodyType_Static;
+        RigidbodyType Type = RigidbodyType::Static;
         f32 GravityScale = 1.0f;
+        f32 Mass = 1.0f;
+        
+        bool LockTranslationX = false;
+        bool LockTranslationY = false;
+        bool LockTranslationZ = false;
+        bool LockRotationX = false;
+        bool LockRotationY = false;
+        bool LockRotationZ = false;
 
-        u32 BodyHandle = 0;
+        BodyHandle RuntimeBodyHandle = 0;
 
         RigidbodyComponent() = default;
         RigidbodyComponent(const RigidbodyComponent&) = default;
@@ -293,6 +301,16 @@ namespace Turbo {
         SphereColliderComponent(const SphereColliderComponent&) = default;
     };
 
+    struct CapsuleColliderComponent
+    {
+        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+        f32 Radius = 0.5f;
+        f32 Height = 1.0f;
+
+        CapsuleColliderComponent() = default;
+        CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
+    };
+
     template<typename... Components>
     struct ComponentGroup
     {
@@ -301,5 +319,5 @@ namespace Turbo {
 
     using AllComponents =
         ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, ScriptComponent,
-        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidbodyComponent, BoxColliderComponent, SphereColliderComponent>;
+        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent>;
 }

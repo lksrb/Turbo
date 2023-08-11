@@ -6,10 +6,6 @@
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/Physics/PhysicsSettings.h>
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
 namespace Turbo {
@@ -116,7 +112,7 @@ namespace Turbo {
         }
     };
 
-    class PhysicsWorld
+    class PhysicsWorld : public RefCounted
     {
     public:
         PhysicsWorld(WeakRef<Scene> scene);
@@ -124,6 +120,9 @@ namespace Turbo {
 
         void OnRuntimeStart();
         void OnRuntimeStop();
+
+        JPH::BodyInterface& GetBodyInterface() { return m_PhysicsSystem.GetBodyInterface(); }
+        JPH::BodyInterface& GetBodyInterfaceUnsafe() { return m_PhysicsSystem.GetBodyInterfaceNoLock(); }
 
         void Simulate(FTime ts);
     private:
@@ -144,7 +143,7 @@ namespace Turbo {
         MyContactListener m_ContactListener;
 
         // Physics system
-        Owned<JPH::PhysicsSystem> m_PhysicsSystem;
+        JPH::PhysicsSystem m_PhysicsSystem;
 
         // This cannot be a strong reference because Scene wont get deleted 
         WeakRef<Scene> m_Scene;

@@ -7,6 +7,8 @@
 #include "Turbo/Physics/Physics2D.h"
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
+#include "Turbo/Physics/PhysicsWorld.h"
+
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Core/Engine.h"
@@ -22,8 +24,12 @@
 
 #define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, name);
 
-namespace Turbo
-{
+namespace Turbo {
+
+    static JPH::BodyID GetBodyID(BodyHandle handle) { return JPH::BodyID(handle); }
+    static JPH::Vec3 GetVec3(const glm::vec3& v) { return  JPH::Vec3(v.x, v.y, v.z); }
+    static glm::vec3 GetVec3(JPH::Vec3Arg v) { return { v.GetX(), v.GetY(), v.GetZ() }; }
+
     static Entity GetEntity(u64 uuid)
     {
         auto context = Script::GetCurrentScene();
@@ -139,7 +145,7 @@ namespace Turbo
     {
         auto context = Script::GetCurrentScene();
 
-        PhysicsWorld2D* physicsWorld2d = context->GetPhysicsWorld2D();
+        Ref<PhysicsWorld2D> physicsWorld2d = context->GetPhysicsWorld2D();
 
         Entity hitEntity = physicsWorld2d->RayCast(a, b);
         if (hitEntity)
@@ -489,13 +495,13 @@ namespace Turbo
     static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
     {
         Entity entity = GetEntity(uuid);
-        
+
         *outColor = entity.GetComponent<SpriteRendererComponent>().Color;
     }
     static void Component_SpriteRenderer_Set_Color(UUID uuid, glm::vec4* color)
     {
         Entity entity = GetEntity(uuid);
-        
+
         entity.GetComponent<SpriteRendererComponent>().Color = *color;
     }
 
@@ -719,9 +725,7 @@ namespace Turbo
 
     static void Component_Rigidbody2D_ApplyLinearImpulse(UUID uuid, glm::vec2* impulse, glm::vec2* worldPosition, bool wake)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -730,9 +734,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(UUID uuid, glm::vec2* impulse, bool wake)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -740,9 +742,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_ApplyForceToCenter(UUID uuid, glm::vec2* force, bool wake)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -750,9 +750,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_Set_LinearVelocity(UUID uuid, glm::vec2* velocity)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -760,9 +758,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_Get_LinearVelocity(UUID uuid, glm::vec2* velocity)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -773,9 +769,7 @@ namespace Turbo
     }
     static void Component_Rigidbody2D_ApplyTorque(UUID uuid, f32 torque, bool wake)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -784,48 +778,38 @@ namespace Turbo
 
     static f32 Component_Rigidbody2D_Get_GravityScale(UUID uuid)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         return rb2d.GravityScale;
     }
     static void Component_Rigidbody2D_Set_GravityScale(UUID uuid, f32 gravityScale)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         rb2d.GravityScale = gravityScale;
     }
 
-    static Rigidbody2DComponent::BodyType Component_Rigidbody2D_Get_BodyType(UUID uuid)
+    static u32 Component_Rigidbody2D_Get_BodyType(UUID uuid)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        return rb2d.Type;
+        return (u32)rb2d.Type;
     }
 
-    static void Component_Rigidbody2D_Set_BodyType(UUID uuid, Rigidbody2DComponent::BodyType type)
+    static void Component_Rigidbody2D_Set_BodyType(UUID uuid, u32 type)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        rb2d.Type = type;
+        rb2d.Type = (RigidbodyType)type;
     }
 
     static void Component_Rigidbody2D_Set_Enabled(UUID uuid, bool enabled)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         rb2d.Enabled = enabled;
@@ -833,9 +817,7 @@ namespace Turbo
 
     static bool Component_Rigidbody2D_Get_Enabled(UUID uuid)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         return rb2d.Enabled;
@@ -843,9 +825,7 @@ namespace Turbo
 
     static void Component_Rigidbody2D_Set_ContactEnabled(UUID uuid, bool enabled)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         rb2d.ContactEnabled = enabled;
@@ -853,9 +833,7 @@ namespace Turbo
 
     static bool Component_Rigidbody2D_Get_ContactEnabled(UUID uuid)
     {
-        auto scene = Script::GetCurrentScene();
-        Entity entity = scene->FindEntityByUUID(uuid);
-        TBO_ENGINE_ASSERT(entity);
+        Entity entity = GetEntity(uuid);
 
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
         return rb2d.ContactEnabled;
@@ -1060,6 +1038,71 @@ namespace Turbo
 
 #pragma endregion
 
+#pragma region RigidBodyComponent
+
+    static void Component_Rigidbody_Get_LinearVelocity(UUID uuid, glm::vec3* velocity)
+    {
+        Entity entity = GetEntity(uuid);
+        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+
+        auto context = Script::GetCurrentScene();
+
+        // For now use the safe variant
+        auto& bodyInterface = context->GetPhysicsWorld()->GetBodyInterface();
+        JPH::Vec3 bodyVelocity = bodyInterface.GetLinearVelocity(bodyId);
+        *velocity = GetVec3(bodyInterface.GetLinearVelocity(bodyId));
+    }
+
+    static void Component_Rigidbody_Set_LinearVelocity(UUID uuid, glm::vec3* velocity)
+    {
+        Entity entity = GetEntity(uuid);
+
+        auto scene = Script::GetCurrentScene();
+
+        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+	    auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+        bodyInterface.SetLinearVelocity(bodyId, JPH::Vec3(velocity->x, velocity->y, velocity->z));
+    }
+
+    // TODO: Abstract this
+    static void Component_Rigidbody_Rotate(UUID uuid, glm::vec3* rotation)
+    {
+        Entity entity = GetEntity(uuid);
+
+        auto scene = Script::GetCurrentScene();
+
+        glm::vec3 oldRotation = entity.Transform().Rotation;
+
+        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+        auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+        JPH::Vec3 jphRotation = { oldRotation.x + rotation->x, oldRotation.y + rotation->y, oldRotation.z + rotation->z };
+        bodyInterface.SetRotation(bodyId, JPH::Quat::sEulerAngles(jphRotation), JPH::EActivation::Activate);
+    }
+
+    enum ForceMode : u32 { Force = 0, Impulse };
+
+    // TODO: Abstract this
+    static void Component_Rigidbody_AddForce(UUID uuid, glm::vec3* force, ForceMode forceMode)
+    {
+        Entity entity = GetEntity(uuid);
+
+        auto scene = Script::GetCurrentScene();
+
+        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+        auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+        
+        if (forceMode == ForceMode::Force)
+        {
+            bodyInterface.AddForce(bodyId, GetVec3(*force));
+        }
+        else if (forceMode == ForceMode::Impulse)
+        {
+            bodyInterface.AddImpulse(bodyId, GetVec3(*force));
+        }
+    }
+
+#pragma endregion
+
 #pragma endregion
 
     void InternalCalls::Init()
@@ -1148,7 +1191,7 @@ namespace Turbo
         // Physics2D
         TBO_REGISTER_FUNCTION(Physics2D_RayCast);
 
-        // RigidBody2D
+        // Rigidbody2D
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulse);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyLinearImpulseToCenter);
         TBO_REGISTER_FUNCTION(Component_Rigidbody2D_ApplyForceToCenter);
@@ -1181,6 +1224,12 @@ namespace Turbo
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_Radius);
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_CollisionFilter);
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_CollisionFilter);
+
+        // Rigidbody
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_LinearVelocity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_LinearVelocity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Rotate);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_AddForce);
 
         // Register components in AllComponents struct
         RegisterComponents();

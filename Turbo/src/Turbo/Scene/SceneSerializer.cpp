@@ -205,13 +205,13 @@ namespace Turbo
         return out;
     }
 
-    static std::string RigidBody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
+    static std::string StringifyRigidbodyType(RigidbodyType bodyType)
     {
         switch (bodyType)
         {
-            case Rigidbody2DComponent::BodyType_Static:    return "Static";
-            case Rigidbody2DComponent::BodyType_Dynamic:   return "Dynamic";
-            case Rigidbody2DComponent::BodyType_Kinematic: return "Kinematic";
+            case RigidbodyType::Static:    return "Static";
+            case RigidbodyType::Dynamic:   return "Dynamic";
+            case RigidbodyType::Kinematic: return "Kinematic";
         }
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
@@ -219,23 +219,23 @@ namespace Turbo
     }
 
     // TODO: Merge these functions
-    static Rigidbody2DComponent::BodyType RigidBody2DBodyTypeFromString(std::string_view bodyType)
+    static RigidbodyType DestringifyRigidbodyType(std::string_view bodyType)
     {
-        if (bodyType == "Static")    return Rigidbody2DComponent::BodyType_Static;
-        if (bodyType == "Dynamic")   return Rigidbody2DComponent::BodyType_Dynamic;
-        if (bodyType == "Kinematic") return Rigidbody2DComponent::BodyType_Kinematic;
+        if (bodyType == "Static")    return RigidbodyType::Static;
+        if (bodyType == "Dynamic")   return RigidbodyType::Dynamic;
+        if (bodyType == "Kinematic") return RigidbodyType::Kinematic;
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
-        return Rigidbody2DComponent::BodyType_Static;
+        return RigidbodyType::Static;
     }
 
-    static RigidbodyComponent::BodyType RigidBodyBodyTypeFromString(std::string_view bodyType)
+    static RigidbodyType RigidBodyBodyTypeFromString(std::string_view bodyType)
     {
-        if (bodyType == "Static")    return RigidbodyComponent::BodyType_Static;
-        if (bodyType == "Dynamic")   return RigidbodyComponent::BodyType_Dynamic;
+        if (bodyType == "Static")    return RigidbodyType::Static;
+        if (bodyType == "Dynamic")   return RigidbodyType::Dynamic;
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
-        return RigidbodyComponent::BodyType_Static;
+        return RigidbodyType::Static;
     }
 
     SceneSerializer::SceneSerializer(Ref<Scene> scene)
@@ -581,7 +581,7 @@ namespace Turbo
             out << YAML::BeginMap;
 
             auto& rb2dComponent = entity.GetComponent<Rigidbody2DComponent>();
-            out << YAML::Key << "BodyType" << YAML::Value << RigidBody2DBodyTypeToString(rb2dComponent.Type);
+            out << YAML::Key << "BodyType" << YAML::Value << StringifyRigidbodyType(rb2dComponent.Type);
             out << YAML::Key << "FixedRotation" << YAML::Value << rb2dComponent.FixedRotation;
             out << YAML::Key << "GravityScale" << YAML::Value << rb2dComponent.GravityScale;
             out << YAML::Key << "IsBullet" << YAML::Value << rb2dComponent.IsBullet;
@@ -631,8 +631,15 @@ namespace Turbo
             out << YAML::BeginMap;
 
             auto& rbComponent = entity.GetComponent<RigidbodyComponent>();
-            out << YAML::Key << "BodyType" << YAML::Value << s_StringifiedBodyTypes[rbComponent.Type];
+            out << YAML::Key << "BodyType" << YAML::Value << s_StringifiedBodyTypes[(u32)rbComponent.Type];
             out << YAML::Key << "GravityScale" << YAML::Value << rbComponent.GravityScale;
+            out << YAML::Key << "Mass" << YAML::Value << rbComponent.Mass;
+            out << YAML::Key << "LockTranslationX" << rbComponent.LockTranslationX;
+            out << YAML::Key << "LockTranslationY" << rbComponent.LockTranslationY;
+            out << YAML::Key << "LockTranslationZ" << rbComponent.LockTranslationZ;
+            out << YAML::Key << "LockRotationX" << rbComponent.LockRotationX;
+            out << YAML::Key << "LockRotationY" << rbComponent.LockRotationY;
+            out << YAML::Key << "LockRotationZ" << rbComponent.LockRotationZ;
 
             out << YAML::EndMap;
         }
@@ -657,6 +664,19 @@ namespace Turbo
             auto& scComponent = entity.GetComponent<SphereColliderComponent>();
             out << YAML::Key << "Offset" << YAML::Value << scComponent.Offset;
             out << YAML::Key << "Radius" << YAML::Value << scComponent.Radius;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<CapsuleColliderComponent>())
+        {
+            out << YAML::Key << "CapsuleColliderComponent";
+            out << YAML::BeginMap;
+
+            auto& scComponent = entity.GetComponent<CapsuleColliderComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << scComponent.Offset;
+            out << YAML::Key << "Radius" << YAML::Value << scComponent.Radius;
+            out << YAML::Key << "Height" << YAML::Value << scComponent.Height;
 
             out << YAML::EndMap;
         }
@@ -877,7 +897,7 @@ namespace Turbo
         if (rigidbody2DComponent)
         {
             Rigidbody2DComponent rb2d;
-            rb2d.Type = RigidBody2DBodyTypeFromString(rigidbody2DComponent["BodyType"].as<std::string>());
+            rb2d.Type = DestringifyRigidbodyType(rigidbody2DComponent["BodyType"].as<std::string>());
             rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
             rb2d.GravityScale = rigidbody2DComponent["GravityScale"].as<f32>();
             rb2d.IsBullet = rigidbody2DComponent["IsBullet"].as<bool>();
@@ -924,6 +944,13 @@ namespace Turbo
             RigidbodyComponent rb;
             rb.Type = RigidBodyBodyTypeFromString(rigidbodyComponent["BodyType"].as<std::string>());
             rb.GravityScale = rigidbodyComponent["GravityScale"].as<f32>();
+            rb.Mass = rigidbodyComponent["Mass"].as<f32>();
+            rb.LockTranslationX = rigidbodyComponent["LockTranslationX"].as<bool>();
+            rb.LockTranslationY = rigidbodyComponent["LockTranslationY"].as<bool>();
+            rb.LockTranslationZ = rigidbodyComponent["LockTranslationZ"].as<bool>();
+            rb.LockRotationX = rigidbodyComponent["LockRotationX"].as<bool>();
+            rb.LockRotationY = rigidbodyComponent["LockRotationY"].as<bool>();
+            rb.LockRotationZ = rigidbodyComponent["LockRotationZ"].as<bool>();
 
             // [Runtime]: Triggers construct callback in the scene
             deserializedEntity.AddComponent<RigidbodyComponent>(rb);
@@ -950,6 +977,18 @@ namespace Turbo
 
             // [Runtime]: Triggers construct callback in the scene
             deserializedEntity.AddComponent<SphereColliderComponent>(sc);
+        }
+
+        auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
+        if (capsuleColliderComponent)
+        {
+            CapsuleColliderComponent sc;
+            sc.Offset = capsuleColliderComponent["Offset"].as<glm::vec3>();
+            sc.Radius = capsuleColliderComponent["Radius"].as<f32>();
+            sc.Height = capsuleColliderComponent["Height"].as<f32>();
+
+            // [Runtime]: Triggers construct callback in the scene
+            deserializedEntity.AddComponent<CapsuleColliderComponent>(sc);
         }
     }
 

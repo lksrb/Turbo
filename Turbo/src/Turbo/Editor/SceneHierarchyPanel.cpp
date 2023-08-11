@@ -591,6 +591,7 @@ namespace Turbo {
             DisplayAddComponentEntry<RigidbodyComponent>("Rigid Body");
             DisplayAddComponentEntry<BoxColliderComponent>("Box Collider");
             DisplayAddComponentEntry<SphereColliderComponent>("Sphere Collider");
+            DisplayAddComponentEntry<CapsuleColliderComponent>("Capsule Collider");
             ImGui::EndPopup();
         }
 
@@ -816,7 +817,7 @@ namespace Turbo {
 
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
         {
-            const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+            static const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
             const char* currentBodyTypeString = bodyTypeStrings[(u32)component.Type];
             if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
             {
@@ -826,7 +827,7 @@ namespace Turbo {
                     if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
                     {
                         currentBodyTypeString = bodyTypeStrings[i];
-                        component.Type = (Rigidbody2DComponent::BodyType)i;
+                        component.Type = (RigidbodyType)i;
                     }
 
                     if (isSelected)
@@ -862,7 +863,7 @@ namespace Turbo {
             ImGui::Checkbox("Is Sensor", &component.IsSensor);
         });
 
-        Utils::DrawComponent<ScriptComponent>("Script Component", entity, [&entity, m_Context = m_Context](auto& component)
+        Utils::DrawComponent<ScriptComponent>("Script", entity, [&entity, m_Context = m_Context](auto& component)
         {
             if (ImGui::BeginCombo("Scripts", component.ClassName.empty() ? "<No Script>" : component.ClassName.c_str()))
             {
@@ -930,9 +931,9 @@ namespace Turbo {
             }
         });
 
-        Utils::DrawComponent<RigidbodyComponent>("Rigid Body Component", entity, [](auto& component)
+        Utils::DrawComponent<RigidbodyComponent>("Rigid Body", entity, [](auto& component)
         {
-            const char* bodyTypeStrings[] = { "Static", "Dynamic" };
+            static const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
             const char* currentBodyTypeString = bodyTypeStrings[(u32)component.Type];
             if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
             {
@@ -942,7 +943,7 @@ namespace Turbo {
                     if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
                     {
                         currentBodyTypeString = bodyTypeStrings[i];
-                        component.Type = (RigidbodyComponent::BodyType)i;
+                        component.Type = (RigidbodyType)i;
                     }
 
                     if (isSelected)
@@ -953,19 +954,48 @@ namespace Turbo {
             }
 
             ImGui::DragFloat("Gravity Scale", &component.GravityScale);
+            ImGui::DragFloat("Mass", &component.Mass);
+
+            ImGui::PushID("Lock Translation:    ");
+            ImGui::Text("Lock Translation: ");
+            ImGui::SameLine();
+            ImGui::Checkbox("X", &component.LockTranslationX);
+            ImGui::SameLine();
+            ImGui::Checkbox("Y", &component.LockTranslationY);
+            ImGui::SameLine();
+            ImGui::Checkbox("Z", &component.LockTranslationZ);
+            ImGui::PopID();
+
+            ImGui::PushID("Lock Rotation:    ");
+            ImGui::Text("Lock Rotation:    ");
+            ImGui::SameLine();
+            ImGui::Checkbox("X", &component.LockRotationX);
+            ImGui::SameLine();
+            ImGui::Checkbox("Y", &component.LockRotationY);
+            ImGui::SameLine();
+            ImGui::Checkbox("Z", &component.LockRotationZ);
+            ImGui::PopID();
         });
 
-        Utils::DrawComponent<BoxColliderComponent>("Box Collider Component", entity, [](auto& component)
+        Utils::DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component)
         {
             ImGui::DragFloat3("Offset", glm::value_ptr(component.Offset));
             ImGui::DragFloat3("Size", glm::value_ptr(component.Size));
         });
 
-        Utils::DrawComponent<SphereColliderComponent>("Sphere Collider Component", entity, [](auto& component)
+        Utils::DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](auto& component)
         {
             // TODO: Offset in local space
             //ImGui::DragFloat3("Offset", glm::value_ptr(component.Offset));
             ImGui::DragFloat("Radius", &component.Radius);
+        });
+
+        Utils::DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [](auto& component)
+        {
+            // TODO: Offset in local space
+            //ImGui::DragFloat3("Offset", glm::value_ptr(component.Offset));
+            ImGui::DragFloat("Radius", &component.Radius);
+            ImGui::DragFloat("Height", &component.Height);
         });
     }
 
@@ -999,7 +1029,7 @@ namespace Turbo {
                 if (childEntity)
                 {
                     childEntity.SetParent(entity);
-                    m_Context->ConvertToLocalSpace(childEntity);
+                    m_Context->ConvertToLocalSpace(childEntity); // This might be a problem with nested hierarchy
                 }
             }
 
@@ -1028,10 +1058,9 @@ namespace Turbo {
             if (parent && ImGui::MenuItem("Unparent Entity"))
             {
                 //GetParent(nullptr); FIXME: Why does scene hierarchy panel includes WinUser.h ???
-                
-                parent.RemoveChild(entity);
-                entity.SetParentUUID(0);
+
                 m_Context->ConvertToWorldSpace(entity);
+                entity.UnParent();
             }
 
             ImGui::Separator();

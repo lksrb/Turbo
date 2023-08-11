@@ -9,11 +9,11 @@
 
 #include <entt.hpp>
 
-namespace Turbo
-{
+namespace Turbo {
+
     class Entity;
     class SceneDrawList;
-    class DrawList2D;
+    class PhysicsWorld;
     class PhysicsWorld2D;
 
     using EntityMap = std::unordered_map<UUID, entt::entity>;
@@ -79,7 +79,8 @@ namespace Turbo
         Entity FindPrimaryCameraEntity();
         Entity FindPrimaryAudioListenerEntity();
 
-        PhysicsWorld2D* GetPhysicsWorld2D();
+        Ref<PhysicsWorld2D> GetPhysicsWorld2D();
+        Ref<PhysicsWorld> GetPhysicsWorld();
 
         Scene::Statistics GetStatistics() const { return m_Statistics; }
 

@@ -81,7 +81,7 @@ namespace Turbo {
         s_Internal = new RendererInternal;
 
         {
-            // Since we dont need normals we can efficiently render cube map
+            // Since we dont need normals we can efficiently render a cube map
             // NOTE: There is possibly a better way (could be quad?)
             constexpr std::array<glm::vec3, 8> skyboxVertices = {
                 glm::vec3{-1.0f, -1.0f,  1.0f},
@@ -355,7 +355,6 @@ namespace Turbo {
             vkCmdDrawIndexed(vkCommandBuffer, submesh.IndexCount, instanceCount, submesh.BaseIndex, submesh.BaseVertex, 0);
         });
     }
-
 
     void Renderer::DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet)
     {

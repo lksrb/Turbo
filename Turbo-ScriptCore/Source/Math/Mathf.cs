@@ -87,6 +87,16 @@ namespace Turbo
 			return (180.0f / Mathf.PI) * radians;
 		}
 
+		public static Vector3 Radians(Vector3 degrees)
+		{
+			return (Mathf.PI / 180.0f) * degrees;
+		}
+
+		public static Vector3 Degrees(Vector3 radians)
+		{
+			return (180.0f / Mathf.PI) * radians;
+		}
+
 		public static float Sign(float value)
 		{
 			return (float)Math.Sign(value);
