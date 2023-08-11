@@ -30,7 +30,7 @@ namespace Turbo
             VkMemoryAllocateInfo allocateInfo = {};
             allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocateInfo.pNext = nullptr;
-            allocateInfo.allocationSize = m_Size;
+            allocateInfo.allocationSize = memRequirements.size;
             allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
             TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_StagingBufferMemory));
@@ -51,11 +51,11 @@ namespace Turbo
 
             VkMemoryRequirements memRequirements;
             vkGetBufferMemoryRequirements(device, m_Buffer, &memRequirements);
-
+            
             VkMemoryAllocateInfo allocateInfo = {};
             allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocateInfo.pNext = nullptr;
-            allocateInfo.allocationSize = m_Size;
+            allocateInfo.allocationSize = memRequirements.size;
             allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
             TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_BufferMemory));

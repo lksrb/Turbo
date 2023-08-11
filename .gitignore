@@ -408,4 +408,6 @@ Turbo-Editor/assets/Shaders/cached/
 Turbo-Editor/memoryleaks.txt
 Turbo-Editor/SandboxProject/Binaries/
 Turbo-Editor/GunNRun/Binaries/
+!dependencies/assimp/bin/
+!dependencies/JoltPhysics/lib/
 memoryleaks.txt

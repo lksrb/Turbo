@@ -37,8 +37,8 @@ Library["mono"] = "%{LibraryDir.monodir}/libmono-static-sgen.lib"
 
 Library["Assimp_Debug"] = "%{wks.location}/dependencies/assimp/bin/Debug/assimp-vc143-mtd.lib"
 Library["Assimp_Release"] = "%{wks.location}/dependencies/assimp/bin/Release/assimp-vc143-mt.lib"
-Library["JoltPhysics_Debug"] = "%{wks.location}/dependencies/JoltPhysics/bin/Debug/Jolt.lib"
-Library["JoltPhysics_Release"] = "%{wks.location}/dependencies/JoltPhysics/bin/Release/Jolt.lib"
+Library["JoltPhysics_Debug"] = "%{wks.location}/dependencies/JoltPhysics/lib/Debug/Jolt.lib"
+Library["JoltPhysics_Release"] = "%{wks.location}/dependencies/JoltPhysics/lib/Release/Jolt.lib"
 
 Library["Vulkan"] =						"%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 Library["VulkanUtils"] =				"%{LibraryDir.VulkanSDK}/VkLayer_utils.lib"

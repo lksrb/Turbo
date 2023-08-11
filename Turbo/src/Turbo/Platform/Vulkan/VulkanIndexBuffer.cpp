@@ -26,14 +26,14 @@ namespace Turbo
 
             TBO_VK_ASSERT(vkCreateBuffer(device, &stagingCreateInfo, nullptr, &stagingBuffer));
 
-            VkMemoryRequirements memRequiremets;
-            vkGetBufferMemoryRequirements(device, stagingBuffer, &memRequiremets);
+            VkMemoryRequirements memRequirements;
+            vkGetBufferMemoryRequirements(device, stagingBuffer, &memRequirements);
 
             VkMemoryAllocateInfo allocateInfo = {};
             allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocateInfo.pNext = nullptr;
-            allocateInfo.allocationSize = m_Size;
-            allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequiremets.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+            allocateInfo.allocationSize = memRequirements.size;
+            allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
             TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &stagingBufferMemory));
             TBO_VK_ASSERT(vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0));
@@ -50,14 +50,14 @@ namespace Turbo
 
             TBO_VK_ASSERT(vkCreateBuffer(device, &createInfo, nullptr, &m_Buffer));
 
-            VkMemoryRequirements memRequiremets;
-            vkGetBufferMemoryRequirements(device, m_Buffer, &memRequiremets);
+            VkMemoryRequirements memRequirements;
+            vkGetBufferMemoryRequirements(device, m_Buffer, &memRequirements);
 
             VkMemoryAllocateInfo allocateInfo = {};
             allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocateInfo.pNext = nullptr;
-            allocateInfo.allocationSize = m_Size;
-            allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequiremets.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            allocateInfo.allocationSize = memRequirements.size;
+            allocateInfo.memoryTypeIndex = Vulkan::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
             TBO_VK_ASSERT(vkAllocateMemory(device, &allocateInfo, nullptr, &m_BufferMemory));
             TBO_VK_ASSERT(vkBindBufferMemory(device, m_Buffer, m_BufferMemory, 0));
