@@ -14,10 +14,6 @@ namespace Turbo {
     {
     }
 
-    Window::~Window()
-    {
-    }
-
     Window* Window::Create(const Window::Config& specification)
     {
 #ifdef TBO_PLATFORM_WIN32

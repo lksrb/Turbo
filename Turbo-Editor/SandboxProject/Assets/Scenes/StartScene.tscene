@@ -204,6 +204,18 @@ Entities:
       Radius: 10
       Intensity: 5
       FallOff: 1
+  - Entity: 11511779850808164016
+    Parent: 0
+    Children:
+      []
+    TagComponent:
+      Tag: Human
+    TransformComponent:
+      Translation: [-2.16402411, 4.60427856, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 15173728770675198862
   - Entity: 12411588137264639738
     Parent: 9379112465173313586
     Children:

@@ -26,7 +26,7 @@ namespace Turbo {
             bool SwapChainTarget;
         };
 
-        virtual ~Window();
+        virtual ~Window() = default;
         static Window* Create(const Window::Config& specification);
 
         virtual void ProcessEvents() = 0;

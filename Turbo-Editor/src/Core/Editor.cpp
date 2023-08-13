@@ -165,15 +165,15 @@ namespace Turbo::Ed {
             {
                 if (m_ViewportHovered)
                 {
-                    m_EditorCamera.OnUpdate(Time.DeltaTime);
+                    m_EditorCamera.OnUpdate(m_Time.DeltaTime);
                 }
 
-                m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, Time.DeltaTime);
+                m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, m_Time.DeltaTime);
                 break;
             }
             case SceneMode::Play:
             {
-                m_CurrentScene->OnRuntimeUpdate(m_ViewportDrawList, Time.DeltaTime);
+                m_CurrentScene->OnRuntimeUpdate(m_ViewportDrawList, m_Time.DeltaTime);
                 break;
             }
         }
@@ -531,8 +531,8 @@ namespace Turbo::Ed {
 
         ImGui::Begin("Statistics & Renderer");
         ImGui::Text("Hovered entity: %s", m_HoveredEntity ? m_HoveredEntity.GetName().c_str() : "");
-        ImGui::Text("Timestep: %.5f ms", Time.DeltaTime.ms());
-        ImGui::Text("StartTime: %.5f ms", Time.TimeSinceStart.ms());
+        ImGui::Text("Timestep: %.5f ms", m_Time.DeltaTime.ms());
+        ImGui::Text("StartTime: %.5f ms", m_Time.TimeSinceStart.ms());
         ImGui::Separator();
 
         // TODO: Better statistics

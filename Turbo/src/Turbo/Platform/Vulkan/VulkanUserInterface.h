@@ -22,7 +22,6 @@ namespace Turbo
     private:
         // ImGui vulkan objects
         VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
-        VkRenderPass m_RenderPass = VK_NULL_HANDLE;
         Fly<VkCommandBuffer> m_SecondaryBuffers;
     };
 }

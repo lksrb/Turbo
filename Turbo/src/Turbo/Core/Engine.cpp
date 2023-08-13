@@ -19,24 +19,29 @@
 namespace Turbo {
 
     Engine::Engine(ApplicationCreateCallback callback)
-        : m_ApplicationCreateCallback(callback)
     {
-        Log::Initialize();
+        // Initialize logging before anything else
+        Log::Init();
+
+        TBO_ENGINE_ASSERT(!m_Initialized, "Engine is already initialized!");
+        s_Instance = this;
+
+        Initialize(callback);
     }
 
     Engine::~Engine()
     {
         Shutdown();
 
+        s_Instance = nullptr;
+        
         Log::Shutdown();
     }
 
-    void Engine::Initialize()
+    void Engine::Initialize(ApplicationCreateCallback callback)
     {
-        TBO_ENGINE_ASSERT(m_Initialized == false);
-
         // Call client function
-        m_Application = m_ApplicationCreateCallback();
+        m_Application = callback();
 
         // Initialize render context (VulkanContext)
         RendererContext::Init();
@@ -50,7 +55,7 @@ namespace Turbo {
         config.StartMaximized = m_Application->m_Config.StartMaximized;
         config.Resizable = m_Application->m_Config.Resizable;
 
-        // TODO: If UI is disabled, change render target to swapchain framebuffers i.e. render into the window instead of the UI
+        // TODO: If UI is disabled, change render target to swapchain framebuffers, TLDR; Render into the window instead of the UI
         config.SwapChainTarget = !m_Application->m_Config.EnableUI;
 
         m_ViewportWindow = Window::Create(config);
@@ -71,6 +76,7 @@ namespace Turbo {
         // Initialize physics engine
         Physics::Init();
 
+        // If desired, initialize also imgui 
         if (m_Application->m_Config.EnableUI)
             m_UserInterface = UserInterface::Create();
 
@@ -119,8 +125,8 @@ namespace Turbo {
         while (m_Running)
         {
             f32 currentFrame = Platform::GetTime();
-            m_Application->Time.DeltaTime = currentFrame - lastFrame;
-            m_Application->Time.TimeSinceStart += m_Application->Time.DeltaTime;
+            m_Application->m_Time.DeltaTime = currentFrame - lastFrame;
+            m_Application->m_Time.TimeSinceStart += m_Application->m_Time.DeltaTime;
             lastFrame = currentFrame;
 
             m_ViewportWindow->ProcessEvents();
@@ -150,7 +156,7 @@ namespace Turbo {
             }
         }
 
-        // On Exit
+        // On shutdown
         m_Application->OnShutdown();
     }
 

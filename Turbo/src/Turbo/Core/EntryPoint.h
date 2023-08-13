@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
     {
-        Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
+        Turbo::Engine* engine = new Turbo::Engine(Turbo::CreateApplication);
         engine->Run();
         delete engine;
     }

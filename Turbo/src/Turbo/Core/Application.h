@@ -34,7 +34,7 @@ namespace Turbo {
         virtual void OnEvent(Event& event) {};
         virtual void OnDrawUI() {}
     protected:
-        Turbo::Time Time;
+        Time m_Time;
 
         Application::Config m_Config;
 

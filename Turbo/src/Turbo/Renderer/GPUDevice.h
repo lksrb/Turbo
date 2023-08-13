@@ -11,8 +11,6 @@
 
 namespace Turbo
 {
-    using ThreadID = unsigned int; // Corresponds to 
-
     struct QueueFamilyIndices
     {
         std::optional<uint32_t> GraphicsFamily;
@@ -36,8 +34,8 @@ namespace Turbo
     class GPUDevice
     {
     public:
-        GPUDevice();
-        ~GPUDevice();
+        GPUDevice() = default;
+        ~GPUDevice() = default;
 
         void Initialize();
         void Shutdown();
@@ -71,6 +69,6 @@ namespace Turbo
         VkQueue m_PresentQueue = VK_NULL_HANDLE;
 
         QueueFamilyIndices m_QueueFamilyIndices;
-        SwapchainSupportDetails m_SupportDetails;
+        SwapchainSupportDetails m_SupportDetails = {};
     };
 }

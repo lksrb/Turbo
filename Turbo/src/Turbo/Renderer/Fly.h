@@ -19,7 +19,7 @@ namespace Turbo
         u32 Size() const { return m_Size; }
         constexpr T* Data() { return m_Data.data(); }
         constexpr const T* Data() const { return m_Data; }
-        constexpr bool Empty() const { /* Maybe a hack */ return (size_t)m_Data[0] == 0; }
+        constexpr bool Empty() const { /* Maybe a hack */ return (u64)m_Data[0] == 0; }
 
         constexpr T& operator[](u32 index) { TBO_ENGINE_ASSERT(index < m_Size); return m_Data[index]; }
         constexpr const T& operator[](u32 index) const { TBO_ENGINE_ASSERT(index < m_Size); return m_Data[index]; }

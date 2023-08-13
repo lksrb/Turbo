@@ -6,14 +6,6 @@
 
 namespace Turbo {
 
-    GPUDevice::GPUDevice()
-    {
-    }
-
-    GPUDevice::~GPUDevice()
-    {
-    }
-
     void GPUDevice::Initialize()
     {
         CreatePhysicalDevice();
@@ -73,7 +65,7 @@ namespace Turbo {
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
-        int i = 0;
+        i32 i = 0;
         for (const auto& queueFamily : queueFamilies)
         {
             if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -129,7 +121,7 @@ namespace Turbo {
             TBO_VK_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, surface, &presentModeCount, presentModes.data()));
         }
 
-        VkPhysicalDeviceProperties properties{};
+        VkPhysicalDeviceProperties properties = {};
         vkGetPhysicalDeviceProperties(m_PhysicalDevice, &properties);
         m_SupportDetails.Properties = properties;
 
@@ -189,18 +181,18 @@ namespace Turbo {
             queueCreateInfos.push_back(queueCreateInfo);
         }
 
-        std::vector<const char*> extensions{
+        std::vector<const char*> extensions {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_EXT_ROBUSTNESS_2_EXTENSION_NAME,
             VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME
         };
-        VkPhysicalDeviceFeatures deviceFeatures{};
+        VkPhysicalDeviceFeatures deviceFeatures = {};
         deviceFeatures.robustBufferAccess = VK_TRUE;
         deviceFeatures.wideLines = VK_TRUE;
         deviceFeatures.fillModeNonSolid = VK_TRUE;
         deviceFeatures.independentBlend = VK_TRUE;
 
-        VkPhysicalDeviceRobustness2FeaturesEXT robustnessFeature2{};
+        VkPhysicalDeviceRobustness2FeaturesEXT robustnessFeature2 = {};
         robustnessFeature2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
         robustnessFeature2.robustBufferAccess2 = VK_TRUE;
         robustnessFeature2.robustImageAccess2 = VK_FALSE;
@@ -215,13 +207,13 @@ namespace Turbo {
             // Manage device
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        createInfo.queueCreateInfoCount = static_cast<u32>(queueCreateInfos.size());
         createInfo.pQueueCreateInfos = queueCreateInfos.data();
         createInfo.pEnabledFeatures = nullptr;
         createInfo.pNext = &deviceFeatures2;
         createInfo.enabledLayerCount = 0;
 
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+        createInfo.enabledExtensionCount = static_cast<u32>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
         // Validation layers used for debugging Vulkan

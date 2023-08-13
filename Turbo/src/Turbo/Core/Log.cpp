@@ -10,7 +10,7 @@
 
 namespace Turbo 
 {
-    void Log::Initialize()
+    void Log::Init()
     {
         if (s_Initialized)
             return;

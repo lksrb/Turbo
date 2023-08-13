@@ -19,13 +19,7 @@ namespace Turbo {
     class Engine
     {
     public:
-        static Turbo::Engine* Create(ApplicationCreateCallback callback)
-        {
-            TBO_ENGINE_ASSERT(!s_Instance, "Engine already running!");
-            s_Instance = new Turbo::Engine(callback);
-            s_Instance->Initialize();
-            return s_Instance;
-        }
+        Engine(ApplicationCreateCallback callback);
         ~Engine();
 
         Engine(const Engine& other) = delete;
@@ -54,9 +48,7 @@ namespace Turbo {
 
         Application* GetApplication() const { return m_Application; }
     private:
-        Engine(ApplicationCreateCallback callback);
-
-        void Initialize();
+        void Initialize(ApplicationCreateCallback callback);
         void Shutdown();
 
         void OnEvent(Event& event);
@@ -76,7 +68,6 @@ namespace Turbo {
 
         // User
         Application* m_Application = nullptr;
-        ApplicationCreateCallback m_ApplicationCreateCallback;
 
         Window* m_ViewportWindow = nullptr;
     private:

@@ -19,7 +19,7 @@ namespace Turbo
             Fatal
         };
 
-        static void Initialize();
+        static void Init();
         static void Shutdown();
 
         static inline std::shared_ptr<spdlog::logger>& GetEngineLogger() { return s_EngineLogger; }

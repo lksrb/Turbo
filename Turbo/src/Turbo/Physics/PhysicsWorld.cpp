@@ -94,7 +94,8 @@ namespace Turbo {
                     ShapeRefC boxShape = boxShapeSettings.Create().Get();
 
                     bodySettings = BodyCreationSettings(boxShape,
-                        RVec3(translation.x, translation.y, translation.z), Quat::sEulerAngles(Vec3(rotation.x, rotation.y, rotation.z)), motionType, layer);
+                        RVec3(translation.x, translation.y, translation.z),
+                        Quat::sEulerAngles(Vec3(rotation.x, rotation.y, rotation.z)), motionType, layer);
                 }
                 else if (entity.HasComponent<SphereColliderComponent>())
                 {
