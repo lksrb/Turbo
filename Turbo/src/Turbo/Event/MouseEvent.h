@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Turbo/core/MouseCodes.h"
-#include "Turbo/event/event.h"
+#include "Turbo/Core/MouseCodes.h"
+#include "Turbo/Event/Event.h"
 
 namespace Turbo
 {

@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
+    Turbo::Engine* engine = new Turbo::Engine(Turbo::CreateApplication);
     engine->Run();
     delete engine;
 
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    Turbo::Engine* engine = Turbo::Engine::Create(Turbo::CreateApplication);
+    Turbo::Engine* engine = new Turbo::Engine(Turbo::CreateApplication);
     engine->Run();
     delete engine;
 

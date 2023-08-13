@@ -684,7 +684,7 @@ namespace Turbo
         out << YAML::EndMap; // Entity
     }
 
-    void SceneSerializer::DeserializeEntity(YAML::Node& entity, Entity deserializedEntity, bool overwriteTranslation)
+    void SceneSerializer::DeserializeEntity(const YAML::Node& entity, Entity deserializedEntity, bool overwriteTranslation)
     {
         u64 uuid = deserializedEntity.GetUUID();
 
@@ -727,7 +727,7 @@ namespace Turbo
         {
             auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
-            auto& cameraProps = cameraComponent["Camera"];
+            const auto& cameraProps = cameraComponent["Camera"];
             cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<i32>());
 
             cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<f32>());

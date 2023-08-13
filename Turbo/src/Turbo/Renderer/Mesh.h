@@ -6,6 +6,7 @@
 #include "Turbo/Asset/Asset.h"
 
 #include <string>
+#include <glm/glm.hpp>
 
 struct aiNode;
 struct aiScene;

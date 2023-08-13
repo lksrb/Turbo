@@ -5,6 +5,8 @@
 #include "Turbo/Asset/AssetRegistryBase.h"
 #include "Turbo/Asset/EditorAssetRegistry.h"
 
+#include <filesystem>
+
 namespace Turbo {
 
     class Project : public RefCounted
@@ -16,7 +18,7 @@ namespace Turbo {
             std::filesystem::path AssetsDirectory;
             std::filesystem::path ScriptModulePath;
             std::filesystem::path StartScenePath;
-            bool OpenSolutionOnStart = true;
+            bool OpenSolutionOnStart;
 
             // Not serialized
             std::filesystem::path ProjectDirectory;
@@ -60,7 +62,7 @@ namespace Turbo {
         static std::filesystem::path GetProjectConfigPath()
         {
             TBO_ENGINE_ASSERT(s_ActiveProject);
-            std::filesystem::path& configFile = Project::GetProjectDirectory() / s_ActiveProject->GetProjectName();
+            std::filesystem::path configFile = Project::GetProjectDirectory() / s_ActiveProject->GetProjectName();
             configFile.concat(".tproject");
             return configFile;
         }

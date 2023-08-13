@@ -75,7 +75,7 @@ namespace Turbo
 
     IXAudio2SourceVoice* XAudio2AudioBackend::TryFindSourceWithUUID(UUID uuid)
     {
-        auto& it = m_AudioData.find(uuid);
+        auto it = m_AudioData.find(uuid);
 
         if (it == m_AudioData.end())
             return nullptr;
@@ -214,7 +214,7 @@ namespace Turbo
 
     void XAudio2AudioBackend::UnRegister(UUID uuid)
     {
-        auto& it = m_AudioData.find(uuid);
+        auto it = m_AudioData.find(uuid);
 
         if (it == m_AudioData.end())
         {

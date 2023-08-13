@@ -107,8 +107,6 @@ namespace Turbo
 
     void VulkanTexture2D::SetData(const void* pixels)
     {
-        VkDevice device = RendererContext::GetDevice();
-
         RendererBuffer::Config config = {};
         config.Size = m_Config.Width * m_Config.Height * Vulkan::BytesPerPixelFromFormat(m_Config.Format);
         config.UsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;

@@ -189,7 +189,7 @@ namespace Turbo
     bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
     {
         const auto& fields = m_ScriptClass->GetFields();
-        auto& it = fields.find(name);
+        auto it = fields.find(name);
         if (it == fields.end())
             return false;
 
@@ -202,7 +202,7 @@ namespace Turbo
     bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
     {
         const auto& fields = m_ScriptClass->GetFields();
-        auto& it = fields.find(name);
+        auto it = fields.find(name);
         if (it == fields.end())
             return false;
 

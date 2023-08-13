@@ -176,7 +176,7 @@ namespace Turbo {
             auto audioSources = m_Registry.group<AudioSourceComponent>(entt::get<IDComponent>);
             for (auto& e : audioSources)
             {
-                auto& [id, audioSource] = audioSources.get<IDComponent, AudioSourceComponent>(e);
+                const auto& [id, audioSource] = audioSources.get<IDComponent, AudioSourceComponent>(e);
 
                 if (audioSource.PlayOnAwake)
                 {
@@ -343,9 +343,9 @@ namespace Turbo {
         newScene->m_ViewportX = other->m_ViewportX;
         newScene->m_ViewportY = other->m_ViewportY;
 
-        auto& view = other->m_Registry.view<IDComponent>();
+        auto view = other->m_Registry.view<IDComponent>();
 
-        for (auto& it = view.rbegin(); it != view.rend(); ++it)
+        for (auto it = view.rbegin(); it != view.rend(); ++it)
         {
             const auto& id = other->m_Registry.get<IDComponent>(*it).ID;
             const auto& name = other->m_Registry.get<TagComponent>(*it).Tag;
@@ -511,7 +511,7 @@ namespace Turbo {
 
     Entity Scene::FindEntityByUUID(UUID uuid)
     {
-        auto& it = m_EntityIDMap.find(uuid);
+        auto it = m_EntityIDMap.find(uuid);
 
         if (it != m_EntityIDMap.end())
             return Entity{ m_EntityIDMap.at(uuid), this };
@@ -521,7 +521,7 @@ namespace Turbo {
 
     UUID Scene::FindUUIDByEntity(entt::entity entity)
     {
-        auto& it = m_UUIDMap.find(entity);
+        auto it = m_UUIDMap.find(entity);
 
         if (it != m_UUIDMap.end())
             return m_UUIDMap.at(entity);

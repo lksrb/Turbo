@@ -63,7 +63,7 @@ namespace Turbo {
             auto group = m_Scene->GetAllEntitiesWith<RigidbodyComponent, TransformComponent>();
             for (auto e : group)
             {
-                auto& [rb, transform] = group.get<RigidbodyComponent, TransformComponent>(e);
+                const auto& [rb, transform] = group.get<RigidbodyComponent, TransformComponent>(e);
                 Entity entity = { e, m_Scene.Get() };
                 //glm::mat4 transform = m_Scene->GetWorldSpaceTransformMatrix({ e, m_Scene });
 
@@ -182,7 +182,7 @@ namespace Turbo {
             auto group = m_Scene->GroupAllEntitiesWith<BoxColliderComponent, RigidbodyComponent, TransformComponent>();
             for (auto e : group)
             {
-                auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
+                const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
                 auto pos = bodyInterface.GetPosition(JPH::BodyID(rb.RuntimeBodyHandle));
                 auto rotation = bodyInterface.GetRotation(JPH::BodyID(rb.RuntimeBodyHandle)).GetEulerAngles();
 
@@ -196,7 +196,7 @@ namespace Turbo {
             auto group = m_Scene->GroupAllEntitiesWith<SphereColliderComponent, RigidbodyComponent, TransformComponent>();
             for (auto e : group)
             {
-                auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
+                const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
                 auto pos = bodyInterface.GetPosition(JPH::BodyID(rb.RuntimeBodyHandle));
                 auto rotation = bodyInterface.GetRotation(JPH::BodyID(rb.RuntimeBodyHandle)).GetEulerAngles();
 
@@ -210,7 +210,7 @@ namespace Turbo {
             auto group = m_Scene->GroupAllEntitiesWith<CapsuleColliderComponent, RigidbodyComponent, TransformComponent>();
             for (auto e : group)
             {
-                auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
+                const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
                 auto pos = bodyInterface.GetPosition(JPH::BodyID(rb.RuntimeBodyHandle));
                 auto rotation = bodyInterface.GetRotation(JPH::BodyID(rb.RuntimeBodyHandle)).GetEulerAngles();
 

@@ -187,7 +187,7 @@ namespace Turbo {
         STARTUPINFO si = {};
         si.cb = sizeof(si);
 
-        auto& wCurrentPath = currentPath.wstring();
+        std::wstring wCurrentPath = currentPath.wstring();
         LPWSTR currentDirectory = currentPath.empty() ? NULL : wCurrentPath.data();
 
         PROCESS_INFORMATION pi = {};

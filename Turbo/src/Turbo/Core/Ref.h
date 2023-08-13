@@ -207,7 +207,7 @@ namespace Turbo {
             m_Instance = instance;
         }
 
-        bool IsValid() const { m_Instance ? return RefUtils::IsAlive(m_Instance) : false; }
+        bool IsValid() const { return m_Instance ? RefUtils::IsAlive(m_Instance) : false; }
         operator bool() const { return IsValid(); }
 
         T* operator->() { return m_Instance; }

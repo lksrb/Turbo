@@ -790,7 +790,7 @@ namespace Turbo::Ed {
             return;
 
         std::string sceneName = m_EditorScenePath.stem().string();
-        std::string title = fmt::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), sceneName);
+        std::string title = std::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), sceneName);
         Engine::Get().GetViewportWindow()->SetTitle(title.data());
     }
 
@@ -812,7 +812,7 @@ namespace Turbo::Ed {
         SaveScene();
 
         // Save project
-        auto& project = Project::GetActive();
+        auto project = Project::GetActive();
         ProjectSerializer serializer(project);
         TBO_VERIFY(serializer.Serialize(Project::GetProjectConfigPath()), "[Save Project] Successfully serialized project!");
     }

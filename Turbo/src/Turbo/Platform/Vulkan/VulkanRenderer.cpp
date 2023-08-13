@@ -37,7 +37,7 @@ namespace Turbo {
             // Retrieve or create shader map
             auto& shaderMap = s_CachedWriteDescriptorSets[shader.Get()];
 
-            auto& it = shaderMap.find(uniformBuffer.Get());
+            const auto& it = shaderMap.find(uniformBuffer.Get());
             if (it == shaderMap.end())
             {
                 auto& info = shaderMap[uniformBuffer.Get()] = {};

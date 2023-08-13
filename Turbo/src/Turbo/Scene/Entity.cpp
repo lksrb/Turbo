@@ -55,7 +55,7 @@ namespace Turbo
     void Entity::RemoveChild(Entity childEntity)
     {
         auto& children = GetChildren();
-        auto& it = std::find(children.begin(), children.end(), childEntity.GetUUID());
+        auto it = std::find(children.begin(), children.end(), childEntity.GetUUID());
         children.erase(it);
     }
 

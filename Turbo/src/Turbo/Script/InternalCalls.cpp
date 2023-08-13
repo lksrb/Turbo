@@ -22,7 +22,7 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 
-#define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, name);
+#define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, (const void*)name);
 
 namespace Turbo {
 
@@ -1043,7 +1043,7 @@ namespace Turbo {
     static void Component_Rigidbody_Get_LinearVelocity(UUID uuid, glm::vec3* velocity)
     {
         Entity entity = GetEntity(uuid);
-        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
 
         auto context = Script::GetCurrentScene();
 
@@ -1059,7 +1059,7 @@ namespace Turbo {
 
         auto scene = Script::GetCurrentScene();
 
-        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
 	    auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
         bodyInterface.SetLinearVelocity(bodyId, JPH::Vec3(velocity->x, velocity->y, velocity->z));
     }
@@ -1073,7 +1073,7 @@ namespace Turbo {
 
         glm::vec3 oldRotation = entity.Transform().Rotation;
 
-        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
         auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
         JPH::Vec3 jphRotation = { oldRotation.x + rotation->x, oldRotation.y + rotation->y, oldRotation.z + rotation->z };
         bodyInterface.SetRotation(bodyId, JPH::Quat::sEulerAngles(jphRotation), JPH::EActivation::Activate);
@@ -1088,7 +1088,7 @@ namespace Turbo {
 
         auto scene = Script::GetCurrentScene();
 
-        auto& bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
         auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
         
         if (forceMode == ForceMode::Force)
@@ -1243,7 +1243,7 @@ namespace Turbo {
             std::string_view typeName = typeid(Component).name();
             size_t pos = typeName.find_last_of(':');
             std::string_view structName = typeName.substr(pos + 1);
-            std::string managedTypename = fmt::format("Turbo.{}", structName);
+            std::string managedTypename = std::format("Turbo.{}", structName);
 
             MonoType* type = mono_reflection_type_from_name(managedTypename.data(), Script::GetCoreAssemblyImage());
             if (!type)

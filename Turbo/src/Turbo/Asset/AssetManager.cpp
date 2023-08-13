@@ -190,7 +190,7 @@ namespace Turbo {
             return {};
 
         auto entities = data["Entities"];
-        auto& it = entities.begin();
+        auto it = entities.begin();
 
         // Parent entity
         Entity parent = scene->CreateEntity();

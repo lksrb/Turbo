@@ -2,9 +2,15 @@
 
 #include "AssetRegistryBase.h"
 
+#include "Turbo/Renderer/Texture.h"
+#include "Turbo/Renderer/Mesh.h"
+
+#include <unordered_map>
+
 namespace Turbo {
 
-    class EditorAssetRegistry : public AssetRegistryBase {
+    class EditorAssetRegistry : public AssetRegistryBase
+    {
     public:
         EditorAssetRegistry();
         ~EditorAssetRegistry();
@@ -14,6 +20,7 @@ namespace Turbo {
         Ref<T> RecreateAsset(AssetHandle handle, Args&&... args)
         {
             static_assert(std::is_base_of<Asset, T>::value, "Class must be derived from \"Asset\" base class!");
+            static_assert(std::is_base_of<Asset, Texture2D>::value, "Unknown asset type!");
 
             if (!IsAssetLoaded(handle))
                 return nullptr;
@@ -33,21 +40,17 @@ namespace Turbo {
             m_LoadedAssets[handle] = asset;
             return asset;
         }
-
         template<typename T, typename... Args>
         Ref<T> CreateAsset(const std::filesystem::path& path, Args... args)
         {
             static_assert(std::is_base_of<Asset, T>::value, "Class must be derived from \"Asset\" base class!");
-            
+            static_assert(std::is_base_of<Asset, StaticMesh>::value, "Unknown asset type!");
+
             Ref<Asset> asset;
             if constexpr (std::is_same_v<StaticMesh, T>)
             {
                 auto sourceAsset = GetAsset(args...);
                 asset = Ref<StaticMesh>::Create(sourceAsset);
-            }
-            else
-            {
-                static_assert(false, "Unknown asset type!");
             }
 
             AssetMetadata metadata = CreateMetadata(path);

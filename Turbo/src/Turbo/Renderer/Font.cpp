@@ -23,7 +23,7 @@ namespace Turbo
 
     static bool TryReadFontAtlasFromCache(const std::string& fontName, f32 fontSize, AtlasHeader& header, void*& pixels, Buffer& storageBuffer)
     {
-        std::string filename = fmt::format("{0}-{1}.tfa", fontName, fontSize);
+        std::string filename = std::format("{0}-{1}.tfa", fontName, fontSize);
         std::filesystem::path filepath = s_CacheDirectory / filename;
 
         if (std::filesystem::exists(filepath))
@@ -55,7 +55,7 @@ namespace Turbo
         if (!std::filesystem::exists(s_CacheDirectory))
             std::filesystem::create_directories(s_CacheDirectory);
 
-        std::string filename = fmt::format("{0}-{1}.tfa", fontName, fontSize);
+        std::string filename = std::format("{0}-{1}.tfa", fontName, fontSize);
         std::filesystem::path filepath = cacheDirectory / filename;
 
         std::ofstream stream(filepath, std::ios::binary | std::ios::trunc);

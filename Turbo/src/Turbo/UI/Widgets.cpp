@@ -174,7 +174,7 @@ namespace Turbo::UI {
         {
             static std::string s_AssetName;
             constexpr f32 offset = 2.926f;
-            bool pathExists = FileSystem::Exists(Project::GetAssetsPath() / fmt::format("Meshes/{}.tmesh", s_AssetName));
+            bool pathExists = FileSystem::Exists(Project::GetAssetsPath() / std::format("Meshes/{}.tmesh", s_AssetName));
             ImGui::Text("Name: ");
             ImGui::SameLine();
             // This will stop SetKeyboardFocusHere from grabbing focus from other items

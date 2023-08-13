@@ -18,9 +18,6 @@
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-#include <windows.h>
-#include <Shlwapi.h>
-
 #pragma region Defines
 
 #define TBO_TYPEFUNC(debug_name, TYPE, UI_FUNC, ...)        \
@@ -76,7 +73,7 @@ namespace Turbo {
     namespace Utils {
 
         template<typename T, typename UIFunction>
-        static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+        static void DrawComponent(const char* name, Entity entity, UIFunction uiFunction)
         {
             const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
             if (entity.HasComponent<T>())
@@ -91,7 +88,7 @@ namespace Turbo {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
                 float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
                 ImGui::Separator();
-                bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+                bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name);
                 ImGui::PopStyleVar();
                 ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
 
@@ -121,16 +118,16 @@ namespace Turbo {
                 }
             }
         }
-        static void DrawVec3Control(const std::string& label, glm::vec3* values, float resetValue = 0.0f, float columnWidth = 100.0f)
+        static void DrawVec3Control(const char* label, glm::vec3* values, float resetValue = 0.0f, float columnWidth = 100.0f)
         {
             ImGuiIO& io = ImGui::GetIO();
             auto boldFont = io.Fonts->Fonts[0];
 
-            ImGui::PushID(label.c_str());
+            ImGui::PushID(label);
 
             ImGui::Columns(2);
             ImGui::SetColumnWidth(0, columnWidth);
-            ImGui::Text(label.c_str());
+            ImGui::Text(label);
             ImGui::NextColumn();
 
             ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
@@ -789,10 +786,12 @@ namespace Turbo {
         Utils::DrawComponent<AudioSourceComponent>("Audio Source", entity, [&entity](auto& component)
         {
             static std::filesystem::path s_AudioSourcePath;
+            static std::string s_Filename;
 
             s_AudioSourcePath = component.AudioPath;
+            s_Filename = s_AudioSourcePath.filename().string();
 
-            ImGui::InputText("Audio Path", &s_AudioSourcePath.filename().string(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputText("Audio Path", &s_Filename, ImGuiInputTextFlags_ReadOnly);
             ImGui::SameLine();
 
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 2.0f);

@@ -26,7 +26,7 @@ namespace Turbo
 
     void VulkanMaterial::Set(const std::string& resourceName, const void* data, size_t size)
     {
-        auto& resource = m_UniformBufferMap.find(resourceName.c_str());
+        const auto& resource = m_UniformBufferMap.find(resourceName.c_str());
         TBO_ENGINE_ASSERT(resource != m_UniformBufferMap.end(), "Resource does not exists!");
 
         auto buffer = (*resource).second;
@@ -39,7 +39,7 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         // Find specific resource write descriptor
-        auto& resource = m_DescriptorWrites.find(resourceName.c_str());
+        const auto& resource = m_DescriptorWrites.find(resourceName.c_str());
         TBO_ENGINE_ASSERT(resource != m_DescriptorWrites.end()); // No such descriptor exists
 
         // Convert texture2D 
@@ -62,7 +62,7 @@ namespace Turbo
         VkDevice device = RendererContext::GetDevice();
 
         // Find specific resource write descriptor
-        auto& resource = m_DescriptorWrites.find(resourceName.c_str());
+        const auto& resource = m_DescriptorWrites.find(resourceName.c_str());
         TBO_ENGINE_ASSERT(resource != m_DescriptorWrites.end()); // No such descriptor exists
 
         auto vkTextureCube = texture.As<VulkanTextureCube>();

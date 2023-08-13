@@ -362,7 +362,7 @@ namespace Turbo
     void VulkanShader::ReflectStage(ShaderStage shaderStage)
     {
         spirv_cross::Compiler compiler(m_CompiledShaders[shaderStage]);
-        spirv_cross::ShaderResources& resources = compiler.get_shader_resources();
+        spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
         TBO_ENGINE_INFO("GLSLShader::Reflect - {0} {1}", Utils::ShaderTypeToString(shaderStage), m_Config.ShaderPath.c_str());
         TBO_ENGINE_TRACE("    {0} uniform buffer(s)", resources.uniform_buffers.size());

@@ -23,7 +23,7 @@ namespace Turbo
         bool Serialize(const std::filesystem::path& filepath);
     public:
         static void SerializeEntity(YAML::Emitter& out, Entity entity);
-        static void DeserializeEntity(YAML::Node& entity, Entity deserializedEntity, bool overwriteTranslation = true);
+        static void DeserializeEntity(const YAML::Node& entity, Entity deserializedEntity, bool overwriteTranslation = true);
     private:
         Ref<Scene> m_Scene;
     };

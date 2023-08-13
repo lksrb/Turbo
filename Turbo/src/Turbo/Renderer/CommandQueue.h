@@ -21,8 +21,6 @@ namespace Turbo
         template<typename F>
         void Submit(F&& func)
         {
-            auto size = sizeof(func);
-
             auto command = [](void* ptr)
             {
                 auto pFunc = (F*)ptr;

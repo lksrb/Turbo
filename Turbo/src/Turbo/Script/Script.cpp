@@ -49,7 +49,7 @@ namespace Turbo
             };
 
             MonoType* type = mono_field_get_type(field);
-            auto& it = s_ScriptFieldTypeMap.find(mono_type_get_name(type));
+            auto it = s_ScriptFieldTypeMap.find(mono_type_get_name(type));
 
             if (it != s_ScriptFieldTypeMap.end())
                 return it->second;
@@ -106,7 +106,7 @@ namespace Turbo
                     const char* namespace_name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
                     const char* class_name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
 
-                    const std::string& klass = fmt::format("{0}.{1}", namespace_name, class_name);
+                    const std::string& klass = std::format("{0}.{1}", namespace_name, class_name);
 
                     TBO_ENGINE_TRACE("[Mono-Reflect]: {0}", klass);
                 }
@@ -223,7 +223,7 @@ namespace Turbo
 
     void Script::CreateScriptInstance(Entity entity)
     {
-        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID uuid = id.ID;
 
         bool isValidClassName = ScriptClassExists(script.ClassName);
@@ -260,7 +260,7 @@ namespace Turbo
         // => Query the uuid from cached entities in scene
         UUID uuid = s_Data->SceneContext->FindUUIDByEntity(entity);
 
-        auto& it = s_Data->ScriptInstances.find(uuid);
+        auto it = s_Data->ScriptInstances.find(uuid);
         if (it != s_Data->ScriptInstances.end())
         {
             s_Data->ScriptInstances.erase(it);
@@ -272,7 +272,7 @@ namespace Turbo
 
     void Script::InvokeEntityOnCreate(Entity entity)
     {
-        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
 
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
 
@@ -287,7 +287,7 @@ namespace Turbo
 
     void Script::InvokeEntityOnUpdate(Entity entity)
     {
-        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
 
         if (!instance)
@@ -301,7 +301,7 @@ namespace Turbo
 
     void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor)
     {
-        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID otherUUID = other.GetUUID();
         bool isValidClassName = ScriptClassExists(script.ClassName);
 
@@ -317,7 +317,7 @@ namespace Turbo
 
     void Script::InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor)
     {
-        auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID otherUUID = other.GetUUID();
         bool isValidClassName = ScriptClassExists(script.ClassName);
 
@@ -381,7 +381,7 @@ namespace Turbo
 
                 // Use different formatting when dealing with namespace-less assemblies
                 if (strlen(nameSpace) != 0)
-                    fullName = fmt::format("{}.{}", nameSpace, className);
+                    fullName = std::format("{}.{}", nameSpace, className);
                 else
                     fullName = className;
 
@@ -441,7 +441,7 @@ namespace Turbo
             // Project assembly reloaded
             s_Data->AssemblyReloadPending = true;
 
-            Engine::Get().SubmitToMainThread([event, &path]()
+            Engine::Get().SubmitToMainThread([]()
             {
                 s_Data->ProjectPathWatcher.reset();
 
@@ -452,7 +452,7 @@ namespace Turbo
 
     bool Script::ScriptClassExists(const std::string& class_name)
     {
-        auto& it = s_Data->ScriptClasses.find(class_name);
+        auto it = s_Data->ScriptClasses.find(class_name);
 
         if (it == s_Data->ScriptClasses.end())
             return false;
@@ -487,10 +487,12 @@ namespace Turbo
         mono_thread_set_main(mono_thread_current());
     }
 
+    static char s_AppDomainName[11] = "TBORuntime";
+
     void Script::LoadCoreAssembly(const std::filesystem::path& path)
     {
         // Create App Domain
-        s_Data->AppDomain = mono_domain_create_appdomain("TBORuntime", nullptr);
+        s_Data->AppDomain = mono_domain_create_appdomain(s_AppDomainName, nullptr);
         mono_domain_set(s_Data->AppDomain, true);
 
         s_Data->CoreAssemblyPath = path;
@@ -599,7 +601,7 @@ namespace Turbo
         UUID sourceUUID = source.GetUUID();
         UUID destinationUUID = destination.GetUUID();
 
-        auto& it = s_Data->EntityScriptFieldInstances.find(sourceUUID);
+        auto it = s_Data->EntityScriptFieldInstances.find(sourceUUID);
 
         TBO_ENGINE_ASSERT(it != s_Data->EntityScriptFieldInstances.end());
 
@@ -639,7 +641,7 @@ namespace Turbo
 
     Ref<ScriptInstance> Script::FindEntityInstance(UUID uuid)
     {
-        auto& it = s_Data->ScriptInstances.find(uuid);
+        auto it = s_Data->ScriptInstances.find(uuid);
 
         if (it == s_Data->ScriptInstances.end())
             return nullptr;
@@ -652,7 +654,7 @@ namespace Turbo
         if constexpr (!s_EnableScriptEngine)
             return nullptr;
 
-        auto& it = s_Data->ScriptClasses.find(name);
+        auto it = s_Data->ScriptClasses.find(name);
 
         if (it == s_Data->ScriptClasses.end())
             return nullptr;
