@@ -99,8 +99,8 @@ Entities:
       LockRotationZ: false
     CapsuleColliderComponent:
       Offset: [0, 0, 0]
-      Radius: 1
-      Height: 2
+      Radius: 0.5
+      Height: 1
   - Entity: 5448459495743016983
     Parent: 0
     Children:
@@ -175,7 +175,7 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0.0769729614, 2.36270905, 0]
+      Translation: [0.0769729614, 2.6021452, 0]
       Rotation: [0, 0, 1.56319619e-13]
       Scale: [0.99999392, 1, 1]
     CameraComponent:
@@ -275,7 +275,7 @@ Entities:
     TagComponent:
       Tag: Player
     TransformComponent:
-      Translation: [-0.694027424, 10.053606, 0.773605108]
+      Translation: [0, 10.053606, 15.5781822]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     ScriptComponent:
@@ -294,6 +294,7 @@ Entities:
       LockRotationX: true
       LockRotationY: true
       LockRotationZ: true
-    BoxColliderComponent:
+    CapsuleColliderComponent:
       Offset: [0, 0, 0]
-      Size: [0.5, 4, 0.5]
+      Radius: 0.5
+      Height: 2

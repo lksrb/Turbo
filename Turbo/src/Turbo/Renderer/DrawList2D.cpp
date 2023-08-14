@@ -593,14 +593,8 @@ namespace Turbo
         m_Statistics.CircleCount++;
     }
 
-    void DrawList2D::AddDebugCircle(const glm::vec3& position, const glm::vec3& rotation, f32 radius, const glm::vec4& color, i32 entity)
+    void DrawList2D::AddDebugCircle(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-            * glm::rotate(glm::mat4(1.0f), rotation.x, { 1.0f, 0.0f, 0.0f })
-            * glm::rotate(glm::mat4(1.0f), rotation.y, { 0.0f, 1.0f, 0.0f })
-            * glm::rotate(glm::mat4(1.0f), rotation.z, { 0.0f, 0.0f, 1.0f })
-            * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
-
         i32 segments = 32;
         for (i32 i = 0; i < segments; i++)
         {

@@ -1059,21 +1059,25 @@ namespace Turbo::Ed {
                 m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(glm::radians(90.0f), 0.0f, 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
                 m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f, glm::radians(90.0f), 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
-
-#if 0
+#if 1
             // Capsule colliders
             auto capsuleColliders = m_CurrentScene->GetAllEntitiesWith<CapsuleColliderComponent>();
             for (auto entity : capsuleColliders)
             {
                 auto& cc = capsuleColliders.get<CapsuleColliderComponent>(entity);
                 TransformComponent transform = m_CurrentScene->GetWorldSpaceTransform({ entity, m_CurrentScene.Get() });
+                {
+                    glm::vec3 translation = transform.Translation /* + sc.Offset */;
+                    glm::mat4 rotation = glm::toMat4(glm::quat(transform.Rotation + glm::vec3(glm::pi<f32>() * 0.5f, 0.0f, 0.0f)));
+                    glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), translation)
+                        * rotation
+                        * glm::scale(glm::mat4(1.0f), glm::vec3(transform.Scale.x * cc.Radius + 0.003f));
 
-                glm::vec3 translation = transform.Translation /* + sc.Offset */;
+                    m_ViewportDrawList->AddDebugCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                }
 
-                // Facing forward, up, right
-                //m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(glm::radians(90.0f), 0.0f, 0.0f), transform.Scale.x * cc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-                //m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f, glm::radians(90.0f), 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                // TODO: Create elipse debug outline
+                //m_ViewportDrawList->AddDebugElipse(translation, );
             }
 #endif
         }

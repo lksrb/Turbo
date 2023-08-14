@@ -140,6 +140,7 @@ namespace Turbo {
                 bodySettings.mAllowedDOFs = allowedMovement;
                 bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
                 bodySettings.mMassPropertiesOverride.mMass = rb.Mass;
+                bodySettings.mGravityFactor = rb.GravityScale;
 
                 // Create body and add it the world
                 rb.RuntimeBodyHandle = bodyInterface.CreateAndAddBody(bodySettings, activate).GetIndexAndSequenceNumber();

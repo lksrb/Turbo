@@ -34,7 +34,6 @@ namespace Turbo {
                     dst.emplace_or_replace<Components>(dstEntity, srcComponent);
                 }
             }(), ...);
-
         }
 
         template<typename... Components>

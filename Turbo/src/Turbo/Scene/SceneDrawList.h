@@ -59,6 +59,7 @@ namespace Turbo {
         void AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity = -1);
         void AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
         void AddDebugCircle(const glm::vec3& position, const glm::vec3& rotation, f32 radius = 0.5f, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
+        void AddDebugCircle(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
         void AddRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
         void AddRect(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
 
