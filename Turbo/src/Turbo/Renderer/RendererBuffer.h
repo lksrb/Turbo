@@ -1,19 +1,19 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
+#include "Turbo/Core/PrimitiveTypes.h"
 
 namespace Turbo
 {
     enum BufferUsageFlags_ : u32
     {
-        BufferUsageFlags_Transfer_Dst = TBO_BIT(1)
+        BufferUsageFlags_Transfer_Dst = 1 << 1
     };
 
     enum MemoryPropertyFlags_ : u32
     {
-        MemoryPropertyFlags_HostVisible = TBO_BIT(1),
-        MemoryPropertyFlags_HostCoherent = TBO_BIT(2),
-        MemoryPropertyFlags_HostCached = TBO_BIT(3),
+        MemoryPropertyFlags_HostVisible = 1 << 1,
+        MemoryPropertyFlags_HostCoherent = 1 << 2,
+        MemoryPropertyFlags_HostCached = 1 << 3
 
     };
 
@@ -25,7 +25,7 @@ namespace Turbo
     public:
         struct Config
         {
-            size_t Size;
+            u64 Size;
             BufferUsageFlags UsageFlags;     // VkBufferUsageFlags
             MemoryPropertyFlags MemoryFlags;    // VkMemoryPropertyFlags
             bool Temporary;

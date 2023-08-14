@@ -3,6 +3,7 @@
 
 project "Turbo"
     kind "StaticLib"
+    language "C++"
     cppdialect "C++20"
 	staticruntime "off"
 	floatingpoint "Fast"

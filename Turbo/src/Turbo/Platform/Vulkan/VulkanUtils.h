@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
+#include "Turbo/Core/PrimitiveTypes.h"
 
-#include "Turbo/Renderer/RendererContext.h"
 #include "Turbo/Renderer/Image2D.h"
 
 #include <vulkan/vulkan.h>

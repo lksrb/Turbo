@@ -6,6 +6,7 @@ project "Turbo-Editor"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "off"
+	floatingpoint "Fast"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-obj/" .. outputdir .. "/%{prj.name}")

@@ -1,6 +1,8 @@
 #include "tbopch.h"
 #include "VulkanUtils.h"
 
+#include "Turbo/Renderer/RendererContext.h"
+
 namespace Turbo
 {
     u32 Vulkan::FindMemoryType(u32 type_filter, VkMemoryPropertyFlags properties)

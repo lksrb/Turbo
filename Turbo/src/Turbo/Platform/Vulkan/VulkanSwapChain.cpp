@@ -2,13 +2,13 @@
 
 #include "VulkanSwapChain.h"
 
+#include "VulkanImage2D.h"
+#include "VulkanUtils.h"
+
 #include "Turbo/Core/Engine.h"
 #include "Turbo/Core/Window.h"
 
 #include "Turbo/Renderer/GPUDevice.h"
-
-#include "Turbo/Platform/Vulkan/VulkanImage2D.h"
-#include "Turbo/Platform/Vulkan/VulkanUtils.h"
 
 namespace Turbo
 {

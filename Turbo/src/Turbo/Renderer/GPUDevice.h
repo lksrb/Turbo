@@ -13,8 +13,8 @@ namespace Turbo
 {
     struct QueueFamilyIndices
     {
-        std::optional<uint32_t> GraphicsFamily;
-        std::optional<uint32_t> PresentFamily;
+        std::optional<u32> GraphicsFamily;
+        std::optional<u32> PresentFamily;
 
         bool IsComplete()
         {

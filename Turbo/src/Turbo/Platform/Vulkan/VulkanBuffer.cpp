@@ -3,6 +3,10 @@
 
 #include "Turbo/Platform/Vulkan/VulkanUtils.h"
 
+#include "Turbo/Renderer/RendererContext.h"
+
+#include <vulkan/vulkan.h>
+
 namespace Turbo
 { 
     VulkanBuffer::VulkanBuffer(const RendererBuffer::Config& config)

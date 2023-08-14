@@ -6,17 +6,17 @@
 #include "Turbo/Core/Engine.h"
 
 #ifdef TBO_PLATFORM_WIN32
-    #include "Turbo/Platform/Win32/Win32_Window.h"
-    #define VK_USE_PLATFORM_WIN32_KHR
+#include "Turbo/Platform/Win32/Win32_Window.h"
+#define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
 #include <vulkan/vulkan.h>
 #include <vector>
 
-namespace Turbo
-{
-    namespace Utils
-    {
+namespace Turbo {
+
+    namespace Utils {
+
         static bool CheckValidationLayerSupport(const std::vector<const char*>& layers)
         {
             uint32_t layerCount;
@@ -60,8 +60,8 @@ namespace Turbo
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:    TBO_ENGINE_INFO("Validation layer: {0}", pCallbackData->pMessage); break;
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: TBO_ENGINE_WARN("Validation layer: {0}", pCallbackData->pMessage); break;
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:   TBO_ENGINE_ERROR("Validation layer: {0}", pCallbackData->pMessage); break;
-            //	default:
-                    //PG_CORE_ASSERT(false); // Invalid severity
+                //	default:
+                        //PG_CORE_ASSERT(false); // Invalid severity
         }
 
         return VK_FALSE;
@@ -143,7 +143,7 @@ namespace Turbo
     VkSurfaceKHR RendererContext::GetSurface()
     {
         TBO_ENGINE_ASSERT(s_RendererContext->Surface, "VkSurfaceKHR is nullptr! Call SetWindowContext first")
-        return s_RendererContext->Surface;
+            return s_RendererContext->Surface;
     }
 
     VkQueue RendererContext::GetPresentQueue()
@@ -234,7 +234,7 @@ namespace Turbo
     {
 #ifdef TBO_PLATFORM_WIN32
         Win32_Window* win32 = dynamic_cast<Win32_Window*>(Engine::Get().GetViewportWindow());
-        
+
         VkWin32SurfaceCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
         createInfo.hinstance = win32->GetInstance();

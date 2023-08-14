@@ -86,7 +86,7 @@ namespace Turbo {
                         bc.Offset.x + scale.x * bc.Size.x,
                         bc.Offset.y + scale.y * bc.Size.y,
                         bc.Offset.z + scale.z * bc.Size.z);
-
+                    
                     // Settings for the shape
                     JPH::BoxShapeSettings boxShapeSettings(boxColliderSize);
 
@@ -145,7 +145,7 @@ namespace Turbo {
                 rb.RuntimeBodyHandle = bodyInterface.CreateAndAddBody(bodySettings, activate).GetIndexAndSequenceNumber();
             }
         }
-
+        
         // Optimize first physics update 
         m_PhysicsSystem.OptimizeBroadPhase();
     }

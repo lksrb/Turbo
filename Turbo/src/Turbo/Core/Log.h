@@ -34,18 +34,6 @@ namespace Turbo
     };
 }
 
-template<typename OStream>
-OStream& operator<<(OStream& os, const glm::vec3& vec)
-{
-    return os << '[' << vec.x << ", " << vec.y << ", " << vec.z << ']';
-}
-
-template<typename OStream>
-OStream& operator<<(OStream& os, const glm::vec4& vec)
-{
-    return os << '[' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ']';
-}
-
 #ifdef TBO_DEBUG
     //Client log macros
     #define TBO_TRACE(...)          ::Turbo::Log::GetClientLogger()->trace(__VA_ARGS__)

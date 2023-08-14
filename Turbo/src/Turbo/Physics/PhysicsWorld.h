@@ -8,6 +8,8 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
+#include <array>
+
 namespace Turbo {
 
     namespace Layers {

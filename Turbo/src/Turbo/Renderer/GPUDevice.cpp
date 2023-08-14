@@ -130,7 +130,7 @@ namespace Turbo {
         m_SupportDetails.Capabilities = capabilities;
         
         TBO_ENGINE_ASSERT(properties.limits.maxPushConstantsSize >= 64, "Turbo Engine require 64 bytes minimum for push constants!");
-#undef min
+
         TBO_ENGINE_ASSERT(capabilities.minImageCount > 0);
         m_SupportDetails.MinImageCount = std::min(capabilities.minImageCount, capabilities.maxImageCount);
     }
@@ -147,6 +147,7 @@ namespace Turbo {
 
         return availableFormats[0];
     }
+
     VkPresentModeKHR GPUDevice::ChooseSwapchainPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
     {
         for (const auto& availablePresentMode : availablePresentModes)
