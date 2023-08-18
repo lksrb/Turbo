@@ -48,7 +48,7 @@ namespace Sandbox
 			Vector3 transform = m_Player.Transform.Translation + m_DistanceFromPlayer;
 			transform.Y = Transform.Translation.Y;
 
-			Transform.Translation = Mathf.Lerp(Transform.Translation, transform, Frame.TimeStep * 5.0f);
+			Transform.Translation = Vector3.Lerp(Transform.Translation, transform, Frame.TimeStep * 5.0f);
 		}
 	}
 }

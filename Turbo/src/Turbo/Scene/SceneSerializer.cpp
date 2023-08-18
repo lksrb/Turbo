@@ -634,6 +634,7 @@ namespace Turbo
             out << YAML::Key << "BodyType" << YAML::Value << s_StringifiedBodyTypes[(u32)rbComponent.Type];
             out << YAML::Key << "GravityScale" << YAML::Value << rbComponent.GravityScale;
             out << YAML::Key << "Mass" << YAML::Value << rbComponent.Mass;
+            out << YAML::Key << "IsTrigger" << YAML::Value << rbComponent.IsTrigger;
             out << YAML::Key << "LockTranslationX" << rbComponent.LockTranslationX;
             out << YAML::Key << "LockTranslationY" << rbComponent.LockTranslationY;
             out << YAML::Key << "LockTranslationZ" << rbComponent.LockTranslationZ;
@@ -945,6 +946,7 @@ namespace Turbo
             rb.Type = RigidBodyBodyTypeFromString(rigidbodyComponent["BodyType"].as<std::string>());
             rb.GravityScale = rigidbodyComponent["GravityScale"].as<f32>();
             rb.Mass = rigidbodyComponent["Mass"].as<f32>();
+            rb.IsTrigger = rigidbodyComponent["IsTrigger"].as<bool>();
             rb.LockTranslationX = rigidbodyComponent["LockTranslationX"].as<bool>();
             rb.LockTranslationY = rigidbodyComponent["LockTranslationY"].as<bool>();
             rb.LockTranslationZ = rigidbodyComponent["LockTranslationZ"].as<bool>();

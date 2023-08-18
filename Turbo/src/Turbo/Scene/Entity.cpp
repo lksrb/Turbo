@@ -1,8 +1,8 @@
 #include "tbopch.h"
 #include "Entity.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     Entity::Entity(const Entity& other)
         : m_Handle(other.m_Handle), m_Scene(other.m_Scene)
     {
@@ -19,27 +19,29 @@ namespace Turbo
     {
     }
 
-
     void Entity::SetParent(Entity newParent)
     {
+        if (!newParent)
+            return;
+
         Entity currentParent = GetParent();
 
         if (newParent == currentParent)
             return;
 
         // Unparent from current parent
-        if (currentParent)
-            currentParent.RemoveChild(*this);
+        UnParent();
 
         // Inform child entity that his parent has changed
         SetParentUUID(newParent.GetUUID());
 
-        if (newParent)
+        auto& children = newParent.GetChildren();
+        if (std::find(children.begin(), children.end(), GetUUID()) == children.end())
         {
-            auto& children = newParent.GetChildren();
-            if (std::find(children.begin(), children.end(), GetUUID()) == children.end())
-                children.emplace_back(GetUUID());
+            children.emplace_back(GetUUID());
+            m_Scene->ConvertToLocalSpace(*this); // This might be a problem with nested hierarchy
         }
+
     }
 
     void Entity::UnParent()
@@ -47,6 +49,8 @@ namespace Turbo
         Entity parent = GetParent();
         if (!parent)
             return;
+
+        m_Scene->ConvertToWorldSpace(*this);
 
         parent.RemoveChild(*this);
         SetParentUUID(0);

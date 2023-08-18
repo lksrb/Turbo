@@ -1029,7 +1029,6 @@ namespace Turbo {
                 if (childEntity)
                 {
                     childEntity.SetParent(entity);
-                    m_Context->ConvertToLocalSpace(childEntity); // This might be a problem with nested hierarchy
                 }
             }
 
@@ -1055,11 +1054,10 @@ namespace Turbo {
                 entityDestroyed = true;
 
             Entity parent = entity.GetParent();
-            if (parent && ImGui::MenuItem("Unparent Entity"))
+            if (parent && ImGui::MenuItem("UnParent Entity"))
             {
                 //GetParent(nullptr); FIXME: Why does scene hierarchy panel includes WinUser.h ???
 
-                m_Context->ConvertToWorldSpace(entity);
                 entity.UnParent();
             }
 

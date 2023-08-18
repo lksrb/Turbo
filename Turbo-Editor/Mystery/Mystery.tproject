@@ -1,0 +1,5 @@
+Project: Mystery
+AssetsDirectory: Assets
+StartScene: Scenes\StartScene.tscene
+ScriptModulePath: Binaries\Mystery.dll
+OpenSolutionOnStart: false

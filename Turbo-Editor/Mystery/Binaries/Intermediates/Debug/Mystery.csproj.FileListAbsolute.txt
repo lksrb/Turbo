@@ -1,0 +1,14 @@
+C:\dev\TurboProjects\Mystery\Binaries\Intermediates\Debug\Mystery.csproj.AssemblyReference.cache
+C:\dev\TurboProjects\Mystery\Binaries\Intermediates\Debug\Mystery.csproj.CoreCompileInputs.cache
+C:\dev\TurboProjects\Mystery\Binaries\Intermediates\Debug\Mystery.csproj.CopyComplete
+C:\dev\TurboProjects\Mystery\Binaries\Intermediates\Debug\Mystery.dll
+C:\dev\TurboProjects\Mystery\Binaries\Intermediates\Debug\Mystery.pdb
+C:\dev\TurboProjects\Mystery\Binaries\Mystery.dll
+C:\dev\TurboProjects\Mystery\Binaries\Mystery.pdb
+C:\dev\.cpp\Turbo\Turbo-Editor\Mystery\Binaries\Intermediates\Debug\Mystery.csproj.AssemblyReference.cache
+C:\dev\.cpp\Turbo\Turbo-Editor\Mystery\Binaries\Intermediates\Debug\Mystery.csproj.CoreCompileInputs.cache
+C:\dev\.cpp\Turbo\Turbo-Editor\Mystery\Binaries\Intermediates\Debug\Mystery.csproj.CopyComplete
+C:\dev\.cpp\Turbo\Turbo-Editor\Mystery\Binaries\Intermediates\Debug\Mystery.dll
+C:\dev\.cpp\Turbo\Turbo-Editor\Mystery\Binaries\Intermediates\Debug\Mystery.pdb
+C:\dev\.cpp\Turbo\Turbo-Editor\Mystery\Binaries\Mystery.dll
+C:\dev\.cpp\Turbo\Turbo-Editor\Mystery\Binaries\Mystery.pdb

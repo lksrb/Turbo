@@ -39,7 +39,7 @@ namespace Turbo {
         auto context = Script::GetCurrentScene();
         Entity entity = context->FindEntityByUUID(uuid);
 
-        if (!entity)
+        if (!entity) [[unlikely]]
             TBO_CONSOLE_ERROR("Entity doesnt exist!");
 
         return entity;
@@ -343,6 +343,17 @@ namespace Turbo {
             }
 
             return monoArray;
+        }
+
+        static void Entity_UnParent(u64 uuid)
+        {
+            auto context = Script::GetCurrentScene();
+            Entity entity = context->FindEntityByUUID(uuid);
+
+            if (!entity) [[unlikely]]
+                TBO_CONSOLE_ERROR("Entity doesnt exist!");
+
+            entity.UnParent();
         }
 
         static MonoString* Entity_Get_Name(UUID uuid)
@@ -1205,6 +1216,7 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Entity_Add_Component);
         TBO_REGISTER_FUNCTION(Entity_Remove_Component);
         TBO_REGISTER_FUNCTION(Entity_Get_Children);
+        TBO_REGISTER_FUNCTION(Entity_UnParent);
 
         // Prefab
         TBO_REGISTER_FUNCTION(Entity_InstantiatePrefabWithTranslation);

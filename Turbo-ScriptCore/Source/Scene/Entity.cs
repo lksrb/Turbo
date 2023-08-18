@@ -30,6 +30,8 @@ namespace Turbo
 			Transform = GetComponent<TransformComponent>();
 		}
 
+		public void UnParent() => InternalCalls.Entity_UnParent(ID);
+
 		public bool HasComponent<T>() where T : Component, new()
 		{
 			Type componentType = typeof(T);

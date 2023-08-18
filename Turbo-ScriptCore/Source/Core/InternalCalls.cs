@@ -97,6 +97,9 @@ namespace Turbo
 		internal extern static Entity[] Entity_Get_Children(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Entity_UnParent(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_InstantiatePrefabWithTranslation(string path, ref Vector3 translation);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]

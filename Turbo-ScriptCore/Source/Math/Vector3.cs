@@ -14,8 +14,8 @@ namespace Turbo
 		public Vector3(Vector2 xy, float z = 0.0f) : this(xy.X, xy.Y, z) { }
 		public Vector3(float scalar) : this(scalar, scalar, scalar) { }
 
-		public float Length => Mathf.Sqrt(Dot(this, this));
-		public void Normalize() => this *= 1.0f / Length;
+		public float Length() => Mathf.Sqrt(Dot(this, this));
+		public void Normalize() => this *= 1.0f / Length();
 
 		public override string ToString() => $"Vector3(X: {X}, Y: {Y}, Z: {Z})";
 

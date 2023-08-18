@@ -1,51 +1,5 @@
 Scene: StartScene
 Entities:
-  - Entity: 515976963972480677
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: Camera2
-    TransformComponent:
-      Translation: [21.3959408, 19.7997742, 27.3744507]
-      Rotation: [0, 1.24231076, 0]
-      Scale: [1.00000012, 1, 1.00000012]
-    CameraComponent:
-      Camera:
-        ProjectionType: 0
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 1
-      Primary: false
-      FixedAspectRatio: false
-  - Entity: 1718172660255262917
-    Parent: 8718257612808462896
-    Children:
-      []
-    TagComponent:
-      Tag: Cube
-    TransformComponent:
-      Translation: [-1.31700754, 7.50056887, -12.9029675]
-      Rotation: [-2.84948325, 0.289195538, -0.304245174]
-      Scale: [18.7478848, 1.59970689, 0.999801397]
-    StaticMeshRendererComponent:
-      Mesh: 3411376591522269393
-    RigidbodyComponent:
-      BodyType: Static
-      GravityScale: 1
-      Mass: 1
-      LockTranslationX: false
-      LockTranslationY: false
-      LockTranslationZ: false
-      LockRotationX: false
-      LockRotationY: false
-      LockRotationZ: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
   - Entity: 3642574379806104447
     Parent: 0
     Children:
@@ -62,82 +16,6 @@ Entities:
       IsSpriteSheet: false
       SpriteCoords: [0, 0]
       SpriteSize: [32, 32]
-  - Entity: 3855502201780798714
-    Parent: 8718257612808462896
-    Children:
-      []
-    TagComponent:
-      Tag: Sphere
-    TransformComponent:
-      Translation: [10.7474079, 9.45388222, 0.260898471]
-      Rotation: [0, -0, 0]
-      Scale: [1.39999998, 1.39999998, 1.39999998]
-    StaticMeshRendererComponent:
-      Mesh: 5969331438052008515
-    RigidbodyComponent:
-      BodyType: Dynamic
-      GravityScale: 1
-      Mass: 1
-      LockTranslationX: false
-      LockTranslationY: false
-      LockTranslationZ: false
-      LockRotationX: false
-      LockRotationY: false
-      LockRotationZ: false
-    SphereColliderComponent:
-      Offset: [0, 1, 0]
-      Radius: 0.5
-  - Entity: 4023183045295889645
-    Parent: 8718257612808462896
-    Children:
-      []
-    TagComponent:
-      Tag: Capsule
-    TransformComponent:
-      Translation: [12.5457592, 5.9420557, 1.49011612e-08]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    StaticMeshRendererComponent:
-      Mesh: 3410154700432275184
-    RigidbodyComponent:
-      BodyType: Dynamic
-      GravityScale: 1
-      Mass: 1
-      LockTranslationX: false
-      LockTranslationY: false
-      LockTranslationZ: false
-      LockRotationX: false
-      LockRotationY: false
-      LockRotationZ: false
-    CapsuleColliderComponent:
-      Offset: [0, 0, 0]
-      Radius: 0.5
-      Height: 1
-  - Entity: 5448459495743016983
-    Parent: 8718257612808462896
-    Children:
-      []
-    TagComponent:
-      Tag: Cube
-    TransformComponent:
-      Translation: [2.30562758, 7.73618317, -16.6257153]
-      Rotation: [0, -0, -0.270132601]
-      Scale: [17.75, 1.60000634, 0.999999404]
-    StaticMeshRendererComponent:
-      Mesh: 3411376591522269393
-    RigidbodyComponent:
-      BodyType: Static
-      GravityScale: 1
-      Mass: 1
-      LockTranslationX: false
-      LockTranslationY: false
-      LockTranslationZ: false
-      LockRotationX: false
-      LockRotationY: false
-      LockRotationZ: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
   - Entity: 6604654774933100929
     Parent: 9379112465173313586
     Children:
@@ -150,45 +28,38 @@ Entities:
       Scale: [0.499988168, 0.5, 0.499967426]
     StaticMeshRendererComponent:
       Mesh: 14741445282963241461
+  - Entity: 6747053063867155526
+    Parent: 0
+    Children:
+      - UUID: 11424742079001696808
+      - UUID: 9209333782188216007
+    TagComponent:
+      Tag: Level1
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 7307812893521663871
     Parent: 0
     Children:
-      - UUID: 9209333782188216007
-      - UUID: 9851504607898728242
       - UUID: 17206762779017252070
       - UUID: 14913800373511009694
-      - UUID: 16237566845937793509
     TagComponent:
       Tag: Lights
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 8718257612808462896
-    Parent: 0
-    Children:
-      - UUID: 1718172660255262917
-      - UUID: 3855502201780798714
-      - UUID: 4023183045295889645
-      - UUID: 5448459495743016983
-      - UUID: 12739171548365996964
-      - UUID: 11511779850808164016
-    TagComponent:
-      Tag: Geometry
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
   - Entity: 9209333782188216007
-    Parent: 7307812893521663871
+    Parent: 6747053063867155526
     Children:
       []
     TagComponent:
       Tag: Spotlight
     TransformComponent:
       Translation: [0.330727577, 200, 0.0389899835]
-      Rotation: [-1.57079637, 0, 0]
-      Scale: [1, 0.999743044, 0.999743044]
+      Rotation: [-1.57079637, -0, 0]
+      Scale: [1, 0.999742925, 0.999742925]
     SpotLightComponent:
       Radiance: [1, 1, 1]
       Intensity: 4
@@ -205,33 +76,32 @@ Entities:
       Translation: [0, 9.53674316e-07, -9.53674316e-07]
       Rotation: [0, -0, 0]
       Scale: [1, 0.999999881, 0.99999994]
-  - Entity: 9851504607898728242
-    Parent: 7307812893521663871
+  - Entity: 11424742079001696808
+    Parent: 6747053063867155526
     Children:
       []
     TagComponent:
-      Tag: RightPointLight
+      Tag: Ground
     TransformComponent:
-      Translation: [-0.324824631, 2.3067565, -24.4039555]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Radiance: [1, 1, 1]
-      Radius: 10
-      Intensity: 5
-      FallOff: 1
-  - Entity: 11511779850808164016
-    Parent: 8718257612808462896
-    Children:
-      []
-    TagComponent:
-      Tag: Human
-    TransformComponent:
-      Translation: [-26.2706299, 10, 0]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
+      Scale: [50, 1, 50]
     StaticMeshRendererComponent:
-      Mesh: 15173728770675198862
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      GravityScale: 1
+      Mass: 1
+      IsTrigger: false
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
   - Entity: 12411588137264639738
     Parent: 9379112465173313586
     Children:
@@ -244,56 +114,6 @@ Entities:
       Scale: [0.499989092, 0.5, 0.499946445]
     StaticMeshRendererComponent:
       Mesh: 14741445282963241461
-  - Entity: 12739171548365996964
-    Parent: 8718257612808462896
-    Children:
-      []
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [100, 1.00000012, 100.000031]
-    StaticMeshRendererComponent:
-      Mesh: 3411376591522269393
-    RigidbodyComponent:
-      BodyType: Static
-      GravityScale: 1
-      Mass: 1
-      LockTranslationX: false
-      LockTranslationY: false
-      LockTranslationZ: false
-      LockRotationX: false
-      LockRotationY: false
-      LockRotationZ: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-  - Entity: 14140797039194502158
-    Parent: 0
-    Children:
-      []
-    TagComponent:
-      Tag: PickupCube
-    TransformComponent:
-      Translation: [-5.41043425, 2.46100831, -1.86264515e-09]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    StaticMeshRendererComponent:
-      Mesh: 3411376591522269393
-    RigidbodyComponent:
-      BodyType: Static
-      GravityScale: 1
-      Mass: 1
-      LockTranslationX: false
-      LockTranslationY: false
-      LockTranslationZ: false
-      LockRotationX: false
-      LockRotationY: false
-      LockRotationZ: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
   - Entity: 16217687450096574934
     Parent: 17758440140024707462
     Children:
@@ -306,21 +126,6 @@ Entities:
       Scale: [0.500000119, 0.499999881, 0.50000006]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
-  - Entity: 16237566845937793509
-    Parent: 7307812893521663871
-    Children:
-      []
-    TagComponent:
-      Tag: RightPointLight
-    TransformComponent:
-      Translation: [-12.3760853, 8.84332371, -4.15714693]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Radiance: [1, 1, 1]
-      Radius: 10
-      Intensity: 5
-      FallOff: 1
   - Entity: 17758440140024707462
     Parent: 0
     Children:
@@ -344,6 +149,7 @@ Entities:
       BodyType: Dynamic
       GravityScale: 1
       Mass: 1
+      IsTrigger: false
       LockTranslationX: false
       LockTranslationY: false
       LockTranslationZ: false
