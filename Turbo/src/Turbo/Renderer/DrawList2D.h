@@ -76,6 +76,8 @@ namespace Turbo
         i32 ReadPixel(u32 x, u32 y);
 
         void SetTargetRenderPass(const Ref<RenderPass>& renderPass);
+
+        Ref<Texture2D> GetWhiteTexture() const { return m_WhiteTexture; }
     private:
         void ResetStatistics() { m_Statistics.Reset(); }
         void Shutdown();

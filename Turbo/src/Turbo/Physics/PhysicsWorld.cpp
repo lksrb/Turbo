@@ -5,9 +5,13 @@
 
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseQuery.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 // Job system config
 #define TBO_MAX_JOBS 2048
@@ -60,10 +64,10 @@ namespace Turbo {
 
         // Box Colliders
         {
-            auto group = m_Scene->GetAllEntitiesWith<RigidbodyComponent, TransformComponent>();
+            auto group = m_Scene->GetAllEntitiesWith<RigidbodyComponent, IDComponent, TransformComponent>();
             for (auto e : group)
             {
-                const auto& [rb, transform] = group.get<RigidbodyComponent, TransformComponent>(e);
+                const auto& [rb, ic, transform] = group.get<RigidbodyComponent, IDComponent, TransformComponent>(e);
                 Entity entity = { e, m_Scene.Get() };
                 //glm::mat4 transform = m_Scene->GetWorldSpaceTransformMatrix({ e, m_Scene });
 
@@ -86,7 +90,7 @@ namespace Turbo {
                         bc.Offset.x + scale.x * bc.Size.x,
                         bc.Offset.y + scale.y * bc.Size.y,
                         bc.Offset.z + scale.z * bc.Size.z);
-                    
+
                     // Settings for the shape
                     JPH::BoxShapeSettings boxShapeSettings(boxColliderSize);
 
@@ -115,7 +119,7 @@ namespace Turbo {
                 {
                     auto& cc = entity.GetComponent<CapsuleColliderComponent>();
 
-                    JPH::CapsuleShapeSettings capsuleShapeSettings(cc.Height * 0.5f, cc.Radius);
+                    JPH::CapsuleShapeSettings capsuleShapeSettings(cc.Height * 0.5f, scale.x * cc.Radius);
                     ShapeRefC capsuleShape = capsuleShapeSettings.Create().Get();
 
                     bodySettings = BodyCreationSettings(capsuleShape,
@@ -141,12 +145,14 @@ namespace Turbo {
                 bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
                 bodySettings.mMassPropertiesOverride.mMass = rb.Mass;
                 bodySettings.mGravityFactor = rb.GravityScale;
+                bodySettings.mUserData = ic.ID;
+                bodySettings.mIsSensor = rb.IsTrigger;
 
                 // Create body and add it the world
                 rb.RuntimeBodyHandle = bodyInterface.CreateAndAddBody(bodySettings, activate).GetIndexAndSequenceNumber();
             }
         }
-        
+
         // Optimize first physics update 
         m_PhysicsSystem.OptimizeBroadPhase();
     }
@@ -155,12 +161,43 @@ namespace Turbo {
     {
     }
 
+    RayCastResult PhysicsWorld::CastRay(const Ray& ray, RayTarget target)
+    {
+        // Cast ray and return the closest entity
+        if (target == RayTarget::Closest)
+        {
+            JPH::RayCastSettings settings;
+            //settings.mBackFaceMode = JPH::EBackFaceMode::CollideWithBackFaces;
+            settings.mTreatConvexAsSolid = true;
+
+            JPH::RRayCast rayCast;
+            rayCast.mOrigin = { ray.Start.x, ray.Start.y, ray.Start.z };
+            rayCast.mDirection = { ray.Direction.x, ray.Direction.y, ray.Direction.z };
+
+            JPH::ClosestHitCollisionCollector<JPH::CastRayCollector> collector;
+            // TODO: We should take advantage of Jolt's layer system
+            //m_PhysicsSystem.GetNarrowPhaseQuery().CastRay(rayCast, settings, collector, JPH::SpecifiedBroadPhaseLayerFilter(BroadPhaseLayers::STATIC), JPH::SpecifiedObjectLayerFilter(Layers::STATIC));
+            m_PhysicsSystem.GetNarrowPhaseQuery().CastRay(rayCast, settings, collector);
+
+            if (collector.HadHit())
+            {
+                JPH::RayCastResult hit = collector.mHit;
+                auto& bodyInterface = m_PhysicsSystem.GetBodyInterfaceNoLock();
+                JPH::Vec3 hitPosition = rayCast.GetPointOnRay(hit.mFraction);
+                return { glm::vec3(hitPosition.GetX(), hitPosition.GetY(), hitPosition.GetZ()), bodyInterface.GetUserData(hit.mBodyID) };
+            }
+        }
+
+        return {};
+    }
+
     void PhysicsWorld::Simulate(FTime ts)
     {
         // If you take larger steps than 1 / 60th of a second you need to do multiple collision steps in order to keep the simulation stable.
         // Do 1 collision step per 1 / 60th of a second (round up).
         constexpr i32 collisionSteps = 1;
 
+        // TODO: Fixed timestep
         f32 fixedDeltaTime = 1.0f / 60.0f;
 
         // TODO: Maybe use fixed time step to ensure that physics calculation is stable
@@ -184,9 +221,11 @@ namespace Turbo {
             for (auto e : group)
             {
                 const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
-                auto pos = bodyInterface.GetPosition(JPH::BodyID(rb.RuntimeBodyHandle));
-                auto rotation = bodyInterface.GetRotation(JPH::BodyID(rb.RuntimeBodyHandle)).GetEulerAngles();
+                JPH::Vec3 pos;
+                JPH::Quat quatRotation;
+                bodyInterface.GetPositionAndRotation(JPH::BodyID(rb.RuntimeBodyHandle), pos, quatRotation);
 
+                JPH::Vec3 rotation = quatRotation.GetEulerAngles();
                 transform.Translation = { pos.GetX(), pos.GetY(), pos.GetZ() };
                 transform.Rotation = { rotation.GetX(), rotation.GetY(), rotation.GetZ() };
             }
@@ -198,9 +237,11 @@ namespace Turbo {
             for (auto e : group)
             {
                 const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
-                auto pos = bodyInterface.GetPosition(JPH::BodyID(rb.RuntimeBodyHandle));
-                auto rotation = bodyInterface.GetRotation(JPH::BodyID(rb.RuntimeBodyHandle)).GetEulerAngles();
+                JPH::Vec3 pos;
+                JPH::Quat quatRotation;
+                bodyInterface.GetPositionAndRotation(JPH::BodyID(rb.RuntimeBodyHandle), pos, quatRotation);
 
+                JPH::Vec3 rotation = quatRotation.GetEulerAngles();
                 transform.Translation = { pos.GetX(), pos.GetY(), pos.GetZ() };
                 transform.Rotation = { rotation.GetX(), rotation.GetY(), rotation.GetZ() };
             }
@@ -212,13 +253,14 @@ namespace Turbo {
             for (auto e : group)
             {
                 const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
-                auto pos = bodyInterface.GetPosition(JPH::BodyID(rb.RuntimeBodyHandle));
-                auto rotation = bodyInterface.GetRotation(JPH::BodyID(rb.RuntimeBodyHandle)).GetEulerAngles();
+                JPH::Vec3 pos;
+                JPH::Quat quatRotation;
+                bodyInterface.GetPositionAndRotation(JPH::BodyID(rb.RuntimeBodyHandle), pos, quatRotation);
 
+                JPH::Vec3 rotation = quatRotation.GetEulerAngles();
                 transform.Translation = { pos.GetX(), pos.GetY(), pos.GetZ() };
                 transform.Rotation = { rotation.GetX(), rotation.GetY(), rotation.GetZ() };
             }
         }
     }
-
 }

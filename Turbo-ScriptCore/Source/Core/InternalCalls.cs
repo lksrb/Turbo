@@ -18,6 +18,13 @@ namespace Turbo
 
 		#endregion
 
+		#region Debug
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void DebugRenderer_DrawLine(ref Vector3 start, ref Vector3 end, ref Color color);
+
+		#endregion
+
 		#region Logging
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -101,6 +108,13 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Physics2D_RayCast(Vector2 a, Vector2 b);
+
+		#endregion
+
+		#region Physics
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Physics_CastRay(ref Vector3 start, ref Vector3 direction, RayTarget target, out UnmanagedRayCastResult result);
 
 		#endregion
 
@@ -331,6 +345,13 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody_Set_LinearVelocity(ulong uuid, ref Vector3 velocity);
+
+		// Rotation
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Get_Rotation(ulong uuid, out Quaternion rotation);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Set_Rotation(ulong uuid, ref Quaternion rotation);
 
 		// Rotate
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]

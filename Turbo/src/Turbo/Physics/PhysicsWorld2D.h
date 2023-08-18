@@ -5,18 +5,23 @@
 
 #include <box2d/b2_world.h>
 
-namespace Turbo
-{
+namespace Turbo {
+
+    class Scene;
+
     class PhysicsWorld2D : public RefCounted
     {
     public:
-        PhysicsWorld2D(glm::vec2 gravity);
+        PhysicsWorld2D(WeakRef<Scene> scene);
         ~PhysicsWorld2D();
 
+        void OnRuntimeStart();
+        void OnRuntimeStop();
+
+        // [Runtime]
         void ConstructBody(Entity entity);
         void ConstructBoxCollider(Entity entity);
         void ConstructCircleCollider(Entity entity);
-
         void DestroyPhysicsBody(Entity entity);
         void DestroyBoxCollider(Entity entity);
         void DestroyCircleCollilder(Entity entity);
@@ -25,9 +30,10 @@ namespace Turbo
 
         void Simulate(FTime ts);
 
-        void RetrieveTransform(Entity entity);
         glm::vec2 RetrieveLinearVelocity(Entity entity);
     private:
         b2World m_Box2DWorld;
+
+        WeakRef<Scene> m_Scene;
     };
 }

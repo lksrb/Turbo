@@ -17,7 +17,7 @@ namespace Turbo
 		public float Length => Mathf.Sqrt(Mathf.Dot(this, this));
 		public void Normalize() => this *= 1.0f / Length;
 
-		public override string ToString() => $"(x: {X}, y: {Y}, z: {Z})";
+		public override string ToString() => $"Vector3(X: {X}, Y: {Y}, Z: {Z})";
 
 		public static Vector3 Cos(Vector3 vector)
 		{
@@ -38,10 +38,15 @@ namespace Turbo
 			);
 		}
 
+		public override bool Equals(object obj) => base.Equals(obj);
+		public override int GetHashCode() => base.GetHashCode();
+
 		public static Vector3 Zero => new Vector3(0.0f, 0.0f, 0.0f);
 		public static Vector3 Up => new Vector3(0.0f, 1.0f, 0.0f);
 		public static Vector3 Right => new Vector3(1.0f, 0.0f, 0.0f);
-		public static Vector3 Forward => new Vector3(0.0f, 0.0f, 1.0f);
+		public static Vector3 Left => new Vector3(-1.0f, 0.0f, 0.0f);
+		public static Vector3 Forward => new Vector3(0.0f, 0.0f, -1.0f);
+		public static Vector3 Back => new Vector3(0.0f, 0.0f, 1.0f);
 
 		public Vector2 XY
 		{
@@ -73,6 +78,9 @@ namespace Turbo
 			}
 		}
 
+
+		public static bool operator ==(Vector3 u, Vector3 v) => u.X == v.X && u.Y == v.Y && u.Z == v.Z;
+		public static bool operator !=(Vector3 u, Vector3 v) => !(u == v);
 		public static Vector3 operator +(Vector3 u, Vector3 v) => new Vector3(u.X + v.X, u.Y + v.Y, u.Z + v.Z);
 		public static Vector3 operator +(Vector3 u, Vector2 v) => new Vector3(u.X + v.X, u.Y + v.Y, u.Z);
 		public static Vector3 operator -(Vector3 u, Vector3 v) => new Vector3(u.X - v.X, u.Y - v.Y, u.Z - v.Z);

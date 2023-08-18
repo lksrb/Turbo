@@ -48,6 +48,12 @@ namespace Turbo {
         void SetViewportOffset(i32 x, i32 y);
         void SetViewportSize(u32 width, u32 height);
 
+        template<typename F>
+        void AddToDrawList(F&& func)
+        {
+            m_DebugRendererCallbacks.push_back(std::forward<F>(func));
+        }
+
         auto& GetPostUpdateFuncs() { return m_PostUpdateFuncs; }
 
         bool Contains(Entity entity) const;
@@ -117,6 +123,7 @@ namespace Turbo {
         EntityMap m_EntityIDMap;
         UUIDMap m_UUIDMap;
 
+        std::vector<std::function<void(Ref<SceneDrawList>)>> m_DebugRendererCallbacks;
         std::vector<std::function<void()>> m_PostUpdateFuncs;
 
         bool m_IsEditorScene = false;

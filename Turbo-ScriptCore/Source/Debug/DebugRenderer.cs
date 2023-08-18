@@ -2,9 +2,9 @@
 {
 	public static class DebugRenderer
 	{
-		private static void DrawLine(Vector3 start, Vector3 end, Vector4 color)
+		public static void DrawLine(Vector3 start, Vector3 end, Color color)
 		{
-			// TODO:
+			InternalCalls.DebugRenderer_DrawLine(ref start, ref end, ref color);
 		}
 	}
 }

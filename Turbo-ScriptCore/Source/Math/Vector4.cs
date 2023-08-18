@@ -25,7 +25,7 @@ namespace Turbo
 		public float Length => Mathf.Sqrt(Mathf.Dot(this, this));
 		public void Normalize() => this *= 1.0f / Length;
 
-		public override string ToString() => $"(x: {X}, y: {Y}, z: {Z}, w: {W})";
+		public override string ToString() => $"Vector4(X: {X}, Y: {Y}, Z: {Z}, W: {W})";
 
 		public override bool Equals(object obj) => base.Equals(obj);
 		public override int GetHashCode() => base.GetHashCode();

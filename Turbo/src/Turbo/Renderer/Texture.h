@@ -68,7 +68,7 @@ namespace Turbo
         TextureCube(const TextureCube::Config& config);
         virtual ~TextureCube() = default;
 
-        static Ref<TextureCube> Create(const TextureCube::Config& config);
+        static Ref<TextureCube> Create(const TextureCube::Config& config = {});
 
         const TextureCube::Config& GetConfig() const { return m_Config; }
         AssetType GetAssetType() const override { return AssetType_Count; /* TODO: Create asset */ };

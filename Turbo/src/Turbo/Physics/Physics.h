@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Turbo/Core/PrimitiveTypes.h"
+
 namespace Turbo {
 
     class Physics

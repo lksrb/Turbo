@@ -14,7 +14,7 @@
 
 	public static class Physics2D
 	{
-		// Simplified version of a raycast, however good for now
+		// Simplified version of a raycast, good for now
 		public static RayCast2D RayCast(Vector2 a, Vector2 b)
 		{
 			ulong id = InternalCalls.Physics2D_RayCast(a, b);

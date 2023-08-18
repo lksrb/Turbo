@@ -117,35 +117,12 @@ namespace Turbo {
         // Find primary camera
         m_PrimaryCameraEntity = FindPrimaryCameraEntity();
 
+        // NOTE: Physics 2D and 3D are separate, grouping them does not provide any benefit
         // Physics 2D
-        auto& physicsWorld2d = m_Registry.emplace<PhysicsWorld2DComponent>(m_SceneEntity, Ref<PhysicsWorld2D>::Create(glm::vec2{ 0.0f, -9.8f })).World;
+        auto& physicsWorld2d = m_Registry.emplace<PhysicsWorld2DComponent>(m_SceneEntity, Ref<PhysicsWorld2D>::Create(this)).World;
+        physicsWorld2d->OnRuntimeStart();
 
-        {
-            auto view = m_Registry.view<Rigidbody2DComponent>();
-            for (auto e : view)
-            {
-                Entity entity = { e, this };
-                physicsWorld2d->ConstructBody(entity);
-            }
-        }
-
-        {
-            auto view = m_Registry.view<BoxCollider2DComponent>();
-            for (auto e : view)
-            {
-                Entity entity = { e, this };
-                physicsWorld2d->ConstructBoxCollider(entity);
-            }
-        }
-
-        {
-            auto view = m_Registry.view<CircleCollider2DComponent>();
-            for (auto e : view)
-            {
-                Entity entity = { e, this };
-                physicsWorld2d->ConstructCircleCollider(entity);
-            }
-        }
+        // Physics 3D
         auto& physicsWorld3d = m_Registry.emplace<PhysicsWorldComponent>(m_SceneEntity, Ref<PhysicsWorld>::Create(this)).World;
         physicsWorld3d->OnRuntimeStart();
 
@@ -191,6 +168,7 @@ namespace Turbo {
         Audio::OnRuntimeStop();
 
         GetPhysicsWorld()->OnRuntimeStop();
+        GetPhysicsWorld2D()->OnRuntimeStop();
 
         m_Running = false;
     }
@@ -222,22 +200,12 @@ namespace Turbo {
     {
         Script::OnNewFrame(ts);
 
-        auto physicsWorld2d = GetPhysicsWorld2D();
-        // Update 2D physics
-        {
-            physicsWorld2d->Simulate(ts);
-
-            // Retrieve transforms from Box2D
-            auto view = m_Registry.view<Rigidbody2DComponent>();
-            for (auto e : view)
-            {
-                Entity entity = { e, this };
-                physicsWorld2d->RetrieveTransform(entity);
-            }
-        }
-
         // Update 3D physics
         GetPhysicsWorld()->Simulate(ts);
+
+        // Update 2D physics
+        auto physicsWorld2d = GetPhysicsWorld2D();
+        physicsWorld2d->Simulate(ts);
 
         // Find primary audio listener
         Entity audioListenerEntity = FindPrimaryAudioListenerEntity();
@@ -328,6 +296,13 @@ namespace Turbo {
             rendererData.ViewMatrix = glm::inverse(cameraTransform);
             rendererData.InversedViewProjectionMatrix = glm::inverse(rendererData.ViewProjectionMatrix);
             drawList->SetSceneData(rendererData);
+
+            // Debug renderer
+            for (auto& func : m_DebugRendererCallbacks)
+            {
+                func(drawList);
+            }
+            m_DebugRendererCallbacks.clear();
 
             RenderScene(drawList);
         }
@@ -477,6 +452,7 @@ namespace Turbo {
                 return { m_PrimaryCameraEntity, this };
             }
         }
+
         return {};
     }
 
@@ -599,7 +575,7 @@ namespace Turbo {
 
                 // Rotation does not matter, but i think scale will matter
                 // TODO: Figure out how to composose scale of the ligth and intesity
-                drawList->AddPointLight(transform.Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
+                drawList->AddPointLight(GetWorldSpaceTransform({entity, this}).Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
             }
         }
 
@@ -611,8 +587,8 @@ namespace Turbo {
                 // TODO: Create debug cone 
                 const auto& [transform, slc] = group.get<TransformComponent, SpotLightComponent>(entity);
                 glm::vec3 direction = -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(0.0f, 0.0f, 1.0f));
-                drawList->AddLine(transform.Translation, transform.Translation + direction * 10.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-                drawList->AddSpotLight(transform.Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
+                //drawList->AddLine(transform.Translation, transform.Translation + direction * 10.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+                drawList->AddSpotLight(GetWorldSpaceTransform({ entity, this }).Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
             }
         }
 
@@ -727,7 +703,7 @@ namespace Turbo {
 
     void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene)
+        if (!m_Running)
             return;
 
         Entity e = { entity, this };
@@ -737,7 +713,7 @@ namespace Turbo {
     // On replacing component
     void Scene::OnBoxCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene)
+        if (!m_Running)
             return;
 
         // Destroys original box collider
@@ -749,7 +725,7 @@ namespace Turbo {
 
     void Scene::OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene)
+        if (!m_Running)
             return;
 
         Entity e = { entity, this };
@@ -758,7 +734,7 @@ namespace Turbo {
 
     void Scene::OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         Entity e = { entity, this };
@@ -767,7 +743,7 @@ namespace Turbo {
 
     void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         Entity e = { entity, this };
@@ -776,7 +752,7 @@ namespace Turbo {
 
     void Scene::OnCircleCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         Entity e = { entity, this };
@@ -785,7 +761,7 @@ namespace Turbo {
 
     void Scene::OnCircleCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene)
+        if (m_Running)
             return;
 
         // Destroys original box collider
@@ -797,7 +773,7 @@ namespace Turbo {
 
     void Scene::OnCircleCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
     {
-        if (m_IsEditorScene || !registry.all_of<Rigidbody2DComponent>(entity))
+        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
             return;
 
         Entity e = { entity, this };

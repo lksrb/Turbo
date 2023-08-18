@@ -4,6 +4,8 @@
 #include "Script.h"
 #include "ScriptInstance.h"
 
+#include "Turbo/Scene/SceneDrawList.h"
+
 #include "Turbo/Physics/Physics2D.h"
 #include "Turbo/Physics/PhysicsWorld2D.h"
 
@@ -22,13 +24,15 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 
-#define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, (const void*)name);
+#define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, (const void*)IC::name);
 
 namespace Turbo {
 
     static JPH::BodyID GetBodyID(BodyHandle handle) { return JPH::BodyID(handle); }
     static JPH::Vec3 GetVec3(const glm::vec3& v) { return  JPH::Vec3(v.x, v.y, v.z); }
     static glm::vec3 GetVec3(JPH::Vec3Arg v) { return { v.GetX(), v.GetY(), v.GetZ() }; }
+    static JPH::Quat GetQuat(const glm::quat& q) { return JPH::Quat(q.x, q.y, q.z, q.w); }
+    static glm::quat GetQuat(const JPH::Quat& q) { return glm::quat(q.GetW(), q.GetX(), q.GetY(), q.GetZ()); }
 
     static Entity GetEntity(u64 uuid)
     {
@@ -45,491 +49,524 @@ namespace Turbo {
     static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityAddComponentFuncs;
     static std::unordered_map<MonoType*, std::function<void(Entity)>> s_EntityRemoveComponentFuncs;
 
+    namespace IC {
+
 #pragma region Application
 
-    static u32 Application_GetWidth()
-    {
-        auto context = Script::GetCurrentScene();
-        return context->GetViewportWidth();
-    }
+        static u32 Application_GetWidth()
+        {
+            auto context = Script::GetCurrentScene();
+            return context->GetViewportWidth();
+        }
 
-    static u32 Application_GetHeight()
-    {
-        auto context = Script::GetCurrentScene();
-        return context->GetViewportHeight();
-    }
+        static u32 Application_GetHeight()
+        {
+            auto context = Script::GetCurrentScene();
+            return context->GetViewportHeight();
+        }
 
-    static void Application_Close()
-    {
-        auto context = Script::GetCurrentScene();
-        Engine::Get().Close();
-    }
+        static void Application_Close()
+        {
+            auto context = Script::GetCurrentScene();
+            Engine::Get().Close();
+        }
+
+#pragma endregion
+
+#pragma region Debug
+
+        static void DebugRenderer_DrawLine(glm::vec3* start, glm::vec3* end, glm::vec4* color)
+        {
+            Ref<Scene> context = Script::GetCurrentScene();
+            context->AddToDrawList([s = *start, e = *end, c = *color](Ref<SceneDrawList> drawList)
+            {
+                drawList->AddLine(s, e, c);
+            });
+        }
 
 #pragma endregion
 
 #pragma region Logging
 
-    static void Log_String(u32 level, MonoString* string)
-    {
-        char* cstring = mono_string_to_utf8(string);
-        std::string msg = cstring;
-        mono_free(cstring);
-
-        switch (level)
+        static void Log_String(u32 level, MonoString* string)
         {
-            case Log::Level::Trace:
+            char* cstring = mono_string_to_utf8(string);
+            std::string msg = cstring;
+            mono_free(cstring);
+
+            switch (level)
             {
-                TBO_CONSOLE_TRACE(msg);
-                break;
-            }
-            case Log::Level::Info:
-            {
-                TBO_CONSOLE_INFO(msg);
-                break;
-            }
-            case Log::Level::Warn:
-            {
-                TBO_CONSOLE_WARN(msg);
-                break;
-            }
-            case Log::Level::Error:
-            {
-                TBO_CONSOLE_ERROR(msg);
-                break;
-            }
-            case Log::Level::Fatal:
-            {
-                TBO_CONSOLE_FATAL(msg);
-                break;
+                case Log::Level::Trace:
+                {
+                    TBO_CONSOLE_TRACE(msg);
+                    break;
+                }
+                case Log::Level::Info:
+                {
+                    TBO_CONSOLE_INFO(msg);
+                    break;
+                }
+                case Log::Level::Warn:
+                {
+                    TBO_CONSOLE_WARN(msg);
+                    break;
+                }
+                case Log::Level::Error:
+                {
+                    TBO_CONSOLE_ERROR(msg);
+                    break;
+                }
+                case Log::Level::Fatal:
+                {
+                    TBO_CONSOLE_FATAL(msg);
+                    break;
+                }
             }
         }
-    }
 
 #pragma endregion
 
 #pragma region Input
 
-    static bool Input_IsKeyDown(u32 key)
-    {
-        return Input::IsKeyPressed(key);
-    }
-    static bool Input_IsKeyUp(u32 key)
-    {
-        return Input::IsKeyReleased(key);
-    }
-    static bool Input_IsMouseButtonDown(u32 key)
-    {
-        return Input::IsMouseButtonPressed(key);
-    }
-    static bool Input_IsMouseButtonUp(u32 key)
-    {
-        return Input::IsMouseButtonReleased(key);
-    }
-    static void Input_GetMousePosition(glm::vec2* mousePosition)
-    {
-        auto [x, y] = Input::GetMousePosition();
-        mousePosition->x = (f32)x;
-        mousePosition->y = (f32)y;
-    }
+        static bool Input_IsKeyDown(u32 key)
+        {
+            return Input::IsKeyPressed(key);
+        }
+        static bool Input_IsKeyUp(u32 key)
+        {
+            return Input::IsKeyReleased(key);
+        }
+        static bool Input_IsMouseButtonDown(u32 key)
+        {
+            return Input::IsMouseButtonPressed(key);
+        }
+        static bool Input_IsMouseButtonUp(u32 key)
+        {
+            return Input::IsMouseButtonReleased(key);
+        }
+        static void Input_GetMousePosition(glm::vec2* mousePosition)
+        {
+            auto [x, y] = Input::GetMousePosition();
+            mousePosition->x = (f32)x;
+            mousePosition->y = (f32)y;
+        }
 
-    static void Input_SetCursorMode(u32 cursorMode)
-    {
-        Input::SetCursorMode((CursorMode)cursorMode);
-    }
+        static void Input_SetCursorMode(u32 cursorMode)
+        {
+            Input::SetCursorMode((CursorMode)cursorMode);
+        }
 
 #pragma endregion
 
 #pragma region Physics2D
 
-    static u64 Physics2D_RayCast(glm::vec2 a, glm::vec2 b)
-    {
-        auto context = Script::GetCurrentScene();
+        static u64 Physics2D_RayCast(glm::vec2 a, glm::vec2 b)
+        {
+            auto context = Script::GetCurrentScene();
 
-        Ref<PhysicsWorld2D> physicsWorld2d = context->GetPhysicsWorld2D();
+            Ref<PhysicsWorld2D> physicsWorld2d = context->GetPhysicsWorld2D();
 
-        Entity hitEntity = physicsWorld2d->RayCast(a, b);
-        if (hitEntity)
-            return hitEntity.GetUUID();
+            Entity hitEntity = physicsWorld2d->RayCast(a, b);
+            if (hitEntity)
+                return hitEntity.GetUUID();
 
-        return 0;
-    }
+            return 0;
+        }
+
+#pragma endregion
+
+#pragma region Physics
+
+        static void Physics_CastRay(glm::vec3* start, glm::vec3* direction, u32 rayTarget, RayCastResult* outResult)
+        {
+            Ref<PhysicsWorld> physicsWorld = Script::GetCurrentScene()->GetPhysicsWorld();
+
+            Ray ray(*start, *direction);
+
+            *outResult = physicsWorld->CastRay(ray, (RayTarget)rayTarget);
+        }
 
 #pragma endregion
 
 #pragma region Scene
 
-    static u64 Scene_CreateEntity(u64 parentUUID, MonoString* name)
-    {
-        char* cString = mono_string_to_utf8(name);
-        auto context = Script::GetCurrentScene();
-        Entity entity = context->CreateEntity(cString);
-        TBO_ENGINE_ASSERT(entity);
-        mono_free(cString);
-
-        Entity parent = context->FindEntityByUUID(parentUUID);
-        if (parent)
-            entity.SetParent(parent);
-
-        return entity.GetUUID();
-    }
-
-    static void Scene_DestroyEntity(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
-        auto context = Script::GetCurrentScene().Get(); // FIXME: lambda cannot accept const ref
-        context->GetPostUpdateFuncs().push_back([context, entity]() { context->DestroyEntity(entity); });
-    }
-
-    // TODO: MOVE! WHERE??????????????
-    static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
-    {
-        auto context = Script::GetCurrentScene();
-        Entity entity = context->FindPrimaryCameraEntity();
-        TBO_ENGINE_ASSERT(entity);
-
-        const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
-
-        glm::vec4 viewport =
+        static u64 Scene_CreateEntity(u64 parentUUID, MonoString* name)
         {
-            context->GetViewportX(),
-            context->GetViewportY(),
-            context->GetViewportWidth(),
-            context->GetViewportHeight()
-        };
+            char* cString = mono_string_to_utf8(name);
+            auto context = Script::GetCurrentScene();
+            Entity entity = context->CreateEntity(cString);
+            TBO_ENGINE_ASSERT(entity);
+            mono_free(cString);
 
-        *worldPosition = Math::UnProject(screenPosition, viewport, camera.GetViewProjection());
-    }
+            Entity parent = context->FindEntityByUUID(parentUUID);
+            if (parent)
+                entity.SetParent(parent);
 
-    static void Scene_WorldToScreenPosition(glm::vec3 worldPosition, glm::vec2* screenPosition) // FIXME: Raycasting
-    {
-        auto context = Script::GetCurrentScene();
-        Entity entity = context->FindPrimaryCameraEntity();
-        TBO_ENGINE_ASSERT(entity);
+            return entity.GetUUID();
+        }
 
-        const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
+        static void Scene_DestroyEntity(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
+            auto context = Script::GetCurrentScene().Get(); // FIXME: lambda cannot accept const ref
+            context->GetPostUpdateFuncs().push_back([context, entity]() { context->DestroyEntity(entity); });
+        }
 
-        glm::vec4 clipSpacePos = camera.GetViewProjection() * glm::vec4(worldPosition, 1.0f);
+        static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
+        {
+            auto context = Script::GetCurrentScene();
+            Entity camera = context->FindPrimaryCameraEntity();
 
-        glm::vec3 ndcSpacePos = clipSpacePos / clipSpacePos.w;
+            if (!camera)
+            {
+                TBO_CONSOLE_ERROR("No active camera!");
+                return;
+            }
 
-        glm::vec2 windowSpacePos;
-        windowSpacePos.x = ((ndcSpacePos.x + 1.0f) / 2.0f) * context->GetViewportWidth() + context->GetViewportX();
-        windowSpacePos.y = ((ndcSpacePos.y + 1.0f) / 2.0f) * context->GetViewportHeight() + context->GetViewportY();
+            const auto& [transform, cc] = camera.GetComponents<TransformComponent, CameraComponent>();
 
-        *screenPosition = windowSpacePos;
-    }
+            glm::vec4 viewport =
+            {
+                context->GetViewportX(),
+                context->GetViewportY(),
+                context->GetViewportWidth(),
+                context->GetViewportHeight()
+            };
+
+            *worldPosition = Math::ScreenToRayDirection(screenPosition, viewport, cc.Camera.GetViewProjection());
+            //*worldPosition = Math::UnProject(screenPosition, viewport, cc.Camera.GetViewProjection());
+        }
+
+        static void Scene_WorldToScreenPosition(glm::vec3 worldPosition, glm::vec2* screenPosition) // FIXME: Raycasting
+        {
+            auto context = Script::GetCurrentScene();
+            Entity entity = context->FindPrimaryCameraEntity();
+            TBO_ENGINE_ASSERT(entity);
+
+            const SceneCamera& camera = entity.GetComponent<CameraComponent>().Camera;
+
+            glm::vec4 clipSpacePos = camera.GetViewProjection() * glm::vec4(worldPosition, 1.0f);
+
+            glm::vec3 ndcSpacePos = clipSpacePos / clipSpacePos.w;
+
+            glm::vec2 windowSpacePos;
+            windowSpacePos.x = ((ndcSpacePos.x + 1.0f) / 2.0f) * context->GetViewportWidth() + context->GetViewportX();
+            windowSpacePos.y = ((ndcSpacePos.y + 1.0f) / 2.0f) * context->GetViewportHeight() + context->GetViewportY();
+
+            *screenPosition = windowSpacePos;
+        }
 
 #pragma endregion
 
 #pragma region Entity
 
-    static u64 Entity_FindEntityByName(MonoString* string)
-    {
-        char* cString = mono_string_to_utf8(string);
-        std::string name = cString;
-        mono_free(cString);
-
-        auto context = Script::GetCurrentScene();
-        Entity entity = context->FindEntityByName(name);
-
-        if (entity)
-            return entity.GetUUID();
-
-        TBO_CONSOLE_ERROR("Could not find entity with name \"{}\"", name);
-        return 0;
-    }
-
-    static MonoObject* Entity_Get_Instance(UUID uuid)
-    {
-        Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
-        TBO_ENGINE_ASSERT(instance);
-
-        return instance->GetMonoInstance();
-    }
-
-    static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflectionType)
-    {
-        Entity entity = GetEntity(uuid);
-
-        if (!entity)
-            return false;
-
-        MonoType* component_type = mono_reflection_type_get_type(reflectionType);
-        TBO_ENGINE_ASSERT(s_EntityHasComponentFuncs.find(component_type) != s_EntityHasComponentFuncs.end());
-
-        return s_EntityHasComponentFuncs.at(component_type)(entity);
-    }
-
-    static void Entity_Add_Component(u64 uuid, MonoReflectionType* reflectionType)
-    {
-        Entity entity = GetEntity(uuid);
-
-        if (!entity)
-            return;
-
-        MonoType* componentType = mono_reflection_type_get_type(reflectionType);
-
-        TBO_ENGINE_ASSERT(s_EntityAddComponentFuncs.find(componentType) != s_EntityAddComponentFuncs.end());
-        s_EntityAddComponentFuncs.at(componentType)(entity);
-    }
-
-    static void Entity_Remove_Component(u64 uuid, MonoReflectionType* reflectionType)
-    {
-        Entity entity = GetEntity(uuid);
-
-        if (!entity)
-            return;
-
-        MonoType* componentType = mono_reflection_type_get_type(reflectionType);
-
-        TBO_ENGINE_ASSERT(s_EntityRemoveComponentFuncs.find(componentType) != s_EntityRemoveComponentFuncs.end());
-        s_EntityRemoveComponentFuncs.at(componentType)(entity);
-    }
-
-    static MonoArray* Entity_Get_Children(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
-
-        MonoDomain* appDomain = Script::GetAppDomain();
-        Ref<ScriptClass> entityClass = Script::GetEntityBaseClass();
-
-        const auto& children = entity.GetChildren();
-
-        // Create an array of Entity refs
-        MonoArray* monoArray = mono_array_new(appDomain, entityClass->GetMonoClass(), children.size());
-
-        // Allocate new entities
-        for (uintptr_t i = 0; i < children.size(); i++)
+        static u64 Entity_FindEntityByName(MonoString* string)
         {
-            Ref<ScriptInstance> instance = Ref<ScriptInstance>::Create(entityClass, children[i]);
-            mono_array_setref(monoArray, i, instance->GetMonoInstance());
+            char* cString = mono_string_to_utf8(string);
+            std::string name = cString;
+            mono_free(cString);
+
+            auto context = Script::GetCurrentScene();
+            Entity entity = context->FindEntityByName(name);
+
+            if (entity)
+                return entity.GetUUID();
+
+            TBO_CONSOLE_ERROR("Could not find entity with name \"{}\"", name);
+            return 0;
         }
 
-        return monoArray;
-    }
-
-    static MonoString* Entity_Get_Name(UUID uuid)
-    {
-        Entity entity = GetEntity(uuid);
-
-        if (!entity)
-            return nullptr;
-
-        MonoDomain* appDomain = Script::GetAppDomain();
-
-        MonoString* monoString = mono_string_new(appDomain, entity.GetName().c_str());
-        TBO_ENGINE_ASSERT(monoString);
-        return monoString;
-    }
-
-    static void Entity_Set_Name(UUID uuid, MonoString* name)
-    {
-        Entity entity = GetEntity(uuid);
-
-        if (!entity)
-            return;
-
-        char* cString = mono_string_to_utf8(name);
-        entity.SetName(cString);
-        mono_free(cString);
-    }
-
-    // FIXME: Temporary
-    static void TryInvokeOnCreateRecursively(Entity entity)
-    {
-        auto context = Script::GetCurrentScene();
-
-        // Call C# Entity::OnCreate method
-        if (entity.HasComponent<ScriptComponent>())
+        static MonoObject* Entity_Get_Instance(UUID uuid)
         {
-            Script::InvokeEntityOnCreate(entity);
+            Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
+            TBO_ENGINE_ASSERT(instance);
+
+            return instance->GetMonoInstance();
         }
 
-        const auto& children = entity.GetChildren();
-        for (auto childUUID : children)
+        static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflectionType)
         {
-            Entity child = context->FindEntityByUUID(childUUID);
-            TBO_ENGINE_ASSERT(child);
-            TryInvokeOnCreateRecursively(child);
-        }
-    }
+            Entity entity = GetEntity(uuid);
 
-    static u64 Entity_InstantiatePrefabWithTranslation(MonoString* monoString, glm::vec3* translation)
-    {
-        auto context = Script::GetCurrentScene();
-        char* cString = mono_string_to_utf8(monoString);
-        std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
-        mono_free(cString);
+            if (!entity)
+                return false;
 
-        Entity entity = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
+            MonoType* component_type = mono_reflection_type_get_type(reflectionType);
+            TBO_ENGINE_ASSERT(s_EntityHasComponentFuncs.find(component_type) != s_EntityHasComponentFuncs.end());
 
-        if (entity)
-        {
-            TryInvokeOnCreateRecursively(entity);
-
-            return entity.GetUUID();
+            return s_EntityHasComponentFuncs.at(component_type)(entity);
         }
 
-        TBO_ENGINE_ERROR("Could not instantiate prefab!");
-        return 0;
-    }
-
-    static u64 Entity_InstantiateChildPrefabWithTranslation(u64 uuid, MonoString* monoString, glm::vec3* translation)
-    {
-        auto context = Script::GetCurrentScene();
-        char* cString = mono_string_to_utf8(monoString);
-        std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
-        mono_free(cString);
-
-        Entity child = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
-
-        if (child)
+        static void Entity_Add_Component(u64 uuid, MonoReflectionType* reflectionType)
         {
-            Entity parent = GetEntity(uuid);
-            child.SetParent(parent);
+            Entity entity = GetEntity(uuid);
 
-            TryInvokeOnCreateRecursively(child);
+            if (!entity)
+                return;
 
-            return child.GetUUID();
+            MonoType* componentType = mono_reflection_type_get_type(reflectionType);
+
+            TBO_ENGINE_ASSERT(s_EntityAddComponentFuncs.find(componentType) != s_EntityAddComponentFuncs.end());
+            s_EntityAddComponentFuncs.at(componentType)(entity);
         }
 
-        TBO_ENGINE_ERROR("Could not instantiate prefab!");
-        return 0;
-    }
+        static void Entity_Remove_Component(u64 uuid, MonoReflectionType* reflectionType)
+        {
+            Entity entity = GetEntity(uuid);
+
+            if (!entity)
+                return;
+
+            MonoType* componentType = mono_reflection_type_get_type(reflectionType);
+
+            TBO_ENGINE_ASSERT(s_EntityRemoveComponentFuncs.find(componentType) != s_EntityRemoveComponentFuncs.end());
+            s_EntityRemoveComponentFuncs.at(componentType)(entity);
+        }
+
+        static MonoArray* Entity_Get_Children(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
+
+            MonoDomain* appDomain = Script::GetAppDomain();
+            Ref<ScriptClass> entityClass = Script::GetEntityBaseClass();
+
+            const auto& children = entity.GetChildren();
+
+            // Create an array of Entity refs
+            MonoArray* monoArray = mono_array_new(appDomain, entityClass->GetMonoClass(), children.size());
+
+            // Allocate new entities
+            for (uintptr_t i = 0; i < children.size(); i++)
+            {
+                Ref<ScriptInstance> instance = Ref<ScriptInstance>::Create(entityClass, children[i]);
+                mono_array_setref(monoArray, i, instance->GetMonoInstance());
+            }
+
+            return monoArray;
+        }
+
+        static MonoString* Entity_Get_Name(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
+
+            if (!entity)
+                return nullptr;
+
+            MonoDomain* appDomain = Script::GetAppDomain();
+
+            MonoString* monoString = mono_string_new(appDomain, entity.GetName().c_str());
+            TBO_ENGINE_ASSERT(monoString);
+            return monoString;
+        }
+
+        static void Entity_Set_Name(UUID uuid, MonoString* name)
+        {
+            Entity entity = GetEntity(uuid);
+
+            if (!entity)
+                return;
+
+            char* cString = mono_string_to_utf8(name);
+            entity.SetName(cString);
+            mono_free(cString);
+        }
+
+        // FIXME: Temporary
+        static void TryInvokeOnCreateRecursively(Entity entity)
+        {
+            auto context = Script::GetCurrentScene();
+
+            // Call C# Entity::OnCreate method
+            if (entity.HasComponent<ScriptComponent>())
+            {
+                Script::InvokeEntityOnCreate(entity);
+            }
+
+            const auto& children = entity.GetChildren();
+            for (auto childUUID : children)
+            {
+                Entity child = context->FindEntityByUUID(childUUID);
+                TBO_ENGINE_ASSERT(child);
+                TryInvokeOnCreateRecursively(child);
+            }
+        }
+
+        static u64 Entity_InstantiatePrefabWithTranslation(MonoString* monoString, glm::vec3* translation)
+        {
+            auto context = Script::GetCurrentScene();
+            char* cString = mono_string_to_utf8(monoString);
+            std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
+            mono_free(cString);
+
+            Entity entity = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
+
+            if (entity)
+            {
+                TryInvokeOnCreateRecursively(entity);
+
+                return entity.GetUUID();
+            }
+
+            TBO_ENGINE_ERROR("Could not instantiate prefab!");
+            return 0;
+        }
+
+        static u64 Entity_InstantiateChildPrefabWithTranslation(u64 uuid, MonoString* monoString, glm::vec3* translation)
+        {
+            auto context = Script::GetCurrentScene();
+            char* cString = mono_string_to_utf8(monoString);
+            std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
+            mono_free(cString);
+
+            Entity child = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
+
+            if (child)
+            {
+                Entity parent = GetEntity(uuid);
+                child.SetParent(parent);
+
+                TryInvokeOnCreateRecursively(child);
+
+                return child.GetUUID();
+            }
+
+            TBO_ENGINE_ERROR("Could not instantiate prefab!");
+            return 0;
+        }
 #pragma endregion
 
 #pragma region Components
 
 #pragma region TransformComponent
 
-    // Translation
-    // Translation
-    // Translation
-    static void Component_Transform_Get_Translation(UUID uuid, glm::vec3* outTranslation)
-    {
-        Entity entity = GetEntity(uuid);
-        if (entity)
-            *outTranslation = entity.GetComponent<TransformComponent>().Translation;
-    }
+        // Translation
+        // Translation
+        // Translation
+        static void Component_Transform_Get_Translation(UUID uuid, glm::vec3* outTranslation)
+        {
+            Entity entity = GetEntity(uuid);
+            if (entity)
+                *outTranslation = entity.GetComponent<TransformComponent>().Translation;
+        }
 
-    static void Component_Transform_Set_Translation(UUID uuid, glm::vec3* translation)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_Transform_Set_Translation(UUID uuid, glm::vec3* translation)
+        {
+            Entity entity = GetEntity(uuid);
 
-        if (entity)
-            entity.GetComponent<TransformComponent>().Translation = *translation;
-    }
+            if (entity)
+                entity.GetComponent<TransformComponent>().Translation = *translation;
+        }
 
-    // Rotation
-    // Rotation
-    // Rotation
-    static void Component_Transform_Get_Rotation(UUID uuid, glm::vec3* outRotation)
-    {
-        Entity entity = GetEntity(uuid);
-        if (entity)
-            *outRotation = entity.GetComponent<TransformComponent>().Rotation;
-    }
+        // Rotation
+        // Rotation
+        // Rotation
+        static void Component_Transform_Get_Rotation(UUID uuid, glm::vec3* outRotation)
+        {
+            Entity entity = GetEntity(uuid);
+            if (entity)
+                *outRotation = entity.GetComponent<TransformComponent>().Rotation;
+        }
 
-    static void Component_Transform_Set_Rotation(UUID uuid, glm::vec3* rotation)
-    {
-        Entity entity = GetEntity(uuid);
-        if (entity)
-            entity.GetComponent<TransformComponent>().Rotation = *rotation;
-    }
+        static void Component_Transform_Set_Rotation(UUID uuid, glm::vec3* rotation)
+        {
+            Entity entity = GetEntity(uuid);
+            if (entity)
+                entity.GetComponent<TransformComponent>().Rotation = *rotation;
+        }
 
-    // Scale
-    // Scale
-    // Scale
-    static void Component_Transform_Get_Scale(UUID uuid, glm::vec3* outScale)
-    {
-        Entity entity = GetEntity(uuid);
-        if (entity)
-            *outScale = entity.GetComponent<TransformComponent>().Scale;
-    }
+        // Scale
+        // Scale
+        // Scale
+        static void Component_Transform_Get_Scale(UUID uuid, glm::vec3* outScale)
+        {
+            Entity entity = GetEntity(uuid);
+            if (entity)
+                *outScale = entity.GetComponent<TransformComponent>().Scale;
+        }
 
-    static void Component_Transform_Set_Scale(UUID uuid, glm::vec3* scale)
-    {
-        Entity entity = GetEntity(uuid);
-        if (entity)
-            entity.GetComponent<TransformComponent>().Scale = *scale;
-    }
+        static void Component_Transform_Set_Scale(UUID uuid, glm::vec3* scale)
+        {
+            Entity entity = GetEntity(uuid);
+            if (entity)
+                entity.GetComponent<TransformComponent>().Scale = *scale;
+        }
 
 #pragma endregion
 
 #pragma region LineRendererComponent
 
-    static void Component_LineRenderer_Get_Destination(UUID uuid, glm::vec3* destination)
-    {
-        Entity entity = GetEntity(uuid);
-        if (entity)
-            *destination = entity.GetComponent<LineRendererComponent>().Destination;
-    }
+        static void Component_LineRenderer_Get_Destination(UUID uuid, glm::vec3* destination)
+        {
+            Entity entity = GetEntity(uuid);
+            if (entity)
+                *destination = entity.GetComponent<LineRendererComponent>().Destination;
+        }
 
-    static void Component_LineRenderer_Set_Destination(UUID uuid, glm::vec3* destination)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_LineRenderer_Set_Destination(UUID uuid, glm::vec3* destination)
+        {
+            Entity entity = GetEntity(uuid);
 
-        if (entity)
-            entity.GetComponent<LineRendererComponent>().Destination = *destination;
-    }
+            if (entity)
+                entity.GetComponent<LineRendererComponent>().Destination = *destination;
+        }
 
-    static void Component_LineRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_LineRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
+        {
+            Entity entity = GetEntity(uuid);
 
-        if (entity)
-            *outColor = entity.GetComponent<LineRendererComponent>().Color;
-    }
-    static void Component_LineRenderer_Set_Color(UUID uuid, glm::vec4* color)
-    {
-        Entity entity = GetEntity(uuid);
+            if (entity)
+                *outColor = entity.GetComponent<LineRendererComponent>().Color;
+        }
+        static void Component_LineRenderer_Set_Color(UUID uuid, glm::vec4* color)
+        {
+            Entity entity = GetEntity(uuid);
 
-        if (entity)
-            entity.GetComponent<LineRendererComponent>().Color = *color;
-    }
+            if (entity)
+                entity.GetComponent<LineRendererComponent>().Color = *color;
+        }
 
 #pragma endregion
 
 #pragma region SpriteRendererComponent
 
-    static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
-    {
-        Entity entity = GetEntity(uuid);
-
-        *outColor = entity.GetComponent<SpriteRendererComponent>().Color;
-    }
-    static void Component_SpriteRenderer_Set_Color(UUID uuid, glm::vec4* color)
-    {
-        Entity entity = GetEntity(uuid);
-
-        entity.GetComponent<SpriteRendererComponent>().Color = *color;
-    }
-
-    static void Component_SpriteRenderer_SetSpriteBounds(UUID uuid, glm::vec2 position, glm::vec2 size)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto& src = entity.GetComponent<SpriteRendererComponent>();
-
-        if (src.IsSpriteSheet && src.Texture)
+        static void Component_SpriteRenderer_Get_Color(UUID uuid, glm::vec4* outColor)
         {
-            auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
-            src.SpriteCoords = position;
-            src.SpriteSize = size;
+            Entity entity = GetEntity(uuid);
 
-            glm::vec2 min = { (src.SpriteCoords.x * src.SpriteSize.x) / texture->GetWidth(), (src.SpriteCoords.y * src.SpriteSize.y) / texture->GetHeight() };
-            glm::vec2 max = { ((src.SpriteCoords.x + 1) * src.SpriteSize.x) / texture->GetWidth(), ((src.SpriteCoords.y + 1) * src.SpriteSize.y) / texture->GetHeight() };
+            *outColor = entity.GetComponent<SpriteRendererComponent>().Color;
+        }
+        static void Component_SpriteRenderer_Set_Color(UUID uuid, glm::vec4* color)
+        {
+            Entity entity = GetEntity(uuid);
 
-            src.TextureCoords[0] = { min.x, min.y };
-            src.TextureCoords[1] = { max.x, min.y };
-            src.TextureCoords[2] = { max.x, max.y };
-            src.TextureCoords[3] = { min.x, max.y };
-
-            return;
+            entity.GetComponent<SpriteRendererComponent>().Color = *color;
         }
 
-        TBO_CONSOLE_ERROR("\"{}\" entity sprite renderer does not have a texture!", entity.GetName());
-    }
+        static void Component_SpriteRenderer_SetSpriteBounds(UUID uuid, glm::vec2 position, glm::vec2 size)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto& src = entity.GetComponent<SpriteRendererComponent>();
+
+            if (src.IsSpriteSheet && src.Texture)
+            {
+                auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
+                src.SpriteCoords = position;
+                src.SpriteSize = size;
+
+                glm::vec2 min = { (src.SpriteCoords.x * src.SpriteSize.x) / texture->GetWidth(), (src.SpriteCoords.y * src.SpriteSize.y) / texture->GetHeight() };
+                glm::vec2 max = { ((src.SpriteCoords.x + 1) * src.SpriteSize.x) / texture->GetWidth(), ((src.SpriteCoords.y + 1) * src.SpriteSize.y) / texture->GetHeight() };
+
+                src.TextureCoords[0] = { min.x, min.y };
+                src.TextureCoords[1] = { max.x, min.y };
+                src.TextureCoords[2] = { max.x, max.y };
+                src.TextureCoords[3] = { min.x, max.y };
+
+                return;
+            }
+
+            TBO_CONSOLE_ERROR("\"{}\" entity sprite renderer does not have a texture!", entity.GetName());
+        }
 
 #pragma endregion
 
@@ -538,572 +575,607 @@ namespace Turbo {
 
 #pragma region TextComponent
 
-    static void Component_Text_Set_Text(u64 uuid, MonoString* monoString)
-    {
-        char* cString = mono_string_to_utf8(monoString);
-        std::string string = cString;
-        mono_free(cString);
+        static void Component_Text_Set_Text(u64 uuid, MonoString* monoString)
+        {
+            char* cString = mono_string_to_utf8(monoString);
+            std::string string = cString;
+            mono_free(cString);
 
-        Entity entity = GetEntity(uuid);
+            Entity entity = GetEntity(uuid);
 
-        entity.GetComponent<TextComponent>().Text = string;
-    }
+            entity.GetComponent<TextComponent>().Text = string;
+        }
 
-    static MonoString* Component_Text_Get_Text(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static MonoString* Component_Text_Get_Text(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        MonoDomain* appDomain = Script::GetAppDomain();
+            MonoDomain* appDomain = Script::GetAppDomain();
 
-        const std::string& text = entity.GetComponent<TextComponent>().Text;
-        MonoString* monoString = mono_string_new(appDomain, text.c_str());
-        return monoString;
-    }
+            const std::string& text = entity.GetComponent<TextComponent>().Text;
+            MonoString* monoString = mono_string_new(appDomain, text.c_str());
+            return monoString;
+        }
 
-    static void Component_Text_Get_Color(UUID uuid, glm::vec4* outColor)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_Text_Get_Color(UUID uuid, glm::vec4* outColor)
+        {
+            Entity entity = GetEntity(uuid);
 
-        *outColor = entity.GetComponent<TextComponent>().Color;
-    }
-    static void Component_Text_Set_Color(UUID uuid, glm::vec4* color)
-    {
-        Entity entity = GetEntity(uuid);
+            *outColor = entity.GetComponent<TextComponent>().Color;
+        }
+        static void Component_Text_Set_Color(UUID uuid, glm::vec4* color)
+        {
+            Entity entity = GetEntity(uuid);
 
-        entity.GetComponent<TextComponent>().Color = *color;
-    }
+            entity.GetComponent<TextComponent>().Color = *color;
+        }
 
 #pragma endregion
 
 #pragma region AudioSourceComponent
 
-    static f32 Component_AudioSource_Get_Gain(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static f32 Component_AudioSource_Get_Gain(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        return audioSourceComponent.Gain;
-    }
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            return audioSourceComponent.Gain;
+        }
 
-    static void Component_AudioSource_Set_Gain(u64 uuid, f32 gain)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_AudioSource_Set_Gain(u64 uuid, f32 gain)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        audioSourceComponent.Gain = gain;
-    }
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            audioSourceComponent.Gain = gain;
+        }
 
-    static bool Component_AudioSource_Get_PlayOnStart(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static bool Component_AudioSource_Get_PlayOnStart(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        return audioSourceComponent.PlayOnAwake;
-    }
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            return audioSourceComponent.PlayOnAwake;
+        }
 
-    static void Component_AudioSource_Set_PlayOnStart(u64 uuid, bool playOnAwake)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_AudioSource_Set_PlayOnStart(u64 uuid, bool playOnAwake)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        audioSourceComponent.PlayOnAwake = playOnAwake;
-    }
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            audioSourceComponent.PlayOnAwake = playOnAwake;
+        }
 
-    static bool Component_AudioSource_Get_Loop(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static bool Component_AudioSource_Get_Loop(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        return audioSourceComponent.Loop;
-    }
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            return audioSourceComponent.Loop;
+        }
 
-    static void Component_AudioSource_Set_Loop(u64 uuid, bool loop)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_AudioSource_Set_Loop(u64 uuid, bool loop)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
-        audioSourceComponent.Loop = loop;
-    }
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            audioSourceComponent.Loop = loop;
+        }
 
-    static void Component_AudioSource_Play(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
-        if (!entity)
-            return;
+        static void Component_AudioSource_Play(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
+            if (!entity)
+                return;
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
 
-        if (audioSourceComponent.AudioPath.empty())
-            return;
+            if (audioSourceComponent.AudioPath.empty())
+                return;
 
-        // If its already playing, do not play it again
-        if (Audio::IsPlaying(uuid))
-            return;
+            // If its already playing, do not play it again
+            if (Audio::IsPlaying(uuid))
+                return;
 
-        Audio::Play(uuid, audioSourceComponent.Loop);
-    }
+            Audio::Play(uuid, audioSourceComponent.Loop);
+        }
 
-    static void Component_AudioSource_Stop(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
-        if (!entity)
-            return;
+        static void Component_AudioSource_Stop(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
+            if (!entity)
+                return;
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
 
-        if (audioSourceComponent.AudioPath.empty())
-            return;
+            if (audioSourceComponent.AudioPath.empty())
+                return;
 
-        Audio::Stop(uuid);
-    }
+            Audio::Stop(uuid);
+        }
 
-    static void Component_AudioSource_Pause(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
-        if (!entity)
-            return;
+        static void Component_AudioSource_Pause(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
+            if (!entity)
+                return;
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
 
-        if (audioSourceComponent.AudioPath.empty())
-            return;
+            if (audioSourceComponent.AudioPath.empty())
+                return;
 
-        Audio::Pause(uuid);
-    }
+            Audio::Pause(uuid);
+        }
 
-    static void Component_AudioSource_Resume(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
-        if (!entity)
-            return;
+        static void Component_AudioSource_Resume(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
+            if (!entity)
+                return;
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
 
-        if (audioSourceComponent.AudioPath.empty())
-            return;
+            if (audioSourceComponent.AudioPath.empty())
+                return;
 
-        Audio::Resume(uuid);
-    }
+            Audio::Resume(uuid);
+        }
 
-    static bool Component_AudioSource_IsPlaying(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
-        if (!entity)
-            return false;
+        static bool Component_AudioSource_IsPlaying(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
+            if (!entity)
+                return false;
 
-        auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+            auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
 
-        if (audioSourceComponent.AudioPath.empty())
-            return false;
+            if (audioSourceComponent.AudioPath.empty())
+                return false;
 
-        return Audio::IsPlaying(uuid);
-    }
+            return Audio::IsPlaying(uuid);
+        }
 
 #pragma endregion
 
 #pragma region AudioListenerComponent
 
-    static bool Component_AudioListener_Get_IsPrimary(u64 uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static bool Component_AudioListener_Get_IsPrimary(u64 uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
-        return audioListenerComponent.IsPrimary;
-    }
+            auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
+            return audioListenerComponent.IsPrimary;
+        }
 
-    static void Component_AudioListener_Set_IsPrimary(u64 uuid, bool isPrimary)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_AudioListener_Set_IsPrimary(u64 uuid, bool isPrimary)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
-        audioListenerComponent.IsPrimary = isPrimary;
-    }
+            auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
+            audioListenerComponent.IsPrimary = isPrimary;
+        }
 
 #pragma endregion
 
 #pragma region RigidBody2DComponent
 
-    static void Component_Rigidbody2D_ApplyLinearImpulse(UUID uuid, glm::vec2* impulse, glm::vec2* worldPosition, bool wake)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_Rigidbody2D_ApplyLinearImpulse(UUID uuid, glm::vec2* impulse, glm::vec2* worldPosition, bool wake)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
 
-        body->ApplyLinearImpulse(b2Vec2(impulse->x, impulse->y), b2Vec2(worldPosition->x, worldPosition->y), wake);
-    }
-    static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(UUID uuid, glm::vec2* impulse, bool wake)
-    {
-        Entity entity = GetEntity(uuid);
+            body->ApplyLinearImpulse(b2Vec2(impulse->x, impulse->y), b2Vec2(worldPosition->x, worldPosition->y), wake);
+        }
+        static void Component_Rigidbody2D_ApplyLinearImpulseToCenter(UUID uuid, glm::vec2* impulse, bool wake)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        body->ApplyLinearImpulseToCenter(b2Vec2(impulse->x, impulse->y), wake);
-    }
-    static void Component_Rigidbody2D_ApplyForceToCenter(UUID uuid, glm::vec2* force, bool wake)
-    {
-        Entity entity = GetEntity(uuid);
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->ApplyLinearImpulseToCenter(b2Vec2(impulse->x, impulse->y), wake);
+        }
+        static void Component_Rigidbody2D_ApplyForceToCenter(UUID uuid, glm::vec2* force, bool wake)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        body->ApplyForceToCenter(b2Vec2(force->x, force->y), wake);
-    }
-    static void Component_Rigidbody2D_Set_LinearVelocity(UUID uuid, glm::vec2* velocity)
-    {
-        Entity entity = GetEntity(uuid);
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->ApplyForceToCenter(b2Vec2(force->x, force->y), wake);
+        }
+        static void Component_Rigidbody2D_Set_LinearVelocity(UUID uuid, glm::vec2* velocity)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        body->SetLinearVelocity(b2Vec2(velocity->x, velocity->y));
-    }
-    static void Component_Rigidbody2D_Get_LinearVelocity(UUID uuid, glm::vec2* velocity)
-    {
-        Entity entity = GetEntity(uuid);
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->SetLinearVelocity(b2Vec2(velocity->x, velocity->y));
+        }
+        static void Component_Rigidbody2D_Get_LinearVelocity(UUID uuid, glm::vec2* velocity)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        b2Vec2 b2Velocity = body->GetLinearVelocity();
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            b2Vec2 b2Velocity = body->GetLinearVelocity();
 
-        velocity->x = b2Velocity.x;
-        velocity->y = b2Velocity.y;
-    }
-    static void Component_Rigidbody2D_ApplyTorque(UUID uuid, f32 torque, bool wake)
-    {
-        Entity entity = GetEntity(uuid);
+            velocity->x = b2Velocity.x;
+            velocity->y = b2Velocity.y;
+        }
+        static void Component_Rigidbody2D_ApplyTorque(UUID uuid, f32 torque, bool wake)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-        body->ApplyTorque(torque, wake);
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->ApplyTorque(torque, wake);
+        }
 
-    static f32 Component_Rigidbody2D_Get_GravityScale(UUID uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static f32 Component_Rigidbody2D_Get_GravityScale(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        return rb2d.GravityScale;
-    }
-    static void Component_Rigidbody2D_Set_GravityScale(UUID uuid, f32 gravityScale)
-    {
-        Entity entity = GetEntity(uuid);
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            return rb2d.GravityScale;
+        }
+        static void Component_Rigidbody2D_Set_GravityScale(UUID uuid, f32 gravityScale)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        rb2d.GravityScale = gravityScale;
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            rb2d.GravityScale = gravityScale;
+        }
 
-    static u32 Component_Rigidbody2D_Get_BodyType(UUID uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static u32 Component_Rigidbody2D_Get_BodyType(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        return (u32)rb2d.Type;
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            return (u32)rb2d.Type;
+        }
 
-    static void Component_Rigidbody2D_Set_BodyType(UUID uuid, u32 type)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_Rigidbody2D_Set_BodyType(UUID uuid, u32 type)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        rb2d.Type = (RigidbodyType)type;
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            rb2d.Type = (RigidbodyType)type;
+        }
 
-    static void Component_Rigidbody2D_Set_Enabled(UUID uuid, bool enabled)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_Rigidbody2D_Set_Enabled(UUID uuid, bool enabled)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        rb2d.Enabled = enabled;
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            rb2d.Enabled = enabled;
+        }
 
-    static bool Component_Rigidbody2D_Get_Enabled(UUID uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static bool Component_Rigidbody2D_Get_Enabled(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        return rb2d.Enabled;
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            return rb2d.Enabled;
+        }
 
-    static void Component_Rigidbody2D_Set_ContactEnabled(UUID uuid, bool enabled)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_Rigidbody2D_Set_ContactEnabled(UUID uuid, bool enabled)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        rb2d.ContactEnabled = enabled;
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            rb2d.ContactEnabled = enabled;
+        }
 
-    static bool Component_Rigidbody2D_Get_ContactEnabled(UUID uuid)
-    {
-        Entity entity = GetEntity(uuid);
+        static bool Component_Rigidbody2D_Get_ContactEnabled(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        return rb2d.ContactEnabled;
-    }
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            return rb2d.ContactEnabled;
+        }
 
 #pragma endregion
 
 #pragma region BoxCollider2DComponent
 
-    // Offset
-    static void Component_BoxCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
-    {
-        Entity entity = GetEntity(uuid);
-
-        *outOffset = entity.GetComponent<BoxCollider2DComponent>().Offset;
-    }
-    static void Component_BoxCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-        auto& transform = entity.Transform();
-
-        if (bc2d.Offset == *offset)
-            return;
-
-        bc2d.Offset = *offset;
-
-        // Destroys old fixture and replaces it with new one
-        entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
-    }
-
-    // Size
-    static void Component_BoxCollider2D_Get_Size(UUID uuid, glm::vec2* outSize)
-    {
-        Entity entity = GetEntity(uuid);
-
-        *outSize = entity.GetComponent<BoxCollider2DComponent>().Size;
-    }
-    static void Component_BoxCollider2D_Set_Size(UUID uuid, glm::vec2* size)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-        auto& transform = entity.Transform();
-
-        if (bc2d.Size == *size)
-            return;
-
-        bc2d.Size = *size;
-
-        // Destroys old fixture and replaces it with new one
-        entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
-    }
-
-    // IsSensor
-    static bool Component_BoxCollider2D_Get_IsSensor(UUID uuid)
-    {
-        Entity entity = GetEntity(uuid);
-
-        return entity.GetComponent<BoxCollider2DComponent>().IsSensor;
-    }
-
-    static void Component_BoxCollider2D_Set_IsSensor(UUID uuid, bool isSensor)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-
-        if (bc2d.IsSensor == isSensor)
-            return;
-
-        bc2d.IsSensor = isSensor;
-
-        // Destroys old fixture and replaces it with new one
-        entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
-    }
-
-    static void Component_BoxCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-
-        if (bc2d.CollisionCategory == category && bc2d.CollisionMask == mask)
-            return;
-
-        bc2d.CollisionCategory = category;
-        bc2d.CollisionMask = mask;
-
-        if (!entity.HasComponent<BoxCollider2DComponent>())
+        // Offset
+        static void Component_BoxCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
         {
-            TBO_CONSOLE_ERROR("Entity deoes not have a rigidbody!");
-            return;
+            Entity entity = GetEntity(uuid);
+
+            *outOffset = entity.GetComponent<BoxCollider2DComponent>().Offset;
+        }
+        static void Component_BoxCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+            auto& transform = entity.Transform();
+
+            if (bc2d.Offset == *offset)
+                return;
+
+            bc2d.Offset = *offset;
+
+            // Destroys old fixture and replaces it with new one
+            entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
         }
 
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-
-        // Iterate through all fixtures and set collision filters
-        b2Fixture* fixture = body->GetFixtureList();
-        while (fixture != nullptr)
+        // Size
+        static void Component_BoxCollider2D_Get_Size(UUID uuid, glm::vec2* outSize)
         {
-            b2Shape* shape = fixture->GetShape();
+            Entity entity = GetEntity(uuid);
 
-            if (shape->GetType() == b2Shape::e_polygon)
+            *outSize = entity.GetComponent<BoxCollider2DComponent>().Size;
+        }
+        static void Component_BoxCollider2D_Set_Size(UUID uuid, glm::vec2* size)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+            auto& transform = entity.Transform();
+
+            if (bc2d.Size == *size)
+                return;
+
+            bc2d.Size = *size;
+
+            // Destroys old fixture and replaces it with new one
+            entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
+        }
+
+        // IsSensor
+        static bool Component_BoxCollider2D_Get_IsSensor(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
+
+            return entity.GetComponent<BoxCollider2DComponent>().IsSensor;
+        }
+
+        static void Component_BoxCollider2D_Set_IsSensor(UUID uuid, bool isSensor)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+            if (bc2d.IsSensor == isSensor)
+                return;
+
+            bc2d.IsSensor = isSensor;
+
+            // Destroys old fixture and replaces it with new one
+            entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
+        }
+
+        static void Component_BoxCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+            if (bc2d.CollisionCategory == category && bc2d.CollisionMask == mask)
+                return;
+
+            bc2d.CollisionCategory = category;
+            bc2d.CollisionMask = mask;
+
+            if (!entity.HasComponent<BoxCollider2DComponent>())
             {
-                b2Filter collisionFilter;
-                collisionFilter.categoryBits = bc2d.CollisionCategory;
-                collisionFilter.maskBits = bc2d.CollisionMask;
-                collisionFilter.groupIndex = 0;
-                fixture->SetFilterData(collisionFilter);
+                TBO_CONSOLE_ERROR("Entity deoes not have a rigidbody!");
+                return;
             }
 
-            fixture = fixture->GetNext();
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+            // Iterate through all fixtures and set collision filters
+            b2Fixture* fixture = body->GetFixtureList();
+            while (fixture != nullptr)
+            {
+                b2Shape* shape = fixture->GetShape();
+
+                if (shape->GetType() == b2Shape::e_polygon)
+                {
+                    b2Filter collisionFilter;
+                    collisionFilter.categoryBits = bc2d.CollisionCategory;
+                    collisionFilter.maskBits = bc2d.CollisionMask;
+                    collisionFilter.groupIndex = 0;
+                    fixture->SetFilterData(collisionFilter);
+                }
+
+                fixture = fixture->GetNext();
+            }
         }
-    }
 
-    static void Component_BoxCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
-    {
-        Entity entity = GetEntity(uuid);
+        static void Component_BoxCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
+        {
+            Entity entity = GetEntity(uuid);
 
-        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-        *category = bc2d.CollisionCategory;
-        *mask = bc2d.CollisionMask;
-    }
+            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+            *category = bc2d.CollisionCategory;
+            *mask = bc2d.CollisionMask;
+        }
 
 #pragma endregion
 
 #pragma region CircleCollider2DComponent
 
-    // Offset
-    static void Component_CircleCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
-    {
-        Entity entity = GetEntity(uuid);
-
-        *outOffset = entity.GetComponent<CircleCollider2DComponent>().Offset;
-    }
-    static void Component_CircleCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
-    {
-        Entity entity = GetEntity(uuid);
-
-        entity.GetComponent<CircleCollider2DComponent>().Offset = *offset;
-    }
-
-    // Radius
-    static float Component_CircleCollider2D_Get_Radius(UUID uuid)
-    {
-        Entity entity = GetEntity(uuid);
-
-        return entity.GetComponent<CircleCollider2DComponent>().Radius;
-    }
-    static void Component_CircleCollider2D_Set_Radius(UUID uuid, f32* radius)
-    {
-        Entity entity = GetEntity(uuid);
-
-        entity.GetComponent<CircleCollider2DComponent>().Radius = *radius;
-    }
-
-    static void Component_CircleCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
-
-        if (cc2d.CollisionCategory == category && cc2d.CollisionMask == mask)
-            return;
-
-        cc2d.CollisionCategory = category;
-        cc2d.CollisionMask = mask;
-
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
-
-        // Iterate through all fixtures and set collision filters
-        b2Fixture* fixture = body->GetFixtureList();
-        while (fixture != nullptr)
+        // Offset
+        static void Component_CircleCollider2D_Get_Offset(UUID uuid, glm::vec2* outOffset)
         {
-            b2Shape* shape = fixture->GetShape();
+            Entity entity = GetEntity(uuid);
 
-            if (shape->GetType() == b2Shape::e_circle)
-            {
-                b2Filter collisionFilter;
-                collisionFilter.categoryBits = cc2d.CollisionCategory;
-                collisionFilter.maskBits = cc2d.CollisionMask;
-                collisionFilter.groupIndex = 0;
-                fixture->SetFilterData(collisionFilter);
-            }
-
-            fixture = fixture->GetNext();
+            *outOffset = entity.GetComponent<CircleCollider2DComponent>().Offset;
         }
-    }
+        static void Component_CircleCollider2D_Set_Offset(UUID uuid, glm::vec2* offset)
+        {
+            Entity entity = GetEntity(uuid);
 
-    static void Component_CircleCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
-    {
-        Entity entity = GetEntity(uuid);
+            entity.GetComponent<CircleCollider2DComponent>().Offset = *offset;
+        }
 
-        auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
-        *category = cc2d.CollisionCategory;
-        *mask = cc2d.CollisionMask;
-    }
+        // Radius
+        static float Component_CircleCollider2D_Get_Radius(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
+
+            return entity.GetComponent<CircleCollider2DComponent>().Radius;
+        }
+        static void Component_CircleCollider2D_Set_Radius(UUID uuid, f32* radius)
+        {
+            Entity entity = GetEntity(uuid);
+
+            entity.GetComponent<CircleCollider2DComponent>().Radius = *radius;
+        }
+
+        static void Component_CircleCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+
+            if (cc2d.CollisionCategory == category && cc2d.CollisionMask == mask)
+                return;
+
+            cc2d.CollisionCategory = category;
+            cc2d.CollisionMask = mask;
+
+            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+            // Iterate through all fixtures and set collision filters
+            b2Fixture* fixture = body->GetFixtureList();
+            while (fixture != nullptr)
+            {
+                b2Shape* shape = fixture->GetShape();
+
+                if (shape->GetType() == b2Shape::e_circle)
+                {
+                    b2Filter collisionFilter;
+                    collisionFilter.categoryBits = cc2d.CollisionCategory;
+                    collisionFilter.maskBits = cc2d.CollisionMask;
+                    collisionFilter.groupIndex = 0;
+                    fixture->SetFilterData(collisionFilter);
+                }
+
+                fixture = fixture->GetNext();
+            }
+        }
+
+        static void Component_CircleCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+            *category = cc2d.CollisionCategory;
+            *mask = cc2d.CollisionMask;
+        }
 
 #pragma endregion
 
 #pragma region RigidBodyComponent
 
-    static void Component_Rigidbody_Get_LinearVelocity(UUID uuid, glm::vec3* velocity)
-    {
-        Entity entity = GetEntity(uuid);
-        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-
-        auto context = Script::GetCurrentScene();
-
-        // For now use the safe variant
-        auto& bodyInterface = context->GetPhysicsWorld()->GetBodyInterface();
-        JPH::Vec3 bodyVelocity = bodyInterface.GetLinearVelocity(bodyId);
-        *velocity = GetVec3(bodyInterface.GetLinearVelocity(bodyId));
-    }
-
-    static void Component_Rigidbody_Set_LinearVelocity(UUID uuid, glm::vec3* velocity)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto scene = Script::GetCurrentScene();
-
-        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-	    auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
-        bodyInterface.SetLinearVelocity(bodyId, JPH::Vec3(velocity->x, velocity->y, velocity->z));
-    }
-
-    // TODO: Abstract this
-    static void Component_Rigidbody_Rotate(UUID uuid, glm::vec3* rotation)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto scene = Script::GetCurrentScene();
-
-        glm::vec3 oldRotation = entity.Transform().Rotation;
-
-        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-        auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
-        JPH::Vec3 jphRotation = { oldRotation.x + rotation->x, oldRotation.y + rotation->y, oldRotation.z + rotation->z };
-        bodyInterface.SetRotation(bodyId, JPH::Quat::sEulerAngles(jphRotation), JPH::EActivation::Activate);
-    }
-
-    enum ForceMode : u32 { Force = 0, Impulse };
-
-    // TODO: Abstract this
-    static void Component_Rigidbody_AddForce(UUID uuid, glm::vec3* force, ForceMode forceMode)
-    {
-        Entity entity = GetEntity(uuid);
-
-        auto scene = Script::GetCurrentScene();
-
-        auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-        auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
-        
-        if (forceMode == ForceMode::Force)
+        // Linear velocity
+        static void Component_Rigidbody_Get_LinearVelocity(UUID uuid, glm::vec3* velocity)
         {
-            bodyInterface.AddForce(bodyId, GetVec3(*force));
+            Entity entity = GetEntity(uuid);
+            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+
+            auto context = Script::GetCurrentScene();
+
+            // For now use the safe variant
+            auto& bodyInterface = context->GetPhysicsWorld()->GetBodyInterface();
+            JPH::Vec3 bodyVelocity = bodyInterface.GetLinearVelocity(bodyId);
+            *velocity = GetVec3(bodyInterface.GetLinearVelocity(bodyId));
         }
-        else if (forceMode == ForceMode::Impulse)
+
+        static void Component_Rigidbody_Set_LinearVelocity(UUID uuid, glm::vec3* velocity)
         {
-            bodyInterface.AddImpulse(bodyId, GetVec3(*force));
+            Entity entity = GetEntity(uuid);
+
+            auto scene = Script::GetCurrentScene();
+
+            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+            bodyInterface.SetLinearVelocity(bodyId, JPH::Vec3(velocity->x, velocity->y, velocity->z));
         }
-    }
+
+        // Rotation
+        static void Component_Rigidbody_Get_Rotation(UUID uuid, glm::quat* outRotation)
+        {
+            Entity entity = GetEntity(uuid);
+            auto scene = Script::GetCurrentScene();
+
+            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+            *outRotation = GetQuat(bodyInterface.GetRotation(bodyId));
+        }
+
+        static void Component_Rigidbody_Set_Rotation(UUID uuid, glm::quat* rotation)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto isNan = glm::isnan(*rotation);
+
+            if (isNan.w || isNan.x || isNan.y || isNan.z)
+                return;
+
+            if (entity.Transform().Rotation == glm::eulerAngles(*rotation))
+                return;
+
+            auto scene = Script::GetCurrentScene();
+
+            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+            bodyInterface.SetRotation(bodyId, GetQuat(*rotation), JPH::EActivation::DontActivate);
+        }
+
+        // TODO: Abstract this
+        static void Component_Rigidbody_Rotate(UUID uuid, glm::vec3* rotation)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto scene = Script::GetCurrentScene();
+            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+            JPH::Quat jphRotation = bodyInterface.GetRotation(bodyId);
+
+            glm::quat qRotation = { jphRotation.GetW(), jphRotation.GetX(), jphRotation.GetY(), jphRotation.GetZ() };
+            qRotation *= glm::angleAxis(rotation->x, glm::vec3(1.0f, 0.0f, 0.0f))
+                * glm::angleAxis(rotation->y, glm::vec3(0.0f, 1.0f, 0.0f))
+                * glm::angleAxis(rotation->z, glm::vec3(0.0f, 0.0f, 1.0f));
+
+            bodyInterface.SetRotation(bodyId, JPH::Quat(qRotation.x, qRotation.y, qRotation.z, qRotation.w), JPH::EActivation::DontActivate);
+        }
+
+        enum ForceMode : u32 { Force = 0, Impulse };
+
+        // TODO: Abstract this
+        static void Component_Rigidbody_AddForce(UUID uuid, glm::vec3* force, ForceMode forceMode)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto scene = Script::GetCurrentScene();
+
+            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+
+            if (forceMode == ForceMode::Force)
+            {
+                bodyInterface.AddForce(bodyId, GetVec3(*force));
+            }
+            else if (forceMode == ForceMode::Impulse)
+            {
+                bodyInterface.AddImpulse(bodyId, GetVec3(*force));
+            }
+        }
 
 #pragma endregion
 
 #pragma endregion
+    }
 
     void InternalCalls::Init()
     {
@@ -1111,6 +1183,9 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Application_GetWidth);
         TBO_REGISTER_FUNCTION(Application_GetHeight);
         TBO_REGISTER_FUNCTION(Application_Close);
+
+        // Debug
+        TBO_REGISTER_FUNCTION(DebugRenderer_DrawLine);
 
         // Logging
         TBO_REGISTER_FUNCTION(Log_String);
@@ -1157,7 +1232,6 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Color);
         TBO_REGISTER_FUNCTION(Component_LineRenderer_Set_Color);
 
-
         // Sprite Renderer
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Get_Color);
         TBO_REGISTER_FUNCTION(Component_SpriteRenderer_Set_Color);
@@ -1188,7 +1262,7 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Component_AudioListener_Get_IsPrimary);
         TBO_REGISTER_FUNCTION(Component_AudioListener_Set_IsPrimary);
 
-        // Physics2D
+        // Physics 2D
         TBO_REGISTER_FUNCTION(Physics2D_RayCast);
 
         // Rigidbody2D
@@ -1225,9 +1299,14 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Set_CollisionFilter);
         TBO_REGISTER_FUNCTION(Component_CircleCollider2D_Get_CollisionFilter);
 
+        // Physics 3D
+        TBO_REGISTER_FUNCTION(Physics_CastRay);
+
         // Rigidbody
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_LinearVelocity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_LinearVelocity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_Rotation);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_Rotation);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Rotate);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_AddForce);
 

@@ -954,6 +954,7 @@ namespace Turbo {
 
             ImGui::DragFloat("Gravity Scale", &component.GravityScale);
             ImGui::DragFloat("Mass", &component.Mass);
+            ImGui::Checkbox("Is Trigger", &component.IsTrigger);
 
             ImGui::PushID("Lock Translation:    ");
             ImGui::Text("Lock Translation: ");

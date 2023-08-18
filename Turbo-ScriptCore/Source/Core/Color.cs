@@ -204,6 +204,7 @@ namespace Turbo
 			return u * (1.0f / v);
 		}
 
+		// Implicit conversion between vector and color
 		public static implicit operator Color(Vector4 value) => new Color(value);
 	}
 }

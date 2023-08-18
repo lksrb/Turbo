@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RayCast.h"
+
 #include "Turbo/Scene/Scene.h"
 
 #include <Jolt/Jolt.h>
@@ -9,6 +11,8 @@
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
 #include <array>
+
+#include <filesystem>
 
 namespace Turbo {
 
@@ -37,14 +41,6 @@ namespace Turbo {
 
         JPH::uint GetNumBroadPhaseLayers() const override { return Layers::COUNT; }
         JPH::BroadPhaseLayer GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const override { TBO_ENGINE_ASSERT(inLayer < Layers::COUNT); return m_ObjectToBroadPhase[inLayer]; }
-
-#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
-        /// Get the user readable name of a broadphase layer (debugging purposes)
-        virtual const char* GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const override
-        {
-            return "BOO";
-        }
-#endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
     private:
         std::array<JPH::BroadPhaseLayer, Layers::COUNT> m_ObjectToBroadPhase;
     };
@@ -113,7 +109,7 @@ namespace Turbo {
         {
         }
     };
-
+    
     class PhysicsWorld : public RefCounted
     {
     public:
@@ -125,6 +121,8 @@ namespace Turbo {
 
         JPH::BodyInterface& GetBodyInterface() { return m_PhysicsSystem.GetBodyInterface(); }
         JPH::BodyInterface& GetBodyInterfaceUnsafe() { return m_PhysicsSystem.GetBodyInterfaceNoLock(); }
+
+        RayCastResult CastRay(const Ray& ray, RayTarget target);
 
         void Simulate(FTime ts);
     private:

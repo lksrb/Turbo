@@ -15,13 +15,13 @@ namespace Turbo
         m_Buffer = nullptr;
     }
 
-    void* CommandQueue::Allocate(RenderCommandFn func, size_t size)
+    void* CommandQueue::Allocate(RenderCommandFn func, u64 size)
     {
         // TODO: alignment
         *(RenderCommandFn*)m_BufferPointer = func;
         m_BufferPointer += sizeof(RenderCommandFn);
 
-        *(u32*)m_BufferPointer = static_cast<u32>(size);
+        *(u32*)m_BufferPointer = (u32)size;
         m_BufferPointer += sizeof(u32);
 
         void* memory = m_BufferPointer;

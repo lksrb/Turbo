@@ -57,6 +57,7 @@ namespace Turbo {
 
     bool Texture2DHandler::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
     {
+        return true;
         auto path = Project::GetAssetsPath() / metadata.FilePath;
 
         // Default values
@@ -90,6 +91,14 @@ namespace Turbo {
         auto assetsPath = Project::GetAssetsPath();
         auto path = assetsPath / metadata.FilePath;
 
+        Ref<Texture2D> result = Texture2D::Create(path.string());
+        if (!result->IsLoaded())
+            return nullptr;
+
+        return result;
+
+#if 0
+
         YAML::Node data;
         try
         {
@@ -110,6 +119,7 @@ namespace Turbo {
         Ref<Texture2D> result = Texture2D::Create(config);
         if (!result->IsLoaded())
             return nullptr;
+#endif
 
         return result;
     }

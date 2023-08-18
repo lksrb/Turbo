@@ -113,7 +113,7 @@ namespace Turbo {
             m_SkyboxPipeline->Invalidate();
 
             m_SkyboxMaterial = Material::Create({ m_SkyboxShader });
-            m_DefaultSkybox = TextureCube::Create({});
+            m_DefaultSkybox = TextureCube::Create();
             m_SkyboxMaterial->Set("u_TextureCube", m_DefaultSkybox);
         }
     }
@@ -148,7 +148,7 @@ namespace Turbo {
         m_LightEnvironment.PointLightCount = 0;
         m_LightEnvironment.SpotLightCount = 0;
 
-        m_DrawList2D->Begin();
+        m_DrawList2D->Begin(); 
     }
 
     void SceneDrawList::End()
@@ -159,6 +159,8 @@ namespace Turbo {
         PreRender();
 
         Renderer::BeginRenderPass(m_RenderCommandBuffer, m_GeometryRenderPass);
+
+        Ref<Texture2D> whiteTexture = m_DrawList2D->GetWhiteTexture();
 
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
         m_CubeMaterial->Set("u_MaterialTexture", m_ContainerSpecular, 1);

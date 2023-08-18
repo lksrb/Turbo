@@ -26,6 +26,9 @@ AssetRegistry:
   - Asset: 6808730343166568602
     Path: Sources/Default/Sphere.fbx
     Type: MeshSource
+  - Asset: 6827895845365683150
+    Path: Sprites/Crosshair.png
+    Type: Texture2D
   - Asset: 7338600381720551882
     Path: Sources/Default/Cylinder.fbx
     Type: MeshSource

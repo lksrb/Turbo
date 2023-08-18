@@ -105,14 +105,100 @@ namespace Turbo {
     static RayCastCallback s_RayCastCallback;
     static ContactListener2D s_ContactListener;
 
-    PhysicsWorld2D::PhysicsWorld2D(glm::vec2 gravity)
-        : m_Box2DWorld(b2Vec2(gravity.x, gravity.y))
+    PhysicsWorld2D::PhysicsWorld2D(WeakRef<Scene> scene)
+        : m_Scene(scene), m_Box2DWorld(b2Vec2(0.0f, -9.8f))
     {
         m_Box2DWorld.SetContactListener(&s_ContactListener);
     }
 
     PhysicsWorld2D::~PhysicsWorld2D()
     {
+    }
+
+    void PhysicsWorld2D::OnRuntimeStart()
+    {
+        auto rigidbodies = m_Scene->GroupAllEntitiesWith<Rigidbody2DComponent, TransformComponent>();
+        for (auto e : rigidbodies)
+        {
+            const auto& [rb2d, transform] = rigidbodies.get<Rigidbody2DComponent, TransformComponent>(e);
+
+            // Copy position from transform component
+            b2BodyDef bodyDef;
+            bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
+            bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
+            bodyDef.angle = transform.Rotation.z;
+
+            // Create body
+            b2Body* body = m_Box2DWorld.CreateBody(&bodyDef);
+            body->SetFixedRotation(rb2d.FixedRotation);
+            body->SetEnabled(rb2d.Enabled);
+            body->SetGravityScale(rb2d.GravityScale);
+            body->SetBullet(rb2d.IsBullet);
+
+            rb2d.RuntimeBody = body;
+        }
+
+        // Maybe we should warn the user is his entity does not have a rigidbody2d component?
+        auto boxColliders = m_Scene->GroupAllEntitiesWith<BoxCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>();
+        for (auto e : boxColliders)
+        {
+            const auto& [bc2d, rb2d, ic, transform] = boxColliders.get<BoxCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>(e);
+
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+            b2PolygonShape boxShape;
+            boxShape.SetAsBox(bc2d.Size.x * glm::abs(transform.Scale.x), bc2d.Size.y * glm::abs(transform.Scale.y), b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+            b2FixtureDef fixtureDef;
+            fixtureDef.shape = &boxShape;
+            fixtureDef.density = bc2d.Density;
+            fixtureDef.friction = bc2d.Friction;
+            fixtureDef.restitution = bc2d.Restitution;
+            fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+            fixtureDef.isSensor = bc2d.IsSensor;
+            b2FixtureUserData data;
+            data.pointer = (u64)ic.ID;
+            fixtureDef.userData = data;
+
+            fixtureDef.filter.categoryBits = bc2d.CollisionCategory;
+            fixtureDef.filter.maskBits = bc2d.CollisionMask;
+            fixtureDef.filter.groupIndex = 0; // TODO: Think if this has any usage
+
+            body->CreateFixture(&fixtureDef);
+        }
+
+        // Maybe we should warn the user is his entity does not have a rigidbody2d component?
+        auto circlecolliders = m_Scene->GroupAllEntitiesWith<CircleCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>();
+        for (auto e : circlecolliders)
+        {
+            const auto& [cc2d, rb2d, ic, transform] = circlecolliders.get<CircleCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>(e);
+
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+            b2CircleShape circleShape;
+            circleShape.m_radius = transform.Scale.x * cc2d.Radius;
+            circleShape.m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
+
+            b2FixtureDef fixtureDef;
+            fixtureDef.shape = &circleShape;
+            fixtureDef.density = cc2d.Density;
+            fixtureDef.friction = cc2d.Friction;
+            fixtureDef.restitution = cc2d.Restitution;
+            fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
+            fixtureDef.isSensor = cc2d.IsSensor;
+            b2FixtureUserData data;
+            data.pointer = (u64)ic.ID;
+            fixtureDef.userData = data;
+
+            fixtureDef.filter.categoryBits = cc2d.CollisionCategory;
+            fixtureDef.filter.maskBits = cc2d.CollisionMask;
+            fixtureDef.filter.groupIndex = 0; // TODO: Think if this has any usage
+            body->CreateFixture(&fixtureDef);
+        }
+    }
+
+    void PhysicsWorld2D::OnRuntimeStop()
+    {
+
     }
 
     void PhysicsWorld2D::ConstructBody(Entity entity)
@@ -141,7 +227,13 @@ namespace Turbo {
     {
         auto& transform = entity.Transform();
         auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-        TBO_ENGINE_ASSERT(entity.HasComponent<Rigidbody2DComponent>());
+
+        if (!entity.HasComponent<Rigidbody2DComponent>())
+        {
+            TBO_ENGINE_ERROR("Entity ({}) does not have a Rigidbody2D component!", entity.GetName());
+            return;
+        }
+
         b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
 
         b2PolygonShape boxShape;
@@ -168,7 +260,11 @@ namespace Turbo {
     {
         auto& transform = entity.Transform();
         auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
-        TBO_ENGINE_ASSERT(entity.HasComponent<Rigidbody2DComponent>());
+        if (!entity.HasComponent<Rigidbody2DComponent>())
+        {
+            TBO_ENGINE_ERROR("Entity ({}) does not have a Rigidbody2D component!", entity.GetName());
+            return;
+        }
         b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
 
         b2CircleShape circleShape;
@@ -246,27 +342,31 @@ namespace Turbo {
         constexpr i32 velocityIterations = 6;
         constexpr i32 positionIterations = 2;
 
+        // TODO: Fixed timestep
+        f32 fixedDeltaTime = 1.0f / 60.0f;
         m_Box2DWorld.Step(ts, velocityIterations, positionIterations);
-    }
 
-    void PhysicsWorld2D::RetrieveTransform(Entity entity)
-    {
-        auto& transform = entity.Transform();
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        // Retrieve transforms
+        auto rigidbodies = m_Scene->GroupAllEntitiesWith<Rigidbody2DComponent, TransformComponent>();
+        for (auto e : rigidbodies)
+        {
+            const auto& [rb2d, transform] = rigidbodies.get<Rigidbody2DComponent, TransformComponent>(e);
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
 
-        const auto& position = body->GetPosition();
-        transform.Translation.x = position.x;
-        transform.Translation.y = position.y;
+            const auto& position = body->GetPosition();
+            transform.Translation.x = position.x;
+            transform.Translation.y = position.y;
 
-        if (rb2d.FixedRotation == false)
-            transform.Rotation.z = body->GetAngle();
+            if (rb2d.FixedRotation == false)
+                transform.Rotation.z = body->GetAngle();
 
-        // Copy settings from the component, 
-        // NOTE: Settings are from last frame, not sure if its good or bad
-        body->SetEnabled(rb2d.Enabled);
-        body->SetType(Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type));
-        body->SetGravityScale(rb2d.GravityScale);
+            // Copy settings from the component, 
+            // NOTE: Settings are from last frame, not sure if its good or bad
+            body->SetEnabled(rb2d.Enabled);
+            body->SetType(Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type));
+            body->SetGravityScale(rb2d.GravityScale);
+        }
+        
     }
 
     glm::vec2 PhysicsWorld2D::RetrieveLinearVelocity(Entity entity)

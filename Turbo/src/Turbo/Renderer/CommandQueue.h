@@ -34,7 +34,7 @@ namespace Turbo
 
         void Execute();
     private:
-        void* Allocate(RenderCommandFn func, size_t size);
+        void* Allocate(RenderCommandFn func, u64 size);
 
         u32 m_CommandCount = 0;
         u8* m_Buffer = nullptr;

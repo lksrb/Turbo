@@ -300,8 +300,10 @@ namespace Turbo::Ed {
 
             ImVec2 windowSize = ImGui::GetWindowSize();
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+            ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
 
-            m_CurrentScene->SetViewportOffset((i32)viewportOffset.x, (i32)viewportOffset.y);
+            ImVec2 absoluteWindowsPos = { viewportOffset.x - viewportPos.x, viewportOffset.y - viewportPos.y };
+            m_CurrentScene->SetViewportOffset((i32)absoluteWindowsPos.x, (i32)absoluteWindowsPos.y);
 
             auto [mx, my] = ImGui::GetMousePos();
             mx -= m_ViewportBounds[0].x;
@@ -315,7 +317,7 @@ namespace Turbo::Ed {
             if (mouseX >= 0 && mouseY >= 0 && mouseX < (i32)m_ViewportWidth && mouseY < (i32)m_ViewportHeight)
             {
                 i32 entityID = m_ViewportDrawList->ReadPixel(mouseX, mouseY);
-                m_HoveredEntity = entityID != -1 ? Entity{(entt::entity)entityID, m_CurrentScene.Get()} : Entity{};
+                m_HoveredEntity = entityID != -1 ? Entity{ (entt::entity)entityID, m_CurrentScene.Get() } : Entity{};
             }
             if (m_ViewportWidth != viewportPanelSize.x || m_ViewportHeight != viewportPanelSize.y)
             {
@@ -410,7 +412,7 @@ namespace Turbo::Ed {
             }
 
             ImGui::End();
-        }
+        } // End viewport
 
         // Menu
         if (ImGui::BeginMenuBar())
@@ -1100,7 +1102,7 @@ namespace Turbo::Ed {
                 Entity entity = { e , m_CurrentScene.Get() };
                 // TODO: Outlines
                 //m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
-                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, {1.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, m_PointLightIcon, 1.0f, (i32)e);
+                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_PointLightIcon, 1.0f, (i32)e);
             }
 
             // Spotlights

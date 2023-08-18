@@ -7,7 +7,6 @@ namespace Turbo
 		public readonly ulong ID;
 		public TransformComponent Transform;
 
-		// TODO: Maybe should be a function like SetName(...)?
 		public string Name
 		{
 			get => InternalCalls.Entity_Get_Name(ID);

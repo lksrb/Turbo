@@ -341,6 +341,11 @@ namespace Turbo
 	}
 
 	// Physics 3D
+	public class StaticMeshRendererComponent : Component
+	{
+		// TODO:
+	}
+
 	public class RigidbodyComponent : Component
 	{
 		/*public float GravityScale
@@ -370,11 +375,25 @@ namespace Turbo
 			}
 		}
 
+		public Quaternion Rotation
+		{
+			get
+			{
+				InternalCalls.Component_Rigidbody_Get_Rotation(Entity.ID, out Quaternion rotation);
+				return rotation;
+			}
+			set
+			{
+				InternalCalls.Component_Rigidbody_Set_Rotation(Entity.ID, ref value);
+			}
+		}
+
 		// In radians
 		public void Rotate(Vector3 rotation)
 		{
 			InternalCalls.Component_Rigidbody_Rotate(Entity.ID, ref rotation);
 		}
+
 
 		public void AddForce(Vector3 force, ForceMode mode)
 		{

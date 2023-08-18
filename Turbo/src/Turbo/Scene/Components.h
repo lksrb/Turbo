@@ -269,6 +269,7 @@ namespace Turbo {
         RigidbodyType Type = RigidbodyType::Static;
         f32 GravityScale = 1.0f;
         f32 Mass = 1.0f;
+        bool IsTrigger = false; // This is here for now because we only support 1 collider per rigidbody
         
         bool LockTranslationX = false;
         bool LockTranslationY = false;

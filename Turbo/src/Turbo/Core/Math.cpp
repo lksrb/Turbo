@@ -62,12 +62,12 @@ namespace Turbo
         return true;
     }
 
-    glm::vec3 Math::UnProject(glm::vec2 position, glm::vec4 viewport, const glm::mat4& viewProjection)
+    glm::vec3 Math::UnProject(glm::vec2 position, const glm::vec4& viewport, const glm::mat4& viewProjection)
     {
         glm::mat4 inverse = glm::inverse(viewProjection);
 
         // Convert to [-1, 1] space
-        glm::vec4 temp = glm::vec4(1.0f);
+        glm::vec4 temp = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
         temp.x = ((2.0f * (position.x - viewport[0])) / viewport[2]) - 1.0f;
         temp.y = 1.0f - ((2.0f * (position.y - viewport[1])) / viewport[3]);
 
@@ -77,10 +77,41 @@ namespace Turbo
         // Magic
         result /= result.w;
 
-        // TODO: Depth
-        result.z = 0.0f;
-
         return glm::vec3(result);
 	}
+
+    glm::vec3 Math::ScreenToRayDirection(glm::vec2 position, const glm::vec4& viewport, const glm::mat4& viewProjection)
+    {
+        glm::mat4 inverse = glm::inverse(viewProjection);
+        glm::vec4 worldNear(0.0f);
+        glm::vec4 worldFar(0.0f);
+        {
+            // Convert to [-1, 1] space
+            glm::vec4 nearClip = glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+            nearClip.x = ((2.0f * (position.x - viewport[0])) / viewport[2]) - 1.0f;
+            nearClip.y = 1.0f - ((2.0f * (position.y - viewport[1])) / viewport[3]);
+
+            // Unprojecting
+            worldNear = inverse * nearClip;
+
+            // Magic
+            worldNear /= worldNear.w;
+        }
+
+        {
+            // Convert to [-1, 1] space
+            glm::vec4 farClip = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+            farClip.x = ((2.0f * (position.x - viewport[0])) / viewport[2]) - 1.0f;
+            farClip.y = 1.0f - ((2.0f * (position.y - viewport[1])) / viewport[3]);
+
+            // Unprojecting
+            worldFar = inverse * farClip;
+
+            // Magic
+            worldFar /= worldFar.w;
+        }
+
+        return glm::normalize(worldFar - worldNear);
+    }
 
 }
