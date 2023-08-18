@@ -14,46 +14,8 @@ namespace Turbo
 		public const float Rad2Deg = 180.0f / PI;
 		public const float Deg2Rad = PI / 180.0f;
 
-		public static float Abs(float value)
-		{
-			return (float)Math.Abs(value);
-		}
-
-		public static Vector2 Abs(Vector2 value)
-		{
-			Vector2 result = value;
-			result.X = Abs(result.X);
-			result.Y = Abs(result.Y);
-			return result;
-		}
-
-		public static Vector3 Abs(Vector3 value)
-		{
-			Vector3 result = value;
-			result.X = Abs(result.X);
-			result.Y = Abs(result.Y);
-			result.Z = Abs(result.Z);
-			return result;
-		}
-
-		public static float Normalize(float value, float min, float max)
-		{
-			return (value - min) / (max - min);
-		}
-
-		public static Vector2 Normalize(Vector2 value)
-		{
-			Vector2 result = value;
-			result.Normalize();
-			return result;
-		}
-
-		public static Vector3 Normalize(Vector3 value)
-		{
-			Vector3 result = value;
-			result.Normalize();
-			return result;
-		}
+		public static float Abs(float value) => (float)Math.Abs(value);
+		public static float Normalize(float value, float min, float max) => (value - min) / (max - min);
 
 		public static float Cerp(float start, float end, float maxDistanceDelta)
 		{
@@ -66,15 +28,7 @@ namespace Turbo
 			return start + Sign(direction) * maxDistanceDelta;
 		}
 
-		public static float Lerp(float start, float end, float maxDistanceDelta)
-		{
-			float distance = end - start;
-
-			if (distance < maxDistanceDelta)
-				return end;
-
-			return start + distance * maxDistanceDelta;
-		}
+		public static float Lerp(float start, float end, float maxDistanceDelta) => start + (end - start) * maxDistanceDelta;
 
 		public static float Mix(float start, float end, float t) => start * (1.0f - t) + end * t;
 
@@ -84,43 +38,10 @@ namespace Turbo
 		public static float Radians(float degrees) => degrees * Deg2Rad;
 		public static float Degrees(float radians) => radians * Rad2Deg;
 
-		// TODO: Those functions should be in vector classes as an extension
-		public static Vector3 Radians(Vector3 degrees) => degrees * Deg2Rad;
-		public static Vector3 Degrees(Vector3 radians) => radians * Rad2Deg;
-
 		public static float Sign(float value) => (float)Math.Sign(value);
 
-		public static float Max(float value1, float value2)
-		{
-			if (value1 > value2)
-				return value1;
-
-			return value2;
-		}
-
-		public static int Max(int value1, int value2)
-		{
-			if (value1 > value2)
-				return value1;
-
-			return value2;
-		}
-
-		public static int Min(int value1, int value2)
-		{
-			if (value1 < value2)
-				return value1;
-
-			return value2;
-		}
-
-		public static float Min(float value1, float value2)
-		{
-			if (value1 < value2)
-				return value1;
-
-			return value2;
-		}
+		public static float Max(float value1, float value2) => value1 > value2 ? value1 : value2;
+		public static float Min(float value1, float value2) => value1 < value2 ? value1 : value2;
 
 		public static float Clamp(float value, float minValue, float maxValue)
 		{
@@ -211,101 +132,6 @@ namespace Turbo
 			return output;
 		}
 
-
-		#endregion
-
-		#region Linear Algebra
-
-		public static Vector2 Clamp(Vector2 value, Vector2 min, Vector2 max)
-		{
-			Vector2 result = value;
-			result.X = Clamp(result.X, min.X, max.X);
-			result.Y = Clamp(result.Y, min.Y, max.Y);
-
-			return result;
-		}
-		public static Vector3 Clamp(Vector3 value, Vector3 min, Vector3 max)
-		{
-			Vector3 result = value;
-			result.X = Clamp(result.X, min.X, max.X);
-			result.Y = Clamp(result.Y, min.Y, max.Y);
-			result.Z = Clamp(result.Z, min.Z, max.Z);
-
-			return result;
-		}
-		public static Vector4 Clamp(Vector4 value, Vector4 min, Vector4 max)
-		{
-			Vector4 result = value;
-			result.X = Clamp(result.X, min.X, max.X);
-			result.Y = Clamp(result.Y, min.Y, max.Y);
-			result.Z = Clamp(result.Z, min.Z, max.Z);
-			result.W = Clamp(result.W, min.W, max.W);
-
-			return result;
-		}
-
-		public static Vector2 Sign(Vector2 value)
-		{
-			float x = Sign(value.X);
-			float y = Sign(value.Y);
-			return new Vector2(x, y);
-		}
-		public static Vector3 Sign(Vector3 value)
-		{
-			float x = Sign(value.X);
-			float y = Sign(value.Y);
-			float z = Sign(value.Z);
-			return new Vector3(x, y, z);
-		}
-
-		public static Vector2 Lerp(Vector2 start, Vector2 end, float maxDistanceDelta)
-		{
-			Vector2 distance = end - start;
-
-			// Removes unnecessary approximation
-			if (distance.Length < maxDistanceDelta)
-				return end;
-
-			return start + distance * maxDistanceDelta;
-		}
-		public static Vector3 Lerp(Vector3 start, Vector3 end, float maxDistanceDelta)
-		{
-			Vector3 distance = end - start;
-
-			// Removes unnecessary approximation
-			if (distance.Length < maxDistanceDelta)
-				return end;
-
-			return start + distance * maxDistanceDelta;
-		}
-
-		public static Vector3 Cerp(Vector3 start, Vector3 end, float maxDistanceDelta)
-		{
-			Vector3 direction = end - start;
-
-			// Removes unnecessary approximation
-			if (direction.Length < maxDistanceDelta)
-				return end;
-
-			return start + Sign(direction) * maxDistanceDelta;
-		}
-
-		public static float Length(Vector2 value) => Sqrt(Dot(value, value));
-		public static float Length(Vector3 value) => Sqrt(Dot(value, value));
-		public static float Length(Vector4 value) => Sqrt(Dot(value, value));
-
-		public static float Dot(Vector2 a, Vector2 b)
-		{
-			return a.X * b.X + a.Y * b.Y;
-		}
-		public static float Dot(Vector3 a, Vector3 b)
-		{
-			return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
-		}
-		public static float Dot(Vector4 a, Vector4 b)
-		{
-			return a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W + b.W;
-		}
 
 		#endregion
 

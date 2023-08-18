@@ -22,7 +22,7 @@ namespace Turbo
 		public Vector4(Vector2 xy, float z, float w) : this(xy.X, xy.Y, z, w) { }
 		public Vector4(float scalar) : this(scalar, scalar, scalar, scalar) { }
 
-		public float Length => Mathf.Sqrt(Mathf.Dot(this, this));
+		public float Length => Mathf.Sqrt(Dot(this, this));
 		public void Normalize() => this *= 1.0f / Length;
 
 		public override string ToString() => $"Vector4(X: {X}, Y: {Y}, Z: {Z}, W: {W})";
@@ -145,5 +145,19 @@ namespace Turbo
 		public static Vector4 operator *(float u, Vector4 v) => v * u;
 
 		public static implicit operator Vector4(Color value) => new Vector4(value.R, value.G, value.B, value.A);
+
+		// Extensions
+		public static Vector4 Clamp(Vector4 value, Vector4 min, Vector4 max)
+		{
+			Vector4 result = value;
+			result.X = Mathf.Clamp(result.X, min.X, max.X);
+			result.Y = Mathf.Clamp(result.Y, min.Y, max.Y);
+			result.Z = Mathf.Clamp(result.Z, min.Z, max.Z);
+			result.W = Mathf.Clamp(result.W, min.W, max.W);
+
+			return result;
+		}
+
+		public static float Dot(Vector4 a, Vector4 b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W + b.W;
 	}
 }

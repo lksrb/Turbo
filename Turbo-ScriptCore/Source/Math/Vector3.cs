@@ -14,7 +14,7 @@ namespace Turbo
 		public Vector3(Vector2 xy, float z = 0.0f) : this(xy.X, xy.Y, z) { }
 		public Vector3(float scalar) : this(scalar, scalar, scalar) { }
 
-		public float Length => Mathf.Sqrt(Mathf.Dot(this, this));
+		public float Length => Mathf.Sqrt(Dot(this, this));
 		public void Normalize() => this *= 1.0f / Length;
 
 		public override string ToString() => $"Vector3(X: {X}, Y: {Y}, Z: {Z})";
@@ -87,5 +87,47 @@ namespace Turbo
 		public static Vector3 operator *(Vector3 u, float v) => new Vector3(u.X * v, u.Y * v, u.Z * v);
 		public static Vector3 operator *(float u, Vector3 v) => v * u;
 		public static Vector3 operator -(Vector3 v) => new Vector3(-v.X, -v.X, -v.Z);
+
+		// Extensions
+		public static Vector3 Abs(Vector3 value)
+		{
+			Vector3 result = value;
+			result.X = Mathf.Abs(result.X);
+			result.Y = Mathf.Abs(result.Y);
+			result.Z = Mathf.Abs(result.Z);
+			return result;
+		}
+
+		public static Vector3 Normalize(Vector3 value)
+		{
+			Vector3 result = value;
+			result.Normalize();
+			return result;
+		}
+
+		public static Vector3 Radians(Vector3 degrees) => degrees * Mathf.Deg2Rad;
+		public static Vector3 Degrees(Vector3 radians) => radians * Mathf.Rad2Deg;
+
+		public static Vector3 Clamp(Vector3 value, Vector3 min, Vector3 max)
+		{
+			Vector3 result = value;
+			result.X = Mathf.Clamp(result.X, min.X, max.X);
+			result.Y = Mathf.Clamp(result.Y, min.Y, max.Y);
+			result.Z = Mathf.Clamp(result.Z, min.Z, max.Z);
+
+			return result;
+		}
+
+		public static Vector3 Sign(Vector3 value)
+		{
+			float x = Mathf.Sign(value.X);
+			float y = Mathf.Sign(value.Y);
+			float z = Mathf.Sign(value.Z);
+			return new Vector3(x, y, z);
+		}
+
+		public static Vector3 Lerp(Vector3 start, Vector3 end, float maxDistanceDelta) => start + (end - start) * maxDistanceDelta;
+		public static Vector3 Cerp(Vector3 start, Vector3 end, float maxDistanceDelta) => start + Sign(end - start) * maxDistanceDelta;
+		public static float Dot(Vector3 a, Vector3 b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
 	}
 }
