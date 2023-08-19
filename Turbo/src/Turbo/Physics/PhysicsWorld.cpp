@@ -32,7 +32,6 @@
 namespace Turbo {
 
     // TODO: Maybe allocator should be static since the memory gets freed when PhysicsSystem is destroyed 
-
     PhysicsWorld::PhysicsWorld(WeakRef<Scene> scene)
         : m_Scene(scene), m_PhysicsUpdateAllocator(10 * 1024 * 1024), m_JobSystem(TBO_MAX_JOBS, TBO_MAX_BARRIERS, -1)
     {
@@ -60,7 +59,7 @@ namespace Turbo {
         physics_system.SetBodyActivationListener(&body_activation_listener);
 
 #endif
-        BodyInterface& bodyInterface = m_PhysicsSystem.GetBodyInterface();
+        BodyInterface& bodyInterface = GetBodyInterfaceUnsafe();
 
         // Box Colliders
         {
@@ -177,12 +176,13 @@ namespace Turbo {
             JPH::ClosestHitCollisionCollector<JPH::CastRayCollector> collector;
             // TODO: We should take advantage of Jolt's layer system
             //m_PhysicsSystem.GetNarrowPhaseQuery().CastRay(rayCast, settings, collector, JPH::SpecifiedBroadPhaseLayerFilter(BroadPhaseLayers::STATIC), JPH::SpecifiedObjectLayerFilter(Layers::STATIC));
-            m_PhysicsSystem.GetNarrowPhaseQuery().CastRay(rayCast, settings, collector);
+            m_PhysicsSystem.GetNarrowPhaseQueryNoLock().CastRay(rayCast, settings, collector);
 
             if (collector.HadHit())
             {
                 JPH::RayCastResult hit = collector.mHit;
-                auto& bodyInterface = m_PhysicsSystem.GetBodyInterfaceNoLock();
+                auto& bodyInterface = GetBodyInterfaceUnsafe();
+
                 JPH::Vec3 hitPosition = rayCast.GetPointOnRay(hit.mFraction);
                 return { glm::vec3(hitPosition.GetX(), hitPosition.GetY(), hitPosition.GetZ()), bodyInterface.GetUserData(hit.mBodyID) };
             }
@@ -203,7 +203,12 @@ namespace Turbo {
         // TODO: Maybe use fixed time step to ensure that physics calculation is stable
         m_PhysicsSystem.Update(fixedDeltaTime, collisionSteps, &m_PhysicsUpdateAllocator, &m_JobSystem);
 
-        // Retrieve transforms
+        // Executes contact callbacks
+        // This is here because mono doesn't like being called from another thread
+        // There are couple of solution in mono but this seemed like the most straight-forward and simple
+        m_ContactListener.ProcessContacts();
+
+        // --- Retrieve transforms ---
 
         // We can use the unsafe variant of body interface since all the simulation is already done
         auto& bodyInterface = GetBodyInterfaceUnsafe();
@@ -221,6 +226,7 @@ namespace Turbo {
             for (auto e : group)
             {
                 const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
+
                 JPH::Vec3 pos;
                 JPH::Quat quatRotation;
                 bodyInterface.GetPositionAndRotation(JPH::BodyID(rb.RuntimeBodyHandle), pos, quatRotation);
@@ -237,6 +243,7 @@ namespace Turbo {
             for (auto e : group)
             {
                 const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
+
                 JPH::Vec3 pos;
                 JPH::Quat quatRotation;
                 bodyInterface.GetPositionAndRotation(JPH::BodyID(rb.RuntimeBodyHandle), pos, quatRotation);
@@ -253,6 +260,7 @@ namespace Turbo {
             for (auto e : group)
             {
                 const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
+
                 JPH::Vec3 pos;
                 JPH::Quat quatRotation;
                 bodyInterface.GetPositionAndRotation(JPH::BodyID(rb.RuntimeBodyHandle), pos, quatRotation);

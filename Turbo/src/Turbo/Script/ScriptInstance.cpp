@@ -29,7 +29,7 @@ namespace Turbo
         m_GCHandle = mono_gchandle_new_v2(instance, false);
 
         // TODO: Maybe there is a better solution?
-        // Prevert crash from client not specifing OnCreate or OnUpdate methods
+        // Prevent crash from client not specifing OnCreate or OnUpdate methods
         {
             MonoMethod* onCreate = scriptClass->GetMethod("OnCreate", 0);
             MonoMethod* onUpdate = scriptClass->GetMethod("OnUpdate", 0);
@@ -38,11 +38,17 @@ namespace Turbo
             m_OnUpdateMethod = onUpdate != nullptr ? onUpdate : baseClass->GetMethod("OnUpdate", 0);
         }
 
-        // Physics2D
+        // Physics 2D
         m_OnCollision2DBeginMethod = baseClass->GetMethod("OnCollisionBegin2D_Internal", 1);
         m_OnCollision2DEndMethod = baseClass->GetMethod("OnCollisionEnd2D_Internal", 1);
         m_OnTriggerBegin2DMethod = baseClass->GetMethod("OnTriggerBegin2D_Internal", 1);
         m_OnTriggerEnd2DMethod = baseClass->GetMethod("OnTriggerEnd2D_Internal", 1);
+
+        // Physics 3D
+        m_OnCollisionBeginMethod = baseClass->GetMethod("OnCollisionBegin_Internal", 1);
+        m_OnCollisionEndMethod = baseClass->GetMethod("OnCollisionEnd_Internal", 1);
+        m_OnTriggerBeginMethod = baseClass->GetMethod("OnTriggerBegin_Internal", 1);
+        m_OnTriggerEndMethod = baseClass->GetMethod("OnTriggerEnd_Internal", 1);
 
         // Invoke base class constructor and assign it the entity id
         void* params = &m_Entity;
@@ -51,10 +57,16 @@ namespace Turbo
 #if TBO_USE_MANAGED_THUNKS
         // Managed thunks
         m_OnUpdateMethodFP = (OnUpdateMethodFP)mono_method_get_unmanaged_thunk(m_OnUpdateMethod);
-        m_OnCollisionBegin2DFP = (OnCollision2DFP)mono_method_get_unmanaged_thunk(m_OnCollision2DBeginMethod);
-        m_OnCollisionEnd2DFP = (OnCollision2DFP)mono_method_get_unmanaged_thunk(m_OnCollision2DEndMethod);
-        m_OnTriggerBegin2DFP = (OnCollision2DFP)mono_method_get_unmanaged_thunk(m_OnTriggerBegin2DMethod);
-        m_OnTriggerEnd2DFP = (OnCollision2DFP)mono_method_get_unmanaged_thunk(m_OnTriggerEnd2DMethod);
+
+        m_OnCollisionBegin2DFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnCollision2DBeginMethod);
+        m_OnCollisionEnd2DFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnCollision2DEndMethod);
+        m_OnTriggerBegin2DFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnTriggerBegin2DMethod);
+        m_OnTriggerEnd2DFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnTriggerEnd2DMethod);
+
+        m_OnCollisionBeginFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnCollisionBeginMethod);
+        m_OnCollisionEndFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnCollisionEndMethod);
+        m_OnTriggerBeginFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnTriggerBeginMethod);
+        m_OnTriggerEndFP = (OnContactFP)mono_method_get_unmanaged_thunk(m_OnTriggerEndMethod);
 #endif
     }
 
@@ -181,7 +193,83 @@ namespace Turbo
 #endif
     }
 
-    MonoObject* ScriptInstance::GetMonoInstance() const
+	void ScriptInstance::InvokeOnCollisionBegin(u64 other)
+	{
+        if (m_Exception)
+        {
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_CONSOLE_FATAL(cstring);
+            mono_free(cstring);
+            return;
+        }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnCollisionBeginFP(GetMonoInstance(), other, &m_Exception);
+#else
+        void* params = &other;
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnCollisionBeginMethod, &m_Exception, &params);
+#endif
+	}
+
+	void ScriptInstance::InvokeOnCollisionEnd(u64 other)
+	{
+        if (m_Exception)
+        {
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_CONSOLE_FATAL(cstring);
+            mono_free(cstring);
+            return;
+        }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnCollisionEndFP(GetMonoInstance(), other, &m_Exception);
+#else
+        void* params = &other;
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnCollisionEndMethod, &m_Exception, &params);
+#endif
+	}
+
+	void ScriptInstance::InvokeOnTriggerBegin(u64 other)
+	{
+        if (m_Exception)
+        {
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_CONSOLE_FATAL(cstring);
+            mono_free(cstring);
+            return;
+        }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnTriggerBeginFP(GetMonoInstance(), other, &m_Exception);
+#else
+        void* params = &other;
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnTriggerBeginMethod, &m_Exception, &params);
+#endif
+	}
+
+	void ScriptInstance::InvokeOnTriggerEnd(u64 other)
+	{
+        if (m_Exception)
+        {
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_CONSOLE_FATAL(cstring);
+            mono_free(cstring);
+            return;
+        }
+
+#if TBO_USE_MANAGED_THUNKS
+        m_OnTriggerEndFP(GetMonoInstance(), other, &m_Exception);
+#else
+        void* params = &other;
+        m_ScriptClass->InvokeMethod(GetMonoInstance(), m_OnTriggerEndMethod, &m_Exception, &params);
+#endif
+	}
+
+	MonoObject* ScriptInstance::GetMonoInstance() const
     {
         return mono_gchandle_get_target_v2(m_GCHandle);
     }

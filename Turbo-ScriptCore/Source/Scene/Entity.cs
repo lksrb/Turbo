@@ -13,11 +13,17 @@ namespace Turbo
 			set => InternalCalls.Entity_Set_Name(ID, value);
 		}
 
-		// Collision callbacks
+		// Collision 2D callbacks
 		protected event Action<Entity> OnCollisionBegin2D;
 		protected event Action<Entity> OnCollisionEnd2D;
 		protected event Action<Entity> OnTriggerBegin2D;
 		protected event Action<Entity> OnTriggerEnd2D;
+
+		// Collision 3D callbacks
+		protected event Action<Entity> OnCollisionBegin;
+		protected event Action<Entity> OnCollisionEnd;
+		protected event Action<Entity> OnTriggerBegin;
+		protected event Action<Entity> OnTriggerEnd;
 
 		protected Entity() { ID = 0; }
 		protected virtual void OnCreate() { }
@@ -137,6 +143,11 @@ namespace Turbo
 		private void OnCollisionEnd2D_Internal(ulong id) => OnCollisionEnd2D?.Invoke(new Entity(id));
 		private void OnTriggerBegin2D_Internal(ulong id) => OnTriggerBegin2D?.Invoke(new Entity(id));
 		private void OnTriggerEnd2D_Internal(ulong id) => OnTriggerEnd2D?.Invoke(new Entity(id));
+
+		private void OnCollisionBegin_Internal(ulong id) => OnCollisionBegin?.Invoke(new Entity(id));
+		private void OnCollisionEnd_Internal(ulong id) => OnCollisionEnd?.Invoke(new Entity(id));
+		private void OnTriggerBegin_Internal(ulong id) => OnTriggerBegin?.Invoke(new Entity(id));
+		private void OnTriggerEnd_Internal(ulong id) => OnTriggerEnd?.Invoke(new Entity(id));
 
 		public override string ToString() => Name;
 		public override bool Equals(object obj) => (obj is Entity) ? (obj as Entity) == this : base.Equals(obj);

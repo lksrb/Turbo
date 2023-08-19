@@ -298,10 +298,10 @@ namespace Turbo
 			}
 		}
 
-		public bool IsSensor
+		public bool IsTrigger
 		{
-			get => InternalCalls.Component_BoxCollider2D_Get_IsSensor(Entity.ID);
-			set => InternalCalls.Component_BoxCollider2D_Set_IsSensor(Entity.ID, value);
+			get => InternalCalls.Component_BoxCollider2D_Get_IsTrigger(Entity.ID);
+			set => InternalCalls.Component_BoxCollider2D_Set_IsTrigger(Entity.ID, value);
 		}
 	}
 
@@ -372,6 +372,20 @@ namespace Turbo
 			set
 			{
 				InternalCalls.Component_Rigidbody_Set_LinearVelocity(Entity.ID, ref value);
+			}
+		}
+
+		// This is used when the entity is controlled by a rigidbody
+		public Vector3 Position
+		{
+			get
+			{
+				InternalCalls.Component_Rigidbody_Get_Position(Entity.ID, out Vector3 position);
+				return position;
+			}
+			set
+			{
+				InternalCalls.Component_Rigidbody_Set_Position(Entity.ID, ref value);
 			}
 		}
 

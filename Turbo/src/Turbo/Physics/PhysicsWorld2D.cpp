@@ -154,7 +154,7 @@ namespace Turbo {
             fixtureDef.friction = bc2d.Friction;
             fixtureDef.restitution = bc2d.Restitution;
             fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-            fixtureDef.isSensor = bc2d.IsSensor;
+            fixtureDef.isSensor = bc2d.IsTrigger;
             b2FixtureUserData data;
             data.pointer = (u64)ic.ID;
             fixtureDef.userData = data;
@@ -184,7 +184,7 @@ namespace Turbo {
             fixtureDef.friction = cc2d.Friction;
             fixtureDef.restitution = cc2d.Restitution;
             fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
-            fixtureDef.isSensor = cc2d.IsSensor;
+            fixtureDef.isSensor = cc2d.IsTrigger;
             b2FixtureUserData data;
             data.pointer = (u64)ic.ID;
             fixtureDef.userData = data;
@@ -244,7 +244,7 @@ namespace Turbo {
         fixtureDef.friction = bc2d.Friction;
         fixtureDef.restitution = bc2d.Restitution;
         fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-        fixtureDef.isSensor = bc2d.IsSensor;
+        fixtureDef.isSensor = bc2d.IsTrigger;
         b2FixtureUserData data;
         data.pointer = (u64)entity.GetUUID();
         fixtureDef.userData = data;
@@ -277,7 +277,7 @@ namespace Turbo {
         fixtureDef.friction = cc2d.Friction;
         fixtureDef.restitution = cc2d.Restitution;
         fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
-        fixtureDef.isSensor = cc2d.IsSensor;
+        fixtureDef.isSensor = cc2d.IsTrigger;
         b2FixtureUserData data;
         data.pointer = (u64)entity.GetUUID();
         fixtureDef.userData = data;

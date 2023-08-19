@@ -59,7 +59,7 @@ namespace Sandbox
 				Ray ray = new Ray(m_Camera.Transform.Translation, worldPos * 100.0f);
 				if (Physics.CastRay(ray, RayTarget.Closest, out RayCastResult result))
 				{
-					if (result.HitEntity.Name == "Ground")
+					if (result.HitEntity.Name == "Ground" || result.HitEntity.Name == "PressurePlate")
 					{
 						var transform = FindEntityByName("MOBACrosshair").Transform;
 						transform.Translation = result.HitPosition + Vector3.Up * 0.01f;
@@ -72,21 +72,6 @@ namespace Sandbox
 						direction.Normalize();
 
 						direction.Y = 0.0f;
-						m_CurrentRotation = Quaternion.LookAt(direction, Vector3.Up);
-					}
-					else if (result.HitEntity.Name == "PickupCube")
-					{
-						var transform = FindEntityByName("MOBACrosshair").Transform;
-						transform.Translation = result.HitPosition + Vector3.Up * 0.01f;
-						transform.Rotation = Vector3.Right * Mathf.Radians(90.0f);
-
-						Vector3 direction = Transform.Translation - m_Destination;
-						direction.Y = 0.0f;
-						direction.Normalize();
-
-						m_Destination = result.HitPosition;
-						m_Follows = true;
-
 						m_CurrentRotation = Quaternion.LookAt(direction, Vector3.Up);
 					}
 				}

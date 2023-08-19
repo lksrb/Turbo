@@ -237,7 +237,7 @@ namespace Turbo {
         f32 Friction = 0.5f;
         f32 Restitution = 0.0f;
         f32 RestitutionThreshold = 0.5f;
-        bool IsSensor = false;
+        bool IsTrigger = false;
         u16 CollisionCategory = 0x0001; // What category is this entity
         u16 CollisionMask = 0xFFFF; // What other categories will this collide with
 
@@ -254,7 +254,7 @@ namespace Turbo {
         f32 Friction = 0.5f;
         f32 Restitution = 0.0f;
         f32 RestitutionThreshold = 0.5f;
-        bool IsSensor = false;
+        bool IsTrigger = false;
         u16 CollisionCategory = 0x0001; // What category is this entity
         u16 CollisionMask = 0xFFFF; // What other categories will this collide with
 

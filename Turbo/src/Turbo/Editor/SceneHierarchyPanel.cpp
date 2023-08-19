@@ -770,9 +770,9 @@ namespace Turbo {
         Utils::DrawComponent<PointLightComponent>("Point Light", entity, [](auto& component)
         {
             ImGui::ColorEdit3("Radiance", glm::value_ptr(component.Radiance));
-            ImGui::InputFloat("Radius", &component.Radius, 0.025f);
-            ImGui::InputFloat("Intensity", &component.Intensity, 0.025f);
-            ImGui::InputFloat("Fall Off", &component.FallOff, 0.025f);
+            ImGui::DragFloat("Radius", &component.Radius, 0.025f, 0.0f);
+            ImGui::DragFloat("Intensity", &component.Intensity, 0.025f, 0.0f);
+            ImGui::DragFloat("Fall Off", &component.FallOff, 0.025f, 0.0f);
         });
 
         Utils::DrawComponent<SpotLightComponent>("Spot Light", entity, [](auto& component)
@@ -848,7 +848,7 @@ namespace Turbo {
             ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
-            ImGui::Checkbox("Is Sensor", &component.IsSensor);
+            ImGui::Checkbox("Is Trigger", &component.IsTrigger);
         });
 
         Utils::DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](auto& component)
@@ -859,7 +859,7 @@ namespace Turbo {
             ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
-            ImGui::Checkbox("Is Sensor", &component.IsSensor);
+            ImGui::Checkbox("Is Trigger", &component.IsTrigger);
         });
 
         Utils::DrawComponent<ScriptComponent>("Script", entity, [&entity, m_Context = m_Context](auto& component)

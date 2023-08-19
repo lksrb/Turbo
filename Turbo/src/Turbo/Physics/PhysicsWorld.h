@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RayCast.h"
+#include "ContactListener.h"
 
 #include "Turbo/Scene/Scene.h"
 
@@ -8,11 +9,7 @@
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/Physics/Body/BodyActivationListener.h>
-
-#include <array>
-
-#include <filesystem>
+//#include <Jolt/Physics/Body/BodyActivationListener.h>
 
 namespace Turbo {
 
@@ -84,32 +81,6 @@ namespace Turbo {
         }
     };
 
-    // An example contact listener
-    class MyContactListener : public JPH::ContactListener
-    {
-    public:
-        // See: ContactListener
-        virtual JPH::ValidateResult	OnContactValidate(const JPH::Body& inBody1, const JPH::Body& inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult& inCollisionResult) override
-        {
-            //cout << "Contact validate callback" << endl;
-
-            // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
-            return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
-        }
-
-        virtual void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override
-        {
-        }
-
-        virtual void OnContactPersisted(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override
-        {
-        }
-
-        virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override
-        {
-        }
-    };
-    
     class PhysicsWorld : public RefCounted
     {
     public:
@@ -121,6 +92,8 @@ namespace Turbo {
 
         JPH::BodyInterface& GetBodyInterface() { return m_PhysicsSystem.GetBodyInterface(); }
         JPH::BodyInterface& GetBodyInterfaceUnsafe() { return m_PhysicsSystem.GetBodyInterfaceNoLock(); }
+
+        const JPH::Body* TryGetBodyUnsafe(JPH::BodyID bodyId) const { return m_PhysicsSystem.GetBodyLockInterfaceNoLock().TryGetBody(bodyId); };
 
         RayCastResult CastRay(const Ray& ray, RayTarget target);
 
@@ -140,7 +113,7 @@ namespace Turbo {
         ObjectLayerPairFilter m_ObjectLayerPairFilter;
 
         // Contact listener
-        MyContactListener m_ContactListener;
+        ContactListener m_ContactListener;
 
         // Physics system
         JPH::PhysicsSystem m_PhysicsSystem;

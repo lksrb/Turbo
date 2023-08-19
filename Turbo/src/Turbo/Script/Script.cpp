@@ -147,7 +147,7 @@ namespace Turbo
         MonoVTable* FrameVTable = nullptr;
     };
 
-    // This is here because CTRDBG false flags mono as a memory leak
+    // This is here because CRTDBG false flags mono as a memory leak
     // Possibly? Maybe it leaks idk
     static constexpr bool s_EnableScriptEngine = true;
 
@@ -155,6 +155,7 @@ namespace Turbo
     {
         if constexpr (!s_EnableScriptEngine)
             return;
+
         s_Data = new Script::Data;
 
         // Initialize mono C# virtual machine
@@ -299,7 +300,7 @@ namespace Turbo
         instance->InvokeOnUpdate();
     }
 
-    void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor)
+    void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isTrigger)
     {
         const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID otherUUID = other.GetUUID();
@@ -309,13 +310,13 @@ namespace Turbo
         if (!isValidClassName)
             return;
 
-        if (isSensor)
+        if (isTrigger)
             s_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerBegin2D(otherUUID);
         else
             s_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionBegin2D(otherUUID);
     }
 
-    void Script::InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor)
+    void Script::InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isTrigger)
     {
         const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
         UUID otherUUID = other.GetUUID();
@@ -325,7 +326,7 @@ namespace Turbo
         if (!isValidClassName)
             return;
 
-        if (isSensor)
+        if (isTrigger)
             s_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerEnd2D(otherUUID);
         else
             s_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionEnd2D(otherUUID);

@@ -301,12 +301,12 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_BoxCollider2D_Set_Size(ulong uuid, ref Vector2 size);
 
-		// IsSensor
+		// IsTrigger
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Component_BoxCollider2D_Get_IsSensor(ulong uuid);
+		internal extern static bool Component_BoxCollider2D_Get_IsTrigger(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Component_BoxCollider2D_Set_IsSensor(ulong uuid, bool isSensor);
+		internal extern static void Component_BoxCollider2D_Set_IsTrigger(ulong uuid, bool isTrigger);
 
 		// CollisionCategory
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -348,6 +348,13 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody_Set_LinearVelocity(ulong uuid, ref Vector3 velocity);
+
+		// Position
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Get_Position(ulong uuid, out Vector3 position);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Set_Position(ulong uuid, ref Vector3 position);
 
 		// Rotation
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]

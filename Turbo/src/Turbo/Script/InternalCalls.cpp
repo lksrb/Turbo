@@ -8,8 +8,8 @@
 
 #include "Turbo/Physics/Physics2D.h"
 #include "Turbo/Physics/PhysicsWorld2D.h"
-
 #include "Turbo/Physics/PhysicsWorld.h"
+#include "Turbo/Physics/JoltUtils.h"
 
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Asset/AssetManager.h"
@@ -28,12 +28,6 @@
 
 namespace Turbo {
 
-    static JPH::BodyID GetBodyID(BodyHandle handle) { return JPH::BodyID(handle); }
-    static JPH::Vec3 GetVec3(const glm::vec3& v) { return  JPH::Vec3(v.x, v.y, v.z); }
-    static glm::vec3 GetVec3(JPH::Vec3Arg v) { return { v.GetX(), v.GetY(), v.GetZ() }; }
-    static JPH::Quat GetQuat(const glm::quat& q) { return JPH::Quat(q.x, q.y, q.z, q.w); }
-    static glm::quat GetQuat(const JPH::Quat& q) { return glm::quat(q.GetW(), q.GetX(), q.GetY(), q.GetZ()); }
-
     static Entity GetEntity(u64 uuid)
     {
         auto context = Script::GetCurrentScene();
@@ -42,7 +36,7 @@ namespace Turbo {
         if (!entity) [[unlikely]]
             TBO_CONSOLE_ERROR("Entity doesnt exist!");
 
-        return entity;
+            return entity;
     }
 
     static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
@@ -353,7 +347,7 @@ namespace Turbo {
             if (!entity) [[unlikely]]
                 TBO_CONSOLE_ERROR("Entity doesnt exist!");
 
-            entity.UnParent();
+                entity.UnParent();
         }
 
         static MonoString* Entity_Get_Name(UUID uuid)
@@ -938,23 +932,23 @@ namespace Turbo {
         }
 
         // IsSensor
-        static bool Component_BoxCollider2D_Get_IsSensor(UUID uuid)
+        static bool Component_BoxCollider2D_Get_IsTrigger(UUID uuid)
         {
             Entity entity = GetEntity(uuid);
 
-            return entity.GetComponent<BoxCollider2DComponent>().IsSensor;
+            return entity.GetComponent<BoxCollider2DComponent>().IsTrigger;
         }
 
-        static void Component_BoxCollider2D_Set_IsSensor(UUID uuid, bool isSensor)
+        static void Component_BoxCollider2D_Set_IsTrigger(UUID uuid, bool isTrigger)
         {
             Entity entity = GetEntity(uuid);
 
             auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
 
-            if (bc2d.IsSensor == isSensor)
+            if (bc2d.IsTrigger == isTrigger)
                 return;
 
-            bc2d.IsSensor = isSensor;
+            bc2d.IsTrigger = isTrigger;
 
             // Destroys old fixture and replaces it with new one
             entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
@@ -1092,25 +1086,60 @@ namespace Turbo {
         static void Component_Rigidbody_Get_LinearVelocity(UUID uuid, glm::vec3* velocity)
         {
             Entity entity = GetEntity(uuid);
-            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            auto scene = Script::GetCurrentScene();
 
-            auto context = Script::GetCurrentScene();
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
 
-            // For now use the safe variant
-            auto& bodyInterface = context->GetPhysicsWorld()->GetBodyInterface();
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
             JPH::Vec3 bodyVelocity = bodyInterface.GetLinearVelocity(bodyId);
-            *velocity = GetVec3(bodyInterface.GetLinearVelocity(bodyId));
+            *velocity = JoltUtils::GetVec3(bodyInterface.GetLinearVelocity(bodyId));
         }
 
         static void Component_Rigidbody_Set_LinearVelocity(UUID uuid, glm::vec3* velocity)
         {
             Entity entity = GetEntity(uuid);
+            auto scene = Script::GetCurrentScene();
+
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            bodyInterface.SetLinearVelocity(bodyId, JPH::Vec3(velocity->x, velocity->y, velocity->z));
+        }
+
+        // Position
+        static void Component_Rigidbody_Get_Position(UUID uuid, glm::vec3* outPosition)
+        {
+            Entity entity = GetEntity(uuid);
+            auto scene = Script::GetCurrentScene();
+
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            *outPosition = JoltUtils::GetVec3(bodyInterface.GetPosition(bodyId));
+        }
+
+        static void Component_Rigidbody_Set_Position(UUID uuid, glm::vec3* position)
+        {
+            Entity entity = GetEntity(uuid);
+
+            auto isNan = glm::isnan(*position);
+
+            if (isNan.x || isNan.y || isNan.z)
+                return;
+
+            if (entity.Transform().Translation == *position)
+                return;
 
             auto scene = Script::GetCurrentScene();
 
-            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
-            bodyInterface.SetLinearVelocity(bodyId, JPH::Vec3(velocity->x, velocity->y, velocity->z));
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            bodyInterface.SetPosition(bodyId, JoltUtils::GetVec3(*position), JPH::EActivation::DontActivate);
         }
 
         // Rotation
@@ -1119,9 +1148,11 @@ namespace Turbo {
             Entity entity = GetEntity(uuid);
             auto scene = Script::GetCurrentScene();
 
-            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
-            *outRotation = GetQuat(bodyInterface.GetRotation(bodyId));
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            *outRotation = JoltUtils::GetQuat(bodyInterface.GetRotation(bodyId));
         }
 
         static void Component_Rigidbody_Set_Rotation(UUID uuid, glm::quat* rotation)
@@ -1138,19 +1169,23 @@ namespace Turbo {
 
             auto scene = Script::GetCurrentScene();
 
-            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
-            bodyInterface.SetRotation(bodyId, GetQuat(*rotation), JPH::EActivation::DontActivate);
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            bodyInterface.SetRotation(bodyId, JoltUtils::GetQuat(*rotation), JPH::EActivation::DontActivate);
         }
 
         // TODO: Abstract this
         static void Component_Rigidbody_Rotate(UUID uuid, glm::vec3* rotation)
         {
             Entity entity = GetEntity(uuid);
-
             auto scene = Script::GetCurrentScene();
-            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
             JPH::Quat jphRotation = bodyInterface.GetRotation(bodyId);
 
             glm::quat qRotation = { jphRotation.GetW(), jphRotation.GetX(), jphRotation.GetY(), jphRotation.GetZ() };
@@ -1170,16 +1205,16 @@ namespace Turbo {
 
             auto scene = Script::GetCurrentScene();
 
-            auto bodyId = GetBodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterface();
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
 
             if (forceMode == ForceMode::Force)
             {
-                bodyInterface.AddForce(bodyId, GetVec3(*force));
+                bodyInterface.AddForce(bodyId, JoltUtils::GetVec3(*force));
             }
             else if (forceMode == ForceMode::Impulse)
             {
-                bodyInterface.AddImpulse(bodyId, GetVec3(*force));
+                bodyInterface.AddImpulse(bodyId, JoltUtils::GetVec3(*force));
             }
         }
 
@@ -1298,8 +1333,8 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Offset);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_Size);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_Size);
-        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_IsSensor);
-        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_IsSensor);
+        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_IsTrigger);
+        TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_IsTrigger);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Set_CollisionFilter);
         TBO_REGISTER_FUNCTION(Component_BoxCollider2D_Get_CollisionFilter);
 
@@ -1317,6 +1352,8 @@ namespace Turbo {
         // Rigidbody
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_LinearVelocity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_LinearVelocity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_Position);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_Position);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_Rotation);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_Rotation);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Rotate);

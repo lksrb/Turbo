@@ -30,8 +30,9 @@ namespace Turbo
 
         static void InvokeEntityOnCreate(Entity entity);
         static void InvokeEntityOnUpdate(Entity entity);
-        static void InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isSensor);
-        static void InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isSensor);
+
+        static void InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isTrigger);
+        static void InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isTrigger);
         static ScriptFieldInstanceMap& GetEntityFieldMap(UUID uuid);
 
         static void ReloadAssemblies();

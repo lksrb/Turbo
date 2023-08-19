@@ -601,7 +601,7 @@ namespace Turbo
             out << YAML::Key << "Friction" << YAML::Value << bc2dComponent.Friction;
             out << YAML::Key << "Restitution" << YAML::Value << bc2dComponent.Restitution;
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << bc2dComponent.RestitutionThreshold;
-            out << YAML::Key << "IsSensor" << YAML::Value << bc2dComponent.IsSensor;
+            out << YAML::Key << "IsTrigger" << YAML::Value << bc2dComponent.IsTrigger;
 
             out << YAML::EndMap;
         }
@@ -618,7 +618,7 @@ namespace Turbo
             out << YAML::Key << "Friction" << YAML::Value << cc2dComponent.Friction;
             out << YAML::Key << "Restitution" << YAML::Value << cc2dComponent.Restitution;
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc2dComponent.RestitutionThreshold;
-            out << YAML::Key << "IsSensor" << YAML::Value << cc2dComponent.IsSensor;
+            out << YAML::Key << "IsTrigger" << YAML::Value << cc2dComponent.IsTrigger;
 
             out << YAML::EndMap;
         }
@@ -917,7 +917,7 @@ namespace Turbo
             bc2d.Friction = boxCollider2DComponent["Friction"].as<f32>();
             bc2d.Restitution = boxCollider2DComponent["Restitution"].as<f32>();
             bc2d.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<f32>();
-            bc2d.IsSensor = boxCollider2DComponent["IsSensor"].as<bool>();
+            bc2d.IsTrigger = boxCollider2DComponent["IsTrigger"].as<bool>();
 
             // [Runtime]: Triggers construct callback in the scene
             deserializedEntity.AddComponent<BoxCollider2DComponent>(bc2d);
@@ -933,7 +933,7 @@ namespace Turbo
             cc2d.Friction = circleCollider2DComponent["Friction"].as<f32>();
             cc2d.Restitution = circleCollider2DComponent["Restitution"].as<f32>();
             cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<f32>();
-            cc2d.IsSensor = circleCollider2DComponent["IsSensor"].as<bool>();
+            cc2d.IsTrigger = circleCollider2DComponent["IsTrigger"].as<bool>();
 
             // [Runtime]: Triggers construct callback in the scene
             deserializedEntity.AddComponent<CircleCollider2DComponent>(cc2d);
