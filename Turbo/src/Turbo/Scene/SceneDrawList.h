@@ -46,6 +46,7 @@ namespace Turbo {
         void End();
 
         void AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity = -1);
+        void AddDirectionalLight(const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 1.0f);
         void AddPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f);
         void AddSpotLight(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 5.0f, f32 innerCone = 12.5f, f32 outerCone = 17.5f);
 
@@ -83,6 +84,7 @@ namespace Turbo {
         static constexpr u32 MaxCubeVertices = 24 * MaxCubes;
         static constexpr u32 MaxCubeIndices = 6 * MaxCubes;
 
+        static constexpr u32 MaxDirectionalLights = 64;
         static constexpr u32 MaxPointLights = 64;
         static constexpr u32 MaxSpotLights = 64;
 
@@ -117,6 +119,13 @@ namespace Turbo {
             i32 EntityID;
         };
 
+        struct alignas(16) DirectionalLight
+        {
+            glm::vec4 Direction;
+            glm::vec3 Radiance;
+            f32 Intensity;
+        };
+
         // Match the layout in shader
         // Padding set to 16 because of std140 
         struct alignas(16) PointLight
@@ -145,18 +154,21 @@ namespace Turbo {
         // FIXME: Padding fuckery, currently works for 64 but other numbers are not tested
         struct alignas(16) LightEnvironment
         {
+            DirectionalLight DirectionalLights[MaxDirectionalLights];
+            u32 DirectionalLightCount = 0;
+
             PointLight PointLights[MaxPointLights];
             u32 PointLightCount = 0;
+
             SpotLight SpotLights[MaxSpotLights];
             u32 SpotLightCount = 0;
 
+            inline void Clear() { DirectionalLightCount = PointLightCount = SpotLightCount = 0; };
+
+            inline DirectionalLight& EmplaceDirectionalLight() { TBO_ENGINE_ASSERT(DirectionalLightCount < MaxDirectionalLights); return DirectionalLights[DirectionalLightCount++]; }
+
             inline PointLight& EmplacePointLight() { TBO_ENGINE_ASSERT(PointLightCount < MaxPointLights); return PointLights[PointLightCount++]; }
             inline SpotLight& EmplaceSpotLight() { TBO_ENGINE_ASSERT(SpotLightCount < MaxSpotLights); return SpotLights[SpotLightCount++]; }
-        };
-
-        struct DirectionalLight
-        {
-            glm::vec3 Direction;
         };
 
         // Uniquely describes a mesh

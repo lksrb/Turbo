@@ -135,7 +135,6 @@ namespace Turbo {
 
     class RayCastCallback : public b2RayCastCallback
     {
-
     public:
         /// Called for each fixture found in the query. You control how the ray cast
         /// proceeds by returning a float:

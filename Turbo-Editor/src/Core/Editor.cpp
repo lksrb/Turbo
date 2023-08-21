@@ -139,8 +139,9 @@ namespace Turbo::Ed {
         m_PlayIcon = Texture2D::Create(Icons::PlayButton);
         m_StopIcon = Texture2D::Create(Icons::StopButton);
         m_Reset2DIcon = Texture2D::Create(Icons::Reset2DButton);
-        m_PointLightIcon = Texture2D::Create(Icons::PointLight);
         m_CameraIcon = Texture2D::Create(Icons::Camera);
+        m_DirectionalLightIcon = Texture2D::Create(Icons::DirectionalLight);
+        m_PointLightIcon = Texture2D::Create(Icons::PointLight);
         m_SpotLightIcon = Texture2D::Create(Icons::SpotLight);
 
         m_EditorCamera = EditorCamera(30.0f, static_cast<f32>(m_ViewportWidth) / static_cast<f32>(m_ViewportHeight), 0.1f, 10000.0f);
@@ -383,9 +384,9 @@ namespace Turbo::Ed {
                     snapValue = 45.0f;
 
                 f32 snap_values[] = { snapValue, snapValue, snapValue };
-
+                ImGuizmo::AllowAxisFlip(false);
                 ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                (ImGuizmo::OPERATION)m_GizmoType, static_cast<ImGuizmo::MODE>(m_GizmoMode), glm::value_ptr(transform),
                 nullptr, snap ? snap_values : nullptr);
 
                 if (ImGuizmo::IsUsing())
@@ -624,6 +625,30 @@ namespace Turbo::Ed {
                         m_SelectedEntity = m_CurrentScene->DuplicateEntity(m_SelectedEntity);
                         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
                         break;
+                    }
+                }
+                break;
+            }
+            case Key::M:
+            {
+                if (!isRepeated && m_ViewportFocused)
+                {
+                    m_GizmoMode = (m_GizmoMode + 1) % 2;
+                }
+                break;
+            }
+
+            case Key::X:
+            {
+                if (m_SceneMode == SceneMode::Edit && !isRepeated && control)
+                {
+                    m_SelectedEntity = m_PanelManager->GetPanel<SceneHierarchyPanel>()->GetSelectedEntity();
+                    if (m_SelectedEntity)
+                    {
+                        m_CurrentScene->DestroyEntity(m_SelectedEntity);
+                        m_SelectedEntity = {};
+                        m_HoveredEntity = {};
+                        m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity({});
                     }
                 }
                 break;
@@ -1093,6 +1118,16 @@ namespace Turbo::Ed {
             {
                 Entity entity = { e , m_CurrentScene.Get() };
                 m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_CameraIcon, 1.0f, (i32)e);
+            }
+
+            // Directional lights
+            auto directionalLights = m_CurrentScene->GetAllEntitiesWith<DirectionalLightComponent>();
+            for (auto e : directionalLights)
+            {
+                Entity entity = { e , m_CurrentScene.Get() };
+                // TODO: Outlines
+                //m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
+                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_DirectionalLightIcon, 1.0f, (i32)e);
             }
 
             // Point lights

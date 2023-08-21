@@ -40,7 +40,7 @@ namespace Mystery
 			if(entity.Name == "Player")
 			{
 				m_StepOn = true;
-				FindEntityByName("ShootCube").GetComponent<RigidbodyComponent>().Position = Vector3.Up * 4.0f;
+				FindEntityByName("Ball").GetComponent<RigidbodyComponent>().Position = Vector3.Up * 8.0f;
 				Log.Info("asdadsad");
 			}
 		}

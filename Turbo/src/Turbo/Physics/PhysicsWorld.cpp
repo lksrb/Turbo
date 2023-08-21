@@ -102,10 +102,9 @@ namespace Turbo {
             auto group = m_Scene->GetAllEntitiesWith<RigidbodyComponent, TransformComponent, IDComponent>();
             for (auto e : group)
             {
-                const auto& [rb, transform, ic] = group.get<RigidbodyComponent, TransformComponent, IDComponent>(e);
+                const auto& [rb, _, ic] = group.get<RigidbodyComponent, TransformComponent, IDComponent>(e);
                 Entity entity = { e, m_Scene.Get() };
-
-                TBO_ENGINE_ASSERT(entity.GetParentUUID() == 0, "Big problems with hierarchies and physics system");
+                auto transform = m_Scene->GetWorldSpaceTransform(entity);
 
                 glm::vec3 translation = transform.Translation;
                 glm::vec3 rotation = transform.Rotation;

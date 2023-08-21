@@ -389,7 +389,6 @@ namespace Turbo
 		}
 
 		// This is used when the entity is controlled by a rigidbody
-		// Also be aware that setting position results in resetting linear and angular velocity
 		public Vector3 Position
 		{
 			get

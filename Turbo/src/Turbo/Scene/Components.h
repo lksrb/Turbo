@@ -182,6 +182,15 @@ namespace Turbo {
         TextComponent(const TextComponent&) = default;
     };
 
+    struct DirectionalLightComponent
+    {
+        glm::vec3 Radiance{ 1.0f };
+        f32 Intensity = 1.0f;
+
+        DirectionalLightComponent() = default;
+        DirectionalLightComponent(const DirectionalLightComponent&) = default;
+    };
+
     struct PointLightComponent
     {
         glm::vec3 Radiance{ 1.0f };
@@ -329,6 +338,6 @@ namespace Turbo {
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, ScriptComponent,
+        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, DirectionalLightComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, ScriptComponent,
         AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent>;
 }

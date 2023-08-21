@@ -566,13 +566,25 @@ namespace Turbo {
 
     void Scene::RenderScene(Ref<SceneDrawList> drawList)
     {
+        // Directional lights
+        {
+            auto view = m_Registry.view<DirectionalLightComponent>();
+            for (auto entity : view)
+            {
+                const auto& dl = view.get<DirectionalLightComponent>(entity);
+                auto transform = GetWorldSpaceTransform({ entity, this });
+                glm::vec3 direction = -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(0.0f, 0.0f, 1.0f));
+                drawList->AddDirectionalLight(direction, dl.Radiance, dl.Intensity);
+            }
+        }
+
         // Point lights
         {
-            auto group = m_Registry.group<PointLightComponent>(entt::get<TransformComponent>);
-            for (auto entity : group)
+            auto view = m_Registry.view<PointLightComponent>();
+            for (auto entity : view)
             {
-                const auto& [transform, plc] = group.get<TransformComponent, PointLightComponent>(entity);
-
+                const auto& plc = view.get<PointLightComponent>(entity);
+                auto transform = GetWorldSpaceTransform({ entity, this });
                 // Rotation does not matter, but i think scale will matter
                 // TODO: Figure out how to composose scale of the ligth and intesity
                 drawList->AddPointLight(GetWorldSpaceTransform({entity, this}).Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
@@ -581,31 +593,28 @@ namespace Turbo {
 
         // Spotlights
         {
-            auto group = m_Registry.group<SpotLightComponent>(entt::get<TransformComponent>);
-            for (auto entity : group)
+            auto view = m_Registry.view<SpotLightComponent>();
+            for (auto entity : view)
             {
-                // TODO: Create debug cone 
-                const auto& [transform, slc] = group.get<TransformComponent, SpotLightComponent>(entity);
+                const auto& slc = view.get<SpotLightComponent>(entity);
+                auto transform = GetWorldSpaceTransform({ entity, this });
                 glm::vec3 direction = -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(0.0f, 0.0f, 1.0f));
-                //drawList->AddLine(transform.Translation, transform.Translation + direction * 10.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-                drawList->AddSpotLight(GetWorldSpaceTransform({ entity, this }).Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
+                drawList->AddSpotLight(transform.Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
             }
         }
 
         // Static meshes
         {
-            auto group = m_Registry.group<StaticMeshRendererComponent>(entt::get<TransformComponent>);
+            auto view = m_Registry.view<StaticMeshRendererComponent>();
 
-            for (auto entity : group)
+            for (auto entity : view)
             {
-                const auto& [tc, smr] = group.get<TransformComponent, StaticMeshRendererComponent>(entity);
+                const auto& smr = view.get<StaticMeshRendererComponent>(entity);
                 auto mesh = AssetManager::GetAsset<StaticMesh>(smr.Mesh);
                 if (mesh == nullptr)
                     continue;
 
-                glm::mat4 transform = GetWorldSpaceTransformMatrix({ entity, this });
-
-                drawList->AddStaticMesh(mesh, transform, (i32)entity);
+                drawList->AddStaticMesh(mesh, GetWorldSpaceTransformMatrix({ entity, this }), (i32)entity);
             }
         }
 
@@ -613,40 +622,41 @@ namespace Turbo {
         {
             // Sprites
             {
-                auto group = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+                auto view = m_Registry.view<SpriteRendererComponent>();
 
-                for (auto entity : group)
+                for (auto entity : view)
                 {
-                    const auto& [transform, src] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+                    const auto& src = view.get<SpriteRendererComponent>(entity);
                     auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
-                    drawList->AddSprite(transform.GetTransform(), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
+                    drawList->AddSprite(GetWorldSpaceTransformMatrix({ entity, this }), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
                 }
             }
 
             // Circles
             {
-                auto group = m_Registry.group<CircleRendererComponent>(entt::get<TransformComponent>);
+                auto view = m_Registry.view<CircleRendererComponent>();
 
-                for (auto entity : group)
+                for (auto entity : view)
                 {
-                    const auto& [transform, crc] = group.get<TransformComponent, CircleRendererComponent>(entity);
-                    drawList->AddCircle(transform.GetTransform(), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                    const auto& crc = view.get<CircleRendererComponent>(entity);
+                    drawList->AddCircle(GetWorldSpaceTransformMatrix({ entity, this }), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
                 }
             }
 
             // Text
             {
-                auto group = m_Registry.group<TextComponent>(entt::get<TransformComponent>);
+                auto view = m_Registry.view<TextComponent>();
 
-                for (auto entity : group)
+                for (auto entity : view)
                 {
-                    const auto& [transform, tc] = group.get<TransformComponent, TextComponent>(entity);
-                    drawList->AddString(transform.GetTransform(), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                    const auto& tc = view.get<TextComponent>(entity);
+                    drawList->AddString(GetWorldSpaceTransformMatrix({ entity, this }), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
                 }
             }
 
             // Lines
-            {
+            { 
+                // TODO: How should lines behave when relationship component takes effect?
                 auto group = m_Registry.group<LineRendererComponent>(entt::get<TransformComponent>);
 
                 for (auto entity : group)

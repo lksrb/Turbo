@@ -1206,8 +1206,8 @@ namespace Turbo {
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
             auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
 
-            // Also reset linear and angular velocity to avoid jiggering
-            bodyInterface.SetLinearAndAngularVelocity(bodyId, JPH::Vec3::sZero(), JPH::Vec3::sZero());
+            //// Also reset linear and angular velocity to avoid jiggering
+            //bodyInterface.SetLinearAndAngularVelocity(bodyId, JPH::Vec3::sZero(), JPH::Vec3::sZero());
             bodyInterface.SetPosition(bodyId, JoltUtils::GetVec3(*position), JPH::EActivation::DontActivate);
         }
 

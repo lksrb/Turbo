@@ -458,11 +458,18 @@ namespace Turbo {
 
                 if (ImGui::BeginMenu("Lights"))
                 {
+                    if (ImGui::MenuItem("Directional Light"))
+                    {
+                        m_SelectedEntity = m_Context->CreateEntity("Directional light");
+                        auto& transform = m_SelectedEntity.Transform();
+                        transform.Rotation.x = glm::radians(-90.0f);
+                        m_SelectedEntity.AddComponent<DirectionalLightComponent>();
+                    }
+
                     if (ImGui::MenuItem("Point Light"))
                     {
                         m_SelectedEntity = m_Context->CreateEntity("Point light");
                         m_SelectedEntity.AddComponent<PointLightComponent>();
-                        m_SetFocusKeyboard = true;
                     }
 
                     if (ImGui::MenuItem("Spotlight"))
@@ -470,13 +477,8 @@ namespace Turbo {
                         m_SelectedEntity = m_Context->CreateEntity("Spotlight");
                         m_SelectedEntity.Transform().Rotation.x = glm::radians(-90.0f);
                         m_SelectedEntity.AddComponent<SpotLightComponent>();
-                        m_SetFocusKeyboard = true;
                     }
 
-                    if (ImGui::MenuItem("Directional Light"))
-                    {
-                        // TODO:
-                    }
                     ImGui::EndMenu();
                 }
 
@@ -575,6 +577,7 @@ namespace Turbo {
             DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             DisplayAddComponentEntry<TextComponent>("Text Component");
             DisplayAddComponentEntry<StaticMeshRendererComponent>("Static Mesh Renderer");
+            DisplayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             DisplayAddComponentEntry<PointLightComponent>("Point Light");
             DisplayAddComponentEntry<SpotLightComponent>("Spot Light");
             DisplayAddComponentEntry<AudioSourceComponent>("Audio Source Component");
@@ -765,6 +768,12 @@ namespace Turbo {
             {
                 component.Mesh = confirmedHandle;
             }
+        });
+
+        Utils::DrawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto& component)
+        {
+            ImGui::ColorEdit3("Radiance", glm::value_ptr(component.Radiance));
+            ImGui::DragFloat("Intensity", &component.Intensity, 0.025f, 0.0f);
         });
 
         Utils::DrawComponent<PointLightComponent>("Point Light", entity, [](auto& component)

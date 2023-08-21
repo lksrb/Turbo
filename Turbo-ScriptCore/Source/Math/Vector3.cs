@@ -84,10 +84,15 @@ namespace Turbo
 		public static bool operator !=(Vector3 u, Vector3 v) => !(u == v);
 		public static Vector3 operator +(Vector3 u, Vector3 v) => new Vector3(u.X + v.X, u.Y + v.Y, u.Z + v.Z);
 		public static Vector3 operator +(Vector3 u, Vector2 v) => new Vector3(u.X + v.X, u.Y + v.Y, u.Z);
+
 		public static Vector3 operator -(Vector3 u, Vector3 v) => new Vector3(u.X - v.X, u.Y - v.Y, u.Z - v.Z);
+		public static Vector3 operator -(Vector3 v) => new Vector3(-v.X, -v.X, -v.Z);
+
 		public static Vector3 operator *(Vector3 u, float v) => new Vector3(u.X * v, u.Y * v, u.Z * v);
 		public static Vector3 operator *(float u, Vector3 v) => v * u;
-		public static Vector3 operator -(Vector3 v) => new Vector3(-v.X, -v.X, -v.Z);
+
+		public static Vector3 operator /(Vector3 u, float v) => new Vector3(u.X / v, u.Y / v, u.Z / v);
+		public static Vector3 operator /(float u, Vector3 v) => new Vector3(u / v.X, u / v.Y, u / v.Z);
 
 		// Extensions
 		public static Vector3 Abs(Vector3 value)

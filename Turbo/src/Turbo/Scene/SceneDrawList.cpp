@@ -145,8 +145,7 @@ namespace Turbo {
 
         m_Statistics.Reset();
 
-        m_LightEnvironment.PointLightCount = 0;
-        m_LightEnvironment.SpotLightCount = 0;
+        m_LightEnvironment.Clear();
 
         m_DrawList2D->Begin(); 
     }
@@ -239,6 +238,14 @@ namespace Turbo {
             currentTransform.Tranform[3] = submeshTransform[3];
             currentTransform.EntityID = entity;
         }
+    }
+
+    void SceneDrawList::AddDirectionalLight(const glm::vec3& direction, const glm::vec3& radiance, f32 intensity)
+    {
+        DirectionalLight& directionalLight = m_LightEnvironment.EmplaceDirectionalLight();
+        directionalLight.Direction = glm::vec4(direction, 1.0);
+        directionalLight.Radiance = radiance;
+        directionalLight.Intensity = intensity;
     }
 
     void SceneDrawList::AddPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity, f32 radius, f32 fallOff)

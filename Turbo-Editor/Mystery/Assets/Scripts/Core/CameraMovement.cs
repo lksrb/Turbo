@@ -50,7 +50,7 @@ namespace Mystery
 			}
 
 			Vector3 transform = m_Player.Transform.Translation + m_DistanceFromPlayer;
-			transform.Y = Transform.Translation.Y;
+			//transform.Y = Transform.Translation.Y;
 
 			Transform.Translation = Vector3.Lerp(Transform.Translation, transform, Frame.TimeStep * 5.0f);
 		}

@@ -461,6 +461,17 @@ namespace Turbo
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<DirectionalLightComponent>())
+        {
+            out << YAML::Key << "DirectionalLightComponent";
+            out << YAML::BeginMap;
+
+            auto& directionalLightComponent = entity.GetComponent<DirectionalLightComponent>();
+            out << YAML::Key << "Radiance" << YAML::Value << directionalLightComponent.Radiance;
+            out << YAML::Key << "Intensity" << YAML::Value << directionalLightComponent.Intensity;
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<PointLightComponent>())
         {
             out << YAML::Key << "PointLightComponent";
@@ -801,6 +812,14 @@ namespace Turbo
         {
             auto& smr = deserializedEntity.AddComponent<StaticMeshRendererComponent>();
             smr.Mesh = staticMeshRendererComponent  ["Mesh"].as<u64>();
+        }
+
+        auto directionalLightComponent = entity["DirectionalLightComponent"];
+        if (directionalLightComponent)
+        {
+            auto& dl = deserializedEntity.AddComponent<DirectionalLightComponent>();
+            dl.Radiance = directionalLightComponent["Radiance"].as<glm::vec3>();
+            dl.Intensity = directionalLightComponent["Intensity"].as<f32>();
         }
 
         auto pointLightComponent = entity["PointLightComponent"];
