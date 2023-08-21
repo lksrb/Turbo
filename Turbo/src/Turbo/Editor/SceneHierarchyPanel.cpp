@@ -816,17 +816,17 @@ namespace Turbo {
 
         Utils::DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
         {
-            static const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+            static const char* bodyTypeStrings[] = { "Static", "Kinematic", "Dynamic" };
             const char* currentBodyTypeString = bodyTypeStrings[(u32)component.Type];
             if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
             {
-                for (u32 i = 0; i < 2; i++)
+                for (u32 i = 0; i < 3; ++i)
                 {
                     bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
                     if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
                     {
                         currentBodyTypeString = bodyTypeStrings[i];
-                        component.Type = (RigidbodyType)i;
+                        component.Type = static_cast<RigidbodyType>(i);
                     }
 
                     if (isSelected)
@@ -932,17 +932,38 @@ namespace Turbo {
 
         Utils::DrawComponent<RigidbodyComponent>("Rigid Body", entity, [](auto& component)
         {
-            static const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
-            const char* currentBodyTypeString = bodyTypeStrings[(u32)component.Type];
+            static constexpr const char* s_BodyTypeStrings[] = { "Static", "Kinematic", "Dynamic" };
+            static constexpr const char* s_CollisionDetectionTypeStrings[] = { "Discrete", "LinearCast" };
+
+            const char* currentBodyTypeString = s_BodyTypeStrings[(u32)component.Type];
             if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
             {
-                for (u32 i = 0; i < 2; i++)
+                for (u32 i = 0; i < 3; ++i)
                 {
-                    bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
-                    if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+                    bool isSelected = currentBodyTypeString == s_BodyTypeStrings[i];
+                    if (ImGui::Selectable(s_BodyTypeStrings[i], isSelected))
                     {
-                        currentBodyTypeString = bodyTypeStrings[i];
-                        component.Type = (RigidbodyType)i;
+                        currentBodyTypeString = s_BodyTypeStrings[i];
+                        component.Type = static_cast<RigidbodyType>(i);
+                    }
+
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+
+                ImGui::EndCombo();
+            }
+
+            const char* currentDetectionTypeString = s_CollisionDetectionTypeStrings[(u32)component.CollisionDetection];
+            if (ImGui::BeginCombo("Collision Detection", currentDetectionTypeString))
+            {
+                for (u32 i = 0; i < 2; ++i)
+                {
+                    bool isSelected = currentDetectionTypeString == s_CollisionDetectionTypeStrings[i];
+                    if (ImGui::Selectable(s_CollisionDetectionTypeStrings[i], isSelected))
+                    {
+                        currentDetectionTypeString = s_CollisionDetectionTypeStrings[i];
+                        component.CollisionDetection = static_cast<CollisionDetectionType>(i);
                     }
 
                     if (isSelected)
@@ -954,7 +975,12 @@ namespace Turbo {
 
             ImGui::DragFloat("Gravity Scale", &component.GravityScale);
             ImGui::DragFloat("Mass", &component.Mass);
+            ImGui::DragFloat("Linear Damping", &component.LinearDamping);
+            ImGui::DragFloat("Angular Damping", &component.AngularDamping);
+
             ImGui::Checkbox("Is Trigger", &component.IsTrigger);
+            ImGui::DragFloat("Friction", &component.Friction);
+            ImGui::DragFloat("Restitution", &component.Restitution);
 
             ImGui::PushID("Lock Translation:    ");
             ImGui::Text("Lock Translation: ");

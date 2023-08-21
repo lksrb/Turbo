@@ -41,6 +41,8 @@ namespace Turbo
 		public static Vector2 operator *(Vector2 u, float v) => new Vector2(u.X * v, u.Y * v);
 		public static Vector2 operator *(float u, Vector2 v) => v * u;
 
+		public static Vector2 operator -(Vector2 v) => new Vector2(-v.X, -v.X);
+
 		// Extensions
 
 		public static Vector2 Abs(Vector2 value)

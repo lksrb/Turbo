@@ -1,6 +1,6 @@
 ﻿using Turbo;
 
-namespace Sandbox
+namespace Mystery
 {
 	public class CameraMovement : Entity
 	{

@@ -607,9 +607,9 @@ namespace Turbo::Ed {
             }
             case Key::F:
             {
-                if (!isRepeated && m_SelectedEntity && m_ViewportHovered && !ImGuizmo::IsUsing())
+                if (m_SceneMode == SceneMode::Edit && !isRepeated && m_SelectedEntity && m_ViewportFocused)
                 {
-                    m_EditorCamera.Focus(m_SelectedEntity.Transform().Translation);
+                    m_EditorCamera.Focus(m_CurrentScene->GetWorldSpaceTransform(m_SelectedEntity).Translation);
                 }
 
                 break;
@@ -1037,14 +1037,14 @@ namespace Turbo::Ed {
                 TransformComponent transform = m_CurrentScene->GetWorldSpaceTransform({ entity, m_CurrentScene.Get() });
 
                 glm::vec3 translation = transform.Translation + bc.Offset;
-                glm::vec3 scale = transform.Scale * (bc.Size * 2.0f);
                 glm::mat4 rotation = glm::toMat4(glm::quat(transform.Rotation));
+                glm::vec3 scale = transform.Scale * (bc.Size * 2.0f);
 
                 glm::mat4 offsetTransform = glm::translate(glm::mat4(1.0f), translation)
                     * rotation
                     * glm::scale(glm::mat4(1.0f), scale);
 
-                m_ViewportDrawList->AddBoxWireframe(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportDrawList->AddBoxWireframe(transform.GetTransform(), {0.0f, 1.0f, 0.0f, 1.0f}, (i32)entity);
             }
 
             // Sphere colliders

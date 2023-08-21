@@ -27,7 +27,7 @@ namespace Turbo {
         // Collision end
         virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;
     private:
-        CommandQueue m_ContactCallbacks;
+        CommandQueue m_ProcessContactsQueue;
 
         std::mutex m_ContactCallbackMutex;
     };

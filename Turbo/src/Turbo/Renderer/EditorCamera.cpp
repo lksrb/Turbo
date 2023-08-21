@@ -88,7 +88,7 @@ namespace Turbo
     void EditorCamera::Focus(const glm::vec3& translation)
     {
         m_FocalPoint = translation;
-        constexpr f32 minFocusDistance = 100.0f;
+        constexpr f32 minFocusDistance = 50.0f;
         if (m_Distance > minFocusDistance)
         {
             const f32 distance = m_Distance - minFocusDistance;

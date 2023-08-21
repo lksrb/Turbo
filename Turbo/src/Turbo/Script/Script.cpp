@@ -10,9 +10,6 @@
 #include "Turbo/Scene/Entity.h"
 #include "Turbo/Scene/Components.h"
 #include "Turbo/Solution/Project.h"
-#include "Turbo/Physics/Physics2D.h"
-
-#include <fstream>
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/mono-debug.h>
@@ -298,38 +295,6 @@ namespace Turbo
         }
 
         instance->InvokeOnUpdate();
-    }
-
-    void Script::InvokeEntityOnBeginCollision2D(Entity entity, Entity other, bool isTrigger)
-    {
-        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
-        UUID otherUUID = other.GetUUID();
-        bool isValidClassName = ScriptClassExists(script.ClassName);
-
-        // Invoke only when C# script class exists
-        if (!isValidClassName)
-            return;
-
-        if (isTrigger)
-            s_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerBegin2D(otherUUID);
-        else
-            s_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionBegin2D(otherUUID);
-    }
-
-    void Script::InvokeEntityOnEndCollision2D(Entity entity, Entity other, bool isTrigger)
-    {
-        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
-        UUID otherUUID = other.GetUUID();
-        bool isValidClassName = ScriptClassExists(script.ClassName);
-
-        // Invoke only when C# script class exists
-        if (!isValidClassName)
-            return;
-
-        if (isTrigger)
-            s_Data->ScriptInstances.at(id.ID)->InvokeOnTriggerEnd2D(otherUUID);
-        else
-            s_Data->ScriptInstances.at(id.ID)->InvokeOnCollisionEnd2D(otherUUID);
     }
 
     Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)

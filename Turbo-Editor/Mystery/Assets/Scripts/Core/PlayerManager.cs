@@ -1,20 +1,22 @@
-using System;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Turbo;
 
-namespace Sandbox
+namespace Mystery
 {
 	public class PlayerManager : Entity
 	{
-		public float m_Speed;
+		public float LinearVelocityMagnifier;
+		public float AngularVelocityMagnifier;
 
+		internal PlayerInput m_Input;
+
+		Entity m_ShootCube;
 		Entity m_Camera;
 
 		RigidbodyComponent m_Rigidbody;
 
 		Vector2 m_MovementDirection = Vector2.Zero;
 		Vector2 m_LastMousePosition = Vector2.Zero;
+		Vector2 m_CurrentMousePos = Vector2.Zero;
 
 		Vector3 m_Velocity = Vector3.Zero;
 		Vector3 m_Destination = Vector3.Zero;
@@ -24,9 +26,10 @@ namespace Sandbox
 
 		protected override void OnCreate()
 		{
-			//Input.SetCursorMode(CursorMode.Locked);
+			m_Input = new PlayerInput();
 
 			m_Camera = FindEntityByName("Camera");
+			m_ShootCube = FindEntityByName("ShootCube");
 
 			m_Rigidbody = GetComponent<RigidbodyComponent>();
 
@@ -37,72 +40,125 @@ namespace Sandbox
 			m_CurrentRotation = m_Rigidbody.Rotation;
 		}
 
-		private bool m_IsShootKeyReleased = true;
-		private bool m_WasShootMouseButtonPressed = false;
-		private bool m_IsShootMouseButtonPressed = false;
-		internal bool IsShootMouseButtonPressed => m_WasShootMouseButtonPressed && m_IsShootMouseButtonPressed;
+		bool pressed = false;
 
 		protected override void OnUpdate()
 		{
-			// Shooting
-			m_WasShootMouseButtonPressed = m_IsShootKeyReleased;
-			m_IsShootMouseButtonPressed = Input.IsMouseButtonDown(MouseCode.ButtonLeft);
-			m_IsShootKeyReleased = Input.IsMouseButtonUp(MouseCode.ButtonLeft);
+			m_Input.Update();
+			m_CurrentMousePos = Input.GetMousePosition();
 
-			Vector2 mousePos = Input.GetMousePosition();
-
-			if (IsShootMouseButtonPressed)
-			{
-				Vector3 worldPos = Camera.ScreenToWorldPosition(mousePos);
-				worldPos.Normalize();
-
-				Ray ray = new Ray(m_Camera.Transform.Translation, worldPos * 100.0f);
-				if (Physics.CastRay(ray, RayTarget.Closest, out RayCastResult result))
-				{
-					if (result.HitEntity.Name == "Ground" || result.HitEntity.Name == "PressurePlate")
-					{
-						var transform = FindEntityByName("MOBACrosshair").Transform;
-						transform.Translation = result.HitPosition + Vector3.Up * 0.01f;
-						transform.Rotation = Vector3.Right * Mathf.Radians(90.0f);
-
-						m_Destination = result.HitPosition;
-						m_Follows = true;
-
-						Vector3 direction = Transform.Translation - m_Destination;
-						direction.Normalize();
-
-						direction.Y = 0.0f;
-						m_CurrentRotation = Quaternion.LookAt(direction, Vector3.Up);
-					}
-				}
-			}
-
-			m_Rigidbody.Rotation = Quaternion.Slerp(m_Rigidbody.Rotation, m_CurrentRotation, Frame.TimeStep * 8.0f);
+			OnMovementUpdate();
+			OnPickUpUpdate();
 
 			Entity cube = FindEntityByName("Cube1");
 
 			var r = cube.Transform.Rotation;
 			r.X -= Frame.TimeStep;
 			cube.Transform.Rotation = r;
+		}
 
-			//Quaternion q = Quaternion.LookAt(new Vector3(0,1,-1), Vector3.Up);
+		void OnMovementUpdate()
+		{
+			if (m_Input.IsSetDestinationButtonDown)
+			{
+				Vector3 worldPos = Camera.ScreenToWorldPosition(m_CurrentMousePos);
+				worldPos.Normalize();
 
-			//cube.Transform.Rotation += q * Vector3.Left * Frame.TimeStep;
-			//cube.Transform.Rotation = (q * Vector3.Left) * Frame.TimeStep;
+				Ray ray = new Ray(m_Camera.Transform.Translation, worldPos * 100.0f);
+				if (Physics.CastRay(ray, RayTarget.Any, out RayCastResult result))
+				{
+					switch (result.HitEntity.Name)
+					{
+						case "Ground":
+						case "Wall":
+						case "PressurePlate":
+							var transform = FindEntityByName("MOBACrosshair").Transform;
+							transform.Translation = result.HitPosition + Vector3.Up * 0.01f;
+							transform.Rotation = Vector3.Right * Mathf.Radians(90.0f);
+
+							m_Destination = result.HitPosition;
+							m_Follows = true;
+
+							Vector3 direction = Transform.Translation - result.HitPosition;
+							direction.Normalize();
+
+							direction.Y = 0.0f;
+							m_CurrentRotation = Quaternion.LookAt(direction, Vector3.Up);
+							break;
+
+					}
+				}
+			}
+			else if (m_Input.IsFocusButtonDown)
+			{
+				Vector3 worldPos = Camera.ScreenToWorldPosition(m_CurrentMousePos);
+				worldPos.Normalize();
+
+				Ray ray = new Ray(m_Camera.Transform.Translation, worldPos * 50.0f);
+				if (Physics.CastRay(ray, RayTarget.Closest, out RayCastResult result))
+				{
+					switch (result.HitEntity.Name)
+					{
+						case "TargetDummy":
+							Vector3 direction1 = Transform.Translation - result.HitPosition;
+							direction1.Normalize();
+
+							direction1.Y = 0.0f;
+							m_CurrentRotation = Quaternion.LookAt(direction1, Vector3.Up);
+
+							m_Destination = Transform.Translation;
+							m_Follows = false;
+							m_Rigidbody.LinearVelocity = Vector3.Zero;
+							break;
+					}
+				}
+			}
+
+
+			m_Rigidbody.Rotation = Quaternion.Slerp(m_Rigidbody.Rotation, m_CurrentRotation, Frame.TimeStep * AngularVelocityMagnifier);
 
 			if (m_Follows)
 			{
-				m_Follows = (m_Destination - Transform.Translation).Length() > Frame.FixedTimeStep;
+				m_Follows = (m_Destination - Transform.Translation).Length() > Frame.TimeStep;
 
 				Vector3 distance = m_Destination - Transform.Translation;
 				distance.Normalize();
 
-				m_Velocity = distance * m_Speed;
+				m_Velocity = distance * LinearVelocityMagnifier;
 				m_Velocity.Y = m_Rigidbody.LinearVelocity.Y;
-
 				m_Rigidbody.LinearVelocity = m_Velocity;
 			}
 
 		}
+
+		void OnPickUpUpdate()
+		{
+			Vector3 dist = m_ShootCube.Transform.Translation - Transform.Translation;
+			if (m_Input.IsPickUpButtonDown && dist.Length() < 5.0f)
+			{
+				pressed = true;
+
+				Vector3 forward = new Quaternion(Transform.Rotation) * Vector3.Forward;
+				forward.Y = 0.0f;
+				forward.Normalize();
+
+				var rb = m_ShootCube.GetComponent<RigidbodyComponent>();
+				rb.Position = m_Rigidbody.Position + forward * 3.0f;
+				rb.Rotation = m_Rigidbody.Rotation;
+			}
+
+			if (pressed && Input.IsKeyUp(KeyCode.F))
+			{
+				pressed = false;
+				Vector3 forward = new Quaternion(Transform.Rotation) * Vector3.Forward;
+				forward.Y = 0.0f;
+				forward.Normalize();
+
+				var rb = m_ShootCube.GetComponent<RigidbodyComponent>();
+				rb.AddForce(forward * 50.0f, ForceMode.Impulse);
+			}
+		}
+
+
 	}
 }

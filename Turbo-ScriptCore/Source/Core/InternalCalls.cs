@@ -342,12 +342,26 @@ namespace Turbo
 
 		#region RigidbodyComponent
 
+		// Body type
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static RigidbodyType Component_Rigidbody_Get_BodyType(ulong uuid);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Set_BodyType(ulong uuid, RigidbodyType type);
+
 		// Linear velocity
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody_Get_LinearVelocity(ulong uuid, out Vector3 velocity);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody_Set_LinearVelocity(ulong uuid, ref Vector3 velocity);
+
+		// Angular velocity
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Get_AngularVelocity(ulong uuid, out Vector3 velocity);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void Component_Rigidbody_Set_AngularVelocity(ulong uuid, ref Vector3 velocity);
 
 		// Position
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]

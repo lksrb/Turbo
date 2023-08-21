@@ -205,37 +205,40 @@ namespace Turbo
         return out;
     }
 
-    static std::string StringifyRigidbodyType(RigidbodyType bodyType)
-    {
-        switch (bodyType)
-        {
-            case RigidbodyType::Static:    return "Static";
-            case RigidbodyType::Dynamic:   return "Dynamic";
-            case RigidbodyType::Kinematic: return "Kinematic";
-        }
+    // TODO: Maybe those functions should be in some new header file "RigidbodyType.h" ?
 
-        TBO_ENGINE_ASSERT(false, "Unknown body type");
-        return {};
+    static const char* StringifyRigidbodyType(RigidbodyType type)
+    {
+        static constexpr const char* s_BodyTypeStrings[] = { "Static", "Kinematic", "Dynamic" };
+
+        return s_BodyTypeStrings[(u32)type];
     }
 
-    // TODO: Merge these functions
-    static RigidbodyType DestringifyRigidbodyType(std::string_view bodyType)
+    static const char* StringifyCollisionDetectionType(CollisionDetectionType type)
     {
-        if (bodyType == "Static")    return RigidbodyType::Static;
-        if (bodyType == "Dynamic")   return RigidbodyType::Dynamic;
-        if (bodyType == "Kinematic") return RigidbodyType::Kinematic;
+        static constexpr const char* s_CollisionDetectionTypeString[] = { "Discrete", "LinearCast" };
+
+        return s_CollisionDetectionTypeString[(u32)type];
+    }
+
+
+    static RigidbodyType DestringifyRigidbodyType(std::string_view type)
+    {
+        if (type == "Static")    return RigidbodyType::Static;
+        if (type == "Kinematic") return RigidbodyType::Kinematic;
+        if (type == "Dynamic")   return RigidbodyType::Dynamic;
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
         return RigidbodyType::Static;
     }
 
-    static RigidbodyType RigidBodyBodyTypeFromString(std::string_view bodyType)
+    static CollisionDetectionType DestringifyCollisionDetectionType(std::string_view type)
     {
-        if (bodyType == "Static")    return RigidbodyType::Static;
-        if (bodyType == "Dynamic")   return RigidbodyType::Dynamic;
+        if (type == "Discrete")    return CollisionDetectionType::Discrete;
+        if (type == "LinearCast") return CollisionDetectionType::LinearCast;
 
         TBO_ENGINE_ASSERT(false, "Unknown body type");
-        return RigidbodyType::Static;
+        return CollisionDetectionType::Discrete;
     }
 
     SceneSerializer::SceneSerializer(Ref<Scene> scene)
@@ -625,16 +628,21 @@ namespace Turbo
 
         if (entity.HasComponent<RigidbodyComponent>())
         {
-            static const char* s_StringifiedBodyTypes[2] = { "Static", "Dynamic"};
-
             out << YAML::Key << "RigidbodyComponent";
             out << YAML::BeginMap;
 
             auto& rbComponent = entity.GetComponent<RigidbodyComponent>();
-            out << YAML::Key << "BodyType" << YAML::Value << s_StringifiedBodyTypes[(u32)rbComponent.Type];
+            out << YAML::Key << "BodyType" << YAML::Value << StringifyRigidbodyType(rbComponent.Type);
+            out << YAML::Key << "CollisionDetection" << YAML::Value << StringifyCollisionDetectionType(rbComponent.CollisionDetection);
             out << YAML::Key << "GravityScale" << YAML::Value << rbComponent.GravityScale;
             out << YAML::Key << "Mass" << YAML::Value << rbComponent.Mass;
+            out << YAML::Key << "LinearDamping" << YAML::Value << rbComponent.LinearDamping;
+            out << YAML::Key << "AngularDamping" << YAML::Value << rbComponent.AngularDamping;
+
             out << YAML::Key << "IsTrigger" << YAML::Value << rbComponent.IsTrigger;
+            out << YAML::Key << "Friction" << YAML::Value << rbComponent.Friction;
+            out << YAML::Key << "Restitution" << YAML::Value << rbComponent.Restitution;
+
             out << YAML::Key << "LockTranslationX" << rbComponent.LockTranslationX;
             out << YAML::Key << "LockTranslationY" << rbComponent.LockTranslationY;
             out << YAML::Key << "LockTranslationZ" << rbComponent.LockTranslationZ;
@@ -943,10 +951,17 @@ namespace Turbo
         if (rigidbodyComponent)
         {
             RigidbodyComponent rb;
-            rb.Type = RigidBodyBodyTypeFromString(rigidbodyComponent["BodyType"].as<std::string>());
+            rb.Type = DestringifyRigidbodyType(rigidbodyComponent["BodyType"].as<std::string>());
+            rb.CollisionDetection = DestringifyCollisionDetectionType(rigidbodyComponent["CollisionDetection"].as<std::string>());
             rb.GravityScale = rigidbodyComponent["GravityScale"].as<f32>();
             rb.Mass = rigidbodyComponent["Mass"].as<f32>();
+            rb.LinearDamping = rigidbodyComponent["LinearDamping"].as<f32>();
+            rb.AngularDamping = rigidbodyComponent["AngularDamping"].as<f32>();
+
             rb.IsTrigger = rigidbodyComponent["IsTrigger"].as<bool>();
+            rb.Friction = rigidbodyComponent["Friction"].as<f32>();
+            rb.Restitution = rigidbodyComponent["Restitution"].as<f32>();
+
             rb.LockTranslationX = rigidbodyComponent["LockTranslationX"].as<bool>();
             rb.LockTranslationY = rigidbodyComponent["LockTranslationY"].as<bool>();
             rb.LockTranslationZ = rigidbodyComponent["LockTranslationZ"].as<bool>();

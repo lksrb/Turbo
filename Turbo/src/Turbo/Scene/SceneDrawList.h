@@ -89,7 +89,7 @@ namespace Turbo {
         // For now
         static constexpr u32 MaxTransforms = 4096;
 
-        static constexpr std::array<glm::vec4, 24> BoxWireframeVertices = {
+        static constexpr std::array<glm::vec4, 8> BoxWireframeVertices = {
             // Front face
             glm::vec4(-0.5f, -0.5f, 0.5f, 1.0f),
             glm::vec4(0.5f, -0.5f, 0.5f, 1.0f),
@@ -101,6 +101,7 @@ namespace Turbo {
             glm::vec4(0.5f, -0.5f, -0.5f, 1.0f),
             glm::vec4(0.5f, 0.5f, -0.5f, 1.0f),
             glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f),
+
         };
 
         struct UBCamera

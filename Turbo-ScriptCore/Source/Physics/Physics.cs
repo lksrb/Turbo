@@ -24,7 +24,21 @@ namespace Turbo
 	public enum RayTarget : uint
 	{
 		Closest = 0,
-		//Any
+		Furthest,
+		Any
+	}
+
+	public enum RigidbodyType : uint
+	{
+		Static = 0,
+		Kinematic,
+		Dynamic
+	}
+
+	public enum ForceMode : uint
+	{
+		Force = 0,
+		Impulse
 	}
 
 	// Matches C++ side
@@ -40,7 +54,7 @@ namespace Turbo
 	public static class Physics
 	{
 		public static bool CastRay(Ray ray, RayTarget target, out RayCastResult result)
-		{ 
+		{
 			InternalCalls.Physics_CastRay(ref ray.Start, ref ray.Direction, target, out UnmanagedRayCastResult unmanagedResult);
 
 			// Hit
@@ -48,7 +62,7 @@ namespace Turbo
 			{
 				result.HitEntity = new Entity(unmanagedResult.HitEntity);
 				result.HitPosition = unmanagedResult.HitPosition;
-				return true; 
+				return true;
 			}
 
 			result.HitEntity = null;

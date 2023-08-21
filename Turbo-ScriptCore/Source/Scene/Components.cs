@@ -114,6 +114,12 @@ namespace Turbo
 		{
 			InternalCalls.Component_SpriteRenderer_SetSpriteBounds(Entity.ID, position, size);
 		}
+
+	}
+
+	public class CircleRendererComponent : Component
+	{
+		// TODO
 	}
 
 	public class TextComponent : Component
@@ -177,10 +183,6 @@ namespace Turbo
 			set => InternalCalls.Component_AudioListener_Set_IsPrimary(Entity.ID, value);
 		}
 	}
-
-	// Physics components
-	public enum RigidbodyType : uint { Static = 0, Dynamic /*, Kinematic */ };
-	public enum ForceMode : uint { Force = 0, Impulse }
 
 	// Physics 2D
 	public class Rigidbody2DComponent : Component
@@ -353,14 +355,12 @@ namespace Turbo
 			get => InternalCalls.Component_Rigidbody_Get_GravityScale(Entity.ID);
 			set => InternalCalls.Component_Rigidbody_Set_GravityScale(Entity.ID, value);
 		}
-*/
-
-		/*public BodyType Type
+		*/
+		public RigidbodyType Type
 		{
 			get => InternalCalls.Component_Rigidbody_Get_BodyType(Entity.ID);
 			set => InternalCalls.Component_Rigidbody_Set_BodyType(Entity.ID, value);
 		}
-*/
 
 		public Vector3 LinearVelocity
 		{
@@ -375,7 +375,21 @@ namespace Turbo
 			}
 		}
 
+		public Vector3 AngularVelocity
+		{
+			get
+			{
+				InternalCalls.Component_Rigidbody_Get_AngularVelocity(Entity.ID, out Vector3 velocity);
+				return velocity;
+			}
+			set
+			{
+				InternalCalls.Component_Rigidbody_Set_AngularVelocity(Entity.ID, ref value);
+			}
+		}
+
 		// This is used when the entity is controlled by a rigidbody
+		// Also be aware that setting position results in resetting linear and angular velocity
 		public Vector3 Position
 		{
 			get

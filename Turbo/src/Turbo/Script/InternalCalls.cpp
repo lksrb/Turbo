@@ -6,7 +6,6 @@
 
 #include "Turbo/Scene/SceneDrawList.h"
 
-#include "Turbo/Physics/Physics2D.h"
 #include "Turbo/Physics/PhysicsWorld2D.h"
 #include "Turbo/Physics/PhysicsWorld.h"
 #include "Turbo/Physics/JoltUtils.h"
@@ -23,6 +22,9 @@
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
+
+#include <box2d/b2_body.h>
+#include <box2d/b2_fixture.h>
 
 #define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, (const void*)IC::name);
 
@@ -174,9 +176,7 @@ namespace Turbo {
         static void Physics_CastRay(glm::vec3* start, glm::vec3* direction, u32 rayTarget, RayCastResult* outResult)
         {
             Ref<PhysicsWorld> physicsWorld = Script::GetCurrentScene()->GetPhysicsWorld();
-
             Ray ray(*start, *direction);
-
             *outResult = physicsWorld->CastRay(ray, (RayTarget)rayTarget);
         }
 
@@ -805,9 +805,7 @@ namespace Turbo {
             auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
             b2Body* body = (b2Body*)rb2d.RuntimeBody;
             b2Vec2 b2Velocity = body->GetLinearVelocity();
-
-            velocity->x = b2Velocity.x;
-            velocity->y = b2Velocity.y;
+            *velocity = { b2Velocity.x, b2Velocity.y };
         }
         static void Component_Rigidbody2D_ApplyTorque(UUID uuid, f32 torque, bool wake)
         {
@@ -831,6 +829,9 @@ namespace Turbo {
 
             auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
             rb2d.GravityScale = gravityScale;
+
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->SetGravityScale(gravityScale);
         }
 
         static u32 Component_Rigidbody2D_Get_BodyType(UUID uuid)
@@ -847,6 +848,9 @@ namespace Turbo {
 
             auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
             rb2d.Type = (RigidbodyType)type;
+
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->SetType(static_cast<b2BodyType>(rb2d.Type));
         }
 
         static void Component_Rigidbody2D_Set_Enabled(UUID uuid, bool enabled)
@@ -871,6 +875,9 @@ namespace Turbo {
 
             auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
             rb2d.ContactEnabled = enabled;
+
+            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            body->SetEnabled(enabled);
         }
 
         static bool Component_Rigidbody2D_Get_ContactEnabled(UUID uuid)
@@ -897,7 +904,6 @@ namespace Turbo {
             Entity entity = GetEntity(uuid);
 
             auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-            auto& transform = entity.Transform();
 
             if (bc2d.Offset == *offset)
                 return;
@@ -920,7 +926,6 @@ namespace Turbo {
             Entity entity = GetEntity(uuid);
 
             auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-            auto& transform = entity.Transform();
 
             if (bc2d.Size == *size)
                 return;
@@ -949,6 +954,8 @@ namespace Turbo {
                 return;
 
             bc2d.IsTrigger = isTrigger;
+
+            // TODO: Maybe we do not need to destroy fixtures
 
             // Destroys old fixture and replaces it with new one
             entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
@@ -1083,6 +1090,65 @@ namespace Turbo {
 #pragma region RigidBodyComponent
 
         // Linear velocity
+
+        static u32 Component_Rigidbody_Get_BodyType(UUID uuid)
+        {
+            Entity entity = GetEntity(uuid);
+            auto scene = Script::GetCurrentScene();
+
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            
+            return (u32)(bodyInterface.GetMotionType(bodyId));
+        }
+
+        static void Component_Rigidbody_Set_BodyType(UUID uuid, u32 rigidbodyType)
+        {
+            Entity entity = GetEntity(uuid);
+            auto scene = Script::GetCurrentScene();
+
+            auto& rb = entity.GetComponent<RigidbodyComponent>();
+            if (rb.Type == static_cast<RigidbodyType>(rigidbodyType))
+                return;
+
+            rb.Type = static_cast<RigidbodyType>(rigidbodyType);
+
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            bodyInterface.SetMotionType(bodyId, static_cast<JPH::EMotionType>(rigidbodyType), JPH::EActivation::DontActivate);
+        }
+
+        // Angular velocity
+        static void Component_Rigidbody_Get_AngularVelocity(UUID uuid, glm::vec3* velocity)
+        {
+            Entity entity = GetEntity(uuid);
+            auto scene = Script::GetCurrentScene();
+
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            JPH::Vec3 bodyVelocity = bodyInterface.GetAngularVelocity(bodyId);
+            *velocity = JoltUtils::GetVec3(bodyInterface.GetAngularVelocity(bodyId));
+        }
+
+        static void Component_Rigidbody_Set_AngularVelocity(UUID uuid, glm::vec3* velocity)
+        {
+            Entity entity = GetEntity(uuid);
+            auto scene = Script::GetCurrentScene();
+
+            // We can now use the unsafe variant since all contact invocations are processed after the simulation
+            auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
+
+            auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+            bodyInterface.SetAngularVelocity(bodyId, JPH::Vec3(velocity->x, velocity->y, velocity->z));
+        }
+
+        // Linear velocity
         static void Component_Rigidbody_Get_LinearVelocity(UUID uuid, glm::vec3* velocity)
         {
             Entity entity = GetEntity(uuid);
@@ -1109,6 +1175,7 @@ namespace Turbo {
         }
 
         // Position
+        // TODO: Remove this function
         static void Component_Rigidbody_Get_Position(UUID uuid, glm::vec3* outPosition)
         {
             Entity entity = GetEntity(uuid);
@@ -1137,8 +1204,10 @@ namespace Turbo {
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
-
             auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
+
+            // Also reset linear and angular velocity to avoid jiggering
+            bodyInterface.SetLinearAndAngularVelocity(bodyId, JPH::Vec3::sZero(), JPH::Vec3::sZero());
             bodyInterface.SetPosition(bodyId, JoltUtils::GetVec3(*position), JPH::EActivation::DontActivate);
         }
 
@@ -1352,6 +1421,8 @@ namespace Turbo {
         // Rigidbody
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_LinearVelocity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_LinearVelocity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_AngularVelocity);
+        TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_AngularVelocity);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_Position);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Set_Position);
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_Rotation);

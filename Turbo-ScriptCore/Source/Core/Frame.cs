@@ -13,6 +13,6 @@ namespace Turbo
 		/**
 		 * Fixed time step used by physics engine
 		 */
-		public static readonly float FixedTimeStep = 1 / 60.0f;
+		//public static readonly float FixedTimeStep = 1 / 60.0f; // Maybe I dont need this since physics engine is running at TimeStep
 	}
 }

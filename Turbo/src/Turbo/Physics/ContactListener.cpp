@@ -9,13 +9,13 @@
 namespace Turbo {
 
     ContactListener::ContactListener()
-        : m_ContactCallbacks(5_MB) // NOTE: This is maybe too much
+        : m_ProcessContactsQueue(5_MB) // NOTE: This is maybe too much
     {
     }
 
     void ContactListener::ProcessContacts()
     {
-        m_ContactCallbacks.Execute();
+        m_ProcessContactsQueue.Execute();
     }
 
     JPH::ValidateResult ContactListener::OnContactValidate(const JPH::Body& inBody1, const JPH::Body& inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult& inCollisionResult)
@@ -30,7 +30,7 @@ namespace Turbo {
     {
         std::scoped_lock<std::mutex> lock(m_ContactCallbackMutex);
 
-        m_ContactCallbacks.Submit([&inBody1, &inBody2]()
+        m_ProcessContactsQueue.Submit([&inBody1, &inBody2]()
         {
             Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(inBody1.GetUserData());
             Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(inBody2.GetUserData());
@@ -76,7 +76,7 @@ namespace Turbo {
     {
         std::scoped_lock<std::mutex> lock(m_ContactCallbackMutex);
 
-        m_ContactCallbacks.Submit([inSubShapePair]()
+        m_ProcessContactsQueue.Submit([inSubShapePair]()
         {
             Ref<PhysicsWorld> world = Script::GetCurrentScene()->GetPhysicsWorld();
 

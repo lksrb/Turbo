@@ -8,7 +8,9 @@ namespace Turbo {
 
     enum class RayTarget : u32
     {
-        Closest = 0
+        Closest = 0,
+        Furthest,
+        Any
     };
 
     struct Ray

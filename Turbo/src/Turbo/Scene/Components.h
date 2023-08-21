@@ -20,7 +20,9 @@
 
 namespace Turbo {
 
-    enum class RigidbodyType : u32 { Static = 0, Dynamic, Kinematic };
+    // Matches b2BodyType and Jolt's EMotionType
+    enum class RigidbodyType : u32 { Static = 0, Kinematic, Dynamic };
+    enum class CollisionDetectionType : u32 { Discrete = 0, LinearCast };
 
     using BodyHandle = u32;
 
@@ -267,10 +269,18 @@ namespace Turbo {
     struct RigidbodyComponent
     {
         RigidbodyType Type = RigidbodyType::Static;
+        CollisionDetectionType CollisionDetection = CollisionDetectionType::Discrete;
         f32 GravityScale = 1.0f;
         f32 Mass = 1.0f;
-        bool IsTrigger = false; // This is here for now because we only support 1 collider per rigidbody
-        
+        f32 LinearDamping = 0.05f;
+        f32 AngularDamping = 0.05f;
+
+        // This is here for now because we only support 1 collider per rigidbody
+        // And also I do not know how to add another shape to rigidbody
+        bool IsTrigger = false;
+        f32 Friction = 0.2f;
+        f32 Restitution = 0.0f;
+
         bool LockTranslationX = false;
         bool LockTranslationY = false;
         bool LockTranslationZ = false;

@@ -1,8 +1,6 @@
 #include "tbopch.h"
 #include "PhysicsWorld2D.h"
 
-#include "Physics2D.h"
-
 #include <box2d/b2_body.h>
 #include <box2d/b2_shape.h>
 #include <box2d/b2_polygon_shape.h>
@@ -12,30 +10,66 @@
 
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Script/Script.h"
+#include "Turbo/Renderer/CommandQueue.h"
 
 namespace Turbo {
 
     class ContactListener2D : public b2ContactListener
     {
-    private:
+    public:
+        ContactListener2D()
+            : m_ProcessContactsQueue(1_MB)
+        {
+        }
+
+        void ProcessContacts()
+        {
+            m_ProcessContactsQueue.Execute();
+        }
+
         void BeginContact(b2Contact* contact) override
         {
-            auto context = Script::GetCurrentScene();
-
             b2Fixture* fixtureA = contact->GetFixtureA();
             b2Fixture* fixtureB = contact->GetFixtureB();
 
-            Entity entityA = context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
-            Entity entityB = context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
+            bool isTrigger1 = fixtureA->IsSensor();
+            bool isTrigger2 = fixtureB->IsSensor();
 
-            if (entityA && entityB)
+            u64 uuid1 = (u64)fixtureA->GetUserData().pointer;
+            u64 uuid2 = (u64)fixtureA->GetUserData().pointer;
+
+            // NOTE: Not sure if contact pointer will still be alive after PhysicsWorld::Step
+            m_ProcessContactsQueue.Submit([uuid1, uuid2, isTrigger1, isTrigger2]()
             {
-                if (entityA.HasComponent<ScriptComponent>())
-                    Script::InvokeEntityOnBeginCollision2D(entityA, entityB, fixtureA->IsSensor());
+                Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(uuid1);
+                Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(uuid2);
 
-                if (entityB.HasComponent<ScriptComponent>())
-                    Script::InvokeEntityOnBeginCollision2D(entityB, entityA, fixtureB->IsSensor());
-            }
+                if (entityScript1)
+                {
+                    if (isTrigger1)
+                    {
+                        entityScript1->InvokeOnTriggerBegin2D(uuid2);
+                    }
+                    else
+                    {
+                        entityScript1->InvokeOnCollisionBegin2D(uuid2);
+                    }
+                }
+
+                if (entityScript2)
+                {
+                    if (isTrigger2)
+                    {
+                        entityScript2->InvokeOnTriggerBegin2D(uuid1);
+                    }
+                    else
+                    {
+                        entityScript2->InvokeOnCollisionBegin2D(uuid1);
+                    }
+                }
+
+            });
+            // TODO: VVVVVVVVVVVV what to do with this
 #if 0
             // Update physics settings
             auto& rb2dA = entityA.GetComponent<Rigidbody2DComponent>();
@@ -46,22 +80,46 @@ namespace Turbo {
 
         void EndContact(b2Contact* contact) override
         {
-            auto context = Script::GetCurrentScene();
-
             b2Fixture* fixtureA = contact->GetFixtureA();
             b2Fixture* fixtureB = contact->GetFixtureB();
 
-            Entity entityA = context->FindEntityByUUID((u64)fixtureA->GetUserData().pointer);
-            Entity entityB = context->FindEntityByUUID((u64)fixtureB->GetUserData().pointer);
+            bool isTrigger1 = fixtureA->IsSensor();
+            bool isTrigger2 = fixtureB->IsSensor();
 
-            if (entityA && entityB)
+            u64 uuid1 = (u64)fixtureA->GetUserData().pointer;
+            u64 uuid2 = (u64)fixtureA->GetUserData().pointer;
+
+            // NOTE: Not sure if contact pointer will still be alive after PhysicsWorld::Step
+            m_ProcessContactsQueue.Submit([uuid1, uuid2, isTrigger1, isTrigger2]()
             {
-                if (entityA.HasComponent<ScriptComponent>())
-                    Script::InvokeEntityOnEndCollision2D(entityA, entityB, fixtureA->IsSensor());
+                Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(uuid1);
+                Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(uuid2);
 
-                if (entityB.HasComponent<ScriptComponent>())
-                    Script::InvokeEntityOnEndCollision2D(entityB, entityA, fixtureB->IsSensor());
-            }
+                if (entityScript1)
+                {
+                    if (isTrigger1)
+                    {
+                        entityScript1->InvokeOnTriggerEnd2D(uuid2);
+                    }
+                    else
+                    {
+                        entityScript1->InvokeOnCollisionEnd2D(uuid2);
+                    }
+                }
+
+                if (entityScript2)
+                {
+                    if (isTrigger2)
+                    {
+                        entityScript2->InvokeOnTriggerEnd2D(uuid1);
+                    }
+                    else
+                    {
+                        entityScript2->InvokeOnCollisionEnd2D(uuid1);
+                    }
+                }
+
+            });
         }
 
         void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override
@@ -71,6 +129,8 @@ namespace Turbo {
         void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override
         {
         }
+    private:
+        CommandQueue m_ProcessContactsQueue;
     };
 
     class RayCastCallback : public b2RayCastCallback
@@ -124,7 +184,7 @@ namespace Turbo {
 
             // Copy position from transform component
             b2BodyDef bodyDef;
-            bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
+            bodyDef.type = static_cast<b2BodyType>(rb2d.Type);
             bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
             bodyDef.angle = transform.Rotation.z;
 
@@ -209,7 +269,7 @@ namespace Turbo {
 
         // Copy position from transform component
         b2BodyDef bodyDef;
-        bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
+        bodyDef.type = static_cast<b2BodyType>(rb2d.Type);
         bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
         bodyDef.angle = transform.Rotation.z;
 
@@ -303,7 +363,7 @@ namespace Turbo {
             b2Fixture* nextFixture = fixture->GetNext();
 
             b2Shape* shape = fixture->GetShape();
-
+            
             if (shape->GetType() == b2Shape::e_polygon)
                 body->DestroyFixture(fixture);
 
@@ -343,8 +403,11 @@ namespace Turbo {
         constexpr i32 positionIterations = 2;
 
         // TODO: Fixed timestep
-        f32 fixedDeltaTime = 1.0f / 60.0f;
+        f32 fixedDeltaTime = 1.0f / 144.0f;
         m_Box2DWorld.Step(ts, velocityIterations, positionIterations);
+
+        // Process all contacts here to avoid tampering with rigidbodies while simulating
+        s_ContactListener.ProcessContacts();
 
         // Retrieve transforms
         auto rigidbodies = m_Scene->GroupAllEntitiesWith<Rigidbody2DComponent, TransformComponent>();
@@ -353,20 +416,13 @@ namespace Turbo {
             const auto& [rb2d, transform] = rigidbodies.get<Rigidbody2DComponent, TransformComponent>(e);
             b2Body* body = (b2Body*)rb2d.RuntimeBody;
 
-            const auto& position = body->GetPosition();
+            b2Vec2 position = body->GetPosition();
             transform.Translation.x = position.x;
             transform.Translation.y = position.y;
 
-            if (rb2d.FixedRotation == false)
+            if (!rb2d.FixedRotation) 
                 transform.Rotation.z = body->GetAngle();
-
-            // Copy settings from the component, 
-            // NOTE: Settings are from last frame, not sure if its good or bad
-            body->SetEnabled(rb2d.Enabled);
-            body->SetType(Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type));
-            body->SetGravityScale(rb2d.GravityScale);
         }
-        
     }
 
     glm::vec2 PhysicsWorld2D::RetrieveLinearVelocity(Entity entity)

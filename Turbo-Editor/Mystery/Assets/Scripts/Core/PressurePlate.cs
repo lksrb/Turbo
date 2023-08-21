@@ -5,7 +5,6 @@ namespace Mystery
 	public class PressurePlate : Entity
 	{
 		bool m_StepOn = false;
-		Timer m_PressedAnimationTimer;
 
 		RigidbodyComponent m_Rigidbody;
 
@@ -24,6 +23,7 @@ namespace Mystery
 		{
 			// Minimizing DLL calls
 			var currentPosition = m_Rigidbody.Position;
+
 			if (m_StepOn)
 			{
 				currentPosition.Y = Mathf.Cerp(currentPosition.Y, m_DefaultPosition.Y - Transform.Scale.Y * 0.35f, Frame.TimeStep * 3.0f);
@@ -40,7 +40,8 @@ namespace Mystery
 			if(entity.Name == "Player")
 			{
 				m_StepOn = true;
-				Log.Info("Player step on");
+				FindEntityByName("ShootCube").GetComponent<RigidbodyComponent>().Position = Vector3.Up * 4.0f;
+				Log.Info("asdadsad");
 			}
 		}
 
@@ -49,7 +50,6 @@ namespace Mystery
 			if (entity.Name == "Player")
 			{
 				m_StepOn = false;
-				Log.Info("Player step off");
 			}
 		}
 	}
