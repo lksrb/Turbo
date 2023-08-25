@@ -5,7 +5,7 @@ namespace Mystery
 {
 	internal class PlayerMovement
 	{
-		PlayerManager m_Player;
+		Player m_Player;
 
 		internal Vector3 Translation;
 		internal Vector3 Velocity;
@@ -18,7 +18,7 @@ namespace Mystery
 		Vector3 m_TargetLocation;
 		Quaternion m_TargetRotation;
 
-		internal PlayerMovement(PlayerManager manager)
+		internal PlayerMovement(Player manager)
 		{
 			Rigidbody = manager.GetComponent<RigidbodyComponent>();
 

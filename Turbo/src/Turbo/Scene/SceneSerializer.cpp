@@ -8,6 +8,8 @@
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Script/Script.h"
 
+#include "Turbo/Core/FileSystem.h"
+
 #include <yaml-cpp/yaml.h>
 
 #define WRITE_SCRIPT_FIELD(FieldType, Type)            \
@@ -327,6 +329,18 @@ namespace Turbo
         out << YAML::BeginMap; // Entity
         out << YAML::Key << "Entity" << YAML::Value << uuid;
 
+        if (entity.HasComponent<TagComponent>())
+        {
+            auto& tag = entity.GetComponent<TagComponent>().Tag;
+
+            out << YAML::Key << "TagComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Tag" << YAML::Value << tag;
+
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<RelationshipComponent>())
         {
             auto& relationshipComponent = entity.GetComponent<RelationshipComponent>();
@@ -344,14 +358,14 @@ namespace Turbo
             out << YAML::EndSeq;
         }
 
-        if (entity.HasComponent<TagComponent>())
+        if (entity.HasComponent<PrefabComponent>())
         {
-            auto& tag = entity.GetComponent<TagComponent>().Tag;
+            auto& pc = entity.GetComponent<PrefabComponent>();
 
-            out << YAML::Key << "TagComponent";
+            out << YAML::Key << "PrefabComponent";
             out << YAML::BeginMap;
 
-            out << YAML::Key << "Tag" << YAML::Value << tag;
+            out << YAML::Key << "AssetHandle" << YAML::Value << pc.Handle;
 
             out << YAML::EndMap;
         }
@@ -704,7 +718,7 @@ namespace Turbo
         out << YAML::EndMap; // Entity
     }
 
-    void SceneSerializer::DeserializeEntity(const YAML::Node& entity, Entity deserializedEntity, bool overwriteTranslation)
+    void SceneSerializer::DeserializeEntity(const YAML::Node& entity, Entity deserializedEntity)
     {
         u64 uuid = deserializedEntity.GetUUID();
 
@@ -716,7 +730,7 @@ namespace Turbo
             deserializedEntity.GetComponent<TagComponent>().Tag = name;
         }
 
-        //TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
+        TBO_ENGINE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
         auto& relationshipComponent = deserializedEntity.GetComponent<RelationshipComponent>();
         u64 parent = entity["Parent"].as<u64>();
@@ -732,12 +746,19 @@ namespace Turbo
             }
         }
 
+        auto prefabComponent = entity["PrefabComponent"];
+        if (prefabComponent)
+        {
+            auto& pc = deserializedEntity.AddComponent<PrefabComponent>();
+            pc.Handle = prefabComponent["AssetHandle"].as<u64>();
+        }
+
         auto transformComponent = entity["TransformComponent"];
         if (transformComponent)
         {
             // Entities always have transforms
             auto& tc = deserializedEntity.GetComponent<TransformComponent>();
-            tc.Translation = overwriteTranslation ? transformComponent["Translation"].as<glm::vec3>() : tc.Translation;
+            tc.Translation = transformComponent["Translation"].as<glm::vec3>();
             tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
             tc.Scale = transformComponent["Scale"].as<glm::vec3>();
         }
@@ -924,20 +945,17 @@ namespace Turbo
         auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
         if (rigidbody2DComponent)
         {
-            Rigidbody2DComponent rb2d;
+            auto& rb2d = deserializedEntity.AddComponent<Rigidbody2DComponent>();
             rb2d.Type = DestringifyRigidbodyType(rigidbody2DComponent["BodyType"].as<std::string>());
             rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
             rb2d.GravityScale = rigidbody2DComponent["GravityScale"].as<f32>();
             rb2d.IsBullet = rigidbody2DComponent["IsBullet"].as<bool>();
-
-            // [Runtime]: Triggers construct callback in the scene
-            deserializedEntity.AddComponent<Rigidbody2DComponent>(rb2d);
         }
 
         auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
         if (boxCollider2DComponent)
         {
-            BoxCollider2DComponent bc2d;
+            auto& bc2d = deserializedEntity.AddComponent<BoxCollider2DComponent>();
             bc2d.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
             bc2d.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
             bc2d.Density = boxCollider2DComponent["Density"].as<f32>();
@@ -945,15 +963,12 @@ namespace Turbo
             bc2d.Restitution = boxCollider2DComponent["Restitution"].as<f32>();
             bc2d.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<f32>();
             bc2d.IsTrigger = boxCollider2DComponent["IsTrigger"].as<bool>();
-
-            // [Runtime]: Triggers construct callback in the scene
-            deserializedEntity.AddComponent<BoxCollider2DComponent>(bc2d);
         }
 
         auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
         if (circleCollider2DComponent)
         {
-            CircleCollider2DComponent cc2d;
+            auto& cc2d = deserializedEntity.AddComponent<CircleCollider2DComponent>();
             cc2d.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
             cc2d.Radius = circleCollider2DComponent["Radius"].as<f32>();
             cc2d.Density = circleCollider2DComponent["Density"].as<f32>();
@@ -961,15 +976,12 @@ namespace Turbo
             cc2d.Restitution = circleCollider2DComponent["Restitution"].as<f32>();
             cc2d.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<f32>();
             cc2d.IsTrigger = circleCollider2DComponent["IsTrigger"].as<bool>();
-
-            // [Runtime]: Triggers construct callback in the scene
-            deserializedEntity.AddComponent<CircleCollider2DComponent>(cc2d);
         }
 
         auto rigidbodyComponent = entity["RigidbodyComponent"];
         if (rigidbodyComponent)
         {
-            RigidbodyComponent rb;
+            auto& rb = deserializedEntity.AddComponent<RigidbodyComponent>();
             rb.Type = DestringifyRigidbodyType(rigidbodyComponent["BodyType"].as<std::string>());
             rb.CollisionDetection = DestringifyCollisionDetectionType(rigidbodyComponent["CollisionDetection"].as<std::string>());
             rb.GravityScale = rigidbodyComponent["GravityScale"].as<f32>();
@@ -987,44 +999,31 @@ namespace Turbo
             rb.LockRotationX = rigidbodyComponent["LockRotationX"].as<bool>();
             rb.LockRotationY = rigidbodyComponent["LockRotationY"].as<bool>();
             rb.LockRotationZ = rigidbodyComponent["LockRotationZ"].as<bool>();
-
-            // [Runtime]: Triggers construct callback in the scene
-            deserializedEntity.AddComponent<RigidbodyComponent>(rb);
         }
 
-        // NOTE: Runtime update of the colliders might be problematic
         auto boxColliderComponent = entity["BoxColliderComponent"];
         if (boxColliderComponent)
         {
-            BoxColliderComponent bc;
+            auto& bc = deserializedEntity.AddComponent<BoxColliderComponent>();
             bc.Offset = boxColliderComponent["Offset"].as<glm::vec3>();
             bc.Size = boxColliderComponent["Size"].as<glm::vec3>();
-
-            // [Runtime]: Triggers construct callback in the scene
-            deserializedEntity.AddComponent<BoxColliderComponent>(bc);
         }
 
         auto sphereColliderComponent = entity["SphereColliderComponent"];
         if (sphereColliderComponent)
         {
-            SphereColliderComponent sc;
+            auto& sc = deserializedEntity.AddComponent<SphereColliderComponent>();
             sc.Offset = sphereColliderComponent["Offset"].as<glm::vec3>();
             sc.Radius = sphereColliderComponent["Radius"].as<f32>();
-
-            // [Runtime]: Triggers construct callback in the scene
-            deserializedEntity.AddComponent<SphereColliderComponent>(sc);
         }
 
         auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
         if (capsuleColliderComponent)
         {
-            CapsuleColliderComponent sc;
+            auto& sc = deserializedEntity.AddComponent<CapsuleColliderComponent>();
             sc.Offset = capsuleColliderComponent["Offset"].as<glm::vec3>();
             sc.Radius = capsuleColliderComponent["Radius"].as<f32>();
             sc.Height = capsuleColliderComponent["Height"].as<f32>();
-
-            // [Runtime]: Triggers construct callback in the scene
-            deserializedEntity.AddComponent<CapsuleColliderComponent>(sc);
         }
     }
 

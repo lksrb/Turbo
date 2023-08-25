@@ -90,6 +90,9 @@ namespace Turbo {
         void OnRuntimeStart();
         void OnRuntimeStop();
 
+        void CreateRigidbody(Entity entity);
+        void DestroyRigidbody(Entity entity);
+
         JPH::BodyInterface& GetBodyInterface() { return m_PhysicsSystem.GetBodyInterface(); }
         JPH::BodyInterface& GetBodyInterfaceUnsafe() { return m_PhysicsSystem.GetBodyInterfaceNoLock(); }
 
@@ -99,6 +102,8 @@ namespace Turbo {
 
         void Simulate(FTime ts);
     private:
+        bool m_OptimizeBoardPhase = false;
+
         // For physics update
         JPH::TempAllocatorImpl m_PhysicsUpdateAllocator;
         JPH::JobSystemThreadPool m_JobSystem;

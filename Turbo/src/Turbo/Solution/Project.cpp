@@ -7,8 +7,7 @@
 
 namespace Turbo
 {
-    Project::Project(const Project::Config& config)
-        : m_Config(config)
+    Project::Project()
     {
     }
 

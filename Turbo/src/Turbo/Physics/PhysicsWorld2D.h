@@ -18,11 +18,12 @@ namespace Turbo {
         void OnRuntimeStart();
         void OnRuntimeStop();
 
+
         // [Runtime]
-        void ConstructBody(Entity entity);
+        void CreateRigidbody(Entity entity);
         void ConstructBoxCollider(Entity entity);
         void ConstructCircleCollider(Entity entity);
-        void DestroyPhysicsBody(Entity entity);
+        void DestroyRigidbody(Entity entity);
         void DestroyBoxCollider(Entity entity);
         void DestroyCircleCollilder(Entity entity);
 

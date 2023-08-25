@@ -1,0 +1,35 @@
+Prefab: 554361972140107498
+Entities:
+  - Entity: 10343803533949077018
+    TagComponent:
+      Tag: DeliveryBox
+    Parent: 0
+    Children:
+      []
+    PrefabComponent:
+      AssetHandle: 554361972140107498
+    TransformComponent:
+      Translation: [0, 7.41630745, 0]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Dynamic
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.200000003
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]

@@ -1,4 +1,5 @@
-﻿using Turbo;
+﻿using System.Collections.Generic;
+using Turbo;
 
 namespace Mystery
 {
@@ -10,6 +11,10 @@ namespace Mystery
 
 		Vector3 m_DefaultPosition;
 
+		Prefab m_DeliveryBoxPrefab;
+
+		float m_DeltaStepOnOff = 0.0f;
+
 		protected override void OnCreate()
 		{
 			OnTriggerBegin += OnPlayerStepOn;
@@ -17,6 +22,8 @@ namespace Mystery
 
 			m_Rigidbody = GetComponent<RigidbodyComponent>();
 			m_DefaultPosition = m_Rigidbody.Position;
+
+			m_DeliveryBoxPrefab = Assets.LoadPrefab("Prefabs/DeliveryBox.tprefab");
 		}
 
 		protected override void OnUpdate()
@@ -40,8 +47,7 @@ namespace Mystery
 			if(entity.Name == "Player")
 			{
 				m_StepOn = true;
-				FindEntityByName("Ball").GetComponent<RigidbodyComponent>().Position = Vector3.Up * 8.0f;
-				Log.Info("asdadsad");
+				entity.As<Player>().m_BoxesAvailable.Add(Instantiate(m_DeliveryBoxPrefab));
 			}
 		}
 

@@ -1,25 +1,38 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <filesystem>
+#include "Asset.h"
 
 #include "Turbo/Solution/Project.h"
 
-#include "Asset.h"
+#include <glm/glm.hpp>
+#include <filesystem>
 
 namespace Turbo {
 
     class Entity;
     class Scene;
 
-    class AssetManager {
+    class AssetManager
+    {
     public:
-        template<typename T = Asset>
+        template<typename T>
         static Ref<T> GetAsset(AssetHandle handle)
         {
             static_assert(std::is_base_of<Asset, T>::value, "Class must be derived from \"Asset\" base class!");
 
             auto asset = Project::GetActive()->m_AssetRegistry->GetAsset(handle);
+            if (!asset)
+                return nullptr;
+
+            return asset.As<T>();
+        }
+
+        template<typename T>
+        static Ref<T> GetAsset(const std::filesystem::path& filepath)
+        {
+            static_assert(std::is_base_of<Asset, T>::value, "Class must be derived from \"Asset\" base class!");
+
+            auto asset = Project::GetActive()->m_AssetRegistry->GetAsset(filepath);
             if (!asset)
                 return nullptr;
 
@@ -32,11 +45,6 @@ namespace Turbo {
 
         static bool IsAssetHandleValid(AssetHandle handle);
         static bool IsAssetLoaded(AssetHandle handle);
-
-        // Temporary solution to prefabs
-        // TODO: Remove
-        static bool SerializeToPrefab(const std::filesystem::path& filepath, Entity entity);
-        static Entity DeserializePrefab(const std::filesystem::path& filepath, Scene* scene, glm::vec3 translation = glm::vec3(0.0f));
     private:
     };
 

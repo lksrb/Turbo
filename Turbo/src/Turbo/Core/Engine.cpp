@@ -124,6 +124,8 @@ namespace Turbo {
 
         while (m_Running)
         {
+            TBO_PROFILE_FRAME("MainThread");
+
             f32 currentFrame = Platform::GetTime();
             m_Application->m_Time.DeltaTime = currentFrame - lastFrame;
             m_Application->m_Time.TimeSinceStart += m_Application->m_Time.DeltaTime;
@@ -136,7 +138,11 @@ namespace Turbo {
             if (!m_ViewportWindow->IsMinimized())
             {
                 Renderer::BeginFrame();
-                m_Application->OnUpdate();
+
+                {
+                    TBO_PROFILE_SCOPE("Editor::OnUpdate");
+                    m_Application->OnUpdate();
+                }
 
                 // Render UI
                 if (m_Application->m_Config.EnableUI)
@@ -148,6 +154,7 @@ namespace Turbo {
 
                 // TODO: To be on render thread
                 {
+                    TBO_PROFILE_SCOPE("Renderer::Render");
                     m_ViewportWindow->AcquireNewFrame();
                     Renderer::Render();
                     m_ViewportWindow->SwapFrame();
@@ -176,6 +183,8 @@ namespace Turbo {
 
     void Engine::ExecuteMainThreadQueue()
     {
+        TBO_PROFILE_FUNC();
+
         std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
 
         for (const auto& func : m_MainThreadQueue)

@@ -38,19 +38,20 @@ namespace Turbo
             return component;
         }
 
-        template<typename Component>
-        Component& GetComponent()
-        {
-            TBO_ENGINE_ASSERT(HasComponent<Component>(), "Entity does not have this component!");
-            return m_Scene->m_Registry.get<Component>(m_Handle);
-        }
-
         template<typename... Components>
-        decltype(auto) GetComponents()
+        decltype(auto) GetComponent()
         {
             TBO_ENGINE_ASSERT(HasComponent<Components...>(), "Entity does not have this component!");
             return m_Scene->m_Registry.get<Components...>(m_Handle);
         }
+
+        template<typename... Components>
+        decltype(auto) GetComponent() const
+        {
+            TBO_ENGINE_ASSERT(HasComponent<Components...>(), "Entity does not have this component!");
+            return m_Scene->m_Registry.get<Components...>(m_Handle);
+        }
+
 
         template<typename Component>
         void RemoveComponent()
@@ -59,11 +60,18 @@ namespace Turbo
             m_Scene->m_Registry.remove<Component>(m_Handle);
         }
 
-        template<typename... Component>
-        bool HasComponent()
+        template<typename... Components>
+        bool HasComponent() const
         {
             TBO_ENGINE_ASSERT(IsValid(), "Entity is not valid!");
-            return m_Scene->m_Registry.all_of<Component...>(m_Handle);
+            return m_Scene->m_Registry.all_of<Components...>(m_Handle);
+        }
+
+        template<typename... Components>
+        bool HasAnyComponent() const
+        {
+            TBO_ENGINE_ASSERT(IsValid(), "Entity is not valid!");
+            return m_Scene->m_Registry.any_of<Components...>(m_Handle);
         }
 
         void SetParent(Entity newParent);
@@ -108,6 +116,7 @@ namespace Turbo
         Scene* m_Scene = nullptr;
 
         friend class Scene;
+        friend class Prefab;
 
         // FIXME: Maybe not ideal
         friend class AssetManager;

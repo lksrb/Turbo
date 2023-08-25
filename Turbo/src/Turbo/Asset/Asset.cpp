@@ -10,13 +10,14 @@ namespace Turbo {
 
     struct AssetHandlers
     {
-        Owned<AssetHandler> Serializers[AssetType_Count];
+        Owned<AssetHandler> Handlers[AssetType_Count];
 
         AssetHandlers()
         {
-            Serializers[AssetType_Texture2D] = CreateOwned<Texture2DHandler>();
-            Serializers[AssetType_MeshSource] = CreateOwned<MeshSourceHandler>();
-            Serializers[AssetType_StaticMesh] = CreateOwned<StaticMeshHandler>();
+            Handlers[AssetType_Texture2D] = CreateOwned<Texture2DHandler>();
+            Handlers[AssetType_MeshSource] = CreateOwned<MeshSourceHandler>();
+            Handlers[AssetType_StaticMesh] = CreateOwned<StaticMeshHandler>();
+            Handlers[AssetType_Prefab] = CreateOwned<PrefabHandler>();
         }
     };
 
@@ -26,23 +27,25 @@ namespace Turbo {
     {
         TBO_ENGINE_ASSERT(type < AssetType_Count, "Unknown asset type!");
 
-        static const char* s_StringifiedAssetTypeMap[AssetType_Count] =
+        static constexpr const char* s_StringifiedAssetTypeMap[AssetType_Count] =
         {
             "Texture2D",
             "MeshSource",
-            "StaticMesh"
+            "StaticMesh",
+            "Prefab"
         };
 
         return s_StringifiedAssetTypeMap[type];
     }
 
-    AssetType Asset::StringToAssetType(std::string_view type)
+    AssetType Asset::DestringifyAssetType(std::string_view type)
     {
         static std::unordered_map<std::string_view, AssetType> s_AssetTypeMap =
         {
             { "Texture2D", AssetType_Texture2D },
             { "MeshSource", AssetType_MeshSource },
-            { "StaticMesh", AssetType_StaticMesh }
+            { "StaticMesh", AssetType_StaticMesh },
+            { "Prefab", AssetType_Prefab }
         };
 
         return s_AssetTypeMap.at(type);
@@ -50,11 +53,11 @@ namespace Turbo {
 
     bool Asset::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)
     {
-        return s_AssetHandlers.Serializers[metadata.Type]->Serialize(metadata, asset);
+        return s_AssetHandlers.Handlers[metadata.Type]->Serialize(metadata, asset);
     }
 
     Ref<Asset> Asset::TryLoad(const AssetMetadata& metadata)
     {
-        return s_AssetHandlers.Serializers[metadata.Type]->TryLoad(metadata);
+        return s_AssetHandlers.Handlers[metadata.Type]->TryLoad(metadata);
     }
 }

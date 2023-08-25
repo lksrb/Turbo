@@ -18,6 +18,7 @@ IncludeDir["IconFontCppHeaders"] = "%{wks.location}/dependencies/IconFontCppHead
 IncludeDir["msdfgen"] = "%{wks.location}/dependencies/msdf-atlas-gen/msdfgen"
 IncludeDir["msdf_atlas_gen"] = "%{wks.location}/dependencies/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["Assimp"] = "%{wks.location}/dependencies/assimp/include"
+IncludeDir["optick"] = "%{wks.location}/dependencies/optick/src"
 
 VULKAN_SDK = os.getenv("VULKAN_SDK")
 

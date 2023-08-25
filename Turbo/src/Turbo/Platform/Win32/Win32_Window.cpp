@@ -302,6 +302,8 @@ namespace Turbo {
 
     void Win32_Window::ProcessEvents()
     {
+        TBO_PROFILE_FUNC();
+
         MSG msg = {};
 
         while (::PeekMessage(&msg, 0, 0, 0, PM_REMOVE))

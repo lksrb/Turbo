@@ -92,6 +92,8 @@ namespace Turbo
 
     void ScriptInstance::InvokeOnUpdate()
     {
+        TBO_PROFILE_FUNC();
+
         if (m_Exception)
         {
             MonoString* message = mono_object_to_string(m_Exception, nullptr);

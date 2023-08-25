@@ -25,6 +25,8 @@
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_fixture.h>
+#include <box2d/b2_polygon_shape.h>
+#include <box2d/b2_circle_shape.h>
 
 #define TBO_REGISTER_FUNCTION(name) mono_add_internal_call("Turbo.InternalCalls::" #name, (const void*)IC::name);
 
@@ -69,6 +71,20 @@ namespace Turbo {
 
 #pragma endregion
 
+#pragma region Assets
+
+        // @return Asset handle
+        static u64 Assets_Load_Prefab(MonoString* path)
+        {
+            char* cPath = mono_string_to_utf8(path);
+            Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(cPath);
+            mono_free(cPath);
+
+            return prefab ? static_cast<u64>(prefab->Handle) : 0;
+
+        }
+#pragma endregion
+
 #pragma region Debug
 
         static void DebugRenderer_DrawLine(glm::vec3* start, glm::vec3* end, glm::vec4* color)
@@ -86,9 +102,7 @@ namespace Turbo {
 
         static void Log_String(u32 level, MonoString* string)
         {
-            char* cstring = mono_string_to_utf8(string);
-            std::string msg = cstring;
-            mono_free(cstring);
+            char* msg = mono_string_to_utf8(string);
 
             switch (level)
             {
@@ -118,6 +132,8 @@ namespace Turbo {
                     break;
                 }
             }
+
+            mono_free(msg);
         }
 
 #pragma endregion
@@ -217,7 +233,7 @@ namespace Turbo {
                 return;
             }
 
-            const auto& [transform, cc] = camera.GetComponents<TransformComponent, CameraComponent>();
+            auto [transform, cc] = camera.GetComponent<TransformComponent, CameraComponent>();
 
             glm::vec4 viewport =
             {
@@ -257,17 +273,21 @@ namespace Turbo {
         static u64 Entity_FindEntityByName(MonoString* string)
         {
             char* cString = mono_string_to_utf8(string);
-            std::string name = cString;
-            mono_free(cString);
 
-            auto context = Script::GetCurrentScene();
-            Entity entity = context->FindEntityByName(name);
+            Entity entity = Script::GetCurrentScene()->FindEntityByName(cString);
 
+            u64 uuid = 0;
             if (entity)
-                return entity.GetUUID();
+            {
+                uuid = entity.GetUUID();
+            }
+            else
+            {
+                TBO_CONSOLE_ERROR("Could not find entity with name \"{}\"", cString);
+            }
 
-            TBO_CONSOLE_ERROR("Could not find entity with name \"{}\"", name);
-            return 0;
+            mono_free(cString);
+            return uuid;
         }
 
         static MonoObject* Entity_Get_Instance(UUID uuid)
@@ -396,18 +416,18 @@ namespace Turbo {
             }
         }
 
-        static u64 Entity_InstantiatePrefabWithTranslation(MonoString* monoString, glm::vec3* translation)
+        static u64 Entity_InstantiatePrefab(u64 prefabID)
         {
             auto context = Script::GetCurrentScene();
-            char* cString = mono_string_to_utf8(monoString);
-            std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
-            mono_free(cString);
 
-            Entity entity = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
+            Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
 
-            if (entity)
+            if (prefab)
             {
-                TryInvokeOnCreateRecursively(entity);
+                Entity prefabEntity = prefab->GetPrefabEntity();
+
+                Entity entity = context->CreateEntity(prefabEntity.GetName());
+                context->CreatePrefabEntity(entity, prefabEntity);
 
                 return entity.GetUUID();
             }
@@ -416,23 +436,42 @@ namespace Turbo {
             return 0;
         }
 
-        static u64 Entity_InstantiateChildPrefabWithTranslation(u64 uuid, MonoString* monoString, glm::vec3* translation)
+        static u64 Entity_InstantiatePrefabWithTranslation(u64 prefabID, glm::vec3* translation)
         {
             auto context = Script::GetCurrentScene();
-            char* cString = mono_string_to_utf8(monoString);
-            std::filesystem::path prefabPath = Project::GetProjectDirectory() / cString;
-            mono_free(cString);
 
-            Entity child = AssetManager::DeserializePrefab(prefabPath, context.Get(), *translation);
+            Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
 
-            if (child)
+            if (prefab)
             {
-                Entity parent = GetEntity(uuid);
-                child.SetParent(parent);
+                Entity prefabEntity = prefab->GetPrefabEntity();
 
-                TryInvokeOnCreateRecursively(child);
+                Entity entity = context->CreateEntity(prefabEntity.GetName());
+                context->CreatePrefabEntity(entity, prefabEntity, translation);
 
-                return child.GetUUID();
+                return entity.GetUUID();
+            }
+
+            TBO_ENGINE_ERROR("Could not instantiate prefab!");
+            return 0;
+        }
+
+        static u64 Entity_InstantiateChildPrefabWithTranslation(u64 prefabID, MonoString* monoString, glm::vec3* translation)
+        {
+            TBO_ENGINE_ASSERT(false);
+
+            auto context = Script::GetCurrentScene();
+
+            Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
+
+            if (prefab)
+            {
+                Entity prefabEntity = prefab->GetPrefabEntity();
+
+                Entity entity = context->CreateEntity(prefabEntity.GetName());
+                context->CreatePrefabEntity(entity, prefabEntity, translation);
+
+                return entity.GetUUID();
             }
 
             TBO_ENGINE_ERROR("Could not instantiate prefab!");
@@ -903,15 +942,15 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-
+            auto [transform, bc2d] = entity.GetComponent<TransformComponent, BoxCollider2DComponent>();
             if (bc2d.Offset == *offset)
                 return;
 
             bc2d.Offset = *offset;
 
-            // Destroys old fixture and replaces it with new one
-            entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
+            b2Fixture* fixture = (b2Fixture*)bc2d.RuntimeFixture;
+            b2PolygonShape* polygonShape = (b2PolygonShape*)fixture->GetShape();
+            polygonShape->SetAsBox(bc2d.Size.x * glm::abs(transform.Scale.x), bc2d.Size.y * glm::abs(transform.Scale.y), b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
         }
 
         // Size
@@ -925,15 +964,16 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+            auto [transform, bc2d] = entity.GetComponent<TransformComponent, BoxCollider2DComponent>();
 
             if (bc2d.Size == *size)
                 return;
 
             bc2d.Size = *size;
 
-            // Destroys old fixture and replaces it with new one
-            entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
+            b2Fixture* fixture = (b2Fixture*)bc2d.RuntimeFixture;
+            b2PolygonShape* polygonShape = (b2PolygonShape*)fixture->GetShape();
+            polygonShape->SetAsBox(bc2d.Size.x * glm::abs(transform.Scale.x), bc2d.Size.y * glm::abs(transform.Scale.y), b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
         }
 
         // IsSensor
@@ -954,11 +994,8 @@ namespace Turbo {
                 return;
 
             bc2d.IsTrigger = isTrigger;
-
-            // TODO: Maybe we do not need to destroy fixtures
-
-            // Destroys old fixture and replaces it with new one
-            entity.ReplaceCompoment<BoxCollider2DComponent>(bc2d);
+            b2Fixture* fixture = (b2Fixture*)bc2d.RuntimeFixture;
+            fixture->SetSensor(bc2d.IsTrigger);
         }
 
         static void Component_BoxCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
@@ -973,32 +1010,19 @@ namespace Turbo {
             bc2d.CollisionCategory = category;
             bc2d.CollisionMask = mask;
 
-            if (!entity.HasComponent<BoxCollider2DComponent>())
+            if (!entity.HasComponent<Rigidbody2DComponent>())
             {
-                TBO_CONSOLE_ERROR("Entity deoes not have a rigidbody!");
+                TBO_CONSOLE_ERROR("Entity does not have a rigidbody!");
                 return;
             }
 
-            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            b2Fixture* fixture = (b2Fixture*)bc2d.RuntimeFixture;
 
-            // Iterate through all fixtures and set collision filters
-            b2Fixture* fixture = body->GetFixtureList();
-            while (fixture != nullptr)
-            {
-                b2Shape* shape = fixture->GetShape();
-
-                if (shape->GetType() == b2Shape::e_polygon)
-                {
-                    b2Filter collisionFilter;
-                    collisionFilter.categoryBits = bc2d.CollisionCategory;
-                    collisionFilter.maskBits = bc2d.CollisionMask;
-                    collisionFilter.groupIndex = 0;
-                    fixture->SetFilterData(collisionFilter);
-                }
-
-                fixture = fixture->GetNext();
-            }
+            b2Filter collisionFilter;
+            collisionFilter.categoryBits = bc2d.CollisionCategory;
+            collisionFilter.maskBits = bc2d.CollisionMask;
+            collisionFilter.groupIndex = bc2d.CollisionGroup;
+            fixture->SetFilterData(collisionFilter);
         }
 
         static void Component_BoxCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
@@ -1025,7 +1049,16 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            entity.GetComponent<CircleCollider2DComponent>().Offset = *offset;
+            auto [transform, cc2d] = entity.GetComponent<TransformComponent, CircleCollider2DComponent>();
+            if (cc2d.Offset == *offset)
+                return;
+
+            cc2d.Offset = *offset;
+
+            b2Fixture* fixture = (b2Fixture*)cc2d.RuntimeFixture;
+            b2CircleShape* circleShape = (b2CircleShape*)fixture->GetShape();
+            circleShape->m_radius = glm::abs(transform.Scale.x) * cc2d.Radius;
+            circleShape->m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
         }
 
         // Radius
@@ -1035,11 +1068,21 @@ namespace Turbo {
 
             return entity.GetComponent<CircleCollider2DComponent>().Radius;
         }
+
         static void Component_CircleCollider2D_Set_Radius(UUID uuid, f32* radius)
         {
             Entity entity = GetEntity(uuid);
 
-            entity.GetComponent<CircleCollider2DComponent>().Radius = *radius;
+            auto [transform, cc2d] = entity.GetComponent<TransformComponent, CircleCollider2DComponent>();
+            if (cc2d.Radius == *radius)
+                return;
+
+            cc2d.Radius = *radius;
+
+            b2Fixture* fixture = (b2Fixture*)cc2d.RuntimeFixture;
+            b2CircleShape* circleShape = (b2CircleShape*)fixture->GetShape();
+            circleShape->m_radius = transform.Scale.x * cc2d.Radius;
+            circleShape->m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
         }
 
         static void Component_CircleCollider2D_Set_CollisionFilter(UUID uuid, u16 category, u16 mask)
@@ -1054,26 +1097,13 @@ namespace Turbo {
             cc2d.CollisionCategory = category;
             cc2d.CollisionMask = mask;
 
-            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-            b2Body* body = (b2Body*)rb2d.RuntimeBody;
+            b2Fixture* fixture = (b2Fixture*)cc2d.RuntimeFixture;
 
-            // Iterate through all fixtures and set collision filters
-            b2Fixture* fixture = body->GetFixtureList();
-            while (fixture != nullptr)
-            {
-                b2Shape* shape = fixture->GetShape();
-
-                if (shape->GetType() == b2Shape::e_circle)
-                {
-                    b2Filter collisionFilter;
-                    collisionFilter.categoryBits = cc2d.CollisionCategory;
-                    collisionFilter.maskBits = cc2d.CollisionMask;
-                    collisionFilter.groupIndex = 0;
-                    fixture->SetFilterData(collisionFilter);
-                }
-
-                fixture = fixture->GetNext();
-            }
+            b2Filter collisionFilter;
+            collisionFilter.categoryBits = cc2d.CollisionCategory;
+            collisionFilter.maskBits = cc2d.CollisionMask;
+            collisionFilter.groupIndex = cc2d.CollisionGroup;
+            fixture->SetFilterData(collisionFilter);
         }
 
         static void Component_CircleCollider2D_Get_CollisionFilter(UUID uuid, u16* category, u16* mask)
@@ -1100,7 +1130,7 @@ namespace Turbo {
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
 
             auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            
+
             return (u32)(bodyInterface.GetMotionType(bodyId));
         }
 
@@ -1299,6 +1329,9 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Application_GetHeight);
         TBO_REGISTER_FUNCTION(Application_Close);
 
+        // Asset
+        TBO_REGISTER_FUNCTION(Assets_Load_Prefab);
+
         // Debug
         TBO_REGISTER_FUNCTION(DebugRenderer_DrawLine);
 
@@ -1323,6 +1356,7 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Entity_UnParent);
 
         // Prefab
+        TBO_REGISTER_FUNCTION(Entity_InstantiatePrefab);
         TBO_REGISTER_FUNCTION(Entity_InstantiatePrefabWithTranslation);
         TBO_REGISTER_FUNCTION(Entity_InstantiateChildPrefabWithTranslation);
 
@@ -1452,8 +1486,25 @@ namespace Turbo {
             }
 
             s_EntityHasComponentFuncs[type] = [](Entity entity) { return entity.HasComponent<Component>(); };
-            s_EntityAddComponentFuncs[type] = [](Entity entity) { entity.AddComponent<Component>(); };
-            s_EntityRemoveComponentFuncs[type] = [](Entity entity) { entity.RemoveComponent<Component>(); };
+            s_EntityAddComponentFuncs[type] = [](Entity entity) 
+            { 
+                entity.AddComponent<Component>();
+
+                // Should having a collider be mandatory for 2D physics? 
+
+                if constexpr (std::is_same_v<Component, Rigidbody2DComponent>)
+                {
+                    Script::GetCurrentScene()->GetPhysicsWorld2D()->CreateRigidbody(entity);
+                }
+                else if constexpr (std::is_same_v<Component, RigidbodyComponent>)
+                {
+                    Script::GetCurrentScene()->GetPhysicsWorld()->CreateRigidbody(entity);
+                }
+            };
+            s_EntityRemoveComponentFuncs[type] = [](Entity entity) 
+            { 
+                entity.RemoveComponent<Component>(); 
+            };
         }(), ...);
     }
 

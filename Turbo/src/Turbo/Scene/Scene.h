@@ -28,7 +28,7 @@ namespace Turbo {
             u32 CurrentEntities = 0;
         };
 
-        Scene(bool isEditorScene = false);
+        Scene(bool isEditorScene = false, bool initialized = true, u64 capacity = 200);
         ~Scene();
 
         void OnRuntimeStart();
@@ -43,7 +43,11 @@ namespace Turbo {
         Entity CreateEntityWithUUID(UUID uuid, const  std::string& tag = "");
         void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
         Entity DuplicateEntity(Entity entity);
+
+        // Light copy of an entity - Only components are copied
         void CopyEntity(Entity src, Entity dst);
+        
+        void CreatePrefabEntity(Entity entity, Entity prefabEntity, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
 
         void SetViewportOffset(i32 x, i32 y);
         void SetViewportSize(u32 width, u32 height);
@@ -57,6 +61,8 @@ namespace Turbo {
         auto& GetPostUpdateFuncs() { return m_PostUpdateFuncs; }
 
         bool Contains(Entity entity) const;
+
+        const FTime TimeSinceStart() const { return m_TimeSinceStart; }
 
         // Editor only
         i32 GetViewportX() const { return m_ViewportX; }
@@ -80,13 +86,13 @@ namespace Turbo {
 
         Entity FindEntityByUUID(UUID uuid);
         UUID FindUUIDByEntity(entt::entity entity);
-        Entity FindEntityByName(const std::string& name);
+        Entity FindEntityByName(std::string_view name);
 
         Entity FindPrimaryCameraEntity();
         Entity FindPrimaryAudioListenerEntity();
 
-        Ref<PhysicsWorld2D> GetPhysicsWorld2D();
-        Ref<PhysicsWorld> GetPhysicsWorld();
+        Ref<PhysicsWorld2D> GetPhysicsWorld2D() const;
+        Ref<PhysicsWorld> GetPhysicsWorld() const;
 
         Scene::Statistics GetStatistics() const { return m_Statistics; }
 
@@ -96,6 +102,7 @@ namespace Turbo {
         void ConvertToLocalSpace(Entity entity);
         void ConvertToWorldSpace(Entity entity);
         TransformComponent GetWorldSpaceTransform(Entity entity);
+        static Ref<Scene> CreateEmpty(u64 capacity) { return Ref<Scene>::Create(true, false, capacity); }
     private:
         void RenderScene(Ref<SceneDrawList> drawList);
     private:
@@ -103,14 +110,6 @@ namespace Turbo {
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
         void OnAudioSourceComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnAudioSourceComponentDestroy(entt::registry& registry, entt::entity entity);
-        void OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity);
-        void OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity);
-        void OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity);
-        void OnBoxCollider2DComponentUpdate(entt::registry& registry, entt::entity entity);
-        void OnBoxCollider2DComponentDestroy(entt::registry& registry, entt::entity entity);
-        void OnCircleCollider2DComponentConstruct(entt::registry& registry, entt::entity entity);
-        void OnCircleCollider2DComponentUpdate(entt::registry& registry, entt::entity entity);
-        void OnCircleCollider2DComponentDestroy(entt::registry& registry, entt::entity entity);
     private:
         entt::registry m_Registry;
 
@@ -130,6 +129,7 @@ namespace Turbo {
         bool m_Running = false;
 
         Scene::Statistics m_Statistics;
+        FTime m_TimeSinceStart = 0.0f;
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
         i32 m_ViewportX = 0, m_ViewportY = 0;
@@ -139,6 +139,7 @@ namespace Turbo {
         friend class PhysicsScene2D;
         friend class Project;
         friend class ProjectSerializer;
+        friend class PrefabHandler;
         friend class AssetManager;
     };
 }

@@ -1,5 +1,6 @@
-#include "tbopch.h"
 #include "CommandTextFilter.h"
+
+#include <Turbo/Core/Common.h>
 
 #include <imgui.h>
 
@@ -168,10 +169,10 @@ namespace Turbo::Ed
     {
         if (data->EventChar == '\n')
         {
-            TBO_ENGINE_INFO("asdasda");
+            TBO_INFO("asdasda");
         }
 
-        TBO_ENGINE_INFO(data->EventChar);
+        TBO_INFO(data->EventChar);
 
         CommandTextFilter* filter = (CommandTextFilter*)data->UserData;
         filter->Build();

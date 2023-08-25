@@ -18,6 +18,13 @@ namespace Turbo
 
 		#endregion
 
+		#region Assets
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ulong Assets_Load_Prefab(string path);
+
+		#endregion
+
 		#region Debug
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -100,7 +107,10 @@ namespace Turbo
 		internal extern static void Entity_UnParent(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static ulong Entity_InstantiatePrefabWithTranslation(string path, ref Vector3 translation);
+		internal extern static ulong Entity_InstantiatePrefab(ulong prefabID);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ulong Entity_InstantiatePrefabWithTranslation(ulong prefabID, ref Vector3 translation);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_InstantiateChildPrefabWithTranslation(ulong uuid, string path, ref Vector3 translation);

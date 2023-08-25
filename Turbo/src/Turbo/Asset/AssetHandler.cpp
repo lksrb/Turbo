@@ -8,6 +8,9 @@
 #include "Turbo/Solution/Project.h"
 #include "Turbo/Renderer/Mesh.h"
 
+#include "Turbo/Scene/SceneSerializer.h"
+#include "Turbo/Scene/Prefab.h"
+
 #include <yaml-cpp/yaml.h>
 
 namespace Turbo {
@@ -98,7 +101,6 @@ namespace Turbo {
         return result;
 
 #if 0
-
         YAML::Node data;
         try
         {
@@ -194,6 +196,88 @@ namespace Turbo {
         }
 
         return Ref<StaticMesh>::Create(meshSource, meshData["SubmeshIndices"].as<std::vector<u32>>());
+    }
+
+    bool PrefabHandler::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+    {
+        Ref<Prefab> prefab = asset.As<Prefab>();
+
+        std::ofstream fout(Project::GetAssetsPath() / metadata.FilePath);
+
+        if (!fout)
+        {
+            TBO_ENGINE_ERROR("Could not serialize prefab! ({})", metadata.FilePath);
+            return false;
+        }
+
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Prefab" << YAML::Value << prefab->Handle;
+        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+
+        auto entities = prefab->m_Scene->m_Registry.view<IDComponent>();
+        for (auto it = entities.rbegin(); it != entities.rend(); ++it)
+        {
+            Entity entity(*it, prefab->m_Scene.Get());
+            SceneSerializer::SerializeEntity(out, entity);
+        }
+
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+
+        fout << out.c_str();
+
+        return true;
+    }
+
+    Ref<Asset> PrefabHandler::TryLoad(const AssetMetadata& metadata)
+    {
+        auto path = Project::GetAssetsPath() / metadata.FilePath;
+
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(path.string());
+        }
+        catch (YAML::Exception e)
+        {
+            TBO_ENGINE_ERROR(e.what());
+            return nullptr;
+        }
+
+        if (!data["Prefab"])
+        {
+            TBO_ENGINE_ERROR("File does not contain prefab data!");
+            return nullptr;
+        }
+
+        AssetHandle prefabHandle = data["Prefab"].as<u64>();
+        TBO_ENGINE_TRACE("Deserializing prefab '{0}'", prefabHandle);
+
+        auto entities = data["Entities"];
+
+        Ref<Prefab> prefab;
+        if (entities)
+        {
+            prefab = Ref<Prefab>::Create(entities.size());
+            prefab->Handle = prefabHandle;
+
+            // Deserialize prefab entity
+            auto entityNode = entities.begin();
+            u64 uuid = (*entityNode)["Entity"].as<u64>();
+            prefab->m_Entity = prefab->m_Scene->CreateEntityWithUUID(uuid);
+            SceneSerializer::DeserializeEntity(*entityNode, prefab->m_Entity);
+
+            // Deserialize the rest
+            while (++entityNode != entities.end())
+            {
+                u64 uuid = (*entityNode)["Entity"].as<u64>();
+                Entity deserializedEntity = prefab->m_Scene->CreateEntityWithUUID(uuid);
+                SceneSerializer::DeserializeEntity(*entityNode, deserializedEntity);
+            }
+        }
+
+        return prefab;
     }
 
 }

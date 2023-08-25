@@ -121,7 +121,7 @@ namespace Turbo
         u32 audioDataSize;
         memcpy(&audioDataSize, &buffer[40], 4);
         Data.Allocate(audioDataSize);
-        Data.CopySection(&buffer[44], audioDataSize);
+        Data.Copy(&buffer[44], audioDataSize);
     }
 
     void AudioFile::Release()

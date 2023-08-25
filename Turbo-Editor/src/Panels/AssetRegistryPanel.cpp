@@ -1,4 +1,3 @@
-#include "tbopch.h"
 #include "AssetRegistryPanel.h"
 
 #include "Turbo/UI/UI.h"

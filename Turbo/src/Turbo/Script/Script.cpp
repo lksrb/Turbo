@@ -141,6 +141,9 @@ namespace Turbo
 
         // Time static class
         MonoClassField* FrameTimeStepField = nullptr;
+
+        MonoClassField* FrameTimeSinceStartField = nullptr;
+
         MonoVTable* FrameVTable = nullptr;
     };
 
@@ -221,7 +224,7 @@ namespace Turbo
 
     void Script::CreateScriptInstance(Entity entity)
     {
-        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        const auto& [script, id] = entity.GetComponent<ScriptComponent, IDComponent>();
         UUID uuid = id.ID;
 
         bool isValidClassName = ScriptClassExists(script.ClassName);
@@ -270,8 +273,7 @@ namespace Turbo
 
     void Script::InvokeEntityOnCreate(Entity entity)
     {
-        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
-
+        auto [script, id] = entity.GetComponent<ScriptComponent, IDComponent>();
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
 
         if (!instance)
@@ -285,7 +287,7 @@ namespace Turbo
 
     void Script::InvokeEntityOnUpdate(Entity entity)
     {
-        const auto& [script, id] = entity.GetComponents<ScriptComponent, IDComponent>();
+        auto [script, id] = entity.GetComponent<ScriptComponent, IDComponent>();
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
 
         if (!instance)
@@ -470,6 +472,7 @@ namespace Turbo
         // Retrieve static class Time 
         MonoClass* klass = mono_class_from_name(s_Data->ScriptCoreAssemblyImage, "Turbo", "Frame");
         s_Data->FrameTimeStepField = mono_class_get_field_from_name(klass, "TimeStep");
+        s_Data->FrameTimeSinceStartField = mono_class_get_field_from_name(klass, "TimeSinceStart");
         s_Data->FrameVTable = mono_class_vtable(s_Data->AppDomain, klass);
 
         Utils::PrintAssembly(s_Data->ScriptCoreAssembly);
@@ -555,11 +558,15 @@ namespace Turbo
 
     void Script::OnNewFrame(FTime ts)
     {
+        TBO_PROFILE_FUNC();
+
         if constexpr (!s_EnableScriptEngine)
             return;
 
         // TODO: Abstract this
         mono_field_static_set_value(s_Data->FrameVTable, s_Data->FrameTimeStepField, (void*)&ts);
+        FTime timeSinceStart = s_Data->SceneContext->TimeSinceStart();
+        mono_field_static_set_value(s_Data->FrameVTable, s_Data->FrameTimeSinceStartField, (void*)&timeSinceStart);
     }
 
     void Script::CopyScriptClassFields(Entity source, Entity destination)

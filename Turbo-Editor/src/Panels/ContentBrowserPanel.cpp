@@ -6,6 +6,7 @@
 #include <Turbo/Core/Platform.h>
 #include <Turbo/Scene/Scene.h>
 #include <Turbo/Scene/Entity.h>
+#include <Turbo/Scene/Prefab.h>
 #include <Turbo/Renderer/Mesh.h>
 #include <Turbo/Asset/AssetManager.h>
 
@@ -46,10 +47,23 @@ namespace Turbo::Ed {
                 Entity entity = *(Entity*)payload->Data;
                 if (entity)
                 {
-                    // Serialize every component except
-                    if (AssetManager::SerializeToPrefab(m_CurrentDirectory, entity))
+
+                    if (!entity.HasComponent<PrefabComponent>())
                     {
-                        TBO_ENGINE_INFO("Successfully serialized prefab!");
+                        auto assetRegistry = Project::GetActive()->GetEditorAssetRegistry();
+                        auto prefabPath = m_CurrentDirectory / std::format("{}.tprefab", entity.GetName());
+
+                        auto& prefabComponent = entity.AddComponent<PrefabComponent>();
+                        prefabComponent.Handle = assetRegistry->CreateAsset2<Prefab>(prefabPath, entity)->Handle;
+                    }
+                    else
+                    {
+                        // TODO: Probably add this as new function to AssetManager
+                        auto& prefabComponent = entity.GetComponent<PrefabComponent>();
+                        Ref<Prefab> asset = AssetManager::GetAsset<Prefab>(prefabComponent.Handle);
+                        Asset::Serialize(AssetManager::GetAssetMetadata(prefabComponent.Handle), asset);
+
+                        TBO_ENGINE_WARN("Serialized prefab '{}'!", prefabComponent.Handle);
                     }
                 }
             }
@@ -159,29 +173,21 @@ namespace Turbo::Ed {
                 Platform::OpenFileExplorer(m_CurrentDirectory);
             }
 
-            if (ImGui::MenuItem("Import Asset"))
+            if (ImGui::BeginMenu("Import"))
             {
-                // NOTE: Its users responsibility to move assets to Assets directory
-                // TODO: Make a popup warning about this
-                auto filepath = Platform::OpenFileDialog(L"Import Asset", L"Assets (*.tmesh, *.fbx, *.png)\0*.tmesh;*.fbx;*.png\0", m_CurrentDirectory);
-
-                if (!filepath.empty())
+                if (ImGui::MenuItem("Static Mesh"))
                 {
-                    AssetHandle handle = AssetManager::ImportAsset(filepath);
-                    if (AssetManager::GetAssetMetadata(handle).Type == AssetType_MeshSource)
-                    {
-                        filepath.replace_extension(".tmesh");
-                        bool isAlreadyImported = Project::GetActive()->GetEditorAssetRegistry()->IsAssetImported(filepath);
-                        if (!isAlreadyImported)
-                        {
-                            Project::GetActive()->GetEditorAssetRegistry()->CreateAsset<StaticMesh>(filepath, handle);
-                        }
-                        else
-                        {
-                            TBO_CONSOLE_WARN("Asset already imported!");
-                        }
-                    }
+                    auto filepath = Platform::OpenFileDialog(L"Import Asset", L"Assets (*.fbx)\0*.fbx\0", m_CurrentDirectory);
+                    Project::GetActive()->GetEditorAssetRegistry()->ImportAsset2<MeshSource>(filepath);
                 }
+
+                if (ImGui::MenuItem("Texture2D"))
+                {
+                    auto filepath = Platform::OpenFileDialog(L"Import Asset", L"Assets (*.png)\0*.png\0", m_CurrentDirectory);
+                    Project::GetActive()->GetEditorAssetRegistry()->ImportAsset2<Texture2D>(filepath);
+                }
+
+                ImGui::EndMenu();
             }
 
             ImGui::EndPopup();
@@ -197,13 +203,13 @@ namespace Turbo::Ed {
 
     void ContentBrowserPanel::OnSceneContextChanged(const Ref<Scene>& context)
     {
-        m_Context = context;
+        m_SceneContext = context;
     }
 
     bool ContentBrowserPanel::Filter(const std::filesystem::path& extension)
     {
-        static std::unordered_set<std::filesystem::path> s_PermitLookup { ".tmesh", ".tscene", ".png", ".jpg", ".cs", ".ttex" };
-            
+        static std::unordered_set<std::filesystem::path> s_PermitLookup{ ".tmesh", ".tscene", ".tprefab", ".png", ".jpg", ".cs", ".ttex" };
+
         return !m_ShowAllFiles && s_PermitLookup.find(extension) == s_PermitLookup.end();
     }
 

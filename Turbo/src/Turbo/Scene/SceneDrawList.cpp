@@ -120,6 +120,8 @@ namespace Turbo {
 
     void SceneDrawList::SetSceneData(const SceneRendererData& data)
     {
+        TBO_PROFILE_FUNC();
+
         m_SceneRendererData = data;
 
         // NOTE: This is duplicated but keep it for now
@@ -139,6 +141,8 @@ namespace Turbo {
 
     void SceneDrawList::Begin()
     {
+        TBO_PROFILE_FUNC();
+
         // Clear everything
         m_DrawCommands.clear();
         m_MeshTransformMap.clear();
@@ -152,6 +156,7 @@ namespace Turbo {
 
     void SceneDrawList::End()
     {
+        TBO_PROFILE_FUNC();
         m_RenderCommandBuffer->Begin();
 
         // Vertex buffers need render command buffer to copy data into GPU
@@ -189,6 +194,8 @@ namespace Turbo {
 
     void SceneDrawList::PreRender()
     {
+        TBO_PROFILE_FUNC();
+
         // Submit point lights
         Renderer::Submit([this]()
         {

@@ -21,7 +21,7 @@ namespace Turbo::Ed
 
         Ref<Texture2D> m_DirectoryIcon, m_FileIcon;
 
-        Ref<Scene> m_Context;
+        Ref<Scene> m_SceneContext;
 
         bool m_ShowAllFiles = false;
 

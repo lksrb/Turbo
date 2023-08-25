@@ -1,10 +1,8 @@
 #include "tbopch.h"
 #include "EditorAssetRegistry.h"
 
-#include "Turbo/Core/FileSystem.h"
+#include "Turbo/Scene/Entity.h"
 #include "Turbo/Solution/Project.h"
-
-#include "Turbo/Renderer/Texture.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -17,6 +15,7 @@ namespace Turbo {
             if (extension == ".png")   return AssetType_Texture2D;
             if (extension == ".fbx" || extension == ".gltf")   return AssetType_MeshSource;
             if (extension == ".tmesh") return AssetType_StaticMesh;
+            if (extension == ".tprefab") return AssetType_Prefab;
 
             TBO_ENGINE_ASSERT(false, "Unsupported extension!");
 
@@ -72,6 +71,11 @@ namespace Turbo {
         return m_LoadedAssets.at(handle);
     }
 
+    Ref<Asset> EditorAssetRegistry::GetAsset(const std::filesystem::path& filepath)
+    {
+        return GetAsset(GetHandleFromPath(filepath));
+    }
+
     const AssetMetadata& EditorAssetRegistry::GetAssetMetadata(AssetHandle handle) const
     {
         static AssetMetadata s_NullMetadata;
@@ -102,9 +106,8 @@ namespace Turbo {
         }
 
         metadata.IsLoaded = true;
-        m_LoadedAssets[asset->Handle] = asset;
-        m_AssetRegistry[asset->Handle] = metadata;
-        m_PathRegistry[metadata.FilePath] = asset->Handle;
+
+        RegisterAsset(asset, metadata);
 
         return asset->Handle;
     }
@@ -136,7 +139,7 @@ namespace Turbo {
                 AssetHandle handle = asset["Asset"].as<u64>();
                 std::string path = asset["Path"].as<std::string>();
                 std::string stringAssetType = asset["Type"].as<std::string>();
-                AssetType assetType = Asset::StringToAssetType(stringAssetType);
+                AssetType assetType = Asset::DestringifyAssetType(stringAssetType);
 
                 auto& metadata = m_AssetRegistry[handle];
                 metadata.FilePath = path;
@@ -193,7 +196,7 @@ namespace Turbo {
         return true;
     }
 
-    bool EditorAssetRegistry::IsAssetImported(const std::filesystem::path& filepath)
+    bool EditorAssetRegistry::IsAssetImported(const std::filesystem::path& filepath) const
     {
         return m_PathRegistry.find(filepath) != m_PathRegistry.end();
     }
@@ -204,6 +207,21 @@ namespace Turbo {
         metadata.Type = Utils::GetAssetTypeFromExtension(filepath.extension());
         metadata.FilePath = Utils::GetMetadataPath(filepath);
         return metadata;
+    }
+
+    void EditorAssetRegistry::RegisterAsset(const Ref<Asset>& asset, const AssetMetadata& metadata)
+    {
+        m_LoadedAssets[asset->Handle] = asset;
+        m_AssetRegistry[asset->Handle] = metadata;
+        m_PathRegistry[metadata.FilePath] = asset->Handle;
+    }
+
+    AssetHandle EditorAssetRegistry::GetHandleFromPath(const std::filesystem::path& filepath)
+    {
+        auto assetsPath = Project::GetAssetsPath();
+        auto path = filepath.is_absolute() ? std::filesystem::relative(filepath, assetsPath) : filepath;
+        auto it = m_PathRegistry.find(path);
+        return it != m_PathRegistry.end() ? it->second : AssetHandle(0);
     }
 
 }

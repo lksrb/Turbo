@@ -585,10 +585,10 @@ namespace Turbo {
             DisplayAddComponentEntry<ScriptComponent>("Script Component");
             ImGui::Separator();
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
-            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigid Body 2D");
+            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody 2D");
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
             ImGui::Separator();
-            DisplayAddComponentEntry<RigidbodyComponent>("Rigid Body");
+            DisplayAddComponentEntry<RigidbodyComponent>("Rigidbody");
             DisplayAddComponentEntry<BoxColliderComponent>("Box Collider");
             DisplayAddComponentEntry<SphereColliderComponent>("Sphere Collider");
             DisplayAddComponentEntry<CapsuleColliderComponent>("Capsule Collider");
@@ -939,7 +939,7 @@ namespace Turbo {
             }
         });
 
-        Utils::DrawComponent<RigidbodyComponent>("Rigid Body", entity, [](auto& component)
+        Utils::DrawComponent<RigidbodyComponent>("Rigidbody", entity, [](auto& component)
         {
             static constexpr const char* s_BodyTypeStrings[] = { "Static", "Kinematic", "Dynamic" };
             static constexpr const char* s_CollisionDetectionTypeStrings[] = { "Discrete", "LinearCast" };

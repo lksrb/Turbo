@@ -7,7 +7,7 @@ project "Turbo"
     cppdialect "C++20"
 	staticruntime "off"
 	floatingpoint "Fast"
-
+    
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-obj/" .. outputdir .. "/%{prj.name}")
 
@@ -46,7 +46,8 @@ project "Turbo"
         "%{IncludeDir.JoltPhysics}",
         "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.mono}",
-        "%{IncludeDir.Assimp}"
+        "%{IncludeDir.Assimp}",
+        "%{IncludeDir.optick}"
     }
 
     links {
@@ -54,6 +55,7 @@ project "Turbo"
         "box2d",
         "yaml-cpp",
         "msdf-atlas-gen",
+        "optick",
         "%{Library.Vulkan}",
         "%{Library.mono}"
     }

@@ -9,7 +9,7 @@ namespace Turbo
         Buffer() = default;
         Buffer(const Buffer&) = default;
 
-        Buffer(u64 size)
+        explicit Buffer(u64 size)
         {
             Allocate(size);
         }
@@ -52,10 +52,10 @@ namespace Turbo
             Size = 0;
         }
 
-        void CopySection(const u8* beginIndex, u64 size)
+        void Copy(const u8* srcData, u64 srcSize, u64 dstOffset = 0)
         {
             TBO_ENGINE_ASSERT(Data);
-            memcpy(Data, beginIndex, size);
+            memcpy(Data + dstOffset, srcData, srcSize);
         }
 
         template<typename T>

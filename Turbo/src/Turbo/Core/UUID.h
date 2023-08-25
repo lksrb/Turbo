@@ -4,9 +4,8 @@
 
 #include <xhash>
 
-namespace Turbo
-{
-    // UUID
+namespace Turbo {
+
     class UUID
     {
     public:
@@ -21,8 +20,7 @@ namespace Turbo
 }
 
 // Hashing
-namespace std
-{
+namespace std {
     template <typename T> struct hash;
 
     template<>

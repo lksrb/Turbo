@@ -18,7 +18,6 @@ namespace Mystery
 			UnParent();
 
 			m_DistanceFromPlayer = Transform.Translation - m_Player.Transform.Translation;
-
 		}
 
 		protected override void OnUpdate()

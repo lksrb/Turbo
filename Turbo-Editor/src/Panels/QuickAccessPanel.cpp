@@ -1,6 +1,6 @@
-#include "tbopch.h"
 #include "QuickAccessPanel.h"
 
+#include <Turbo/Core/Common.h>
 #include <Turbo/Core/Input.h>
 
 #include <imgui.h>

@@ -50,6 +50,7 @@ namespace Turbo
         virtual void SetData(const void* pixels) = 0;
 
         AssetType GetAssetType() const override { return AssetType_Texture2D; }
+        static constexpr AssetType GetStaticAssetType() { return AssetType_Texture2D; }
     protected:
         bool m_IsLoaded = false;
         Texture2D::Config m_Config;

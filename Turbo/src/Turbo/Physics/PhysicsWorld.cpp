@@ -1,6 +1,7 @@
 #include "tbopch.h"
 #include "PhysicsWorld.h"
 
+#include "Turbo/Debug/ScopeTimer.h"
 #include "Turbo/Scene/Entity.h"
 
 #include <Jolt/Physics/PhysicsSettings.h>
@@ -30,6 +31,47 @@
 #define TBO_MAX_CONTACT_CONSTAINSTS 2024
 
 namespace Turbo {
+
+    namespace Utils {
+
+        static void PopulateRigidbodySettings(JPH::BodyCreationSettings& bodySettings, const TransformComponent& transform, const RigidbodyComponent& rb, const IDComponent& ic)
+        {
+            glm::vec3 translation = transform.Translation;
+            glm::vec3 rotation = transform.Rotation;
+
+            // Basic info
+            bodySettings.mPosition = JPH::RVec3(translation.x, translation.y, translation.z);
+            bodySettings.mRotation = JPH::Quat::sEulerAngles(JPH::Vec3(rotation.x, rotation.y, rotation.z));
+
+            // Lock movement
+            JPH::EAllowedDOFs allowedMovement = JPH::EAllowedDOFs::All;
+            if (rb.LockTranslationX) allowedMovement &= ~JPH::EAllowedDOFs::TranslationX;
+            if (rb.LockTranslationY) allowedMovement &= ~JPH::EAllowedDOFs::TranslationY;
+            if (rb.LockTranslationZ) allowedMovement &= ~JPH::EAllowedDOFs::TranslationZ;
+            if (rb.LockRotationX)    allowedMovement &= ~JPH::EAllowedDOFs::RotationX;
+            if (rb.LockRotationY)    allowedMovement &= ~JPH::EAllowedDOFs::RotationY;
+            if (rb.LockRotationZ)    allowedMovement &= ~JPH::EAllowedDOFs::RotationZ;
+
+            // NOTE: Layer and activation might go to the rigidbody component
+            bodySettings.mMotionType = static_cast<JPH::EMotionType>(rb.Type);
+            bodySettings.mObjectLayer = rb.Type == RigidbodyType::Static ? 0 : 1;
+
+            bodySettings.mAllowedDOFs = allowedMovement;
+            // Override mass calculation because the default mass is too much
+            bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+            bodySettings.mMassPropertiesOverride.mMass = rb.Mass;
+
+            bodySettings.mGravityFactor = rb.GravityScale;
+            bodySettings.mIsSensor = rb.IsTrigger;
+            bodySettings.mFriction = rb.Friction;
+            bodySettings.mRestitution = rb.Restitution;
+            bodySettings.mLinearDamping = rb.LinearDamping;
+            bodySettings.mAngularDamping = rb.AngularDamping;
+            bodySettings.mMotionQuality = static_cast<JPH::EMotionQuality>(rb.CollisionDetection);
+            bodySettings.mUserData = ic.ID;
+        }
+
+    }
 
     template <class CollectorType>
     class FurthestHitCollisionCollector : public CollectorType
@@ -79,14 +121,14 @@ namespace Turbo {
 
     void PhysicsWorld::OnRuntimeStart()
     {
-        using namespace JPH;
+        TBO_PROFILE_FUNC();
 
         // A contact listener gets notified when bodies (are about to) collide, and when they separate again.
         // Note that this is called from a job so whatever you do here needs to be thread safe.
         // Registering one is entirely optional.
         m_PhysicsSystem.Init(TBO_MAX_BODIES, TBO_MAX_MUTEXES, TBO_MAX_BODYPAIRS, TBO_MAX_CONTACT_CONSTAINSTS, m_BroadPhaseLayer, m_ObjectVsBroadPhaseLayerFilter, m_ObjectLayerPairFilter);
         m_PhysicsSystem.SetContactListener(&m_ContactListener);
-        m_PhysicsSystem.SetGravity(Vec3(0.0f, -9.81f, 0.0f));
+        m_PhysicsSystem.SetGravity(JPH::Vec3(0.0f, -9.81f, 0.0f));
 #if 0
         // A body activation listener gets notified when bodies activate and go to sleep
         // Note that this is called from a job so whatever you do here needs to be thread safe.
@@ -97,84 +139,60 @@ namespace Turbo {
 #endif
         auto& bodyInterface = GetBodyInterfaceUnsafe();
 
-        // Box Colliders
         {
-            auto group = m_Scene->GetAllEntitiesWith<RigidbodyComponent, TransformComponent, IDComponent>();
+            auto group = m_Scene->GroupAllEntitiesWith<RigidbodyComponent, IDComponent>();
             for (auto e : group)
             {
-                const auto& [rb, _, ic] = group.get<RigidbodyComponent, TransformComponent, IDComponent>(e);
+                const auto& [rb, ic] = group.get<RigidbodyComponent, IDComponent>(e);
                 Entity entity = { e, m_Scene.Get() };
+
                 auto transform = m_Scene->GetWorldSpaceTransform(entity);
 
-                glm::vec3 translation = transform.Translation;
-                glm::vec3 rotation = transform.Rotation;
-                glm::vec3 scale = glm::abs(transform.Scale);
-
                 // NOTE: For now we do not allow a geometry to have multiple colliders
-                BodyCreationSettings bodySettings;
-                ShapeRefC shapeRef = nullptr;
-                if (entity.HasComponent<BoxColliderComponent>())
+                JPH::BodyCreationSettings bodySettings;
+                Utils::PopulateRigidbodySettings(bodySettings, transform, rb, ic);
+
+                // Create shape
                 {
-                    auto& bc = entity.GetComponent<BoxColliderComponent>();
+                    JPH::ShapeRefC shapeRef = nullptr;
+                    if (entity.HasComponent<BoxColliderComponent>())
+                    {
+                        glm::vec3 scale = glm::abs(transform.Scale);
 
-                    Vec3 boxColliderSize = JPH::Vec3(
-                        bc.Offset.x + scale.x * bc.Size.x,
-                        bc.Offset.y + scale.y * bc.Size.y,
-                        bc.Offset.z + scale.z * bc.Size.z);
+                        auto& bc = entity.GetComponent<BoxColliderComponent>();
 
-                    // Settings for the shape
-                    JPH::BoxShapeSettings boxShapeSettings(boxColliderSize);
-                    shapeRef = boxShapeSettings.Create().Get();
+                        JPH::Vec3 boxColliderSize = JPH::Vec3(
+                            bc.Offset.x + scale.x * bc.Size.x,
+                            bc.Offset.y + scale.y * bc.Size.y,
+                            bc.Offset.z + scale.z * bc.Size.z);
+
+                        // Settings for the shape
+                        JPH::BoxShapeSettings boxShapeSettings(boxColliderSize);
+                        shapeRef = boxShapeSettings.Create().Get();
+                    }
+                    else if (entity.HasComponent<SphereColliderComponent>())
+                    {
+                        auto& sc = entity.GetComponent<SphereColliderComponent>();
+
+                        // TODO: Figure out how to set offset in local space
+                        JPH::SphereShapeSettings sphereShapeSettings(transform.Scale.x * sc.Radius);
+                        shapeRef = sphereShapeSettings.Create().Get();
+                    }
+                    else if (entity.HasComponent<CapsuleColliderComponent>())
+                    {
+                        glm::vec3 scale = glm::abs(transform.Scale);
+                        auto& cc = entity.GetComponent<CapsuleColliderComponent>();
+                        JPH::CapsuleShapeSettings capsuleShapeSettings(cc.Height * 0.5f, scale.x * cc.Radius);
+                        shapeRef = capsuleShapeSettings.Create().Get();
+                    }
+                    else
+                    {
+                        TBO_ENGINE_WARN("Entity '{}' does not have a collider attached to it! Skipping...");
+                        continue;
+                    }
+
+                    bodySettings.SetShape(shapeRef);
                 }
-                else if (entity.HasComponent<SphereColliderComponent>())
-                {
-                    auto& sc = entity.GetComponent<SphereColliderComponent>();
-
-                    // TODO: Figure out how to set offset in local space
-                    JPH::SphereShapeSettings sphereShapeSettings(transform.Scale.x * sc.Radius);
-                    shapeRef = sphereShapeSettings.Create().Get();
-                }
-                else if (entity.HasComponent<CapsuleColliderComponent>())
-                {
-                    auto& cc = entity.GetComponent<CapsuleColliderComponent>();
-                    JPH::CapsuleShapeSettings capsuleShapeSettings(cc.Height * 0.5f, scale.x * cc.Radius);
-                    shapeRef = capsuleShapeSettings.Create().Get();
-                }
-                else
-                {
-                    TBO_ENGINE_ASSERT(false);
-                }
-
-                bodySettings.SetShape(shapeRef);
-                bodySettings.mPosition = RVec3(translation.x, translation.y, translation.z);
-                bodySettings.mRotation = Quat::sEulerAngles(Vec3(rotation.x, rotation.y, rotation.z));
-
-                // Locking movement
-                JPH::EAllowedDOFs allowedMovement = JPH::EAllowedDOFs::All;
-                if (rb.LockTranslationX) allowedMovement &= ~JPH::EAllowedDOFs::TranslationX;
-                if (rb.LockTranslationY) allowedMovement &= ~JPH::EAllowedDOFs::TranslationY;
-                if (rb.LockTranslationZ) allowedMovement &= ~JPH::EAllowedDOFs::TranslationZ;
-                if (rb.LockRotationX)    allowedMovement &= ~JPH::EAllowedDOFs::RotationX;
-                if (rb.LockRotationY)    allowedMovement &= ~JPH::EAllowedDOFs::RotationY;
-                if (rb.LockRotationZ)    allowedMovement &= ~JPH::EAllowedDOFs::RotationZ;
-
-                // NOTE: Layer and activation might go to the rigidbody component
-                bodySettings.mMotionType = static_cast<EMotionType>(rb.Type);
-                bodySettings.mObjectLayer = rb.Type == RigidbodyType::Static ? 0 : 1;
-
-                bodySettings.mAllowedDOFs = allowedMovement;
-                // Override mass calculation because the default mass is too much
-                bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
-                bodySettings.mMassPropertiesOverride.mMass = rb.Mass;
-
-                bodySettings.mGravityFactor = rb.GravityScale;
-                bodySettings.mIsSensor = rb.IsTrigger;
-                bodySettings.mFriction = rb.Friction;
-                bodySettings.mRestitution = rb.Restitution;
-                bodySettings.mLinearDamping = rb.LinearDamping;
-                bodySettings.mAngularDamping = rb.AngularDamping;
-                bodySettings.mMotionQuality = static_cast<EMotionQuality>(rb.CollisionDetection);
-                bodySettings.mUserData = ic.ID;
 
                 // Create body and add it the world
                 rb.RuntimeBodyHandle = bodyInterface.CreateAndAddBody(bodySettings, rb.Type == RigidbodyType::Dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate).GetIndexAndSequenceNumber();
@@ -182,11 +200,84 @@ namespace Turbo {
         }
 
         // Optimize first physics update 
-        m_PhysicsSystem.OptimizeBroadPhase();
+        m_OptimizeBoardPhase = true;
     }
 
     void PhysicsWorld::OnRuntimeStop()
     {
+    }
+
+    void PhysicsWorld::CreateRigidbody(Entity entity)
+    {
+        auto [rb, ic] = entity.GetComponent<RigidbodyComponent, IDComponent>();
+        auto transform = m_Scene->GetWorldSpaceTransform(entity);
+
+        auto& bodyInterface = GetBodyInterfaceUnsafe();
+
+        // NOTE: For now we do not allow a geometry to have multiple colliders
+        JPH::BodyCreationSettings bodySettings;
+        Utils::PopulateRigidbodySettings(bodySettings, transform, rb, ic);
+
+        // Create shape
+        {
+            JPH::ShapeRefC shapeRef = nullptr;
+            if (entity.HasComponent<BoxColliderComponent>())
+            {
+                glm::vec3 scale = glm::abs(transform.Scale);
+
+                auto& bc = entity.GetComponent<BoxColliderComponent>();
+
+                JPH::Vec3 boxColliderSize = JPH::Vec3(
+                    bc.Offset.x + scale.x * bc.Size.x,
+                    bc.Offset.y + scale.y * bc.Size.y,
+                    bc.Offset.z + scale.z * bc.Size.z);
+
+                // Settings for the shape
+                JPH::BoxShapeSettings boxShapeSettings(boxColliderSize);
+                shapeRef = boxShapeSettings.Create().Get();
+            }
+            else if (entity.HasComponent<SphereColliderComponent>())
+            {
+                auto& sc = entity.GetComponent<SphereColliderComponent>();
+
+                // TODO: Figure out how to set offset in local space
+                JPH::SphereShapeSettings sphereShapeSettings(transform.Scale.x * sc.Radius);
+                shapeRef = sphereShapeSettings.Create().Get();
+            }
+            else if (entity.HasComponent<CapsuleColliderComponent>())
+            {
+                glm::vec3 scale = glm::abs(transform.Scale);
+                auto& cc = entity.GetComponent<CapsuleColliderComponent>();
+                JPH::CapsuleShapeSettings capsuleShapeSettings(cc.Height * 0.5f, scale.x * cc.Radius);
+                shapeRef = capsuleShapeSettings.Create().Get();
+            }
+            else
+            {
+                TBO_ENGINE_ERROR("Rigidbody does not have any colliders! Skipping...");
+                return;
+            }
+
+            bodySettings.SetShape(shapeRef);
+        }
+
+        // Create body and add it the world
+        rb.RuntimeBodyHandle = bodyInterface.CreateAndAddBody(bodySettings, rb.Type == RigidbodyType::Dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate).GetIndexAndSequenceNumber();
+
+        // This will ensure that PhysicsSystem::OptimizeBoardPhase() is called
+        // This may a performance killer so beware
+        m_OptimizeBoardPhase = true;
+    }
+
+    void PhysicsWorld::DestroyRigidbody(Entity entity)
+    {
+        auto& bodyInterface = GetBodyInterfaceUnsafe();
+
+        auto& rb = entity.GetComponent<RigidbodyComponent>();
+        bodyInterface.DestroyBody(JPH::BodyID(rb.RuntimeBodyHandle));
+
+        // This will ensure that PhysicsSystem::OptimizeBoardPhase() is called
+        // This may a performance killer so beware
+        m_OptimizeBoardPhase = true;
     }
 
     RayCastResult PhysicsWorld::CastRay(const Ray& ray, RayTarget target)
@@ -261,6 +352,16 @@ namespace Turbo {
 
     void PhysicsWorld::Simulate(FTime ts)
     {
+        TBO_PROFILE_FUNC();
+
+        if(m_OptimizeBoardPhase)
+        {
+            m_OptimizeBoardPhase = false;
+
+            ScopeTimer timer("OptimizeBroadPhase");
+            m_PhysicsSystem.OptimizeBroadPhase();
+        }
+
         // If you take larger steps than 1 / 60th of a second you need to do multiple collision steps in order to keep the simulation stable.
         // Do 1 collision step per 1 / 60th of a second (round up).
 

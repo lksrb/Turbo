@@ -4,6 +4,7 @@
 #include "IndexBuffer.h"
 
 #include "Turbo/Asset/Asset.h"
+#include "Turbo/Core/Buffer.h"
 
 #include <string>
 #include <glm/glm.hpp>
@@ -27,6 +28,7 @@ namespace Turbo
     class MeshSource : public Asset
     {
     public:
+        MeshSource(Buffer buffer);
         MeshSource(std::string_view filePath);
         ~MeshSource() = default;
 
@@ -37,9 +39,10 @@ namespace Turbo
 
         bool IsLoaded() const { return m_Loaded; }
         AssetType GetAssetType() const override { return AssetType_MeshSource; }
+        static constexpr AssetType GetStaticAssetType() { return AssetType_MeshSource; }
     private:
         void TraverseNodes(aiNode* node, glm::mat4 parentTransform = glm::mat4(1.0), u32 level = 0);
-        void Load();
+        void Load(const aiScene* scene);
         void ProcessNode(const aiScene* scene, aiNode* node);
     private:
         struct Vertex
@@ -74,6 +77,7 @@ namespace Turbo
         const Ref<MeshSource>& GetMeshSource() const { return m_MeshSource; }
 
         AssetType GetAssetType() const override { return AssetType_StaticMesh; }
+        static constexpr AssetType GetStaticAssetType() { return AssetType_StaticMesh; }
     private:
         Ref<MeshSource> m_MeshSource;
         std::vector<u32> m_SubmeshIndices;

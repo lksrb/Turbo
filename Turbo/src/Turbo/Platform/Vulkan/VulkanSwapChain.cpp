@@ -130,12 +130,16 @@ namespace Turbo
 
     void VulkanSwapChain::NewFrame()
     {
+        TBO_PROFILE_FUNC();
+
         VkSemaphore currentSemaphore = m_PresentSemaphores[m_CurrentFrame];
         TBO_VK_ASSERT(vkAcquireNextImageKHR(RendererContext::GetDevice(), m_Swapchain, UINT64_MAX, currentSemaphore, VK_NULL_HANDLE, &m_ImageIndex));
     }
 
     void VulkanSwapChain::SwapFrame()
     {
+        TBO_PROFILE_FUNC();
+
         SubmitCommandBuffers();
         PresentFrame();
     }
@@ -283,8 +287,7 @@ namespace Turbo
             imageViewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
             imageViewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
             imageViewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            VkImageSubresourceRange image_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-            imageViewInfo.subresourceRange = image_range;
+            imageViewInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
             TBO_VK_ASSERT(vkCreateImageView(device, &imageViewInfo, nullptr, &m_Imageviews[i]));
         }
     }

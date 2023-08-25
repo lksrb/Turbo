@@ -14,7 +14,10 @@ namespace Turbo
         std::ifstream stream(path, std::ios::binary | std::ios::ate);
 
         if (!stream)
+        {
+            TBO_ENGINE_ERROR("Could not load binary file! ({})", path);
             return {};
+        }
 
         std::streampos end = stream.tellg();
         stream.seekg(0, std::ios::beg);
@@ -26,6 +29,20 @@ namespace Turbo
         stream.read(buffer.As<char>(), size);
         stream.close();
         return buffer;
+    }
+
+    void FileSystem::WriteBinary(const std::filesystem::path& path, Buffer buffer)
+    {
+        std::ofstream stream(path, std::ios::binary);
+
+        if (!stream)
+        {
+            TBO_ENGINE_ERROR("Could not write binary file ({})", path);
+            return;
+        }
+
+        stream.write(buffer.As<const char>(), buffer.Size);
+        stream.close();
     }
 
     bool FileSystem::Exists(const std::filesystem::path& path)

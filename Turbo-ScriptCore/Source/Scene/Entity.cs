@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Turbo
 {
@@ -25,6 +26,9 @@ namespace Turbo
 		protected event Action<Entity> OnTriggerBegin;
 		protected event Action<Entity> OnTriggerEnd;
 
+		// Caching components
+		private Dictionary<Type, Component> m_ComponentsCache = new Dictionary<Type, Component>();
+
 		protected Entity() { ID = 0; }
 		protected virtual void OnCreate() { }
 		protected virtual void OnUpdate() { }
@@ -34,25 +38,30 @@ namespace Turbo
 			ID = id;
 
 			Transform = GetComponent<TransformComponent>();
+			m_ComponentsCache.Add(typeof(TransformComponent), Transform);
 		}
 
 		public void UnParent() => InternalCalls.Entity_UnParent(ID);
 
-		public bool HasComponent<T>() where T : Component, new()
-		{
-			Type componentType = typeof(T);
-
-			return InternalCalls.Entity_Has_Component(ID, componentType);
-		}
+		public bool HasComponent<T>() where T : Component, new() => InternalCalls.Entity_Has_Component(ID, typeof(T));
 
 		public T GetComponent<T>() where T : Component, new()
 		{
-			if (HasComponent<T>() == false)
+			Type componentType = typeof(T);
+
+			if (!HasComponent<T>())
 			{
+				if (m_ComponentsCache.ContainsKey(componentType))
+					m_ComponentsCache.Remove(componentType);
+
 				return null;
 			}
 
+			if (m_ComponentsCache.ContainsKey(componentType))
+				return m_ComponentsCache[componentType] as T;
+
 			T component = new T() { Entity = this };
+			m_ComponentsCache.Add(componentType, component);
 			return component;
 		}
 
@@ -60,7 +69,7 @@ namespace Turbo
 		{
 			Type componentType = typeof(T);
 
-			if (HasComponent<T>() == true)
+			if (HasComponent<T>())
 			{
 				Log.Error($"Entity already has this component! {componentType.Name}");
 				return null;
@@ -69,6 +78,7 @@ namespace Turbo
 			InternalCalls.Entity_Add_Component(ID, componentType);
 
 			T component = new T() { Entity = this };
+			m_ComponentsCache.Add(componentType, component);
 			return component;
 		}
 
@@ -76,12 +86,16 @@ namespace Turbo
 		{
 			Type componentType = typeof(T);
 
-			if (HasComponent<T>() == false)
+			if (!HasComponent<T>())
 			{
 				Log.Error($"Entity doesn't have this component! {componentType.Name}");
 				return;
 			}
 
+			if (m_ComponentsCache.ContainsKey(componentType))
+				m_ComponentsCache.Remove(componentType);
+
+			// TODO: Check if the component was remoed
 			InternalCalls.Entity_Remove_Component(ID, componentType);
 		}
 
@@ -106,16 +120,26 @@ namespace Turbo
 
 		public Entity[] GetChildren() => InternalCalls.Entity_Get_Children(ID);
 
-		public Entity Instantiate(string prefabPath, Vector3 translation)
+		public Entity Instantiate(Prefab prefab)
 		{
-			ulong entityID = InternalCalls.Entity_InstantiatePrefabWithTranslation(prefabPath, ref translation);
+			ulong entityID = InternalCalls.Entity_InstantiatePrefab(prefab.ID);
 			if (entityID == 0)
 				return null;
 
 			return new Entity(entityID);
 		}
 
-		public Entity InstantiateChild(string prefabPath, Vector3 translation)
+		public Entity Instantiate(Prefab prefab, Vector3 translation)
+		{
+			ulong entityID = InternalCalls.Entity_InstantiatePrefabWithTranslation(prefab.ID, ref translation);
+			if (entityID == 0)
+				return null;
+
+			return new Entity(entityID);
+		}
+
+		// TODO:
+		private Entity InstantiateChild(string prefabPath, Vector3 translation)
 		{
 			ulong entityID = InternalCalls.Entity_InstantiateChildPrefabWithTranslation(ID, prefabPath, ref translation);
 			if (entityID == 0)

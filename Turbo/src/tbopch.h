@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <mutex>
 
+#include "Turbo/Debug/Profiler.h"
 #include "Turbo/Core/Log.h"
 #include "Turbo/Core/Assert.h"
 #include "Turbo/Core/PrimitiveTypes.h"

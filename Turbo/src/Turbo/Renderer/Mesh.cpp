@@ -41,7 +41,7 @@ namespace Turbo
         | aiProcess_JoinIdenticalVertices // Optimizes the mesh
         | aiProcess_ValidateDataStructure;
 
-    // FIXME: This should now start and shutdown everytime we load a mesh
+
     struct AssimpLoader
     {
         Assimp::Importer Importer;
@@ -69,6 +69,20 @@ namespace Turbo
 
             return scene;
         }
+
+        const aiScene* ReadFileFromMemory(Buffer buffer)
+        {
+            const aiScene* scene = Importer.ReadFileFromMemory(buffer.Data, buffer.Size, s_AssimpImporterFlags, "fbx");
+
+            if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+            {
+                TBO_ENGINE_ERROR("Could not load static mesh! {}", Importer.GetErrorString());
+                return nullptr;
+            }
+
+            return scene;
+
+        }
     };
 
     // Relying on static initialization/destruction
@@ -81,14 +95,18 @@ namespace Turbo
     MeshSource::MeshSource(std::string_view filePath)
         : m_FilePath(filePath)
     {
-        Load();
+        const aiScene* scene = s_AssimpLoader.ReadFile(m_FilePath);
+        Load(scene);
     }
 
-    void MeshSource::Load()
+    MeshSource::MeshSource(Buffer buffer)
     {
-        // aiProcess_FlipUVs - Flip UVs but I think vulkan already has fliped UVs
-        const aiScene* scene = s_AssimpLoader.ReadFile(m_FilePath);
+        const aiScene* scene = s_AssimpLoader.ReadFileFromMemory(buffer);
+        Load(scene);
+    }
 
+    void MeshSource::Load(const aiScene* scene)
+    {
         if (!scene)
             return;
 

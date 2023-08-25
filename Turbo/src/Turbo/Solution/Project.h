@@ -24,7 +24,7 @@ namespace Turbo {
             std::filesystem::path ProjectDirectory;
         };
 
-        Project(const Project::Config& config = {});
+        Project();
         ~Project();
 
         Project::Config& GetConfig()

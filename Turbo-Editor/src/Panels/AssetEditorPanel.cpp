@@ -1,4 +1,3 @@
-#include "tbopch.h"
 #include "AssetEditorPanel.h"
 
 #include <Turbo/Asset/AssetManager.h>

@@ -74,26 +74,21 @@ namespace Turbo {
         Ref<PhysicsWorld> World;
     };
 
-    Scene::Scene(bool isEditorScene)
+    Scene::Scene(bool isEditorScene, bool initialized, u64 capacity)
         : m_IsEditorScene(isEditorScene)
     {
-        m_Registry.reserve(200);
-
         m_SceneEntity = m_Registry.create();
         m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
+
+        if (!initialized)
+            return;
+
+        m_Registry.reserve(capacity);
 
         m_Registry.on_construct<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentConstruct>(this);
         m_Registry.on_destroy<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentDestroy>(this);
         m_Registry.on_construct<ScriptComponent>().connect<&Scene::OnScriptComponentConstruct>(this);
         m_Registry.on_destroy<ScriptComponent>().connect<&Scene::OnScriptComponentDestroy>(this);
-        m_Registry.on_construct<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentConstruct>(this);
-        m_Registry.on_destroy<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
-        m_Registry.on_construct<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentConstruct>(this);
-        m_Registry.on_update<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentUpdate>(this);
-        m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
-        m_Registry.on_construct<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentConstruct>(this);
-        m_Registry.on_update<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentUpdate>(this);
-        m_Registry.on_destroy<CircleCollider2DComponent>().connect<&Scene::OnCircleCollider2DComponentDestroy>(this);
     }
 
     Scene::~Scene()
@@ -105,13 +100,12 @@ namespace Turbo {
 
         m_Registry.on_construct<AudioSourceComponent>().disconnect(this);
         m_Registry.on_destroy<AudioSourceComponent>().disconnect(this);
-
-        m_Registry.on_construct<Rigidbody2DComponent>().disconnect(this);
-        m_Registry.on_destroy<Rigidbody2DComponent>().disconnect(this);
     }
 
     void Scene::OnRuntimeStart()
     {
+        TBO_PROFILE_FUNC();
+
         m_Running = true;
 
         // Find primary camera
@@ -130,6 +124,7 @@ namespace Turbo {
         Script::OnRuntimeStart(this);
 
         // Instantiate script instances and sets field instances
+
         auto scripts = m_Registry.view<ScriptComponent>();
         for (auto& e : scripts)
         {
@@ -175,6 +170,8 @@ namespace Turbo {
 
     void Scene::OnEditorUpdate(Ref<SceneDrawList> drawList, const Camera& editorCamera, FTime ts)
     {
+        TBO_PROFILE_FUNC();
+
         // Post-Update for physics actors creation, ...
         for (auto& func : m_PostUpdateFuncs)
             func();
@@ -198,6 +195,8 @@ namespace Turbo {
 
     void Scene::OnRuntimeUpdate(Ref<SceneDrawList> drawList, FTime ts)
     {
+        TBO_PROFILE_FUNC();
+
         Script::OnNewFrame(ts);
 
         // Update 3D physics
@@ -261,12 +260,15 @@ namespace Turbo {
             }
         }
 
-        // Call OnUpdate function in each script 
-        auto view = m_Registry.view<ScriptComponent>();
-        for (auto e : view)
         {
-            Entity entity = { e, this };
-            Script::InvokeEntityOnUpdate(entity);
+            TBO_PROFILE_SCOPE("Script::OnUpdate");
+            // Call OnUpdate function in each script 
+            auto view = m_Registry.view<ScriptComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+                Script::InvokeEntityOnUpdate(entity);
+            }
         }
 
         // Post-Update for physics actors creation, ...
@@ -306,6 +308,8 @@ namespace Turbo {
 
             RenderScene(drawList);
         }
+
+        m_TimeSinceStart += ts;
     }
 
     Ref<Scene> Scene::Copy(Ref<Scene> other)
@@ -369,7 +373,7 @@ namespace Turbo {
 
         if (!excludeChildren)
         {
-            for (size_t i = 0; i < entity.GetChildren().size(); ++i)
+            for (u64 i = 0; i < entity.GetChildren().size(); ++i)
             {
                 UUID childUUID = entity.GetChildren()[i];
                 TBO_ENGINE_ASSERT(m_EntityIDMap.find(childUUID) != m_EntityIDMap.end());
@@ -397,6 +401,12 @@ namespace Turbo {
     {
         Entity duplicated = CreateEntity(entity.GetName());
         CopyEntity(entity, duplicated);
+
+        // Signal entity's parent that an this entity has been duplicated
+        Entity parent = entity.GetParent();
+        if (parent)
+            parent.GetChildren().push_back(duplicated.GetUUID());
+
         return duplicated;
     }
 
@@ -404,11 +414,61 @@ namespace Turbo {
     {
         // Copy components
         Utils::CopyComponentIfExists(AllComponents{}, dst, src);
+    }
 
-        // Signal entity's parent that an this entity has been duplicated
-        Entity parent = src.GetParent();
-        if (parent)
-            parent.GetChildren().push_back(dst.GetUUID());
+    void Scene::CreatePrefabEntity(Entity entity, Entity prefabEntity, const glm::vec3* translation, const glm::vec3* rotation, const glm::vec3* scale)
+    {
+        // Copy components
+        Utils::CopyComponentIfExists(AllComponents{}, entity, prefabEntity);
+
+        TBO_ENGINE_ASSERT(prefabEntity.HasComponent<PrefabComponent>());
+
+        // Override transforms
+        auto& transform = entity.Transform();
+        if (translation) transform.Translation = *translation;
+        if (rotation)    transform.Rotation = *rotation;
+        if (scale)       transform.Scale = *scale;
+
+        // Map prefab scene UUIDs to this scene
+        auto& children = entity.GetChildren();
+        for (auto& childUUID : children)
+        {
+            Entity prefabChild = prefabEntity.m_Scene->FindEntityByUUID(childUUID);
+
+            Entity newChildEntity = CreateEntity(prefabChild.GetName());
+            CreatePrefabEntity(newChildEntity, prefabChild);
+
+            newChildEntity.SetParentUUID(entity.GetUUID());
+            childUUID = newChildEntity.GetUUID();
+        }
+
+        // Create physics actor
+        if (!m_IsEditorScene)
+        {
+            if (entity.HasComponent<RigidbodyComponent>())
+            {
+                GetPhysicsWorld()->CreateRigidbody(entity);
+            }
+
+            if (entity.HasComponent<Rigidbody2DComponent>())
+            {
+                GetPhysicsWorld2D()->CreateRigidbody(entity);
+            }
+        }
+
+        // To ensure that all entities have correct relationship info when ScriptEntity::OnCreate is called
+        // This means that ScriptEntity::OnCreate will be called after first ScriptEntity::OnUpdate
+        // It should be okay
+         
+         // Invoke C# OnCreate method
+        if (entity.HasComponent<ScriptComponent>())
+        {
+            m_PostUpdateFuncs.emplace_back([entity]()
+            {
+                Script::InvokeEntityOnCreate(entity);
+            });
+        }
+
     }
 
     void Scene::SetViewportOffset(i32 x, i32 y)
@@ -474,12 +534,12 @@ namespace Turbo {
         return {};
     }
 
-    Ref<PhysicsWorld2D> Scene::GetPhysicsWorld2D()
+    Ref<PhysicsWorld2D> Scene::GetPhysicsWorld2D() const
     {
         return m_Registry.get<PhysicsWorld2DComponent>(m_SceneEntity).World;
     }
 
-    Ref<PhysicsWorld> Scene::GetPhysicsWorld()
+    Ref<PhysicsWorld> Scene::GetPhysicsWorld() const
     {
         return  m_Registry.get<PhysicsWorldComponent>(m_SceneEntity).World;
     }
@@ -504,7 +564,7 @@ namespace Turbo {
         return 0;
     }
 
-    Entity Scene::FindEntityByName(const std::string& name)
+    Entity Scene::FindEntityByName(std::string_view name)
     {
         auto view = m_Registry.view<TagComponent>();
         for (auto e : view)
@@ -558,6 +618,8 @@ namespace Turbo {
     // TODO: Implement WorldTransformComponent
     TransformComponent Scene::GetWorldSpaceTransform(Entity entity)
     {
+        TBO_PROFILE_FUNC();
+
         glm::mat4 worldTransform = GetWorldSpaceTransformMatrix(entity);
         TransformComponent transform;
         transform.SetTransform(worldTransform);
@@ -566,6 +628,8 @@ namespace Turbo {
 
     void Scene::RenderScene(Ref<SceneDrawList> drawList)
     {
+        TBO_PROFILE_FUNC();
+
         // Directional lights
         {
             auto view = m_Registry.view<DirectionalLightComponent>();
@@ -587,7 +651,7 @@ namespace Turbo {
                 auto transform = GetWorldSpaceTransform({ entity, this });
                 // Rotation does not matter, but i think scale will matter
                 // TODO: Figure out how to composose scale of the ligth and intesity
-                drawList->AddPointLight(GetWorldSpaceTransform({entity, this}).Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
+                drawList->AddPointLight(GetWorldSpaceTransform({ entity, this }).Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
             }
         }
 
@@ -655,7 +719,7 @@ namespace Turbo {
             }
 
             // Lines
-            { 
+            {
                 // TODO: How should lines behave when relationship component takes effect?
                 auto group = m_Registry.group<LineRendererComponent>(entt::get<TransformComponent>);
 
@@ -710,83 +774,5 @@ namespace Turbo {
         UUID uuid = FindUUIDByEntity(entity);
         Audio::UnRegister(uuid);
     }
-
-    void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, entt::entity entity)
-    {
-        if (!m_Running)
-            return;
-
-        Entity e = { entity, this };
-        GetPhysicsWorld2D()->ConstructBody(e);
-    }
-
-    // On replacing component
-    void Scene::OnBoxCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
-    {
-        if (!m_Running)
-            return;
-
-        // Destroys original box collider
-        OnBoxCollider2DComponentDestroy(registry, entity);
-
-        // Create new one
-        OnBoxCollider2DComponentConstruct(registry, entity);
-    }
-
-    void Scene::OnRigidBody2DComponentDestroy(entt::registry& registry, entt::entity entity)
-    {
-        if (!m_Running)
-            return;
-
-        Entity e = { entity, this };
-        GetPhysicsWorld2D()->DestroyPhysicsBody(e);
-    }
-
-    void Scene::OnBoxCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
-    {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
-            return;
-
-        Entity e = { entity, this };
-        GetPhysicsWorld2D()->ConstructBoxCollider(e);
-    }
-
-    void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
-    {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
-            return;
-
-        Entity e = { entity, this };
-        GetPhysicsWorld2D()->DestroyBoxCollider(e);
-    }
-
-    void Scene::OnCircleCollider2DComponentConstruct(entt::registry& registry, entt::entity entity)
-    {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
-            return;
-
-        Entity e = { entity, this };
-        GetPhysicsWorld2D()->ConstructCircleCollider(e);
-    }
-
-    void Scene::OnCircleCollider2DComponentUpdate(entt::registry& registry, entt::entity entity)
-    {
-        if (m_Running)
-            return;
-
-        // Destroys original box collider
-        OnCircleCollider2DComponentDestroy(registry, entity);
-
-        // Create new one
-        OnCircleCollider2DComponentConstruct(registry, entity);
-    }
-
-    void Scene::OnCircleCollider2DComponentDestroy(entt::registry& registry, entt::entity entity)
-    {
-        if (!m_Running || !registry.all_of<Rigidbody2DComponent>(entity))
-            return;
-
-        Entity e = { entity, this };
-        GetPhysicsWorld2D()->DestroyCircleCollilder(e);
-    }
+   
 }

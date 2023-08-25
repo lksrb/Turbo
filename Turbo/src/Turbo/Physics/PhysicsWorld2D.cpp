@@ -176,32 +176,33 @@ namespace Turbo {
 
     void PhysicsWorld2D::OnRuntimeStart()
     {
+        TBO_PROFILE_FUNC();
+
         auto rigidbodies = m_Scene->GroupAllEntitiesWith<Rigidbody2DComponent, TransformComponent>();
         for (auto e : rigidbodies)
         {
-            const auto& [rb2d, transform] = rigidbodies.get<Rigidbody2DComponent, TransformComponent>(e);
+            auto [rb2d, transform] = rigidbodies.get<Rigidbody2DComponent, TransformComponent>(e);
+
+            // FIXME: This will not work if the rigidbody is a child
+            // TLDR; transform will be in local space
 
             // Copy position from transform component
             b2BodyDef bodyDef;
             bodyDef.type = static_cast<b2BodyType>(rb2d.Type);
             bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
             bodyDef.angle = transform.Rotation.z;
-
-            // Create body
-            b2Body* body = m_Box2DWorld.CreateBody(&bodyDef);
-            body->SetFixedRotation(rb2d.FixedRotation);
-            body->SetEnabled(rb2d.Enabled);
-            body->SetGravityScale(rb2d.GravityScale);
-            body->SetBullet(rb2d.IsBullet);
-
-            rb2d.RuntimeBody = body;
+            bodyDef.fixedRotation = rb2d.FixedRotation;
+            bodyDef.enabled = rb2d.Enabled;
+            bodyDef.gravityScale = rb2d.GravityScale;
+            bodyDef.bullet = rb2d.IsBullet;
+            rb2d.RuntimeBody = m_Box2DWorld.CreateBody(&bodyDef);
         }
 
         // Maybe we should warn the user is his entity does not have a rigidbody2d component?
         auto boxColliders = m_Scene->GroupAllEntitiesWith<BoxCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>();
         for (auto e : boxColliders)
         {
-            const auto& [bc2d, rb2d, ic, transform] = boxColliders.get<BoxCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>(e);
+             auto [bc2d, rb2d, ic, transform] = boxColliders.get<BoxCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>(e);
 
             b2Body* body = (b2Body*)rb2d.RuntimeBody;
 
@@ -214,22 +215,19 @@ namespace Turbo {
             fixtureDef.restitution = bc2d.Restitution;
             fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
             fixtureDef.isSensor = bc2d.IsTrigger;
-            b2FixtureUserData data;
-            data.pointer = (u64)ic.ID;
-            fixtureDef.userData = data;
+            fixtureDef.userData.pointer = (u64)ic.ID;
 
             fixtureDef.filter.categoryBits = bc2d.CollisionCategory;
             fixtureDef.filter.maskBits = bc2d.CollisionMask;
-            fixtureDef.filter.groupIndex = 0; // TODO: Think if this has any usage
-
-            body->CreateFixture(&fixtureDef);
+            fixtureDef.filter.groupIndex = bc2d.CollisionGroup;
+            bc2d.RuntimeFixture = body->CreateFixture(&fixtureDef);
         }
 
         // Maybe we should warn the user is his entity does not have a rigidbody2d component?
         auto circlecolliders = m_Scene->GroupAllEntitiesWith<CircleCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>();
         for (auto e : circlecolliders)
         {
-            const auto& [cc2d, rb2d, ic, transform] = circlecolliders.get<CircleCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>(e);
+            auto [cc2d, rb2d, ic, transform] = circlecolliders.get<CircleCollider2DComponent, Rigidbody2DComponent, IDComponent, TransformComponent>(e);
 
             b2Body* body = (b2Body*)rb2d.RuntimeBody;
 
@@ -244,14 +242,12 @@ namespace Turbo {
             fixtureDef.restitution = cc2d.Restitution;
             fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
             fixtureDef.isSensor = cc2d.IsTrigger;
-            b2FixtureUserData data;
-            data.pointer = (u64)ic.ID;
-            fixtureDef.userData = data;
+            fixtureDef.userData.pointer = (u64)ic.ID;
 
             fixtureDef.filter.categoryBits = cc2d.CollisionCategory;
             fixtureDef.filter.maskBits = cc2d.CollisionMask;
-            fixtureDef.filter.groupIndex = 0; // TODO: Think if this has any usage
-            body->CreateFixture(&fixtureDef);
+            fixtureDef.filter.groupIndex = cc2d.CollisionGroup;
+            cc2d.RuntimeFixture = body->CreateFixture(&fixtureDef);
         }
     }
 
@@ -260,7 +256,7 @@ namespace Turbo {
 
     }
 
-    void PhysicsWorld2D::ConstructBody(Entity entity)
+    void PhysicsWorld2D::CreateRigidbody(Entity entity)
     {
         auto& transform = entity.Transform();
 
@@ -271,15 +267,21 @@ namespace Turbo {
         bodyDef.type = static_cast<b2BodyType>(rb2d.Type);
         bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
         bodyDef.angle = transform.Rotation.z;
+        bodyDef.fixedRotation = rb2d.FixedRotation;
+        bodyDef.enabled = rb2d.Enabled;
+        bodyDef.gravityScale = rb2d.GravityScale;
+        bodyDef.bullet = rb2d.IsBullet;
+        rb2d.RuntimeBody = m_Box2DWorld.CreateBody(&bodyDef);
 
-        // Create body
-        b2Body* body = m_Box2DWorld.CreateBody(&bodyDef);
-        body->SetFixedRotation(rb2d.FixedRotation);
-        body->SetEnabled(rb2d.Enabled);
-        body->SetGravityScale(rb2d.GravityScale);
-        body->SetBullet(rb2d.IsBullet);
+        if (entity.HasComponent<BoxCollider2DComponent>())
+        {
+            ConstructBoxCollider(entity);
+        }
 
-        rb2d.RuntimeBody = body;
+        if (entity.HasComponent<CircleCollider2DComponent>())
+        {
+            ConstructCircleCollider(entity);
+        }
     }
 
     void PhysicsWorld2D::ConstructBoxCollider(Entity entity)
@@ -304,15 +306,13 @@ namespace Turbo {
         fixtureDef.restitution = bc2d.Restitution;
         fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
         fixtureDef.isSensor = bc2d.IsTrigger;
-        b2FixtureUserData data;
-        data.pointer = (u64)entity.GetUUID();
-        fixtureDef.userData = data;
+        fixtureDef.userData.pointer = (u64)entity.GetUUID();
 
         fixtureDef.filter.categoryBits = bc2d.CollisionCategory;
         fixtureDef.filter.maskBits = bc2d.CollisionMask;
-        fixtureDef.filter.groupIndex = 0; // TODO: Think if this has any usage
+        fixtureDef.filter.groupIndex = bc2d.CollisionGroup;
 
-        body->CreateFixture(&fixtureDef);
+        bc2d.RuntimeFixture = body->CreateFixture(&fixtureDef);
     }
 
     void PhysicsWorld2D::ConstructCircleCollider(Entity entity)
@@ -337,15 +337,14 @@ namespace Turbo {
         fixtureDef.restitution = cc2d.Restitution;
         fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
         fixtureDef.isSensor = cc2d.IsTrigger;
-        b2FixtureUserData data;
-        data.pointer = (u64)entity.GetUUID();
-        fixtureDef.userData = data;
-        //fixtureDef.filter.categoryBits = cc2d.CategoryBits; // <- Is that category
-        //fixtureDef.filter.maskBits = cc2d.MaskBits;		// <- Collides with other categories
-        body->CreateFixture(&fixtureDef);
+        fixtureDef.userData.pointer = (u64)entity.GetUUID();
+        fixtureDef.filter.categoryBits = cc2d.CollisionCategory; // <- Is that category
+        fixtureDef.filter.maskBits = cc2d.CollisionMask;		// <- Collides with other categories
+        fixtureDef.filter.groupIndex = cc2d.CollisionGroup;
+        cc2d.RuntimeFixture = body->CreateFixture(&fixtureDef);
     }
 
-    void PhysicsWorld2D::DestroyPhysicsBody(Entity entity)
+    void PhysicsWorld2D::DestroyRigidbody(Entity entity)
     {
         b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
         m_Box2DWorld.DestroyBody(body);
@@ -353,40 +352,20 @@ namespace Turbo {
 
     void PhysicsWorld2D::DestroyBoxCollider(Entity entity)
     {
-        b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+        auto [rb2d, cc2d] = entity.GetComponent<Rigidbody2DComponent, BoxCollider2DComponent>();
 
-        // Iterate through the fixture list and destroy everything that is polygon shaped
-        b2Fixture* fixture = body->GetFixtureList();
-        while (fixture != nullptr)
-        {
-            b2Fixture* nextFixture = fixture->GetNext();
-
-            b2Shape* shape = fixture->GetShape();
-            
-            if (shape->GetType() == b2Shape::e_polygon)
-                body->DestroyFixture(fixture);
-
-            fixture = nextFixture;
-        }
+        // Iterate through the fixture list and destroy everything that is circle shaped
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        body->DestroyFixture((b2Fixture*)cc2d.RuntimeFixture);
     }
 
     void PhysicsWorld2D::DestroyCircleCollilder(Entity entity)
     {
-        b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+        auto [rb2d, cc2d] = entity.GetComponent<Rigidbody2DComponent, CircleCollider2DComponent>();
 
         // Iterate through the fixture list and destroy everything that is circle shaped
-        b2Fixture* fixture = body->GetFixtureList();
-        while (fixture != nullptr)
-        {
-            b2Fixture* nextFixture = fixture->GetNext();
-
-            b2Shape* shape = fixture->GetShape();
-
-            if (shape->GetType() == b2Shape::e_circle)
-                body->DestroyFixture(fixture);
-
-            fixture = nextFixture;
-        }
+        b2Body* body = (b2Body*)rb2d.RuntimeBody;
+        body->DestroyFixture((b2Fixture*)cc2d.RuntimeFixture);
     }
 
     Entity PhysicsWorld2D::RayCast(glm::vec2 a, glm::vec2 b)
@@ -398,6 +377,8 @@ namespace Turbo {
 
     void PhysicsWorld2D::Simulate(FTime ts)
     {
+        TBO_PROFILE_FUNC();
+
         constexpr i32 velocityIterations = 6;
         constexpr i32 positionIterations = 2;
 
@@ -408,7 +389,7 @@ namespace Turbo {
         // Process all contacts here to avoid tampering with rigidbodies while simulating
         s_ContactListener.ProcessContacts();
 
-        // Retrieve transforms
+        // Sync transform
         auto rigidbodies = m_Scene->GroupAllEntitiesWith<Rigidbody2DComponent, TransformComponent>();
         for (auto e : rigidbodies)
         {

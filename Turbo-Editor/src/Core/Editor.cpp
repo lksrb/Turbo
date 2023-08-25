@@ -17,6 +17,7 @@
 #include <Turbo/Script/Script.h>
 #include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Solution/ProjectSerializer.h>
+#include <Turbo/Core/FileSystem.h>
 
 #include <Turbo/Renderer/Font.h>
 #include <Turbo/UI/UI.h>
@@ -342,7 +343,11 @@ namespace Turbo::Ed {
                     }
                     else if (path.extension() == ".tprefab" && m_SceneMode == SceneMode::Edit) // Only in edit mode for now
                     {
-                        TBO_VERIFY(AssetManager::DeserializePrefab(path, m_CurrentScene.Get()), "Successfully deserialized prefab!");
+                        Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(path);
+
+                        Entity prefabEntity = prefab->GetPrefabEntity();
+                        Entity entity = m_CurrentScene->CreateEntity(prefabEntity.GetName());
+                        m_CurrentScene->CreatePrefabEntity(entity, prefabEntity);
                     }
                 }
 
@@ -1069,7 +1074,7 @@ namespace Turbo::Ed {
                     * rotation
                     * glm::scale(glm::mat4(1.0f), scale);
 
-                m_ViewportDrawList->AddBoxWireframe(transform.GetTransform(), {0.0f, 1.0f, 0.0f, 1.0f}, (i32)entity);
+                m_ViewportDrawList->AddBoxWireframe(transform.GetTransform(), { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
 
             // Sphere colliders

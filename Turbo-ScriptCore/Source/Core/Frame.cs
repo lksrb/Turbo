@@ -6,6 +6,10 @@ namespace Turbo
 	public static class Frame
 	{
 		/**
+		 * Overall time since the beginning of runtime
+		 */
+		public static readonly float TimeSinceStart;
+		/**
 		 * Time difference between current and previous frame
 		 */
 		public static readonly float TimeStep;

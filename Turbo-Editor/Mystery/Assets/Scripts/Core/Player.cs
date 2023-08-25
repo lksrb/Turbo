@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using Turbo;
 
 namespace Mystery
 {
-	public class PlayerManager : Entity
+	public class Player : Entity
 	{
 		public float LinearVelocityMagnifier;
 		public float AngularVelocityMagnifier;
@@ -15,7 +16,10 @@ namespace Mystery
 		Entity m_Hat;
 
 		Entity m_Ball;
+		Entity m_PickedBox;
 		bool m_IsHolding = false;
+
+		internal List<Entity> m_BoxesAvailable = new List<Entity>();
 
 		protected override void OnCreate()
 		{
@@ -45,8 +49,20 @@ namespace Mystery
 
 		void OnPickUpUpdate()
 		{
-			Vector3 dist = m_Ball.Transform.Translation - Transform.Translation;
-			if (m_Input.IsPickUpButtonDown && dist.Length() < 5.0f)
+			if (m_PickedBox == null && m_Input.IsPickUpButtonDown)
+			{
+				foreach (var box in m_BoxesAvailable)
+				{
+					Vector3 dist = box.Transform.Translation - Transform.Translation;
+					if (dist.Length() < 5.0f)
+					{
+						m_PickedBox = box;
+						break;
+					}
+				}
+			}
+
+			if(m_PickedBox != null)
 			{
 				m_IsHolding = true;
 
@@ -54,16 +70,19 @@ namespace Mystery
 				forward.Y = 0.0f;
 				forward.Normalize();
 
-				var rb = m_Ball.GetComponent<RigidbodyComponent>();
+				var rb = m_PickedBox.GetComponent<RigidbodyComponent>();
 				rb.Position = m_Movement.Rigidbody.Position + forward * 3.0f;
 				rb.LinearVelocity = Vector3.Zero;
 				rb.AngularVelocity = Vector3.Zero;
 				rb.Rotation = m_Movement.Rigidbody.Rotation;
 			}
 
+
 			if (m_IsHolding && Input.IsKeyUp(KeyCode.F))
 			{
 				m_IsHolding = false;
+				m_PickedBox = null;
+
 				Vector3 forward = new Quaternion(Transform.Rotation) * Vector3.Forward;
 				forward.Y = 0.0f;
 				forward.Normalize();

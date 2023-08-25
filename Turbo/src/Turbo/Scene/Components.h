@@ -52,6 +52,14 @@ namespace Turbo {
         IDComponent(const IDComponent&) = default;
     };
 
+    struct PrefabComponent
+    {
+        AssetHandle Handle = 0;
+
+        PrefabComponent() = default;
+        PrefabComponent(const PrefabComponent&) = default;
+    };
+
     struct TransformComponent
     {
         glm::vec3 Translation{ 0.0f, 0.0f, 0.0f };
@@ -74,6 +82,16 @@ namespace Turbo {
         {
             Math::DecomposeTransform(transform, Translation, Rotation, Scale);
         }
+    };
+
+    // TODO: Cache large relationship hierarchies
+    struct WorldTransformComponent
+    {
+        glm::mat4 Transform;
+
+        WorldTransformComponent() = default;
+        WorldTransformComponent(const WorldTransformComponent&) = default;
+
     };
 
     struct AudioSourceComponent
@@ -251,6 +269,10 @@ namespace Turbo {
         bool IsTrigger = false;
         u16 CollisionCategory = 0x0001; // What category is this entity
         u16 CollisionMask = 0xFFFF; // What other categories will this collide with
+        i16 CollisionGroup = 0;
+
+        // Storage for runtime
+        void* RuntimeFixture = nullptr;
 
         BoxCollider2DComponent() = default;
         BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
@@ -268,13 +290,17 @@ namespace Turbo {
         bool IsTrigger = false;
         u16 CollisionCategory = 0x0001; // What category is this entity
         u16 CollisionMask = 0xFFFF; // What other categories will this collide with
+        i16 CollisionGroup = 0;
+
+        // Storage for runtime
+        void* RuntimeFixture = nullptr;
 
         CircleCollider2DComponent() = default;
         CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
     };
 
     // Physics 3D
-    
+
     struct RigidbodyComponent
     {
         RigidbodyType Type = RigidbodyType::Static;
@@ -337,7 +363,12 @@ namespace Turbo {
         constexpr static u64 Size = sizeof...(Components);
     };
 
+    // Order matters -> Physics2D and 3D components
+
     using AllComponents =
-        ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent, CircleRendererComponent, TextComponent, DirectionalLightComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, ScriptComponent,
-        AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent>;
+        ComponentGroup<TransformComponent, RelationshipComponent, PrefabComponent, CameraComponent, SpriteRendererComponent, LineRendererComponent,
+        CircleRendererComponent, TextComponent, DirectionalLightComponent, PointLightComponent, SpotLightComponent, StaticMeshRendererComponent, 
+        ScriptComponent, AudioSourceComponent, AudioListenerComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
+        BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent>;
+
 }
