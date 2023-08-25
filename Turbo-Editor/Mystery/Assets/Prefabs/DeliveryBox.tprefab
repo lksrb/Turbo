@@ -1,17 +1,17 @@
-Prefab: 554361972140107498
+Prefab: 3622201754787688956
 Entities:
-  - Entity: 10343803533949077018
+  - Entity: 11663017929956739158
     TagComponent:
       Tag: DeliveryBox
     Parent: 0
     Children:
       []
     PrefabComponent:
-      AssetHandle: 554361972140107498
+      AssetHandle: 3622201754787688956
     TransformComponent:
-      Translation: [0, 7.41630745, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
+      Scale: [1, 0.600000024, 1]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:

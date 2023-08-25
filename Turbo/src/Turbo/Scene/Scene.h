@@ -136,7 +136,6 @@ namespace Turbo {
 
         friend class Entity;
         friend class SceneSerializer;
-        friend class PhysicsScene2D;
         friend class Project;
         friend class ProjectSerializer;
         friend class PrefabHandler;

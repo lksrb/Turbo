@@ -20,7 +20,7 @@ namespace Mystery
 			m_Rigidbody = GetComponent<RigidbodyComponent>();
 			m_RecoveryTimer = new Timer(5.0f);
 
-			OnCollisionBegin += OnBallHit;
+			OnCollisionBegin += OnHit;
 		}
 
 		protected override void OnUpdate()
@@ -44,9 +44,9 @@ namespace Mystery
 			m_Rigidbody.LinearVelocity = Vector3.Lerp(m_Rigidbody.LinearVelocity, m_Velocity, Frame.TimeStep * Speed);
 		}
 		
-		void OnBallHit(Entity entity)
+		void OnHit(Entity entity)
 		{
-			if(entity.Name == "Ball")
+			if(entity.Name == "DeliveryBox")
 			{
 				m_Hit = true;
 				m_RecoveryTimer.Reset();

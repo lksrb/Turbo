@@ -47,7 +47,7 @@ namespace Mystery
 			if(entity.Name == "Player")
 			{
 				m_StepOn = true;
-				entity.As<Player>().m_BoxesAvailable.Add(Instantiate(m_DeliveryBoxPrefab));
+				entity.As<Player>().m_BoxesAvailable.Add(Instantiate(m_DeliveryBoxPrefab, Vector3.Up * 8.0f));
 			}
 		}
 

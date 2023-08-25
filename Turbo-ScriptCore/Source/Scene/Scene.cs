@@ -16,10 +16,6 @@
 
 		// Queues up entity for deletion
 		// Deletion will happen in post update
-		public static void DestroyEntity(Entity entity)
-		{
-			InternalCalls.Scene_DestroyEntity(entity.ID);
-		}
-
+		public static void DestroyEntity(Entity entity) => InternalCalls.Scene_DestroyEntity(entity.ID);
 	}
 }

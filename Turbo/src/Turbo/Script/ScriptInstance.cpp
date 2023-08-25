@@ -52,7 +52,17 @@ namespace Turbo
 
         // Invoke base class constructor and assign it the entity id
         void* params = &m_Entity;
-        m_ScriptClass->InvokeMethod(instance, m_Constructor, nullptr, &params);
+        m_ScriptClass->InvokeMethod(instance, m_Constructor, &m_Exception, &params);
+
+        if (m_Exception)
+        {
+            MonoString* message = mono_object_to_string(m_Exception, nullptr);
+            char* cstring = mono_string_to_utf8(message);
+            TBO_CONSOLE_FATAL(cstring);
+            mono_free(cstring);
+
+            TBO_ENGINE_ASSERT(false);
+        }
 
 #if TBO_USE_MANAGED_THUNKS
         // Managed thunks

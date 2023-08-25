@@ -61,9 +61,17 @@ namespace Turbo::Ed {
                         // TODO: Probably add this as new function to AssetManager
                         auto& prefabComponent = entity.GetComponent<PrefabComponent>();
                         Ref<Prefab> asset = AssetManager::GetAsset<Prefab>(prefabComponent.Handle);
-                        Asset::Serialize(AssetManager::GetAssetMetadata(prefabComponent.Handle), asset);
 
-                        TBO_ENGINE_WARN("Serialized prefab '{}'!", prefabComponent.Handle);
+                        if (asset)
+                        {
+                            Asset::Serialize(AssetManager::GetAssetMetadata(prefabComponent.Handle), asset);
+                            TBO_ENGINE_WARN("Serialized prefab '{}'!", prefabComponent.Handle);
+                        }
+                        else
+                        {
+                            TBO_ENGINE_ERROR("Failed to serialize prefab '{}'!", prefabComponent.Handle);
+                        }
+
                     }
                 }
             }

@@ -11,6 +11,9 @@ AssetRegistry:
   - Asset: 3411376591522269393
     Path: Meshes/Default/Cube.tmesh
     Type: StaticMesh
+  - Asset: 3622201754787688956
+    Path: Prefabs/DeliveryBox.tprefab
+    Type: Prefab
   - Asset: 4550927646632324055
     Path: Meshes/Default/Cylinder.tmesh
     Type: StaticMesh

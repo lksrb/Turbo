@@ -7,6 +7,8 @@ namespace Mystery
 	{
 		public float LinearVelocityMagnifier;
 		public float AngularVelocityMagnifier;
+		public float PickLength;
+		public float PickHeight;
 
 		internal PlayerInput m_Input;
 		internal PlayerMovement m_Movement;
@@ -16,8 +18,8 @@ namespace Mystery
 		Entity m_Hat;
 
 		Entity m_Ball;
-		Entity m_PickedBox;
-		bool m_IsHolding = false;
+		Entity m_PickedItem;
+		Entity m_PickPlaceHolder;
 
 		internal List<Entity> m_BoxesAvailable = new List<Entity>();
 
@@ -30,6 +32,7 @@ namespace Mystery
 			m_Hat = FindEntityByName("Hat");
 			m_Ball = FindEntityByName("Ball");
 			m_TargetCursor = FindEntityByName("MOBA_Crosshair");
+			m_PickPlaceHolder = FindEntityByName("PickPlaceHolder");
 
 			Log.Info("Hello entity!");
 		}
@@ -40,7 +43,7 @@ namespace Mystery
 			m_Movement.Update();
 
 			OnPickUpUpdate();
-			
+
 			// Hat
 			var r = m_Hat.Transform.Rotation;
 			r.XY -= Frame.TimeStep;
@@ -49,46 +52,37 @@ namespace Mystery
 
 		void OnPickUpUpdate()
 		{
-			if (m_PickedBox == null && m_Input.IsPickUpButtonDown)
+			if (m_PickedItem == null && m_Input.IsPickUpButtonDown)
 			{
 				foreach (var box in m_BoxesAvailable)
 				{
 					Vector3 dist = box.Transform.Translation - Transform.Translation;
 					if (dist.Length() < 5.0f)
 					{
-						m_PickedBox = box;
+						m_PickedItem = box;
 						break;
 					}
 				}
 			}
 
-			if(m_PickedBox != null)
+			if (m_PickedItem != null)
 			{
-				m_IsHolding = true;
-
 				Vector3 forward = new Quaternion(Transform.Rotation) * Vector3.Forward;
 				forward.Y = 0.0f;
 				forward.Normalize();
 
-				var rb = m_PickedBox.GetComponent<RigidbodyComponent>();
-				rb.Position = m_Movement.Rigidbody.Position + forward * 3.0f;
+				var rb = m_PickedItem.GetComponent<RigidbodyComponent>();
+				rb.Position = m_Movement.Rigidbody.Position + forward * PickLength + Vector3.Up * PickHeight;
 				rb.LinearVelocity = Vector3.Zero;
 				rb.AngularVelocity = Vector3.Zero;
 				rb.Rotation = m_Movement.Rigidbody.Rotation;
-			}
 
 
-			if (m_IsHolding && Input.IsKeyUp(KeyCode.F))
-			{
-				m_IsHolding = false;
-				m_PickedBox = null;
-
-				Vector3 forward = new Quaternion(Transform.Rotation) * Vector3.Forward;
-				forward.Y = 0.0f;
-				forward.Normalize();
-
-				//var rb = m_Ball.GetComponent<RigidbodyComponent>();
-				//rb.AddForce(forward * 50.0f, ForceMode.Impulse);
+				if(Input.IsKeyUp(KeyCode.F))
+				{
+					m_PickedItem = null;
+					rb.AddForce(forward * 50.0f, ForceMode.Impulse);
+				}
 			}
 		}
 

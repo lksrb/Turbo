@@ -38,7 +38,6 @@ namespace Turbo
 			ID = id;
 
 			Transform = GetComponent<TransformComponent>();
-			m_ComponentsCache.Add(typeof(TransformComponent), Transform);
 		}
 
 		public void UnParent() => InternalCalls.Entity_UnParent(ID);

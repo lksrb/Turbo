@@ -355,7 +355,7 @@ namespace Turbo::Ed {
             }
 
             // Gizmos
-            // 
+            
             // FIXME: Temporary solution
             if (m_SelectedEntity && m_GizmoType != -1 && m_SceneMode != SceneMode::Play)
             {

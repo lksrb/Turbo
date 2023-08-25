@@ -5,50 +5,46 @@ namespace Mystery
 {
 	internal class ConveyorBelt : Entity
 	{
-		class Velocity
-		{
-			public Vector3 LinearVelocity = Vector3.Zero;
-			public Vector3 LastTranslation = Vector3.Zero;
-		}
+		public float BeltSpeed;
 
-		Dictionary<Entity, Velocity> m_LinearVelocities = new Dictionary<Entity, Velocity>();
 		List<Entity> m_OnBelt = new List<Entity>();
+
+		Vector3 m_Right;
 
 		protected override void OnCreate()
 		{
 			OnCollisionBegin += OnCollisionStart;
 			OnCollisionEnd += OnCollisionStop;
+
+			m_Right = new Quaternion(Transform.Rotation) * Vector3.Right;
+			m_Right.Normalize();
 		}
 
 		protected override void OnUpdate()
 		{
 			foreach (var entity in m_OnBelt)
 			{
-				entity.GetComponent<RigidbodyComponent>().Position += Vector3.Right * Frame.TimeStep * 5.0f;
-
-				var velocity = m_LinearVelocities[entity];
-				velocity.LinearVelocity = (entity.GetComponent<RigidbodyComponent>().Position - velocity.LastTranslation) / Frame.TimeStep;
-				velocity.LastTranslation = entity.GetComponent<RigidbodyComponent>().Position;
+				entity.GetComponent<RigidbodyComponent>().Position += m_Right * Frame.TimeStep * BeltSpeed;
 			}
-			
 		}
 
 		void OnCollisionStart(Entity entity)
 		{
+			if (entity.Name == "Player")
+				return;
+
 			if (m_OnBelt.Contains(entity))
 				return;
 
 			m_OnBelt.Add(entity);
-
-			m_LinearVelocities[entity].LastTranslation = entity.Transform.Translation;
 		}
 
 		void OnCollisionStop(Entity entity)
 		{
 			if (m_OnBelt.Contains(entity))
 			{
-				entity.GetComponent<RigidbodyComponent>().LinearVelocity = m_LinearVelocities[entity].LinearVelocity;
 				m_OnBelt.Remove(entity);
+				entity.GetComponent<RigidbodyComponent>().LinearVelocity += m_Right * 3.0f;
 			}
 		}
 	}

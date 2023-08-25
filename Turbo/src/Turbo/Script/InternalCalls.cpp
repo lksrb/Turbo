@@ -1215,7 +1215,7 @@ namespace Turbo {
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
 
             auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            *outPosition = JoltUtils::GetVec3(bodyInterface.GetPosition(bodyId));
+            *outPosition = JoltUtils::GetVec3(bodyInterface.GetCenterOfMassPosition(bodyId));
         }
 
         static void Component_Rigidbody_Set_Position(UUID uuid, glm::vec3* position)
@@ -1238,7 +1238,7 @@ namespace Turbo {
 
             //// Also reset linear and angular velocity to avoid jiggering
             //bodyInterface.SetLinearAndAngularVelocity(bodyId, JPH::Vec3::sZero(), JPH::Vec3::sZero());
-            bodyInterface.SetPosition(bodyId, JoltUtils::GetVec3(*position), JPH::EActivation::DontActivate);
+            bodyInterface.SetPosition(bodyId, JoltUtils::GetVec3(*position), JPH::EActivation::Activate);
         }
 
         // Rotation
@@ -1272,7 +1272,7 @@ namespace Turbo {
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
 
             auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
-            bodyInterface.SetRotation(bodyId, JoltUtils::GetQuat(*rotation), JPH::EActivation::DontActivate);
+            bodyInterface.SetRotation(bodyId, JoltUtils::GetQuat(*rotation), JPH::EActivation::Activate);
         }
 
         // TODO: Abstract this
@@ -1292,7 +1292,7 @@ namespace Turbo {
                 * glm::angleAxis(rotation->y, glm::vec3(0.0f, 1.0f, 0.0f))
                 * glm::angleAxis(rotation->z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-            bodyInterface.SetRotation(bodyId, JPH::Quat(qRotation.x, qRotation.y, qRotation.z, qRotation.w), JPH::EActivation::DontActivate);
+            bodyInterface.SetRotation(bodyId, JPH::Quat(qRotation.x, qRotation.y, qRotation.z, qRotation.w), JPH::EActivation::Activate);
         }
 
         enum ForceMode : u32 { Force = 0, Impulse };
