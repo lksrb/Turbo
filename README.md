@@ -9,12 +9,12 @@ Turbo is a game engine created by me for me to create games.
 
 Rendering API: Vulkan
 
-Language: C++17
+Language: C++20
 
 Platform: Windows only (for now)
 
 ## Getting started
-Using Visual Studio 2019/2022 is recommended. Turbo is not tested on other IDEs/Editors.
+Using Visual Studio 2022 is recommended. Turbo is not tested on other IDEs/Editors.
 
 <ins>**1. Downloading the repository**</ins>
 
