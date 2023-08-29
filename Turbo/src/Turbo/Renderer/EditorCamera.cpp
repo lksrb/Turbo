@@ -6,8 +6,7 @@
 #include "Turbo/Core/KeyCodes.h"
 #include "Turbo/Core/MouseCodes.h"
 
-namespace Turbo
-{
+namespace Turbo {
     EditorCamera::EditorCamera(f32 fov, f32 aspectRatio, f32 nearClip, f32 farClip)
         : m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
     {
@@ -59,9 +58,7 @@ namespace Turbo
 
     void EditorCamera::OnUpdate(FTime ts)
     {
-        m_IsControlling = Input::IsKeyPressed(Key::LeftAlt);
-
-        if (m_IsControlling)
+        if (m_IsActive && Input::IsKeyPressed(Key::LeftAlt))
         {
             auto [mouseX, mouseY] = Input::GetMousePosition();
             glm::vec2 mouse = { (f32)mouseX, (f32)mouseY };

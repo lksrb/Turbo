@@ -11,6 +11,8 @@
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
 
+#include <Turbo/UI/UserInterfaceLayer.h>
+
 #include <Turbo/Asset/AssetManager.h>
 #include <Turbo/Debug/ScopeTimer.h>
 #include <Turbo/Script/Script.h>
@@ -160,10 +162,8 @@ namespace Turbo::Ed {
         {
             case SceneMode::Edit:
             {
-                if (m_ViewportHovered)
-                {
-                    m_EditorCamera.OnUpdate(time.DeltaTime);
-                }
+                m_EditorCamera.SetActive(m_ViewportHovered && (!ImGuizmo::IsOver() || m_GizmoType == -1));
+                m_EditorCamera.OnUpdate(time.DeltaTime);
 
                 m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, time.DeltaTime);
                 break;
@@ -287,7 +287,7 @@ namespace Turbo::Ed {
 
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
-            Application::Get().SetUIBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+            Application::Get().GetUserInterfaceLayer()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
             ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
             ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -350,12 +350,11 @@ namespace Turbo::Ed {
             }
 
             // Gizmos
-            
-            // FIXME: Temporary solution
-            if (m_SelectedEntity && m_GizmoType != -1 && m_SceneMode != SceneMode::Play)
+            if (m_GizmoType != -1 && m_SelectedEntity && m_SceneMode != SceneMode::Play)
             {
                 glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
+#if 0
                 if (m_SceneMode == SceneMode::Play)
                 {
                     Entity cameraEntity = m_RuntimeScene->FindPrimaryCameraEntity();
@@ -366,6 +365,7 @@ namespace Turbo::Ed {
                         cameraView = glm::inverse(cameraEntity.Transform().GetTransform());
                     }
                 }
+#endif
 
                 ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();

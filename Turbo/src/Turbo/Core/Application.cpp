@@ -89,11 +89,6 @@ namespace Turbo {
         m_Running = false;
     }
 
-    void Application::SetUIBlockEvents(bool blockEvents)
-    {
-        m_UserInterfaceLayer->SetBlockEvents(blockEvents);
-    }
-
     void Application::Run()
     {
         m_Running = true;

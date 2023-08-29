@@ -39,7 +39,8 @@ namespace Turbo
         inline f32 GetPitch() const { return m_Pitch; }
         inline f32 GetYaw() const { return m_Yaw; }
 
-        bool IsControlling() const { return m_IsControlling; }
+        bool IsActive() const { return m_IsActive; }
+        void SetActive(bool isActive) { m_IsActive = isActive; }
 
         void Focus(const glm::vec3& translation);
         void ResetRotation();
@@ -59,7 +60,7 @@ namespace Turbo
         f32 RotationSpeed() const;
         f32 ZoomSpeed() const;
     private:
-        bool m_IsControlling = false;
+        bool m_IsActive = false;
 
         f32 m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 0.1f, m_FarClip = 1000.0f;
 

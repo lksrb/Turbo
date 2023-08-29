@@ -171,8 +171,8 @@ namespace Turbo {
 
         Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
 
-        m_CubeMaterial->Set("u_MaterialTexture", whiteTexture, 0);
-        m_CubeMaterial->Set("u_MaterialTexture", whiteTexture, 1);
+        m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
+        m_CubeMaterial->Set("u_MaterialTexture", m_ContainerSpecular, 1);
 
         // Mesh rendering
         for (auto& [mk, drawCommand] : m_DrawCommands)

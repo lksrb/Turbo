@@ -41,6 +41,7 @@ namespace Turbo {
         void Run();
         void Close();
 
+        UserInterfaceLayer* GetUserInterfaceLayer() const { return m_UserInterfaceLayer; }
         Window* GetViewportWindow() const { return m_ViewportWindow; }
 
         template<typename F>
@@ -51,7 +52,6 @@ namespace Turbo {
             m_MainThreadQueue.emplace_back(func);
         }
 
-        void SetUIBlockEvents(bool blockEvents);
         bool IsClosing() const { return !m_Running; }
 
         const Application::Config& GetConfig() const { return m_Config; }
