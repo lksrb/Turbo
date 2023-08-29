@@ -112,10 +112,6 @@ namespace Mystery
 
 		internal void OnPickupCollisionEnd(Entity entity)
 		{
-			/*if(m_DeliveryAvailable.Contains(entity))
-			{
-				m_DeliveryAvailable.Remove(entity);
-			}*/
 		}
 
 	}
