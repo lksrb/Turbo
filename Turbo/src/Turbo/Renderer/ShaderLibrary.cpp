@@ -32,7 +32,7 @@ namespace Turbo
         }
 
         std::vector<std::thread> compileJobs;
-        compileJobs.reserve(5);
+        compileJobs.reserve(s_ShaderLibrary.LoadedShaders.size());
 
         for (const auto& shader : s_ShaderLibrary.LoadedShaders)
         {
@@ -51,6 +51,8 @@ namespace Turbo
             job.join();
         }
 
+        // NOTE: We can do this also in parellel to other jobs but because of the printing VulkanShader::Reflect, the console output is screwed up
+        // TODO: Make this parallel 
         for (auto& [_, shader] : s_ShaderLibrary.LoadedShaders)
         {
             Ref<VulkanShader> vulkanShader = shader.As<VulkanShader>();

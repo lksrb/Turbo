@@ -1,26 +1,23 @@
 #pragma once
 
-#include "Font.h"
-#include "RenderCommandBuffer.h"
-#include "Shader.h"
-#include "GraphicsPipeline.h"
-#include "IndexBuffer.h"
-#include "Image2D.h"
-#include "Material.h"
-#include "Texture.h"
-#include "RendererContext.h"
-#include "RenderPass.h"
-#include "FrameBuffer.h"
-#include "UniformBuffer.h"
-#include "VertexBuffer.h"
+#include "Fly.h"
 
-#include <array>
+namespace Turbo {
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
+    class Font;
+    class RenderCommandBuffer;
+    class RendererBuffer;
+    class Shader;
+    class GraphicsPipeline;
+    class Image2D;
+    class Material;
+    class Texture2D;
+    class RenderPass;
+    class FrameBuffer;
+    class UniformBufferSet;
+    class VertexBuffer;
+    class IndexBuffer;
 
-namespace Turbo
-{
     struct SceneRendererData
     {
         glm::mat4 ViewProjectionMatrix = glm::mat4(1.0f);
@@ -48,14 +45,14 @@ namespace Turbo
         };
 
         DrawList2D();
-        DrawList2D(const DrawList2D&) = delete;
         ~DrawList2D();
+        DrawList2D(const DrawList2D&) = delete;
 
         void Initialize();
 
         void Begin();
         void End();
-        
+
         void SetSceneData(const SceneRendererData& data);
 
         void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity);
@@ -76,8 +73,6 @@ namespace Turbo
         i32 ReadPixel(u32 x, u32 y);
 
         void SetTargetRenderPass(const Ref<RenderPass>& renderPass);
-
-        Ref<Texture2D> GetWhiteTexture() const { return m_WhiteTexture; }
     private:
         void ResetStatistics() { m_Statistics.Reset(); }
         void Shutdown();
@@ -183,7 +178,6 @@ namespace Turbo
         Ref<Shader> m_TextShader;
         Ref<GraphicsPipeline> m_TextPipeline;
 
-        Ref<Texture2D> m_WhiteTexture;
         Ref<UniformBufferSet> m_UniformBufferSet;
 
         Ref<RenderPass> m_TargerRenderPass;

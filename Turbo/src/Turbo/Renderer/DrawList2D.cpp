@@ -1,16 +1,26 @@
 ﻿#include "tbopch.h"
 #include "DrawList2D.h"
 
-#include "Font-Internal.h"
+#include "Renderer.h"
 #include "ShaderLibrary.h"
 
-#include "Turbo/Core/Engine.h"
+#include "Font.h"
+#include "Font-Internal.h"
+#include "RenderCommandBuffer.h"
+#include "GraphicsPipeline.h"
+#include "IndexBuffer.h"
+#include "Material.h"
+#include "Texture.h"
+#include "RenderPass.h"
+#include "FrameBuffer.h"
+#include "UniformBuffer.h"
+#include "VertexBuffer.h"
+
+#include "Turbo/Core/Application.h"
+#include "Turbo/Core/Window.h"
 #include "Turbo/Debug/ScopeTimer.h"
 
 #include <glm/ext/matrix_transform.hpp>
-#include <Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h>
-#include <Turbo/Platform/Vulkan/VulkanBuffer.h>
-#include <Turbo/Platform/Vulkan/VulkanImage2D.h>
 
 namespace Turbo
 {
@@ -28,7 +38,7 @@ namespace Turbo
         // Render command buffer
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
 
-        auto window = Engine::Get().GetViewportWindow();
+        Window* window = Application::Get().GetViewportWindow();
         m_ViewportWidth = window->GetWidth();
         m_ViewportHeight = window->GetHeight();
 
@@ -183,11 +193,8 @@ namespace Turbo
         m_UniformBufferSet = UniformBufferSet::Create();
         m_UniformBufferSet->Create(0, 0, sizeof(UBCamera));
 
-        // White texture for texture-less quads
-        m_WhiteTexture = Texture2D::Create(0xffffffff);
-
         // Set white texture at the top of the stack
-        m_TextureSlots[0] = m_WhiteTexture;
+        m_TextureSlots[0] = Renderer::GetWhiteTexture();
 
         // Selection buffer for mouse picking
         for (auto& buffer : m_SelectionBuffers)
@@ -289,7 +296,7 @@ namespace Turbo
                 if (m_TextureSlots[i])
                     m_QuadMaterial->Set("u_Textures", m_TextureSlots[i], i);
                 else
-                    m_QuadMaterial->Set("u_Textures", m_WhiteTexture, i);
+                    m_QuadMaterial->Set("u_Textures", /* White texture */m_TextureSlots[0], i);
             }
 
             Renderer::DrawIndexed(m_RenderCommandBuffer, m_QuadVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_QuadPipeline, m_QuadShader, m_QuadIndexCount);
@@ -331,65 +338,8 @@ namespace Turbo
         Renderer::EndRenderPass(m_RenderCommandBuffer);
 
         // Copy selection buffer attachment from GPU memory to the host
-        Renderer::Submit([this]()
-        {
-            u32 currentFrame = Renderer::GetCurrentFrame();
-            VkBuffer hostBuffer = m_SelectionBuffers[currentFrame].As<VulkanBuffer>()->GetHandle();
+        Renderer::CopyImageToBuffer(m_RenderCommandBuffer, m_TargerRenderPass->GetConfig().TargetFrameBuffer->GetAttachment(FrameBuffer::AttachmentType_SelectionBuffer), m_SelectionBuffers[Renderer::GetCurrentFrame()]);
 
-            VkCommandBuffer currentCommandBuffer = m_RenderCommandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
-            VkImage selectionBufferAttachment = m_TargerRenderPass->GetConfig().
-                TargetFrameBuffer->GetAttachment(FrameBuffer::AttachmentType_SelectionBuffer).As<VulkanImage2D>()->GetImage();
-
-            // TODO: Abstract this
-            // Handle layout transition
-            {
-                VkImageMemoryBarrier imageBarrier = {};
-                imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                imageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                imageBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-                imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                imageBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                imageBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                imageBarrier.image = selectionBufferAttachment;
-
-                vkCmdPipelineBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
-            }
-
-            // Copy buffer
-            {
-                VkBufferImageCopy bufferImageCopyInfo{};
-                bufferImageCopyInfo.bufferOffset = 0;
-                bufferImageCopyInfo.bufferRowLength = 0;
-                bufferImageCopyInfo.bufferImageHeight = 0;
-                bufferImageCopyInfo.imageOffset = { 0, 0, 0 };
-                bufferImageCopyInfo.imageExtent = { m_ViewportWidth, m_ViewportHeight, 1 };
-
-                VkImageSubresourceLayers imageSubresource{};
-                imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                imageSubresource.mipLevel = 0;
-                imageSubresource.baseArrayLayer = 0;
-                imageSubresource.layerCount = 1;
-                bufferImageCopyInfo.imageSubresource = imageSubresource;
-
-                vkCmdCopyImageToBuffer(currentCommandBuffer, selectionBufferAttachment, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, hostBuffer, 1, &bufferImageCopyInfo);
-            }
-
-            // Handle layout transition
-            {
-                VkImageMemoryBarrier imageBarrier = {};
-                imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                imageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                imageBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-                imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                imageBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                imageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                imageBarrier.image = selectionBufferAttachment;
-
-                vkCmdPipelineBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
-            }
-        });
-
-        // Copy entity id buffer
         m_RenderCommandBuffer->End();
         m_RenderCommandBuffer->Submit();
     }

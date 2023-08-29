@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Turbo
 {
@@ -10,8 +11,12 @@ namespace Turbo
 
 		public string Name
 		{
-			get => InternalCalls.Entity_Get_Name(ID);
-			set => InternalCalls.Entity_Set_Name(ID, value);
+			get => m_Name;
+			set
+			{
+				InternalCalls.Entity_Set_Name(ID, value);
+				m_Name = value;
+			}
 		}
 
 		// Collision 2D callbacks
@@ -27,7 +32,8 @@ namespace Turbo
 		protected event Action<Entity> OnTriggerEnd;
 
 		// Caching components
-		private Dictionary<Type, Component> m_ComponentsCache = new Dictionary<Type, Component>();
+		private Dictionary<Type, Component> m_CachedComponents = new Dictionary<Type, Component>();
+		private string m_Name;
 
 		protected Entity() { ID = 0; }
 		protected virtual void OnCreate() { }
@@ -38,6 +44,7 @@ namespace Turbo
 			ID = id;
 
 			Transform = GetComponent<TransformComponent>();
+			m_Name = InternalCalls.Entity_Get_Name(ID);
 		}
 
 		public void UnParent() => InternalCalls.Entity_UnParent(ID);
@@ -50,17 +57,17 @@ namespace Turbo
 
 			if (!HasComponent<T>())
 			{
-				if (m_ComponentsCache.ContainsKey(componentType))
-					m_ComponentsCache.Remove(componentType);
+				if (m_CachedComponents.ContainsKey(componentType))
+					m_CachedComponents.Remove(componentType);
 
 				return null;
 			}
 
-			if (m_ComponentsCache.ContainsKey(componentType))
-				return m_ComponentsCache[componentType] as T;
+			if (m_CachedComponents.ContainsKey(componentType))
+				return m_CachedComponents[componentType] as T;
 
 			T component = new T() { Entity = this };
-			m_ComponentsCache.Add(componentType, component);
+			m_CachedComponents.Add(componentType, component);
 			return component;
 		}
 
@@ -77,7 +84,7 @@ namespace Turbo
 			InternalCalls.Entity_Add_Component(ID, componentType);
 
 			T component = new T() { Entity = this };
-			m_ComponentsCache.Add(componentType, component);
+			m_CachedComponents.Add(componentType, component);
 			return component;
 		}
 
@@ -91,8 +98,8 @@ namespace Turbo
 				return;
 			}
 
-			if (m_ComponentsCache.ContainsKey(componentType))
-				m_ComponentsCache.Remove(componentType);
+			if (m_CachedComponents.ContainsKey(componentType))
+				m_CachedComponents.Remove(componentType);
 
 			// TODO: Check if the component was remoed
 			InternalCalls.Entity_Remove_Component(ID, componentType);
@@ -156,10 +163,18 @@ namespace Turbo
 			return new Entity(entityID);
 		}
 
-		public T As<T>() where T : Entity, new()
+		public bool Is<T>() where T : Entity
 		{
-			object instance = InternalCalls.Entity_Get_Instance(ID);
-			return instance as T;
+			ScriptComponent script = GetComponent<ScriptComponent>();
+			object instance = script != null ? script.Instance : null;
+			return instance is T;
+		}
+
+		public T As<T>() where T : Entity
+		{
+			ScriptComponent script = GetComponent<ScriptComponent>();
+			object instance = script != null ? script.Instance : null;
+			return instance is T ? instance as T : null;
 		}
 
 		private void OnCollisionBegin2D_Internal(ulong id) => OnCollisionBegin2D?.Invoke(new Entity(id));

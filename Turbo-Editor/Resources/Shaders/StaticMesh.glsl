@@ -115,6 +115,12 @@ struct SpotLight
 // 1 - Specular
 layout(binding = 1) uniform sampler2D u_MaterialTexture[2];
 
+layout(push_constant) uniform Material
+{
+    vec3 AlbedoColor;
+    //float Roughness;
+} p_Material;
+
 // Point lights
 // TODO: Reduce the amount of active point lights by calculating which light is visible and which is not
 // std140 - buffer layout must be multiplier of 16 to match C++ struct

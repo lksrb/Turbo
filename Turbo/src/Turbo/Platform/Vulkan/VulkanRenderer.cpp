@@ -1,9 +1,10 @@
 #include "tbopch.h"
 #include "Turbo/Renderer/Renderer.h"
-#include "Turbo/Renderer/ShaderLibrary.h"
 
+#include "VulkanContext.h"
 #include "VulkanSwapChain.h"
 #include "VulkanBuffer.h"
+#include "VulkanTexture2D.h"
 #include "VulkanRenderPass.h"
 #include "VulkanRenderCommandBuffer.h"
 #include "VulkanImage2D.h"
@@ -13,7 +14,13 @@
 #include "VulkanShader.h"
 #include "VulkanUniformBuffer.h"
 
-#include "Turbo/Core/Engine.h"
+#include "Turbo/Core/Application.h"
+#include "Turbo/Core/Window.h"
+
+#include "Turbo/Renderer/Fly.h"
+#include "Turbo/Renderer/ShaderLibrary.h"
+#include "Turbo/Renderer/RendererContext.h"
+#include "Turbo/Renderer/Mesh.h"
 
 namespace Turbo {
 
@@ -28,7 +35,7 @@ namespace Turbo {
 
     static void UpdateWriteDescriptors(const Ref<UniformBufferSet>& uniformBufferSet, const Ref<VulkanShader>& shader, const std::vector<VulkanShader::UniformBufferInfo>& uniformBufferInfos)
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         for (const auto& ubInfo : uniformBufferInfos)
         {
@@ -67,18 +74,23 @@ namespace Turbo {
         }
     }
 
-    struct RendererInternal
+    struct VulkanRenderer
     {
         CommandQueue RenderQueue;
+
+        CommandQueue ResourceQueue;
+        Fly<CommandQueue> RuntimeResourceQueues;
+
         Ref<VertexBuffer> CubeMapVertexBuffer;
         Ref<IndexBuffer> CubeMapIndexBuffer;
+        Ref<Texture2D> WhiteTexture;
     };
 
-    static RendererInternal* s_Internal;
+    static VulkanRenderer* s_Renderer;
 
     void Renderer::Init()
     {
-        s_Internal = new RendererInternal;
+        s_Renderer = new VulkanRenderer;
 
         {
             // Since we dont need normals we can efficiently render a cube map
@@ -104,9 +116,12 @@ namespace Turbo {
                 4, 5, 1, 1, 0, 4,
             };
 
-            s_Internal->CubeMapVertexBuffer = VertexBuffer::Create(skyboxVertices.data(), skyboxVertices.size() * sizeof(glm::vec3));
-            s_Internal->CubeMapIndexBuffer = IndexBuffer::Create(skyboxIndices.data(), (u32)skyboxIndices.size());
+            s_Renderer->CubeMapVertexBuffer = VertexBuffer::Create(skyboxVertices.data(), skyboxVertices.size() * sizeof(glm::vec3));
+            s_Renderer->CubeMapIndexBuffer = IndexBuffer::Create(skyboxIndices.data(), (u32)skyboxIndices.size());
         }
+
+        // Create default white texture
+        s_Renderer->WhiteTexture = Texture2D::Create(0xffffffff);
 
         // Load shaders
         // TODO: Only load shaders that are used
@@ -115,21 +130,14 @@ namespace Turbo {
 
     void Renderer::Shutdown()
     {
+        GetResourceQueue().Execute();
+
+        // Ensure that everything is freed
+        for (auto& queue : s_Renderer->RuntimeResourceQueues)
+            queue.Execute();
+
         ShaderLibrary::Shutdown();
-        delete s_Internal;
-    }
-
-    CommandQueue& Renderer::GetCommandQueue()
-    {
-        return s_Internal->RenderQueue;
-    }
-
-    u32 Renderer::GetCurrentFrame()
-    {
-        auto swapChain = Engine::Get().GetViewportWindow()->GetSwapchain();
-        u32 currentFrame = swapChain->GetCurrentFrame();
-
-        return currentFrame;
+        delete s_Renderer;
     }
 
     void Renderer::BeginFrame()
@@ -143,12 +151,17 @@ namespace Turbo {
             }
         }
 
-        RendererContext::GetResourceRuntimeQueue().Execute();
+        GetResourceRuntimeQueue().Execute();
     }
 
     void Renderer::Render()
     {
-        s_Internal->RenderQueue.Execute();
+        s_Renderer->RenderQueue.Execute();
+    }
+
+    void Renderer::Wait()
+    {
+        VulkanContext::Get()->GetDevice().WaitIdle();
     }
 
     // Command buffer functions
@@ -328,7 +341,7 @@ namespace Turbo {
 
             Ref<VertexBuffer> vertexBuffer = meshSource->GetVertexBuffer();
             Ref<VertexBuffer> indexBuffer = meshSource->GetIndexBuffer();
-            Ref<VulkanShader> shader = pipeline->GetConfig().Shader.As<VulkanShader>();
+            Ref<VulkanShader> shader = meshSource->GetMeshShader();
 
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
@@ -349,6 +362,7 @@ namespace Turbo {
             vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
             VkDeviceSize instanceOffsets[] = { transformOffset };
             vkCmdBindVertexBuffers(vkCommandBuffer, 1, 1, &vkTransformBuffer, instanceOffsets);
+
             vkCmdBindIndexBuffer(vkCommandBuffer, vkIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
             vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &vkDescriptorSet, 0, nullptr);
@@ -362,8 +376,8 @@ namespace Turbo {
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
-            VkBuffer vkVertexBuffer = s_Internal->CubeMapVertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
-            VkBuffer vkIndexBuffer = s_Internal->CubeMapIndexBuffer.As<VulkanIndexBuffer>()->GetHandle();
+            VkBuffer vkVertexBuffer = s_Renderer->CubeMapVertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
+            VkBuffer vkIndexBuffer = s_Renderer->CubeMapIndexBuffer.As<VulkanIndexBuffer>()->GetHandle();
             VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
             VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
 
@@ -382,6 +396,96 @@ namespace Turbo {
 
             vkCmdDrawIndexed(vkCommandBuffer, 36, 1, 0, 0, 0);
         });
+    }
+
+
+    void Renderer::CopyImageToBuffer(Ref<RenderCommandBuffer> commandBuffer, Ref<Image2D> image, Ref<RendererBuffer> rendererBuffer)
+    {
+        Renderer::Submit([commandBuffer, image, rendererBuffer]()
+        {
+            VkBuffer hostBuffer = rendererBuffer.As<VulkanBuffer>()->GetHandle();
+
+            VkCommandBuffer currentCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
+            VkImage selectionBufferAttachment = image.As<VulkanImage2D>()->GetImage();
+
+            // Handle layout transition
+            {
+                VkImageMemoryBarrier imageBarrier = {};
+                imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                imageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                imageBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+                imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                imageBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                imageBarrier.image = selectionBufferAttachment;
+
+                vkCmdPipelineBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
+            }
+
+            // Copy buffer
+            {
+                VkBufferImageCopy bufferImageCopyInfo{};
+                bufferImageCopyInfo.bufferOffset = 0;
+                bufferImageCopyInfo.bufferRowLength = 0;
+                bufferImageCopyInfo.bufferImageHeight = 0;
+                bufferImageCopyInfo.imageOffset = { 0, 0, 0 };
+                bufferImageCopyInfo.imageExtent = { image->GetWidth(), image->GetHeight(), 1 };
+
+                VkImageSubresourceLayers imageSubresource{};
+                imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                imageSubresource.mipLevel = 0;
+                imageSubresource.baseArrayLayer = 0;
+                imageSubresource.layerCount = 1;
+                bufferImageCopyInfo.imageSubresource = imageSubresource;
+
+                vkCmdCopyImageToBuffer(currentCommandBuffer, selectionBufferAttachment, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, hostBuffer, 1, &bufferImageCopyInfo);
+            }
+
+            // Handle layout transition
+            {
+                VkImageMemoryBarrier imageBarrier = {};
+                imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                imageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                imageBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+                imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                imageBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                imageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageBarrier.image = selectionBufferAttachment;
+
+                vkCmdPipelineBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
+            }
+        });
+    }
+
+    u32 Renderer::GetCurrentFrame()
+    {
+        return Application::Get().GetViewportWindow()->GetSwapchain()->GetCurrentFrame();
+    }
+
+    Ref<Texture2D> Renderer::GetWhiteTexture()
+    {
+        return s_Renderer->WhiteTexture;
+    }
+
+    CommandQueue& Renderer::GetCommandQueue()
+    {
+        return s_Renderer->RenderQueue;
+    }
+
+    Ref<RendererContext> Renderer::GetContext()
+    {
+        return Application::Get().GetViewportWindow()->GetRendererContext();
+    }
+
+    CommandQueue& Renderer::GetResourceQueue()
+    {
+        return s_Renderer->ResourceQueue;
+    }
+
+    CommandQueue& Renderer::GetResourceRuntimeQueue()
+    {
+        u32 currentFrame = Renderer::GetCurrentFrame();
+        return s_Renderer->RuntimeResourceQueues[currentFrame];
     }
 
 }

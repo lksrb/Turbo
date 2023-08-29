@@ -1,17 +1,18 @@
 #include "tbopch.h"
 #include "VulkanVertexBuffer.h"
 
-#include "Turbo/Renderer/Renderer.h"
+#include "VulkanContext.h"
 #include "VulkanUtils.h"
 #include "VulkanRenderCommandBuffer.h"
 
-namespace Turbo
-{
+#include "Turbo/Renderer/Renderer.h"
+
+namespace Turbo {
     VulkanVertexBuffer::VulkanVertexBuffer(const void* vertices, u64 size)
     {
         m_Size = size;
 
-        VkDevice device = RendererContext::GetDevice();
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
         // Staging buffer
         {
@@ -51,7 +52,7 @@ namespace Turbo
 
             VkMemoryRequirements memRequirements;
             vkGetBufferMemoryRequirements(device, m_Buffer, &memRequirements);
-            
+
             VkMemoryAllocateInfo allocateInfo = {};
             allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocateInfo.pNext = nullptr;
@@ -72,14 +73,15 @@ namespace Turbo
 
             memcpy(m_StagingBufferPtr, vertices, size);
 
-            RendererContext::ImmediateSubmit([this, vertices, size](VkCommandBuffer commandBuffer)
             {
+                VkCommandBuffer commandBuffer = device.CreateCommandBuffer();
                 VkBufferCopy copyRegion{};
                 copyRegion.srcOffset = 0; // Optional
                 copyRegion.dstOffset = 0; // Optional
                 copyRegion.size = size;
                 vkCmdCopyBuffer(commandBuffer, m_StagingBuffer, m_Buffer, 1, &copyRegion);
-            });
+                device.FlushCommandBuffer(commandBuffer);
+            }
 
             // Destroying staging buffer since its no longer needed
             vkUnmapMemory(device, m_StagingBufferMemory);
@@ -92,7 +94,7 @@ namespace Turbo
         }
 
         // Add it to the resource free queue
-        RendererContext::SubmitResourceFree([device, stagingBuffer = m_StagingBuffer, stagingBufferMemory = m_StagingBufferMemory,
+        Renderer::SubmitResourceFree([device = device.GetHandle(), stagingBuffer = m_StagingBuffer, stagingBufferMemory = m_StagingBufferMemory,
           buffer = m_Buffer, bufferMemory = m_BufferMemory, type = m_Type]()
         {
             if (type == VertexBufferType::Dynamic)

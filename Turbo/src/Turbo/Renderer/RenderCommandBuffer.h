@@ -1,15 +1,13 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
-
 namespace Turbo
 {
     // Set of command buffers
     class RenderCommandBuffer : public RefCounted
     {
     public:
-        RenderCommandBuffer();
-        virtual ~RenderCommandBuffer();
+        RenderCommandBuffer() = default;
+        virtual ~RenderCommandBuffer() = default;
 
         static Ref<RenderCommandBuffer> Create();
 

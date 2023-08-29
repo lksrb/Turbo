@@ -4,7 +4,7 @@
 #include "Script.h"
 #include "ScriptInstance.h"
 
-#include "Turbo/Scene/SceneDrawList.h"
+#include "Turbo/Renderer/SceneDrawList.h"
 
 #include "Turbo/Physics/PhysicsWorld2D.h"
 #include "Turbo/Physics/PhysicsWorld.h"
@@ -12,7 +12,7 @@
 
 #include "Turbo/Audio/Audio.h"
 #include "Turbo/Asset/AssetManager.h"
-#include "Turbo/Core/Engine.h"
+#include "Turbo/Core/Application.h"
 #include "Turbo/Core/Input.h"
 #include "Turbo/Core/Math.h"
 
@@ -66,7 +66,7 @@ namespace Turbo {
         static void Application_Close()
         {
             auto context = Script::GetCurrentScene();
-            Engine::Get().Close();
+            Application::Get().Close();
         }
 
 #pragma endregion
@@ -290,14 +290,6 @@ namespace Turbo {
             return uuid;
         }
 
-        static MonoObject* Entity_Get_Instance(UUID uuid)
-        {
-            Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
-            TBO_ENGINE_ASSERT(instance);
-
-            return instance->GetMonoInstance();
-        }
-
         static bool Entity_Has_Component(u64 uuid, MonoReflectionType* reflectionType)
         {
             Entity entity = GetEntity(uuid);
@@ -364,10 +356,11 @@ namespace Turbo {
             auto context = Script::GetCurrentScene();
             Entity entity = context->FindEntityByUUID(uuid);
 
-            if (!entity) [[unlikely]]
+            if (!entity) [[unlikely]] {
                 TBO_CONSOLE_ERROR("Entity doesnt exist!");
+            }
 
-                entity.UnParent();
+            entity.UnParent();
         }
 
         static MonoString* Entity_Get_Name(UUID uuid)
@@ -432,7 +425,7 @@ namespace Turbo {
                 return entity.GetUUID();
             }
 
-            TBO_ENGINE_ERROR("Could not instantiate prefab!");
+            TBO_CONSOLE_ERROR("Could not instantiate prefab!");
             return 0;
         }
 
@@ -452,7 +445,7 @@ namespace Turbo {
                 return entity.GetUUID();
             }
 
-            TBO_ENGINE_ERROR("Could not instantiate prefab!");
+            TBO_CONSOLE_ERROR("Could not instantiate prefab!");
             return 0;
         }
 
@@ -533,6 +526,16 @@ namespace Turbo {
             Entity entity = GetEntity(uuid);
             if (entity)
                 entity.GetComponent<TransformComponent>().Scale = *scale;
+        }
+
+#pragma endregion
+
+#pragma region ScriptComponent
+
+        static MonoObject* Component_Script_Get_Instance(UUID uuid)
+        {
+            Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
+            return instance ? instance->GetMonoInstance() : nullptr;
         }
 
 #pragma endregion
@@ -1346,7 +1349,6 @@ namespace Turbo {
 
         // Entity
         TBO_REGISTER_FUNCTION(Entity_FindEntityByName);
-        TBO_REGISTER_FUNCTION(Entity_Get_Instance);
         TBO_REGISTER_FUNCTION(Entity_Get_Name);
         TBO_REGISTER_FUNCTION(Entity_Set_Name);
         TBO_REGISTER_FUNCTION(Entity_Has_Component);
@@ -1375,6 +1377,9 @@ namespace Turbo {
         TBO_REGISTER_FUNCTION(Component_Transform_Set_Rotation);
         TBO_REGISTER_FUNCTION(Component_Transform_Get_Scale);
         TBO_REGISTER_FUNCTION(Component_Transform_Set_Scale);
+
+        // Script
+        TBO_REGISTER_FUNCTION(Component_Script_Get_Instance);
 
         // Line Renderer
         TBO_REGISTER_FUNCTION(Component_LineRenderer_Get_Destination);
@@ -1486,8 +1491,8 @@ namespace Turbo {
             }
 
             s_EntityHasComponentFuncs[type] = [](Entity entity) { return entity.HasComponent<Component>(); };
-            s_EntityAddComponentFuncs[type] = [](Entity entity) 
-            { 
+            s_EntityAddComponentFuncs[type] = [](Entity entity)
+            {
                 entity.AddComponent<Component>();
 
                 // Should having a collider be mandatory for 2D physics? 
@@ -1501,9 +1506,9 @@ namespace Turbo {
                     Script::GetCurrentScene()->GetPhysicsWorld()->CreateRigidbody(entity);
                 }
             };
-            s_EntityRemoveComponentFuncs[type] = [](Entity entity) 
-            { 
-                entity.RemoveComponent<Component>(); 
+            s_EntityRemoveComponentFuncs[type] = [](Entity entity)
+            {
+                entity.RemoveComponent<Component>();
             };
         }(), ...);
     }

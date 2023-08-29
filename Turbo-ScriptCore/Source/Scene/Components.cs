@@ -64,6 +64,11 @@ namespace Turbo
 		}
 	}
 
+	public class ScriptComponent : Component
+	{
+		public object Instance => InternalCalls.Component_Script_Get_Instance(Entity.ID);
+	}
+
 	public class LineRendererComponent : Component
 	{
 		// Range [0.0f, 1.0f]

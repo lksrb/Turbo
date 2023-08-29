@@ -3,8 +3,6 @@
 #include "Turbo/Core/UUID.h"
 #include "Turbo/Core/PrimitiveTypes.h"
 
-#include <glm/glm.hpp>
-
 namespace Turbo
 {
     class Entity;

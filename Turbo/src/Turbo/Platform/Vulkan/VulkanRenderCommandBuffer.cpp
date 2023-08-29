@@ -1,20 +1,21 @@
 #include "tbopch.h"
 #include "VulkanRenderCommandBuffer.h"
 
+#include "VulkanContext.h"
+
 #include "Turbo/Renderer/Renderer.h"
-#include "Turbo/Renderer/RendererContext.h"
 
 namespace Turbo
 {
     VulkanRenderCommandBuffer::VulkanRenderCommandBuffer()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
         // Command buffers
         {
             VkCommandBufferAllocateInfo alloc_info = {};
             alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            alloc_info.commandPool = RendererContext::GetCommandPool();
+            alloc_info.commandPool = device.GetCommandPool();
             alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
             alloc_info.commandBufferCount = m_CommandBuffers.Size();
 
@@ -32,9 +33,8 @@ namespace Turbo
             }
         }
 
-        RendererContext::SubmitResourceFree([waitFences = m_WaitFences]()
+        Renderer::SubmitResourceFree([device = device.GetHandle(), waitFences = m_WaitFences]()
         {
-            VkDevice device = RendererContext::GetDevice();
             for (auto& fence : waitFences)
             {
                 vkDestroyFence(device, fence, nullptr);
@@ -60,7 +60,7 @@ namespace Turbo
 
         Renderer::Submit([commandBuffer, waitFence]()
         {
-            VkDevice device = RendererContext::GetDevice();
+            VkDevice device = VulkanContext::Get()->GetDevice();
 
             TBO_VK_ASSERT(vkWaitForFences(device, 1, &waitFence, VK_TRUE, UINT64_MAX));
             TBO_VK_ASSERT(vkResetFences(device, 1, &waitFence));
@@ -91,15 +91,13 @@ namespace Turbo
         VkFence waitFence = m_WaitFences[currentFrame];
         Renderer::Submit([commandBuffer, waitFence]()
         {
-            VkDevice device = RendererContext::GetDevice();
-            u32 currentFrame = Renderer::GetCurrentFrame();
-            VkQueue graphicsQueue = RendererContext::GetGraphicsQueue();
+            VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
-            VkSubmitInfo submit_info = {};
-            submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submit_info.pCommandBuffers = &commandBuffer;
-            submit_info.commandBufferCount = 1;
-            TBO_VK_ASSERT(vkQueueSubmit(graphicsQueue, 1, &submit_info, waitFence));
+            VkSubmitInfo submitInfo = {};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitInfo.pCommandBuffers = &commandBuffer;
+            submitInfo.commandBufferCount = 1;
+            TBO_VK_ASSERT(vkQueueSubmit(device.GetGraphicsQueue(), 1, &submitInfo, waitFence));
         });
     }
 

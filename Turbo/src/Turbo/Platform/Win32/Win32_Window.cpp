@@ -3,8 +3,9 @@
 #include "Win32_Window.h"
 #include "Win32_Utils.h"
 
-#include "Turbo/Core/Engine.h"
+#include "Turbo/Core/Application.h"
 #include "Turbo/Core/Platform.h"
+#include "Turbo/Core/Input.h"
 
 #include "Turbo/Event/MouseEvent.h"
 #include "Turbo/Event/WindowEvent.h"
@@ -20,6 +21,7 @@
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace Turbo {
+
     LRESULT CALLBACK Win32_Window::Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         // User Interface
@@ -56,12 +58,6 @@ namespace Turbo {
 
         ::ClientToScreen(m_Handle, &cursorPos);
         ::SetCursorPos(cursorPos.x, cursorPos.y);
-    }
-
-    void Win32_Window::InitializeSwapchain()
-    {
-        // Create swapchain
-        m_Swapchain = SwapChain::Create();
     }
 
     void Win32_Window::InitializeWindow()
@@ -340,4 +336,5 @@ namespace Turbo {
     {
         m_Swapchain->SwapFrame();
     }
+
 }

@@ -1,18 +1,17 @@
 #include "tbopch.h"
 #include "VulkanBuffer.h"
 
-#include "Turbo/Platform/Vulkan/VulkanUtils.h"
+#include "VulkanContext.h"
+#include "VulkanUtils.h"
 
-#include "Turbo/Renderer/RendererContext.h"
-
-#include <vulkan/vulkan.h>
+#include "Turbo/Renderer/Renderer.h"
 
 namespace Turbo
 { 
     VulkanBuffer::VulkanBuffer(const RendererBuffer::Config& config)
         : RendererBuffer(config)
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         VkBufferCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -50,7 +49,7 @@ namespace Turbo
         if (m_Config.Temporary == false)
         {
             // Add it to deletion queue 
-            RendererContext::SubmitResourceFree([device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
+            Renderer::SubmitResourceFree([device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
             {
                 vkUnmapMemory(device, m_Memory);
                 vkDestroyBuffer(device, m_Buffer, nullptr);
@@ -63,9 +62,9 @@ namespace Turbo
     {
         if (m_Config.Temporary)
         {
-            RendererContext::SubmitRuntimeResourceFree([m_Memory = m_Memory, m_Buffer = m_Buffer]()
+            Renderer::SubmitRuntimeResourceFree([m_Memory = m_Memory, m_Buffer = m_Buffer]()
             {
-                VkDevice device = RendererContext::GetDevice();
+                VkDevice device = VulkanContext::Get()->GetDevice();
                 vkUnmapMemory(device, m_Memory);
                 vkDestroyBuffer(device, m_Buffer, nullptr);
                 vkFreeMemory(device, m_Memory, nullptr);

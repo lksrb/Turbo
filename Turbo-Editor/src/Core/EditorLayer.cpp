@@ -1,4 +1,4 @@
-#include "Editor.h"
+#include "EditorLayer.h"
 
 #include "EditorIcons.h"
 
@@ -11,7 +11,6 @@
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
 
-#include <Turbo/Audio/Audio.h>
 #include <Turbo/Asset/AssetManager.h>
 #include <Turbo/Debug/ScopeTimer.h>
 #include <Turbo/Script/Script.h>
@@ -24,7 +23,6 @@
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
 
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <filesystem>
@@ -90,12 +88,12 @@ namespace Turbo::Ed {
             return {};
         }
 
-        static const wchar_t* GetIDEToString(Editor::DevEnv ide)
+        static const wchar_t* GetIDEToString(EditorLayer::DevEnv ide)
         {
             switch (ide)
             {
-                case Editor::DevEnv::None: return L"none";
-                case Editor::DevEnv::VS2022: return L"vs2022";
+                case EditorLayer::DevEnv::None: return L"none";
+                case EditorLayer::DevEnv::VS2022: return L"vs2022";
             }
 
             TBO_ENGINE_ERROR("Invalid IDE!");
@@ -103,17 +101,12 @@ namespace Turbo::Ed {
         }
     }
 
-    Editor::Editor(const Application::Config& config)
-        : Application(config), m_ViewportWidth(config.Width), m_ViewportHeight(config.Height)
+    void EditorLayer::OnAttach()
     {
-    }
+        const auto& appConfig = Application::Get().GetConfig();
+        m_ViewportWidth = appConfig.Width;
+        m_ViewportHeight = appConfig.Height;
 
-    Editor::~Editor()
-    {
-    }
-
-    void Editor::OnInitialize()
-    {
         m_CurrentPath = std::filesystem::current_path();
 
         // Get path to msbuild for building assemblies
@@ -131,7 +124,7 @@ namespace Turbo::Ed {
             m_PanelManager->GetPanel<AssetEditorPanel>()->OpenAsset(handle);
         });
         m_PanelManager->AddPanel<AssetEditorPanel>();
-        m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(Editor::CreateProject));
+        m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(EditorLayer::CreateProject));
 
         // Render 
         m_ViewportDrawList = Ref<SceneDrawList>::Create(m_ViewportWidth, m_ViewportHeight);
@@ -151,14 +144,16 @@ namespace Turbo::Ed {
         OpenProject(m_CurrentPath / "Mystery/Mystery.tproject");
     }
 
-    void Editor::OnShutdown()
+    void EditorLayer::OnDetach()
     {
         // Reset
         Project::SetActive(nullptr);
     }
 
-    void Editor::OnUpdate()
+    void EditorLayer::OnUpdate(Time time)
     {
+        m_CurrentTime = time;
+
         m_ViewportDrawList->Begin();
 
         switch (m_SceneMode)
@@ -167,15 +162,15 @@ namespace Turbo::Ed {
             {
                 if (m_ViewportHovered)
                 {
-                    m_EditorCamera.OnUpdate(m_Time.DeltaTime);
+                    m_EditorCamera.OnUpdate(time.DeltaTime);
                 }
 
-                m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, m_Time.DeltaTime);
+                m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, time.DeltaTime);
                 break;
             }
             case SceneMode::Play:
             {
-                m_CurrentScene->OnRuntimeUpdate(m_ViewportDrawList, m_Time.DeltaTime);
+                m_CurrentScene->OnRuntimeUpdate(m_ViewportDrawList, time.DeltaTime);
                 break;
             }
         }
@@ -186,7 +181,7 @@ namespace Turbo::Ed {
         m_ViewportDrawList->End();
     }
 
-    void Editor::OnDrawUI()
+    void EditorLayer::OnDrawUI()
     {
         // Dockspace
         ImGuiDockNodeFlags dockSpaceFlags = ImGuiDockNodeFlags_None;
@@ -292,7 +287,7 @@ namespace Turbo::Ed {
 
             m_ViewportHovered = ImGui::IsWindowHovered();
             m_ViewportFocused = ImGui::IsWindowFocused();
-            Engine::Get().SetUIBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+            Application::Get().SetUIBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
             ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
             ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -536,11 +531,10 @@ namespace Turbo::Ed {
 
             ImGui::End();
         }
-
         ImGui::Begin("Statistics & Renderer");
         ImGui::Text("Hovered entity: %s", m_HoveredEntity ? m_HoveredEntity.GetName().c_str() : "");
-        ImGui::Text("Timestep: %.5f ms", m_Time.DeltaTime.ms());
-        ImGui::Text("StartTime: %.5f ms", m_Time.TimeSinceStart.ms());
+        ImGui::Text("Timestep: %.5f ms", m_CurrentTime.DeltaTime.ms());
+        ImGui::Text("Time since start: %.5f ms", m_CurrentTime.TimeSinceStart.ms());
         ImGui::Separator();
 
         // TODO: Better statistics
@@ -561,7 +555,7 @@ namespace Turbo::Ed {
         ImGui::End();
     }
 
-    void Editor::OnEvent(Event& e)
+    void EditorLayer::OnEvent(Event& e)
     {
         m_PanelManager->OnEvent(e);
 
@@ -569,13 +563,13 @@ namespace Turbo::Ed {
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(Editor::OnKeyPressed));
-        dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(Editor::OnMouseButtonPressed));
-        dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(Editor::OnWindowClosed));
-        dispatcher.Dispatch<WindowResizeEvent>(TBO_BIND_FN(Editor::OnWindowResize));
+        dispatcher.Dispatch<KeyPressedEvent>(TBO_BIND_FN(EditorLayer::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(TBO_BIND_FN(EditorLayer::OnMouseButtonPressed));
+        dispatcher.Dispatch<WindowCloseEvent>(TBO_BIND_FN(EditorLayer::OnWindowClosed));
+        dispatcher.Dispatch<WindowResizeEvent>(TBO_BIND_FN(EditorLayer::OnWindowResize));
     }
 
-    bool Editor::OnKeyPressed(KeyPressedEvent& e)
+    bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
     {
         bool isRepeated = e.IsRepeated();
         bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
@@ -689,18 +683,18 @@ namespace Turbo::Ed {
         return true;
     }
 
-    bool Editor::OnWindowClosed(WindowCloseEvent& e)
+    bool EditorLayer::OnWindowClosed(WindowCloseEvent& e)
     {
         Close();
         return false;
     }
 
-    bool Editor::OnWindowResize(WindowResizeEvent& e)
+    bool EditorLayer::OnWindowResize(WindowResizeEvent& e)
     {
         return false;
     }
 
-    bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+    bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
     {
         if (e.GetMouseButton() == Mouse::ButtonLeft)
         {
@@ -718,7 +712,7 @@ namespace Turbo::Ed {
         return false;
     }
 
-    void Editor::CreateProject(std::filesystem::path projectPath)
+    void EditorLayer::CreateProject(std::filesystem::path projectPath)
     {
         // Create and recursively copy template project
         std::filesystem::copy("Resources/NewProjectTemplate", projectPath, std::filesystem::copy_options::recursive);
@@ -767,7 +761,7 @@ namespace Turbo::Ed {
         OpenProject(configFile);
     }
 
-    void Editor::OpenProject(std::filesystem::path configFilePath)
+    void EditorLayer::OpenProject(std::filesystem::path configFilePath)
     {
         // Opens platform specific 
         if (configFilePath.empty())
@@ -814,7 +808,7 @@ namespace Turbo::Ed {
         OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
     }
 
-    void Editor::UpdateWindowTitle()
+    void EditorLayer::UpdateWindowTitle()
     {
         auto project = Project::GetActive();
 
@@ -823,10 +817,10 @@ namespace Turbo::Ed {
 
         std::string sceneName = m_EditorScenePath.stem().string();
         std::string title = std::format("TurboEditor | {0} - {1} | Vulkan", project->GetProjectName(), sceneName);
-        Engine::Get().GetViewportWindow()->SetTitle(title.data());
+        Application::Get().GetViewportWindow()->SetTitle(title.data());
     }
 
-    void Editor::OnViewportResize(u32 width, u32 height)
+    void EditorLayer::OnViewportResize(u32 width, u32 height)
     {
         m_ViewportWidth = width;
         m_ViewportHeight = height;
@@ -839,7 +833,7 @@ namespace Turbo::Ed {
         TBO_WARN("Viewport resized! {} {}", width, height);
     }
 
-    void Editor::SaveProject()
+    void EditorLayer::SaveProject()
     {
         SaveScene();
 
@@ -849,7 +843,7 @@ namespace Turbo::Ed {
         TBO_VERIFY(serializer.Serialize(Project::GetProjectConfigPath()), "[Save Project] Successfully serialized project!");
     }
 
-    void Editor::NewScene()
+    void EditorLayer::NewScene()
     {
         // Save current scene
         SaveScene();
@@ -865,7 +859,7 @@ namespace Turbo::Ed {
         OpenScene(scenePath);
     }
 
-    void Editor::SaveScene()
+    void EditorLayer::SaveScene()
     {
         auto project = Project::GetActive();
 
@@ -891,7 +885,7 @@ namespace Turbo::Ed {
         TBO_ERROR("[SaveScene] Could not serialize to \"{0}\"!", m_EditorScenePath);
     }
 
-    void Editor::OpenScene(std::filesystem::path filepath)
+    void EditorLayer::OpenScene(std::filesystem::path filepath)
     {
         if (filepath.empty())
         {
@@ -921,7 +915,7 @@ namespace Turbo::Ed {
         UpdateWindowTitle();
     }
 
-    void Editor::SaveSceneAs()
+    void EditorLayer::SaveSceneAs()
     {
         auto project = Project::GetActive();
 
@@ -958,7 +952,7 @@ namespace Turbo::Ed {
         TBO_ERROR("Could not serialize scene to \"{0}\"!", filepath);
     }
 
-    void Editor::OnScenePlay()
+    void EditorLayer::OnScenePlay()
     {
         // Clear logs
         EditorConsolePanel::Clear();
@@ -986,7 +980,7 @@ namespace Turbo::Ed {
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 
-    void Editor::OnSceneStop()
+    void EditorLayer::OnSceneStop()
     {
         m_SceneMode = SceneMode::Edit;
 
@@ -1014,7 +1008,7 @@ namespace Turbo::Ed {
         m_PanelManager->GetPanel<SceneHierarchyPanel>()->SetSelectedEntity(m_SelectedEntity);
     }
 
-    void Editor::Close()
+    void EditorLayer::Close()
     {
         if (m_SceneMode == SceneMode::Play)
         {
@@ -1025,7 +1019,7 @@ namespace Turbo::Ed {
         SaveProject();
     }
 
-    void Editor::OnOverlayRender()
+    void EditorLayer::OnOverlayRender()
     {
         if (m_ShowPhysicsColliders)
         {

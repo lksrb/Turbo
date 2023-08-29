@@ -1,10 +1,5 @@
 #pragma once
 
-/*
-#ifndef _HAS_CXX17
-    #error Please use C++17 or above to build this project!
-#endif*/
-
 #include <utility>
 
 #define TBO_BIND_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }

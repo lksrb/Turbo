@@ -1,6 +1,6 @@
 #include "tbopch.h"
 #include "Turbo/Core/Platform.h"
-#include "Turbo/Core/Engine.h"
+#include "Turbo/Core/Application.h"
 
 #include "Win32_Window.h"
 
@@ -69,7 +69,7 @@ namespace Turbo {
         OPENFILENAME ofn = {};
         WCHAR szFile[MAX_PATH] = { 0 };
         ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = dynamic_cast<Win32_Window*>(Engine::Get().GetViewportWindow())->GetHandle();
+        ofn.hwndOwner = dynamic_cast<Win32_Window*>(Application::Get().GetViewportWindow())->GetHandle();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = sizeof(szFile);
         ofn.lpstrFilter = filter;
@@ -144,7 +144,7 @@ namespace Turbo {
         WCHAR szFile[MAX_PATH] = { 0 };
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
         ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = dynamic_cast<Win32_Window*>(Engine::Get().GetViewportWindow())->GetHandle();
+        ofn.hwndOwner = dynamic_cast<Win32_Window*>(Application::Get().GetViewportWindow())->GetHandle();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = sizeof(szFile);
         ofn.lpstrFilter = wfilter;

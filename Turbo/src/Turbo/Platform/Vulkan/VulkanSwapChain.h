@@ -56,7 +56,9 @@ namespace Turbo
         Fly<VkFramebuffer> m_Framebuffers;
         Fly<VkCommandBuffer> m_RenderCommandBuffers;
 
-        VkFormat m_SwapchainFormat = VK_FORMAT_UNDEFINED;
+        std::array<u32, 2> m_SwapchainQueues;
+        VkSharingMode m_QueueShareMode;
+        VkSurfaceFormatKHR m_SwapChainFormat;
 
         u32 m_CurrentFrame = 0;
         u32 m_ImageIndex = 0;

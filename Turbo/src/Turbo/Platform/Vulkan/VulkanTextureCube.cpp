@@ -1,10 +1,11 @@
 #include "tbopch.h"
 #include "VulkanTextureCube.h"
 
+#include "VulkanContext.h"
 #include "VulkanBuffer.h"
 #include "VulkanUtils.h"
 
-#include "Turbo/Renderer/RendererContext.h"
+#include "Turbo/Renderer/Renderer.h"
 
 #include <stb_image.h>
 
@@ -46,7 +47,7 @@ namespace Turbo
             m_Config.Height = height;
         }
 #endif
-        VkDevice device = RendererContext::GetDevice();
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
         VkImageCreateInfo imageCreateInfo = {};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -90,7 +91,7 @@ namespace Turbo
             memcpy(data + layerSize * i, skyboxFacePixels[i], layerSize);
         }
 
-        VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
+        VkCommandBuffer commandBuffer = device.CreateCommandBuffer();
 
         VkImageSubresourceRange subResourceRange = {};
         subResourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -169,7 +170,7 @@ namespace Turbo
             );
         }
 
-        RendererContext::FlushCommandBuffer(commandBuffer);
+        device.FlushCommandBuffer(commandBuffer);
 
         // Image view
         VkImageViewCreateInfo createInfo = {};
@@ -209,9 +210,8 @@ namespace Turbo
         TBO_VK_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler));
 
         // Add it to deletion queue 
-        RendererContext::SubmitResourceFree([sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
+        Renderer::SubmitResourceFree([device = device.GetHandle(), sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
         {
-            VkDevice device = RendererContext::GetDevice();
             vkDestroySampler(device, sampler, nullptr);
             vkDestroyImage(device, image, nullptr);
             vkFreeMemory(device, imageMemory, nullptr);

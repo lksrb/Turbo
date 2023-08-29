@@ -1,16 +1,17 @@
 #include "tbopch.h"
 #include "VulkanMaterial.h"
 
-#include "Turbo/Renderer/RendererContext.h"
-
+#include "VulkanContext.h"
 #include "VulkanShader.h"
 #include "VulkanTexture2D.h"
 #include "VulkanTextureCube.h"
 
+#include "Turbo/Renderer/Renderer.h"
+
 namespace Turbo
 {
-    VulkanMaterial::VulkanMaterial(const Material::Config& config)
-        : Material(config)
+    VulkanMaterial::VulkanMaterial(const Ref<Shader>& shader)
+        : Material(shader)
     {
         UpdateDescriptors();
     }
@@ -19,14 +20,14 @@ namespace Turbo
     {
     }
 
-    void VulkanMaterial::Set(const std::string& resourceName, const glm::mat4& matrix)
+    void VulkanMaterial::Set(std::string_view resourceName, const glm::mat4& matrix)
     {
         Set(resourceName, &matrix, sizeof(glm::mat4));
     }
 
-    void VulkanMaterial::Set(const std::string& resourceName, const void* data, size_t size)
+    void VulkanMaterial::Set(std::string_view resourceName, const void* data, u64 size)
     {
-        const auto& resource = m_UniformBufferMap.find(resourceName.c_str());
+        const auto& resource = m_UniformBufferMap.find(resourceName.data());
         TBO_ENGINE_ASSERT(resource != m_UniformBufferMap.end(), "Resource does not exists!");
 
         auto buffer = (*resource).second;
@@ -34,12 +35,12 @@ namespace Turbo
         buffer->SetData(data);
     }
 
-    void VulkanMaterial::Set(const std::string& resourceName, const Ref<Texture2D>& texture, u32 index)
+    void VulkanMaterial::Set(std::string_view resourceName, const Ref<Texture2D>& texture, u32 index)
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         // Find specific resource write descriptor
-        const auto& resource = m_DescriptorWrites.find(resourceName.c_str());
+        const auto& resource = m_DescriptorWrites.find(resourceName.data());
         TBO_ENGINE_ASSERT(resource != m_DescriptorWrites.end()); // No such descriptor exists
 
         // Convert texture2D 
@@ -57,17 +58,17 @@ namespace Turbo
         vkUpdateDescriptorSets(device, 1, &writeInfo, 0, nullptr);
     }
 
-    void VulkanMaterial::Set(const std::string& resourceName, const Ref<TextureCube>& texture)
+    void VulkanMaterial::Set(std::string_view resourceName, const Ref<TextureCube>& texture)
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         // Find specific resource write descriptor
-        const auto& resource = m_DescriptorWrites.find(resourceName.c_str());
+        const auto& resource = m_DescriptorWrites.find(resourceName.data());
         TBO_ENGINE_ASSERT(resource != m_DescriptorWrites.end()); // No such descriptor exists
 
         auto vkTextureCube = texture.As<VulkanTextureCube>();
 
-        auto& descWrite = m_DescriptorWrites[resourceName];
+        auto& descWrite = m_DescriptorWrites[resourceName.data()];
         VkDescriptorImageInfo imageInfo = {};
         imageInfo.sampler = vkTextureCube->GetSampler();
         imageInfo.imageView = vkTextureCube->GetImageView();
@@ -77,16 +78,11 @@ namespace Turbo
         vkUpdateDescriptorSets(device, 1, &descWrite, 0, nullptr);
     }
 
-    void VulkanMaterial::Update()
-    {
-        // Invalidate descriptor sets
-    }
-
     void VulkanMaterial::UpdateDescriptors()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
-        // Creating default samplers, because Vulkan does not support empty samplers (only if extension is enabled, which is a bit problematic)
+        // Creating default samplers, because Vulkan does not support empty samplers (only if extension is enabled, and we want to avoid that)
         VkSampler defaultSampler = VK_NULL_HANDLE;
         VkSamplerCreateInfo samplerInfo = {};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -110,13 +106,13 @@ namespace Turbo
 
         TBO_VK_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &defaultSampler));
 
-        RendererContext::SubmitResourceFree([device, defaultSampler]()
+        Renderer::SubmitResourceFree([device, defaultSampler]()
         {
             vkDestroySampler(device, defaultSampler, nullptr);
         });
 
         // Writing to Descriptor set
-        Ref<VulkanShader> shader = m_Config.MaterialShader.As<VulkanShader>();
+        Ref<VulkanShader> shader = m_MaterialShader.As<VulkanShader>();
         VulkanShader::Resources resources = shader->GetResources();
         {
             // Texture samplers

@@ -2,7 +2,6 @@
 #include "UniformBuffer.h"
 
 #include "Renderer.h"
-#include "RendererContext.h"
 
 #include "Turbo/Platform/Vulkan/VulkanUniformBuffer.h"
 
@@ -52,7 +51,7 @@ namespace Turbo
     {
         // Create or recreate uniform buffer
         auto& uniformBuffers = m_UniformBufferMap[set][binding];
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
+        for (u32 i = 0; i < RendererSettings::FramesInFlight; ++i)
         {
             auto& uniformBuffer = m_UniformBufferMap[set][binding][i];
             uniformBuffer = UniformBuffer::Create({ set, binding, dataSize });

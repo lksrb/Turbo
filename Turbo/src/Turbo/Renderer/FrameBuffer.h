@@ -1,10 +1,6 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
-
 #include "Turbo/Renderer/Image2D.h"
-
-#include <glm/glm.hpp>
 
 namespace Turbo
 {

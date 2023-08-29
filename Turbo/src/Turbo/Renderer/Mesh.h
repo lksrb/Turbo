@@ -1,13 +1,13 @@
 #pragma once
 
 #include "VertexBuffer.h"
+#include "Shader.h"
 #include "IndexBuffer.h"
 
 #include "Turbo/Asset/Asset.h"
 #include "Turbo/Core/Buffer.h"
 
 #include <string>
-#include <glm/glm.hpp>
 
 struct aiNode;
 struct aiScene;
@@ -22,7 +22,10 @@ namespace Turbo
         u32 VertexCount = 0;
         u32 IndexCount = 0;
         glm::mat4 Transform{ 1.0f };
-        //std::string Name;
+
+#ifdef TBO_DEBUG
+        std::string DebugName;
+#endif
     };
 
     class MeshSource : public Asset
@@ -34,6 +37,7 @@ namespace Turbo
 
         Ref<VertexBuffer> GetVertexBuffer() const { return m_VertexBuffer; }
         Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
+        Ref<Shader> GetMeshShader() const { return m_MeshShader; }
 
         const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
 
@@ -60,6 +64,7 @@ namespace Turbo
         std::vector<Vertex> m_Vertices;
         std::vector<u32> m_Indices;
 
+        Ref<Shader> m_MeshShader;
         Ref<VertexBuffer> m_VertexBuffer;
         Ref<IndexBuffer> m_IndexBuffer;
 

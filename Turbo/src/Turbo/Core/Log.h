@@ -3,11 +3,13 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-namespace Turbo 
-{
-    class Log 
+namespace Turbo {
+
+    class Log
     {
     public:
         enum Level
@@ -32,6 +34,18 @@ namespace Turbo
 
         static inline bool s_Initialized = false;
     };
+}
+
+template<typename OStream>
+OStream& operator<<(OStream& os, const glm::vec3& vec)
+{
+    return os << '[' << vec.x << ", " << vec.y << ", " << vec.z << ']';
+}
+
+template<typename OStream>
+OStream& operator<<(OStream& os, const glm::vec4& vec)
+{
+    return os << '[' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ']';
 }
 
 #ifdef TBO_DEBUG

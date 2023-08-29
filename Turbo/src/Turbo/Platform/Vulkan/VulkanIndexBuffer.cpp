@@ -2,16 +2,16 @@
 #include "VulkanIndexBuffer.h"
 
 #include "VulkanUtils.h"
+#include "VulkanContext.h"
 
-#include "Turbo/Renderer/RendererContext.h"
+#include "Turbo/Renderer/Renderer.h"
 
-namespace Turbo
-{
+namespace Turbo {
     VulkanIndexBuffer::VulkanIndexBuffer(const u32* indices, u32 count)
     {
         m_Size = count * sizeof(u32);
 
-        VkDevice device = RendererContext::GetDevice();
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
         // Staging buffer
         VkBuffer stagingBuffer = VK_NULL_HANDLE;
@@ -72,23 +72,24 @@ namespace Turbo
         }
 
         // Transfer indices immediately to GPU
-        RendererContext::ImmediateSubmit([this, stagingBuffer](VkCommandBuffer commandBuffer)
         {
-            VkDevice device = RendererContext::GetDevice();
+            VkCommandBuffer commandBuffer = device.CreateCommandBuffer();
 
             VkBufferCopy copyRegion{};
             copyRegion.srcOffset = 0; // Optional
             copyRegion.dstOffset = 0; // Optional
             copyRegion.size = m_Size;
             vkCmdCopyBuffer(commandBuffer, stagingBuffer, m_Buffer, 1, &copyRegion);
-        });
+
+            device.FlushCommandBuffer(commandBuffer);
+        }
 
         // Destroy staging buffer
         vkDestroyBuffer(device, stagingBuffer, nullptr);
         vkFreeMemory(device, stagingBufferMemory, nullptr);
 
         // Add it to the resource free queue
-        RendererContext::SubmitResourceFree([device, buffer = m_Buffer, bufferMemory = m_BufferMemory]()
+        Renderer::SubmitResourceFree([device = device.GetHandle(), buffer = m_Buffer, bufferMemory = m_BufferMemory]()
         {
             // Destroy index buffer
             vkDestroyBuffer(device, buffer, nullptr);

@@ -44,9 +44,9 @@ namespace Turbo
         void GenerateDescriptors();
         std::filesystem::path GetShaderCachePath(ShaderStage stage);
     private:
-        VkDescriptorSetLayout m_DescriptorSetLayout;
-        VkDescriptorPool m_DescriptorPool;
-        VkDescriptorSet m_DescriptorSet;
+        VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE;
+        VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
+        VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
 
         ShaderBufferLayout m_Layout;
         bool m_Compile{ false };

@@ -29,7 +29,10 @@
 			return result;
 		}
 
-		public static int Int(int min = 0, int max = 1) => s_Instance.m_RandomGenerator.Next(min, max);
+		/// <summary>
+		/// min <= x < max 
+		/// </summary>
+		public static int Int(int min, int max) => s_Instance.m_RandomGenerator.Next(min, max);
 
 		public static Vector2 InsideUnitCircle() => Float2(-1.0f, 1.0f);
 	}

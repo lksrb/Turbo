@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
-
 #include "Shader.h"
 #include "RenderPass.h"
 #include "VertexBufferLayout.h"

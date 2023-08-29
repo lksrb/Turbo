@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
-#include "Turbo/Renderer/Image2D.h"
-#include "Turbo/Renderer/FrameBuffer.h"
+#include "Image2D.h"
+#include "FrameBuffer.h"
 
 namespace Turbo
 {

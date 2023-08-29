@@ -88,7 +88,6 @@ namespace Mystery
 
 			if ((m_TargetLocation - Translation).Length() > Frame.TimeStep)
 			{
-
 				Vector3 distance = m_TargetLocation - Translation;
 				distance.Normalize();
 

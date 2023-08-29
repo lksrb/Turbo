@@ -9,64 +9,44 @@
 
 namespace Turbo {
    
-    Window::Window(const Window::Config& specification)
-        : m_Config(specification)
+    Window::Window(const Window::Config& config)
+        : m_Config(config)
+    {
+        m_RendererContext = RendererContext::Create();
+    }
+
+    Window::~Window()
     {
     }
 
-    Window* Window::Create(const Window::Config& specification)
+    Window* Window::Create()
     {
+        const auto& appConfig = Application::Get().GetConfig();
+
+        // Populate window config
+        Window::Config config;
+        config.Title = appConfig.Title;
+        config.Width = appConfig.Width;
+        config.Height = appConfig.Height;
+        config.VSync = appConfig.VSync;
+        config.StartMaximized = appConfig.StartMaximized;
+        config.Resizable = appConfig.Resizable;
+
+        // TODO: If UI is disabled, change render target to swapchain framebuffers, TLDR; Render into the window instead of the UI
+        config.SwapChainTarget = !appConfig.EnableUI;
+
 #ifdef TBO_PLATFORM_WIN32
-        return new Win32_Window(specification);
+        return new Win32_Window(config);
 #else
-#error Platform not supported!
+    #error Platform not supported!
         return nullptr;
 #endif
     }
 
-	bool Window::IsFocused() const
-	{
-        return m_Focused;
-	}
-
-    Ref<SwapChain> Window::GetSwapchain() const
+    void Window::InitializeSwapChain()
     {
-        return m_Swapchain;
-    }
-
-    std::string_view Window::GetTitle() const
-    {
-        return m_Config.Title;
-    }
-
-    u32 Window::GetWidth() const
-	{
-        return m_Config.Width;
-	}
-
-	u32 Window::GetHeight() const
-	{
-        return m_Config.Height;
-	}
-
-	i32 Window::GetOffsetX() const
-	{
-        return m_OffsetX;
-	}
-
-    i32 Window::GetOffsetY() const
-	{
-        return m_OffsetY;
-	}
-
-	bool Window::IsMinimized() const
-    {
-        return m_Minimized;
-    }
-
-    void Window::SetEventCallback(const EventCallback& callback)
-    {
-        m_Callback = callback;
+        m_RendererContext->Initialize();
+        m_Swapchain = SwapChain::Create();
     }
 
 }

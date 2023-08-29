@@ -4,7 +4,7 @@
 #include "InternalCalls.h"
 
 #include "Turbo/Core/FileSystem.h"
-#include "Turbo/Core/Engine.h"
+#include "Turbo/Core/Application.h"
 
 #include "Turbo/Scene/Scene.h"
 #include "Turbo/Scene/Entity.h"
@@ -215,7 +215,7 @@ namespace Turbo
 
         CollectGarbage();
 
-        if (!Engine::Get().IsClosing() && s_Data->ProjectAssemblyDirty)
+        if (!Application::Get().IsClosing() && s_Data->ProjectAssemblyDirty)
         {
             s_Data->ProjectAssemblyDirty = false;
             ReloadAssemblies();
@@ -409,7 +409,7 @@ namespace Turbo
             // Project assembly reloaded
             s_Data->AssemblyReloadPending = true;
 
-            Engine::Get().SubmitToMainThread([]()
+            Application::Get().SubmitToMainThread([]()
             {
                 s_Data->ProjectPathWatcher.reset();
 

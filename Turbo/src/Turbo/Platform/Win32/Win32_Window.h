@@ -22,7 +22,6 @@ namespace Turbo
         POINT GetVirtualCursorPosition() const { return m_VirtualCursorPosition; }
         void SetCursorPosition(POINT cursorPos);
 
-        void InitializeSwapchain() override;
         void AcquireNewFrame() override;
         void SwapFrame() override;
     private:

@@ -1,28 +1,26 @@
 #include "tbopch.h"
-#include "VulkanUserInterface.h"
-
-#include "Turbo/Core/Engine.h"
-#include "Turbo/Core/Platform.h"
-#include "Turbo/UI/ImGuiStyler.h"
-
-#include "Turbo/Renderer/GPUDevice.h"
-
-#include "IconsFontAwesome6.h"
 
 #ifdef TBO_PLATFORM_WIN32
-#define VK_USE_PLATFORM_WIN32_KHR
-#include "Turbo/Platform/Win32/Win32_Window.h"
+    #define VK_USE_PLATFORM_WIN32_KHR
+    #include "Turbo/Platform/Win32/Win32_Window.h"
 #endif
+#include "VulkanUserInterfaceLayer.h"
 
-#include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
+#include "VulkanContext.h"
+#include "VulkanSwapChain.h"
 
-#pragma warning(push, 0)
+#include "Turbo/Core/Application.h"
+#include "Turbo/Core/Platform.h"
+#include "Turbo/Core/Input.h"
+#include "Turbo/UI/ImGuiStyler.h"
+
+
+#include <IconsFontAwesome6.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <backends/imgui_impl_win32.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <ImGuizmo.h>
-#pragma warning(pop)
 
 // Copy this line into your .cpp file to forward declare the function.
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -62,34 +60,12 @@ namespace Turbo
 
     }
 
-    static void CheckVkResult(VkResult r)
+    void VulkanUserInterfaceLayer::OnAttach()
     {
-        TBO_VK_ASSERT(r);
-    }
+        Ref<VulkanContext> vulkanContext = VulkanContext::Get();
+        VulkanDevice& device = vulkanContext->GetDevice();
 
-    VulkanUserInterface::VulkanUserInterface()
-        : UserInterface()
-    {
-        CreateImGuiContext();
-    }
-
-    VulkanUserInterface::~VulkanUserInterface()
-    {
-        VkDevice device = RendererContext::GetDevice();
-
-        vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
-
-        ImGui_ImplVulkan_Shutdown();
-        ImGui_ImplWin32_Shutdown();
-
-        ImGui::DestroyContext();
-    }
-
-    void VulkanUserInterface::CreateImGuiContext()
-    {
-        VkDevice device = RendererContext::GetDevice();
-        u32 framesInFlight = RendererContext::FramesInFlight();
-        Window* viewportWindow = Engine::Get().GetViewportWindow();
+        Window* viewportWindow = Application::Get().GetViewportWindow();
 
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -151,18 +127,18 @@ namespace Turbo
         platform_io.Platform_CreateVkSurface = ImGui_ImplWin32_CreateVkSurface;
 
         ImGui_ImplVulkan_InitInfo initInfo = {};
-        initInfo.Instance = RendererContext::GetInstance();
-        initInfo.PhysicalDevice = RendererContext::GetPhysicalDevice();
-        initInfo.Device = RendererContext::GetDevice();
-        initInfo.QueueFamily = RendererContext::GetQueueFamilyIndices().GraphicsFamily.value();
-        initInfo.Queue = RendererContext::GetGraphicsQueue();
+        initInfo.Instance = vulkanContext->GetInstance();
+        initInfo.PhysicalDevice = device.GetPhysicalDevice().GetSelectedDevice();
+        initInfo.Device = device.GetHandle();
+        initInfo.QueueFamily = device.GetPhysicalDevice().GetQueueFamilyIndices().Graphics.value();
+        initInfo.Queue = device.GetGraphicsQueue();
         initInfo.PipelineCache = nullptr;
         initInfo.DescriptorPool = m_DescriptorPool;
         initInfo.Subpass = 0;
-        initInfo.MinImageCount = framesInFlight; // Swapchain image count
-        initInfo.ImageCount = framesInFlight; // Swapchain image count
+        initInfo.MinImageCount = RendererSettings::FramesInFlight; // Swapchain image count
+        initInfo.ImageCount = RendererSettings::FramesInFlight; // Swapchain image count
         initInfo.Allocator = nullptr;
-        initInfo.CheckVkResultFn = CheckVkResult;
+        initInfo.CheckVkResultFn = [](VkResult result) { TBO_VK_ASSERT(result); };
 
         Ref<VulkanSwapChain> swapchain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
         VkRenderPass renderPass = swapchain->GetRenderPass();
@@ -170,17 +146,37 @@ namespace Turbo
         ImGui_ImplVulkan_Init(&initInfo, renderPass);
 
         // Submits and wait till the command buffer is finished
-        RendererContext::ImmediateSubmit([](VkCommandBuffer commandBuffer)
         {
+            VkCommandBuffer commandBuffer = device.CreateCommandBuffer();
             ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-        });
-
+            device.FlushCommandBuffer(commandBuffer);
+        }
         ImGui_ImplVulkan_DestroyFontUploadObjects();
 
         // Create secondary command buffers for each frame in flight
-        RendererContext::CreateSecondaryCommandBuffers(m_SecondaryBuffers.Data(), framesInFlight);
+
+        VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
+        cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        cmdBufAllocateInfo.commandPool = device.GetCommandPool();
+        cmdBufAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+        cmdBufAllocateInfo.commandBufferCount = RendererSettings::FramesInFlight;
+
+        TBO_VK_ASSERT(vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, m_SecondaryCommandBuffers.Data()));
     }
-    void VulkanUserInterface::BeginUI()
+
+    void VulkanUserInterfaceLayer::OnDetach()
+    {
+        VkDevice device = VulkanContext::Get()->GetDevice();
+
+        vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
+
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+
+        ImGui::DestroyContext();
+    }
+
+    void VulkanUserInterfaceLayer::Begin()
     {
         ImGui_ImplWin32_NewFrame();
         ImGui_ImplVulkan_NewFrame();
@@ -191,13 +187,13 @@ namespace Turbo
         ImGui::SetMouseCursor(Utils::ImGuiCursorToCursorMode(Input::GetCursorMode()));
     }
 
-    void VulkanUserInterface::EndUI()
+    void VulkanUserInterfaceLayer::End()
     {
         ImGui::Render();
 
         // Swapchain primary command buffer
         {
-            const Window* viewportWindow = Engine::Get().GetViewportWindow();
+            const Window* viewportWindow = Application::Get().GetViewportWindow();
             Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
             u32 width = viewportWindow->GetWidth();
             u32 height = viewportWindow->GetHeight();
@@ -264,7 +260,7 @@ namespace Turbo
         }
     }
 
-    void VulkanUserInterface::OnEvent(Event& e)
+    void VulkanUserInterfaceLayer::OnEvent(Event& e)
     {
         if (m_BlockEvents)
         {

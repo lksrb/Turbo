@@ -1,24 +1,19 @@
 #pragma once
 
-#include "Turbo/Renderer/DrawList2D.h"
+#include "DrawList2D.h"
 
-// Temporary
-#include "Turbo/Renderer/RendererContext.h"
-#include "Turbo/Renderer/Mesh.h"
+#include "Mesh.h"
 
 #include <map>
 
 namespace Turbo {
 
+    class StaticMesh;
+    class TextureCube;
+
     class SceneDrawList : public RefCounted
     {
     public:
-        struct Config
-        {
-            u32 ViewportWidth;
-            u32 ViewportHeight;
-        };
-
         struct Statistics
         {
             DrawList2D::Statistics Statistics2D;
@@ -69,8 +64,8 @@ namespace Turbo {
         i32 ReadPixel(u32 x, u32 y);
 
         void OnViewportResize(u32 width, u32 height);
-        u32 GetViewportWidth() const { return m_Config.ViewportWidth; }
-        u32 GetViewportHeight() const { return m_Config.ViewportHeight; }
+        u32 GetViewportWidth() const { return m_ViewportWidth; }
+        u32 GetViewportHeight() const { return m_ViewportHeight; }
         Ref<Image2D> GetFinalImage() const;
 
         void SetSceneData(const SceneRendererData& data);
@@ -220,16 +215,16 @@ namespace Turbo {
         Ref<GraphicsPipeline> m_SkyboxPipeline;
         Ref<TextureCube> m_DefaultSkybox;
 
-        Ref<Shader> m_GeometryShader;
         Ref<GraphicsPipeline> m_GeometryPipeline;
         Ref<RenderPass> m_GeometryRenderPass;
 
         Ref<RenderPass> m_FinalRenderPass;
-        Owned<DrawList2D> m_DrawList2D;
         Ref<FrameBuffer> m_TargetFrameBuffer;
+        Owned<DrawList2D> m_DrawList2D;
 
         SceneDrawList::Statistics m_Statistics;
-        SceneDrawList::Config m_Config;
+
+        u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }
 

@@ -10,12 +10,12 @@
 #define TBO_WINKEY(x, y)  y
 #define TBO_KEYCODE(x, y)  { x, y }
 
-namespace Turbo
-{
+namespace Turbo {
+
     using Win32Code = i32;
 
-    namespace Utils
-    {
+    namespace Utils {
+
         static inline Win32Code GetWin32CodeFromKeyCode(const KeyCode keyCode)
         {
             static constexpr std::array<Win32Code, Key::KeyCodeCount> s_WinCodes = {
@@ -137,4 +137,5 @@ namespace Turbo
             return s_KeyCodes.at(win32Code);
         }
     }
+
 }

@@ -2,6 +2,7 @@
 #include "Mesh.h"
 
 #include "Turbo/Debug/ScopeTimer.h"
+#include "Turbo/Renderer/ShaderLibrary.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -9,10 +10,10 @@
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 
-namespace Turbo
-{
-    namespace Utils
-    {
+namespace Turbo {
+
+    namespace Utils {
+
         glm::mat4 Mat4FromAssimpMat4(const aiMatrix4x4& matrix)
         {
             glm::mat4 result;
@@ -23,6 +24,7 @@ namespace Turbo
             result[0][3] = matrix.d1; result[1][3] = matrix.d2; result[2][3] = matrix.d3; result[3][3] = matrix.d4;
             return result;
         }
+
     }
 
     struct DebugLogStream : public Assimp::LogStream
@@ -57,9 +59,9 @@ namespace Turbo
             Assimp::DefaultLogger::kill();
         }
 
-        const aiScene* ReadFile(std::string_view filepath) 
-        { 
-            const aiScene* scene = Importer.ReadFile(filepath.data(), s_AssimpImporterFlags); 
+        const aiScene* ReadFile(std::string_view filepath)
+        {
+            const aiScene* scene = Importer.ReadFile(filepath.data(), s_AssimpImporterFlags);
 
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
             {
@@ -95,14 +97,12 @@ namespace Turbo
     MeshSource::MeshSource(std::string_view filePath)
         : m_FilePath(filePath)
     {
-        const aiScene* scene = s_AssimpLoader.ReadFile(m_FilePath);
-        Load(scene);
+        Load(s_AssimpLoader.ReadFile(m_FilePath));
     }
 
     MeshSource::MeshSource(Buffer buffer)
     {
-        const aiScene* scene = s_AssimpLoader.ReadFileFromMemory(buffer);
-        Load(scene);
+        Load(s_AssimpLoader.ReadFileFromMemory(buffer));
     }
 
     void MeshSource::Load(const aiScene* scene)
@@ -110,6 +110,10 @@ namespace Turbo
         if (!scene)
             return;
 
+        // Get static mesh shader
+        m_MeshShader = ShaderLibrary::Get("StaticMesh");
+
+        // Process and flatten the hierarchy of the mesh
         ProcessNode(scene, scene->mRootNode);
 
         // Allocate GPU resources
@@ -133,7 +137,7 @@ namespace Turbo
             submesh.BaseVertex = vertexCount;
             submesh.BaseIndex = indexCount;
             submesh.VertexCount = mesh->mNumVertices;
-            submesh.IndexCount = mesh->mNumFaces * 3; // It the geometry is not triangle we're gonna have a big problem
+            submesh.IndexCount = mesh->mNumFaces * 3; // If the geometry is not made out of triangles we're gonna have a big problem
             vertexCount += mesh->mNumVertices;
             indexCount += submesh.IndexCount;
 
@@ -176,8 +180,10 @@ namespace Turbo
         {
             u32 mesh = node->mMeshes[i];
             auto& submesh = m_Submeshes[mesh];
-            //submesh.Name = node->mName.C_Str();
             submesh.Transform = transform;
+#ifdef TBO_DEBUG 
+            submesh.DebugName = node->mName.C_Str();
+#endif
         }
 
         for (u32 i = 0; i < node->mNumChildren; i++)

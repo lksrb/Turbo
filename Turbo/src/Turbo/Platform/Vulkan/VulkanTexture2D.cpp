@@ -10,6 +10,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #pragma warning(push, 0)
 #include <stb_image.h>
+#include "VulkanContext.h"
 #pragma warning(pop)
 
 namespace Turbo
@@ -107,6 +108,8 @@ namespace Turbo
 
     void VulkanTexture2D::SetData(const void* pixels)
     {
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
+
         RendererBuffer::Config config = {};
         config.Size = m_Config.Width * m_Config.Height * Vulkan::BytesPerPixelFromFormat(m_Config.Format);
         config.UsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -117,7 +120,9 @@ namespace Turbo
 
         // Executing command buffers
         // Pipeline barrier, transition image layout
-        VkCommandBuffer commandBuffer = RendererContext::CreateCommandBuffer();
+
+
+        VkCommandBuffer commandBuffer = device.CreateCommandBuffer();
         {
             VkImageMemoryBarrier barrier = {};
             barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -196,7 +201,7 @@ namespace Turbo
             );
         }
 
-        RendererContext::FlushCommandBuffer(commandBuffer);
+        device.FlushCommandBuffer(commandBuffer);
     }
 
     void VulkanTexture2D::CreateImage2D()

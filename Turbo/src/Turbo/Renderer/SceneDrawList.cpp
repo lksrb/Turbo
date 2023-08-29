@@ -1,22 +1,27 @@
 #include "tbopch.h"
 #include "SceneDrawList.h"
 
-#include "Turbo/Core/Engine.h"
-#include "Turbo/Scene/Scene.h"
-#include "Turbo/Renderer/ShaderLibrary.h"
+#include "Font.h"
+#include "Renderer.h"
+#include "ShaderLibrary.h"
+#include "RenderCommandBuffer.h"
+#include "GraphicsPipeline.h"
+#include "Image2D.h"
+#include "Material.h"
+#include "Texture.h"
+#include "RenderPass.h"
+#include "FrameBuffer.h"
+#include "UniformBuffer.h"
+#include "VertexBuffer.h"
 
-#include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
-#include "Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h"
-#include "Turbo/Platform/Vulkan/VulkanGraphicsPipeline.h"
-#include "Turbo/Platform/Vulkan/VulkanImage2D.h"
-#include "Turbo/Platform/Vulkan/VulkanShader.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Turbo {
 
     SceneDrawList::SceneDrawList(u32 width, u32 height)
     {
-        m_Config.ViewportWidth = width;
-        m_Config.ViewportHeight = height;
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
 
         Init();
     }
@@ -36,6 +41,7 @@ namespace Turbo {
         frameBufferConfig.Attachments = { FrameBuffer::AttachmentType_Color, FrameBuffer::AttachmentType_SelectionBuffer, FrameBuffer::AttachmentType_Depth };
         frameBufferConfig.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
         m_TargetFrameBuffer = FrameBuffer::Create(frameBufferConfig);
+
         // Main render pass
         RenderPass::Config config = {};
         config.TargetFrameBuffer = m_TargetFrameBuffer;
@@ -45,7 +51,7 @@ namespace Turbo {
         m_FinalRenderPass->Invalidate();
 
         m_TargetFrameBuffer->SetRenderPass(m_FinalRenderPass);
-        m_TargetFrameBuffer->Invalidate(m_Config.ViewportWidth, m_Config.ViewportHeight);
+        m_TargetFrameBuffer->Invalidate(m_ViewportWidth, m_ViewportHeight);
 
         // Create draw list for 2D
         m_DrawList2D = CreateOwned<DrawList2D>();
@@ -62,12 +68,11 @@ namespace Turbo {
             config.ClearOnLoad = true;
             m_GeometryRenderPass = RenderPass::Create(config);
             m_GeometryRenderPass->Invalidate();
-            m_GeometryShader = ShaderLibrary::Get("StaticMesh");
 
             GraphicsPipeline::Config pipelineConfig = {};
             pipelineConfig.Renderpass = m_GeometryRenderPass;
             pipelineConfig.DepthTesting = true;
-            pipelineConfig.Shader = m_GeometryShader;
+            pipelineConfig.Shader = ShaderLibrary::Get("StaticMesh");
             pipelineConfig.Layout = VertexBufferLayout
             {
                 { AttributeType::Vec3, "a_VertexPosition" },
@@ -95,7 +100,7 @@ namespace Turbo {
 
         m_ContainerDiffuse = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_albedo.jpg");
         m_ContainerSpecular = Texture2D::Create("SandboxProject/Assets/Meshes/Backpack/1001_metallic.jpg");
-        m_CubeMaterial = Material::Create({ m_GeometryShader });
+        m_CubeMaterial = Material::Create({ ShaderLibrary::Get("StaticMesh") });
 
         {
             m_SkyboxShader = ShaderLibrary::Get("Skybox");
@@ -151,7 +156,7 @@ namespace Turbo {
 
         m_LightEnvironment.Clear();
 
-        m_DrawList2D->Begin(); 
+        m_DrawList2D->Begin();
     }
 
     void SceneDrawList::End()
@@ -164,10 +169,10 @@ namespace Turbo {
 
         Renderer::BeginRenderPass(m_RenderCommandBuffer, m_GeometryRenderPass);
 
-        Ref<Texture2D> whiteTexture = m_DrawList2D->GetWhiteTexture();
+        Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
 
-        m_CubeMaterial->Set("u_MaterialTexture", m_ContainerDiffuse, 0);
-        m_CubeMaterial->Set("u_MaterialTexture", m_ContainerSpecular, 1);
+        m_CubeMaterial->Set("u_MaterialTexture", whiteTexture, 0);
+        m_CubeMaterial->Set("u_MaterialTexture", whiteTexture, 1);
 
         // Mesh rendering
         for (auto& [mk, drawCommand] : m_DrawCommands)
@@ -391,8 +396,8 @@ namespace Turbo {
 
     void SceneDrawList::OnViewportResize(u32 width, u32 height)
     {
-        m_Config.ViewportWidth = width;
-        m_Config.ViewportHeight = height;
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
 
         Renderer::Submit([this, width, height]()
         {

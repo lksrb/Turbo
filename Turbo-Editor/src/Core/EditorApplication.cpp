@@ -1,6 +1,26 @@
 #include <Turbo/Core/EntryPoint.h>
 
-#include "Editor.h"
+#include <Turbo/Core/Application.h>
+
+#include "EditorLayer.h"
+
+namespace Turbo::Ed {
+
+    class EditorApplication : public Turbo::Application
+    {
+    public:
+        EditorApplication(const Application::Config& config)
+            : Application(config)
+        {
+        }
+
+        void OnInit() override
+        {
+            PushLayer(new Ed::EditorLayer);
+        }
+    };
+
+}
 
 Turbo::Application* Turbo::CreateApplication()
 {
@@ -13,6 +33,6 @@ Turbo::Application* Turbo::CreateApplication()
     config.StartMaximized = true;
     config.EnableUI = true;
 
-    return new Turbo::Ed::Editor(config);
+    return new Turbo::Ed::EditorApplication(config);
 }
 

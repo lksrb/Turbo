@@ -4,9 +4,12 @@
 
 namespace Turbo::Ed {
 
-    class Editor : public Application
+    class EditorLayer : public Layer
     {
     public:
+        EditorLayer() = default;
+        ~EditorLayer() = default;
+
         enum class SceneMode : u32
         {
             Edit = 0,
@@ -18,15 +21,12 @@ namespace Turbo::Ed {
             None = 0,
             VS2022
         };
-
-        Editor(const Application::Config& config);
-        ~Editor();
     protected: // Inherited
-        void OnInitialize() override;
-        void OnShutdown() override;
+        void OnAttach() override;
+        void OnDetach() override;
         void OnEvent(Event& event) override;
         void OnDrawUI() override;
-        void OnUpdate() override;
+        void OnUpdate(Time time) override;
     private: // Events
         void OnViewportResize(u32 width, u32 height);
 
@@ -55,6 +55,7 @@ namespace Turbo::Ed {
         i32 m_GizmoMode = 0;
         i32 m_GizmoType = -1;
         glm::vec2 m_ViewportBounds[2] = {};
+        Time m_CurrentTime;
 
         bool m_ShowDemoWindow = false;
         bool m_ShowAssetRegistryPanel = false;

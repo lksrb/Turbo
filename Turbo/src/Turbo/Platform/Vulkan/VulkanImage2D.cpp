@@ -1,9 +1,10 @@
 #include "tbopch.h"
 #include "VulkanImage2D.h"
 
-#include "Turbo/Renderer/RendererContext.h"
+#include "VulkanContext.h"
+#include "VulkanUtils.h"
 
-#include "Turbo/Platform/Vulkan/VulkanUtils.h"
+#include "Turbo/Renderer/Renderer.h"
 
 namespace Turbo
 {
@@ -15,9 +16,9 @@ namespace Turbo
     VulkanImage2D::~VulkanImage2D()
     {
         // Add it to deletion queue 
-        RendererContext::SubmitResourceFree([sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
+        Renderer::SubmitResourceFree([sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
         {
-            VkDevice device = RendererContext::GetDevice();
+            VkDevice device = VulkanContext::Get()->GetDevice();
             vkDestroySampler(device, sampler, nullptr);
             vkDestroyImage(device, image, nullptr);
             vkFreeMemory(device, imageMemory, nullptr);
@@ -29,11 +30,11 @@ namespace Turbo
     {
         SetExtent(width, height);
 
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         if (m_Image)
         {
-            RendererContext::SubmitRuntimeResourceFree([device, sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
+            Renderer::SubmitRuntimeResourceFree([device, sampler = m_Sampler, image = m_Image, imageMemory = m_ImageMemory, imageView = m_ImageView]()
             {
                 vkDestroySampler(device, sampler, nullptr);
                 vkDestroyImage(device, image, nullptr);

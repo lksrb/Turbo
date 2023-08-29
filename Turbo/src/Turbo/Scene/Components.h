@@ -87,11 +87,18 @@ namespace Turbo {
     // TODO: Cache large relationship hierarchies
     struct WorldTransformComponent
     {
-        glm::mat4 Transform;
+        glm::mat4 WorldTransform;
 
         WorldTransformComponent() = default;
         WorldTransformComponent(const WorldTransformComponent&) = default;
+    };
 
+    struct LocalTransformComponent
+    {
+        glm::mat4 LocalTransform;
+
+        LocalTransformComponent() = default;
+        LocalTransformComponent(const LocalTransformComponent&) = default;
     };
 
     struct AudioSourceComponent
@@ -183,6 +190,7 @@ namespace Turbo {
     struct StaticMeshRendererComponent
     {
         AssetHandle Mesh = 0;
+        AssetHandle Material = 0;
 
         StaticMeshRendererComponent() = default;
         StaticMeshRendererComponent(const StaticMeshRendererComponent&) = default;

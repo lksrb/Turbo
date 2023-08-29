@@ -358,16 +358,15 @@ namespace Turbo {
         {
             m_OptimizeBoardPhase = false;
 
-            ScopeTimer timer("OptimizeBroadPhase");
+            //ScopeTimer timer("OptimizeBroadPhase");
             m_PhysicsSystem.OptimizeBroadPhase();
         }
 
         // If you take larger steps than 1 / 60th of a second you need to do multiple collision steps in order to keep the simulation stable.
         // Do 1 collision step per 1 / 60th of a second (round up).
 
-        f32 fixedDeltaTime = 1.0f / 60.0f;
-        f32 delta = fixedDeltaTime / ts;
-        i32 collisionSteps = (i32)glm::max(1.0f, glm::round(fixedDeltaTime / ts));
+        constexpr f32 fixedDeltaTime = 1.0f / 60.0f;
+        i32 collisionSteps = (i32)glm::max(1.0f, glm::round(ts / fixedDeltaTime));
 
         // TODO: Maybe use fixed time step to ensure that physics calculation is stable
         m_PhysicsSystem.Update(ts, collisionSteps, &m_PhysicsUpdateAllocator, &m_JobSystem);
@@ -395,8 +394,6 @@ namespace Turbo {
             for (auto e : group)
             {
                 const auto& [transform, rb] = group.get<TransformComponent, RigidbodyComponent>(e);
-
-                Entity entity = { e, m_Scene.Get() };
 
                 JPH::Vec3 pos;
                 JPH::Quat quatRotation;

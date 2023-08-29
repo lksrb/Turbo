@@ -2,10 +2,9 @@
 
 #include "VulkanSwapChain.h"
 
+#include "VulkanContext.h"
 #include "VulkanImage2D.h"
 #include "VulkanUtils.h"
-
-#include "Turbo/Renderer/GPUDevice.h"
 
 namespace Turbo
 {
@@ -21,42 +20,61 @@ namespace Turbo
 
     void VulkanSwapChain::Initialize()
     {
-        m_SwapchainFormat = Vulkan::SelectSurfaceFormat().format; // VK_FORMAT_B8G8R8A8_UNORM
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
+        // Set swapchain format
+        m_SwapChainFormat = VulkanContext::Get()->GetSurfaceFormat();
+
+        // Create swapchain render pass
         CreateRenderpass();
+
+        // Create semaphores and fences
         CreateSyncObjects();
 
+        // Create dedicated command buffers
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = RendererContext::GetCommandPool();
+        allocInfo.commandPool = device.GetCommandPool();
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = m_RenderCommandBuffers.Size();
 
-        TBO_VK_ASSERT(vkAllocateCommandBuffers(RendererContext::GetDevice(),
+        TBO_VK_ASSERT(vkAllocateCommandBuffers(device,
             &allocInfo, m_RenderCommandBuffers.Data()));
 
         // Swapchain, renderpass, etc. are created on the first resize
+
+        // Determine if graphics and present are the same queue
+        auto& indices = device.GetPhysicalDevice().GetQueueFamilyIndices();
+        if (indices.Graphics != indices.Present)
+        {
+            m_SwapchainQueues = { indices.Graphics.value(), indices.Present.value() };
+            m_QueueShareMode = VK_SHARING_MODE_CONCURRENT; 
+        }
+        else
+        {
+            m_QueueShareMode = VK_SHARING_MODE_EXCLUSIVE;
+        }
     }
 
     void VulkanSwapChain::Shutdown()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         vkDestroyRenderPass(device, m_Renderpass, nullptr);
 
-        Cleanup();
-
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
+        for (u32 i = 0; i < RendererSettings::FramesInFlight; ++i)
         {
             vkDestroySemaphore(device, m_PresentSemaphores[i], nullptr);
             vkDestroySemaphore(device, m_RenderFinishedSemaphores[i], nullptr);
             vkDestroyFence(device, m_InFlightFences[i], nullptr);
         }
+
+        Cleanup();
     }
 
     void VulkanSwapChain::Cleanup()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         for (auto framebuffer : m_Framebuffers)
             vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -71,48 +89,40 @@ namespace Turbo
 
     void VulkanSwapChain::Resize(u32 width, u32 height)
     {
-        VkDevice device = RendererContext::GetDevice();
-
-        VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
-
-        const SwapchainSupportDetails& deviceDetails = RendererContext::GetSwapchainSupportDetails();
-        const QueueFamilyIndices& indices = RendererContext::GetQueueFamilyIndices();
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
         // Wait for GPU
-        vkDeviceWaitIdle(device);
+        device.WaitIdle();
 
         VkSwapchainCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface = RendererContext::GetSurface();
-        createInfo.minImageCount = RendererContext::FramesInFlight();
-        createInfo.imageFormat = m_SwapchainFormat;
-        createInfo.imageColorSpace = deviceDetails.SurfaceFormat.colorSpace;
+        createInfo.surface = VulkanContext::Get()->GetSurface();
+        createInfo.minImageCount = RendererSettings::FramesInFlight;
+        createInfo.imageFormat = m_SwapChainFormat.format;
+        createInfo.imageColorSpace = m_SwapChainFormat.colorSpace;
         createInfo.imageExtent = { width, height };
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        createInfo.preTransform = deviceDetails.Capabilities.currentTransform;
+        createInfo.preTransform = VulkanContext::Get()->GetSurfaceCapabilities().currentTransform;
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; // V-Sync
         createInfo.clipped = VK_TRUE;
         createInfo.oldSwapchain = m_Swapchain; // Using old swapchain
-
-        if (indices.GraphicsFamily != indices.PresentFamily)
+        createInfo.imageSharingMode = m_QueueShareMode;
+        if (m_QueueShareMode == VK_SHARING_MODE_CONCURRENT)
         {
-            u32 queueFamilyIndices[] = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
-            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            createInfo.queueFamilyIndexCount = 2;
-            createInfo.pQueueFamilyIndices = queueFamilyIndices;
-        }
-        else
-        {
-            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            createInfo.queueFamilyIndexCount = static_cast<u32>(m_SwapchainQueues.size());
+            createInfo.pQueueFamilyIndices = m_SwapchainQueues.data();
         }
 
+        // Create new swapchain
+        VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
         TBO_VK_ASSERT(vkCreateSwapchainKHR(device, &createInfo, nullptr, &newSwapchain));
-
+        
+        // Get swapchain images
         u32 imageCount;
         TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, nullptr));
-        TBO_ENGINE_ASSERT(imageCount <= RendererContext::FramesInFlight());
+        TBO_ENGINE_ASSERT(imageCount <= RendererSettings::FramesInFlight);
         TBO_VK_ASSERT(vkGetSwapchainImagesKHR(device, newSwapchain, &imageCount, m_Images.Data()));
 
         // Destroy old stuff if exists
@@ -122,7 +132,10 @@ namespace Turbo
         // Assign new swapchain
         m_Swapchain = newSwapchain;
 
+        // Create swapchain imageviews
         CreateImageviews();
+
+        // Create swapchain framebuffers
         CreateFramebuffers(width, height);
 
         TBO_ENGINE_WARN("Swapchain resized! {0}, {1}", width, height);
@@ -133,7 +146,7 @@ namespace Turbo
         TBO_PROFILE_FUNC();
 
         VkSemaphore currentSemaphore = m_PresentSemaphores[m_CurrentFrame];
-        TBO_VK_ASSERT(vkAcquireNextImageKHR(RendererContext::GetDevice(), m_Swapchain, UINT64_MAX, currentSemaphore, VK_NULL_HANDLE, &m_ImageIndex));
+        TBO_VK_ASSERT(vkAcquireNextImageKHR(VulkanContext::Get()->GetDevice(), m_Swapchain, UINT64_MAX, currentSemaphore, VK_NULL_HANDLE, &m_ImageIndex));
     }
 
     void VulkanSwapChain::SwapFrame()
@@ -146,7 +159,7 @@ namespace Turbo
 
     void VulkanSwapChain::SubmitCommandBuffers()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
         VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -161,14 +174,12 @@ namespace Turbo
         submitInfo.pWaitDstStageMask = &waitStage;
 
         TBO_VK_ASSERT(vkResetFences(device, 1, &m_InFlightFences[m_CurrentFrame]));
-        TBO_VK_ASSERT(vkQueueSubmit(RendererContext::GetGraphicsQueue(), 1, &submitInfo, m_InFlightFences[m_CurrentFrame]));
+        TBO_VK_ASSERT(vkQueueSubmit(device.GetGraphicsQueue(), 1, &submitInfo, m_InFlightFences[m_CurrentFrame]));
     }
 
     void VulkanSwapChain::PresentFrame()
     {
-        VkDevice device = RendererContext::GetDevice();
-
-        VkQueue presentQueue = RendererContext::GetPresentQueue();
+        VulkanDevice& device = VulkanContext::Get()->GetDevice();
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -178,7 +189,7 @@ namespace Turbo
         presentInfo.pSwapchains = &m_Swapchain;
         presentInfo.pImageIndices = &m_ImageIndex;
 
-        VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
+        VkResult result = vkQueuePresentKHR(device.GetPresentQueue(), &presentInfo);
         if (result != VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
         {
             if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -195,16 +206,16 @@ namespace Turbo
         TBO_VK_ASSERT(vkWaitForFences(device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX));
 
         // Cycle frames in flights
-        m_CurrentFrame = (m_CurrentFrame + 1) % RendererContext::FramesInFlight();
+        m_CurrentFrame = (m_CurrentFrame + 1) % RendererSettings::FramesInFlight;
     }
 
     void VulkanSwapChain::CreateRenderpass()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         // Attachment description
         VkAttachmentDescription colorAttachment = {};
-        colorAttachment.format = m_SwapchainFormat;
+        colorAttachment.format = m_SwapChainFormat.format;
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -252,7 +263,7 @@ namespace Turbo
 
     void VulkanSwapChain::CreateSyncObjects()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         // Present and RenderFinished 
         VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -264,7 +275,7 @@ namespace Turbo
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
+        for (u32 i = 0; i < RendererSettings::FramesInFlight; ++i)
         {
             TBO_VK_ASSERT(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_PresentSemaphores[i]));
             TBO_VK_ASSERT(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]));
@@ -274,15 +285,15 @@ namespace Turbo
 
     void VulkanSwapChain::CreateImageviews()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
+        for (u32 i = 0; i < RendererSettings::FramesInFlight; ++i)
         {
             VkImageViewCreateInfo imageViewInfo = {};
             imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             imageViewInfo.image = m_Images[i];
             imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            imageViewInfo.format = m_SwapchainFormat;
+            imageViewInfo.format = m_SwapChainFormat.format;
             imageViewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
             imageViewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
             imageViewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -294,9 +305,9 @@ namespace Turbo
 
     void VulkanSwapChain::CreateFramebuffers(u32 width, u32 height)
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
-        for (u32 i = 0; i < RendererContext::FramesInFlight(); ++i)
+        for (u32 i = 0; i < RendererSettings::FramesInFlight; ++i)
         {
             VkFramebufferCreateInfo framebufferInfo = {};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

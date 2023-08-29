@@ -6,9 +6,9 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Turbo::Vulkan
-{
-    u32 FindMemoryType(u32 type_filter, VkMemoryPropertyFlags properties);
+namespace Turbo::Vulkan {
+
+    u32 FindMemoryType(u32 typeFilter, VkMemoryPropertyFlags properties);
 
     // From imgui_impl_vulkan.h
     VkSurfaceFormatKHR SelectSurfaceFormat();

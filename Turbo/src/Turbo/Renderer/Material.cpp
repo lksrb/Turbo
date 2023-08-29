@@ -5,8 +5,8 @@
 
 namespace Turbo
 {
-    Material::Material(const Material::Config& config)
-        : m_Config(config)
+    Material::Material(const Ref<Shader>& shader)
+        : m_MaterialShader(shader)
     {
     }
 
@@ -14,9 +14,9 @@ namespace Turbo
     {
     }
 
-    Ref<Material> Material::Create(const Material::Config& config)
+    Ref<Material> Material::Create(const Ref<Shader>& shader)
     {
-        return Ref<VulkanMaterial>::Create(config);
+        return Ref<VulkanMaterial>::Create(shader);
     }
 
 }

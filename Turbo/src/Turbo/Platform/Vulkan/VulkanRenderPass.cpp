@@ -1,7 +1,9 @@
 #include "tbopch.h"
 #include "VulkanRenderPass.h"
 
-#include "Turbo/Renderer/RendererContext.h"
+#include "Turbo/Renderer/Renderer.h"
+
+#include "VulkanContext.h"
 
 namespace Turbo
 {
@@ -16,7 +18,7 @@ namespace Turbo
 
     void VulkanRenderPass::Invalidate()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         const auto& fbAttachments = m_Config.TargetFrameBuffer->GetConfig().Attachments;
 
@@ -173,7 +175,7 @@ namespace Turbo
         TBO_VK_ASSERT(vkCreateRenderPass(device, &renderPassInfo, VK_NULL_HANDLE, &m_RenderPass));
 
         // Add it to deletion queue 
-        RendererContext::SubmitResourceFree([device, m_RenderPass = m_RenderPass]()
+        Renderer::SubmitResourceFree([device, m_RenderPass = m_RenderPass]()
         {
             vkDestroyRenderPass(device, m_RenderPass, nullptr);
         });

@@ -1,7 +1,10 @@
 #include "tbopch.h"
 #include "VulkanUniformBuffer.h"
 
-#include "Turbo/Platform/Vulkan/VulkanUtils.h"
+#include "VulkanContext.h"
+#include "VulkanUtils.h"
+
+#include "Turbo/Renderer/Renderer.h"
 
 namespace Turbo
 {
@@ -16,7 +19,7 @@ namespace Turbo
 
     void VulkanUniformBuffer::Invalidate()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         VkBufferCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -47,7 +50,7 @@ namespace Turbo
         TBO_VK_ASSERT(vkMapMemory(device, m_Memory, 0, m_Config.Size, 0, &m_Data));
 
         // Add it to deletion queue         
-        RendererContext::SubmitResourceFree([device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
+        Renderer::SubmitResourceFree([device, m_Memory = m_Memory, m_Buffer = m_Buffer]()
         {
             vkUnmapMemory(device, m_Memory);
             vkDestroyBuffer(device, m_Buffer, nullptr);

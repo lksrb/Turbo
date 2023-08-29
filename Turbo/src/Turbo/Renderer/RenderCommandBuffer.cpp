@@ -3,15 +3,7 @@
 
 #include "Turbo/Platform/Vulkan/VulkanRenderCommandBuffer.h"
 
-namespace Turbo
-{
-    RenderCommandBuffer::RenderCommandBuffer()
-    {
-    }
-
-    RenderCommandBuffer::~RenderCommandBuffer()
-    {
-    }
+namespace Turbo {
 
     Ref<RenderCommandBuffer> RenderCommandBuffer::Create()
     {

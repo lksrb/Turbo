@@ -4,7 +4,6 @@
 
 #include "Turbo/Solution/Project.h"
 
-#include <glm/glm.hpp>
 #include <filesystem>
 
 namespace Turbo {

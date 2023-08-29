@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
-
 #include "Turbo/Event/Event.h"
 
 #include "Turbo/Renderer/SwapChain.h"
+#include "Turbo/Renderer/RendererContext.h"
 
 #include <functional>
 
@@ -26,8 +25,8 @@ namespace Turbo {
             bool SwapChainTarget;
         };
 
-        virtual ~Window() = default;
-        static Window* Create(const Window::Config& specification);
+        virtual ~Window();
+        static Window* Create();
 
         virtual void ProcessEvents() = 0;
         virtual void Show() = 0;
@@ -36,23 +35,25 @@ namespace Turbo {
         virtual void SwapFrame() = 0;
 
         virtual void SetTitle(const std::string& title) = 0;
-        bool IsFocused() const;
 
-        Ref<SwapChain> GetSwapchain() const;
-        std::string_view GetTitle() const;
-        u32 GetWidth() const;
-        u32 GetHeight() const;
+        void InitializeSwapChain();
 
-        i32 GetOffsetX() const;
-        i32 GetOffsetY() const;
+        Ref<SwapChain> GetSwapchain() const { return m_Swapchain; }
+        Ref<RendererContext> GetRendererContext() const { return m_RendererContext; }
 
-        bool IsMinimized() const;
+        i32 GetOffsetX() const { return m_OffsetX; }
+        i32 GetOffsetY() const { return m_OffsetY; }
 
-        void SetEventCallback(const EventCallback& callback);
+        u32 GetWidth() const { return m_Config.Width; }
+        u32 GetHeight() const { return m_Config.Height; }
+
+        bool IsMinimized() const { return m_Minimized; }
+        bool IsFocused() const { return m_Focused; }
+        void SetEventCallback(const EventCallback& callback) { m_Callback = callback; }
     protected:
-        Window(const Window::Config& specification);
-        virtual void InitializeSwapchain() = 0;
+        Window(const Window::Config& config);
     protected:
+        Ref<RendererContext> m_RendererContext;
         Ref<SwapChain> m_Swapchain;
 
         i32 m_OffsetX = 0, m_OffsetY = 0;

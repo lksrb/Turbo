@@ -1,10 +1,11 @@
 #include "tbopch.h"
 #include "VulkanGraphicsPipeline.h"
 
-#include "Turbo/Renderer/RendererContext.h"
+#include "VulkanContext.h"
+#include "VulkanShader.h"
+#include "VulkanRenderPass.h"
 
-#include "Turbo/Platform/Vulkan/VulkanShader.h"
-#include "Turbo/Platform/Vulkan/VulkanRenderPass.h"
+#include "Turbo/Renderer/Renderer.h"
 
 namespace Turbo
 {
@@ -65,7 +66,7 @@ namespace Turbo
 
     void VulkanGraphicsPipeline::Invalidate()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         // ###############################################################################################################
         // ##################                                    Stages                                 ##################
@@ -326,7 +327,7 @@ namespace Turbo
         TBO_VK_ASSERT(vkCreateGraphicsPipelines(device, nullptr, 1, &pipelineCreateInfo, nullptr, &m_Pipeline));
 
         // Resource free queue
-        RendererContext::SubmitResourceFree([device, pipeline = m_Pipeline, pipelineLayout = m_PipelineLayout]()
+        Renderer::SubmitResourceFree([device, pipeline = m_Pipeline, pipelineLayout = m_PipelineLayout]()
         {
             vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
             vkDestroyPipeline(device, pipeline, nullptr);

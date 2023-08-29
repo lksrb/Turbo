@@ -4,11 +4,11 @@ namespace Mystery
 {
 	internal class TargetDummy : Entity
 	{
-		public float Speed;
-		
+		public float Speed = 0.0f;
+
 		Entity m_Player;
 		RigidbodyComponent m_Rigidbody;
-		
+
 		Timer m_RecoveryTimer;
 		bool m_Hit = false;
 
@@ -25,9 +25,9 @@ namespace Mystery
 
 		protected override void OnUpdate()
 		{
-			if(m_Hit)
+			if (m_Hit)
 			{
-				if(m_RecoveryTimer)
+				if (m_RecoveryTimer)
 				{
 					m_Hit = false;
 				}
@@ -43,13 +43,17 @@ namespace Mystery
 
 			m_Rigidbody.LinearVelocity = Vector3.Lerp(m_Rigidbody.LinearVelocity, m_Velocity, Frame.TimeStep * Speed);
 		}
-		
+
 		void OnHit(Entity entity)
 		{
-			if(entity.Name == "DeliveryBox")
+			if (entity.Name == "BouncyBall")
 			{
-				m_Hit = true;
-				m_RecoveryTimer.Reset();
+				if (entity.GetComponent<RigidbodyComponent>().LinearVelocity.Length() > 10.0f)
+				{
+					m_Hit = true;
+					m_RecoveryTimer.Reset();
+				}
+
 			}
 		}
 	}

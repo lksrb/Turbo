@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "Turbo/Core/UUID.h"
 
 #include <string>

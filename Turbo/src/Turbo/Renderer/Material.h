@@ -1,31 +1,23 @@
 #pragma once
 
-#include "Turbo/Renderer/Shader.h"
-#include "Turbo/Renderer/Texture.h"
-#include "Turbo/Renderer/RendererBuffer.h"
-
-#include <glm/glm.hpp>
+#include "Shader.h"
+#include "Texture.h"
 
 namespace Turbo {
 
-    class Material : public RefCounted {
+    class Material : public RefCounted
+    {
     public:
-        struct Config {
-            Ref<Shader> MaterialShader;
-        };
-
-        static Ref<Material> Create(const Material::Config& config);
+        static Ref<Material> Create(const Ref<Shader>& shader);
         virtual ~Material();
 
-        virtual void Set(const std::string& resourceName, const glm::mat4& matrix) = 0;
-        virtual void Set(const std::string& resourceName, const void* data, size_t size) = 0;
-        virtual void Set(const std::string& resourceName, const Ref<Texture2D>& texture, u32 index) = 0;
-        virtual void Set(const std::string& resourceName, const Ref<TextureCube>& texture) = 0;
-
-        virtual void Update() = 0;
+        virtual void Set(std::string_view resourceName, const glm::mat4& matrix) = 0;
+        virtual void Set(std::string_view resourceName, const void* data, u64 size) = 0;
+        virtual void Set(std::string_view resourceName, const Ref<Texture2D>& texture, u32 index) = 0;
+        virtual void Set(std::string_view resourceName, const Ref<TextureCube>& texture) = 0;
     protected:
-        Material(const Material::Config& config);
+        Material(const Ref<Shader>& shader);
 
-        Material::Config m_Config;
+        Ref<Shader> m_MaterialShader;
     };
 }

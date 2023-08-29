@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
-
 namespace Turbo
 {
     enum class RootKey : u32

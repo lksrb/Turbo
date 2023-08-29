@@ -5,7 +5,7 @@ namespace Mystery
 {
 	internal class ConveyorBelt : Entity
 	{
-		public float BeltSpeed;
+		public float BeltSpeed = 0.0f;
 
 		List<Entity> m_OnBelt = new List<Entity>();
 

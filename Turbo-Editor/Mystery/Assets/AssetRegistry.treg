@@ -29,6 +29,9 @@ AssetRegistry:
   - Asset: 6036229564231096822
     Path: Meshes/Pistol_2.fbx
     Type: MeshSource
+  - Asset: 6309218715478289294
+    Path: Prefabs/BouncyBall.tprefab
+    Type: Prefab
   - Asset: 6808730343166568602
     Path: Sources/Default/Sphere.fbx
     Type: MeshSource
@@ -65,3 +68,6 @@ AssetRegistry:
   - Asset: 17745811398343166228
     Path: Sources/Default/Torus.fbx
     Type: MeshSource
+  - Asset: 18297265086836875457
+    Path: Prefabs/DeliveryCapsule.tprefab
+    Type: Prefab

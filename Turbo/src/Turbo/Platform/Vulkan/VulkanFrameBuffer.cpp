@@ -1,11 +1,11 @@
 #include "tbopch.h"
 #include "VulkanFrameBuffer.h"
 
+#include "Turbo/Renderer/Renderer.h"
+
 #include "VulkanImage2D.h"
 #include "VulkanRenderPass.h"
-
-#include "Turbo/Renderer/Renderer.h"
-#include "Turbo/Renderer/RendererContext.h"
+#include "VulkanContext.h"
 
 namespace Turbo
 {
@@ -17,9 +17,9 @@ namespace Turbo
 
     VulkanFrameBuffer::~VulkanFrameBuffer()
     {
-        RendererContext::SubmitResourceFree([framebuffers = m_Framebuffers]()
+        Renderer::SubmitResourceFree([framebuffers = m_Framebuffers]()
         {
-            VkDevice device = RendererContext::GetDevice();
+            VkDevice device = VulkanContext::Get()->GetDevice();
 
             for (u32 i = 0; i < framebuffers.Size(); ++i)
                 vkDestroyFramebuffer(device, framebuffers[i], nullptr);
@@ -37,7 +37,7 @@ namespace Turbo
         m_Config.Width = width;
         m_Config.Height = height;
 
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         // Add it to deletion queue
         if (!m_Framebuffers.Empty())
@@ -54,7 +54,7 @@ namespace Turbo
                 }
             }
 
-            RendererContext::SubmitRuntimeResourceFree([device, framebuffers = m_Framebuffers, attachmentResources = m_AttachmentResources]()
+            Renderer::SubmitRuntimeResourceFree([device, framebuffers = m_Framebuffers, attachmentResources = m_AttachmentResources]()
             {
                 for (u32 i = 0; i < framebuffers.Size(); ++i)
                 {

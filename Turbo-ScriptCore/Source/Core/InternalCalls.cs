@@ -92,9 +92,6 @@ namespace Turbo
 		internal extern static ulong Entity_FindEntityByName(string name);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static object Entity_Get_Instance(ulong uuid);
-
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static string Entity_Get_Name(ulong uuid);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -152,6 +149,13 @@ namespace Turbo
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Transform_Set_Scale(ulong uuid, ref Vector3 scale);
+		#endregion
+
+		#region ScriptComponent
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static object Component_Script_Get_Instance(ulong uuid);
+
 		#endregion
 
 		#region LineRendererComponent

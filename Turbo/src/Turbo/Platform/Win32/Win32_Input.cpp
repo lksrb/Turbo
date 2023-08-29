@@ -1,7 +1,7 @@
 #include "tbopch.h" 
 #include "Turbo/Core/Input.h"
 
-#include "Turbo/Core/Engine.h"
+#include "Turbo/Core/Application.h"
 #include "Win32_Window.h"
 #include "Win32_Utils.h"
 
@@ -11,6 +11,7 @@
 #define TBO_HOLD 0x8000
 
 namespace Turbo {
+
     struct InputData
     {
         std::array<HCURSOR, CursorMode_Count> Cursors;
@@ -34,11 +35,11 @@ namespace Turbo {
 
         static bool IsViewportFocused()
         {
-            bool enableUI = Engine::Get().GetApplication()->GetConfig().EnableUI;
+            bool enableUI = Application::Get().GetConfig().EnableUI;
 
             if (!enableUI)
             {
-                return Engine::Get().GetViewportWindow()->IsFocused();
+                return Application::Get().GetViewportWindow()->IsFocused();
             }
 
             ImGuiContext* context = ImGui::GetCurrentContext();
@@ -48,7 +49,7 @@ namespace Turbo {
 
     void Input::Update()
     {
-        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
+        Win32_Window* window = (Win32_Window*)Application::Get().GetViewportWindow();
         s_Data.LastCursorPos = window->GetLastCursorPosition();
         s_Data.VirtualCursorPos = window->GetVirtualCursorPosition();
 
@@ -101,7 +102,7 @@ namespace Turbo {
         s_Data.LastMode = s_Data.Mode;
         s_Data.Mode = cursorMode;
 
-        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
+        Win32_Window* window = (Win32_Window*)Application::Get().GetViewportWindow();
 
         if (s_Data.Mode == CursorMode_Locked)
         {
@@ -140,7 +141,7 @@ namespace Turbo {
 
     std::pair<i32, i32> Input::GetMousePosition()
     {
-        Win32_Window* window = (Win32_Window*)Engine::Get().GetViewportWindow();
+        Win32_Window* window = (Win32_Window*)Application::Get().GetViewportWindow();
         POINT mousePosition = s_Data.Mode != CursorMode_Locked ? s_Data.LastCursorPos : s_Data.VirtualCursorPos;
         return { mousePosition.x, mousePosition.y };
     }

@@ -12,8 +12,10 @@
 #include <filesystem>
 #include <mutex>
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include "Turbo/Debug/Profiler.h"
 #include "Turbo/Core/Log.h"
 #include "Turbo/Core/Assert.h"
 #include "Turbo/Core/PrimitiveTypes.h"
-

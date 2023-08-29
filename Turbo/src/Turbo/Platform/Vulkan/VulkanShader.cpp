@@ -1,19 +1,18 @@
 #include "tbopch.h"
 
 #include "VulkanShader.h"
+#include "VulkanContext.h"
 
 #include "Turbo/Core/Platform.h"
 #include "Turbo/Core/FileSystem.h"
 #include "Turbo/Debug/ScopeTimer.h"
-
-#include "Turbo/Renderer/RendererContext.h"
+#include "Turbo/Renderer/Renderer.h"
 
 #include <fstream>
 #include <sstream>
 #include <filesystem>
 #include <thread>
 
-#include <vulkan/vulkan.h>
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross/spirv_cross.hpp>
 
@@ -135,13 +134,14 @@ namespace Turbo
     }
 
     VulkanShader::VulkanShader(const Shader::Config& config)
-        : Shader(config), m_DescriptorSetLayout(VK_NULL_HANDLE), m_DescriptorPool(VK_NULL_HANDLE), m_DescriptorSet(VK_NULL_HANDLE), m_Layout()
+        : Shader(config)
     {
     }
 
     VulkanShader::~VulkanShader()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
+
         for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
         {
             vkDestroyShaderModule(device, m_ShaderModules[shaderStage], nullptr);
@@ -481,7 +481,7 @@ namespace Turbo
 
     void VulkanShader::CreateModules()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
         {
@@ -497,7 +497,7 @@ namespace Turbo
 
     void VulkanShader::GenerateDescriptors()
     {
-        VkDevice device = RendererContext::GetDevice();
+        VkDevice device = VulkanContext::Get()->GetDevice();
 
         std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
 
@@ -591,7 +591,7 @@ namespace Turbo
         }
 
         // Resource free queue
-        RendererContext::SubmitResourceFree([device, descriptorPool = m_DescriptorPool, descriptorSetLayout = m_DescriptorSetLayout]()
+        Renderer::SubmitResourceFree([device, descriptorPool = m_DescriptorPool, descriptorSetLayout = m_DescriptorSetLayout]()
         {
             vkDestroyDescriptorPool(device, descriptorPool, nullptr);
             vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
