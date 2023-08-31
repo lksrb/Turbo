@@ -14,6 +14,7 @@ namespace Turbo {
 
         void SetBlockEvents(bool blockEvents);
     protected:
+        UserInterfaceLayer() = default;
         bool m_BlockEvents = true;
     };
 }

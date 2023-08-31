@@ -36,6 +36,7 @@ namespace Turbo {
 
     void Application::Init()
     {
+        // Create window
         m_ViewportWindow = Window::Create();
         m_ViewportWindow->InitializeSwapChain();
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Application::OnEvent));
@@ -52,7 +53,7 @@ namespace Turbo {
         // Initialize physics engine
         Physics::Init();
 
-        // If desired, initialize also imgui 
+        // If desired, initialize also UI features
         if (m_Config.EnableUI)
         {
             m_UserInterfaceLayer = UserInterfaceLayer::Create();

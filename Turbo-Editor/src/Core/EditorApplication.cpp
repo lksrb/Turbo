@@ -6,7 +6,7 @@
 
 namespace Turbo::Ed {
 
-    class EditorApplication : public Turbo::Application
+    class EditorApplication : public Application
     {
     public:
         EditorApplication(const Application::Config& config)
@@ -16,7 +16,7 @@ namespace Turbo::Ed {
 
         void OnInit() override
         {
-            PushLayer(new Ed::EditorLayer);
+            PushLayer(new EditorLayer);
         }
     };
 

@@ -49,7 +49,6 @@ namespace Mystery
 				m_StepOn = true;
 
 				Entity delivery = Instantiate(m_DeliveryVariants[Random.Int(0, m_DeliveryVariants.Length)], Vector3.Up * 8.0f);
-				entity.As<Player>().m_AvailableDeliveries.Add(delivery);
 			}
 		}
 

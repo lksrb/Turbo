@@ -6,5 +6,10 @@
 		{
 			InternalCalls.DebugRenderer_DrawLine(ref start, ref end, ref color);
 		}
+
+		public static void DrawCircle(Vector3 position, Vector3 rotation, float radius, Color color)
+		{
+			InternalCalls.DebugRenderer_DrawCircle(ref position, ref rotation, radius, ref color);
+		}
 	}
 }

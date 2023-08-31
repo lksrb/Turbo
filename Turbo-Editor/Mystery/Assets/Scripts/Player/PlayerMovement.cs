@@ -3,9 +3,14 @@ using Turbo;
 
 namespace Mystery
 {
-	internal class PlayerMovement
+	enum PlayerMovementFlags : uint
 	{
-		Player m_Player;
+		Lock = 1 << 0
+	}
+
+	internal class PlayerMovement : PlayerLayer
+	{
+		PlayerInput m_Input;
 
 		internal Vector3 Translation;
 		internal Vector3 Velocity;
@@ -18,22 +23,24 @@ namespace Mystery
 		Vector3 m_TargetLocation;
 		Quaternion m_TargetRotation;
 
-		internal PlayerMovement(Player manager)
-		{
-			Rigidbody = manager.GetComponent<RigidbodyComponent>();
+		PlayerMovementFlags m_Flags;
 
-			m_Player = manager;
-			m_Camera = manager.FindEntityByName("Camera");
+		protected override void OnAttach()
+		{
+			m_Input = Get<PlayerInput>();
+
+			Rigidbody = m_Player.GetComponent<RigidbodyComponent>();
+			m_Camera = m_Player.FindEntityByName("Camera");
 			m_TargetLocation = Rigidbody.Position;
 			m_TargetRotation = Rigidbody.Rotation;
 		}
 
-		internal void Update()
+		protected override void OnUpdate()
 		{
 			m_CurrentMousePos = Input.GetMousePosition();
 			Translation = m_Player.Transform.Translation;
 
-			if (m_Player.m_Input.IsSetDestinationButtonDown)
+			if (m_Input.IsSetDestinationButtonDown)
 			{
 				Vector3 worldPos = Camera.ScreenToWorldPosition(m_CurrentMousePos);
 				worldPos.Normalize();
@@ -46,7 +53,12 @@ namespace Mystery
 						case "Ground":
 						case "Wall":
 						case "PressurePlate":
-							m_TargetLocation = result.HitPosition;
+
+							if (!m_Flags.HasFlag(PlayerMovementFlags.Lock))
+							{
+								m_TargetLocation = result.HitPosition;
+							}
+								RayCastHit?.Invoke(result.HitPosition);
 
 							Vector3 direction = Translation - m_TargetLocation;
 							direction.Y = 0.0f;
@@ -54,13 +66,12 @@ namespace Mystery
 
 							m_TargetRotation = Quaternion.LookAt(direction, Vector3.Up);
 
-							RayCastHit?.Invoke(result.HitPosition);
 							break;
 
 					}
 				}
 			}
-			else if (m_Player.m_Input.IsFocusButtonDown)
+			else if (m_Input.IsFocusButtonDown)
 			{
 				Vector3 worldPos = Camera.ScreenToWorldPosition(m_CurrentMousePos);
 				worldPos.Normalize();
@@ -95,6 +106,20 @@ namespace Mystery
 				Velocity.Y = Rigidbody.LinearVelocity.Y;
 				Rigidbody.LinearVelocity = Velocity;
 			}
+		}
+
+		protected override void OnEvent(PlayerEvent playerEvent)
+		{
+			switch (playerEvent)
+			{
+				case PlayerEvent.OnBallPicked:
+					m_Flags |= PlayerMovementFlags.Lock;
+					break;
+				case PlayerEvent.OnBallThrew:
+					m_Flags &= ~PlayerMovementFlags.Lock;
+					break;
+			}
+
 
 		}
 	}

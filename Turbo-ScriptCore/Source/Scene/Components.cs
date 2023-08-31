@@ -48,6 +48,10 @@ namespace Turbo
 				InternalCalls.Component_Transform_Set_Scale(Entity.ID, ref value);
 			}
 		}
+
+		//public Vector3 Forward => Vector3.Normalize(new Quaternion(Rotation) * Vector3.Forward);
+		//public Vector3 Right => Vector3.Normalize(new Quaternion(Rotation) * Vector3.Right);
+		//public Vector3 Up => Vector3.Normalize(new Quaternion(Rotation) * Vector3.Up);
 	}
 
 	public enum ProjectionType : uint

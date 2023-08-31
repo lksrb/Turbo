@@ -265,6 +265,8 @@ namespace Turbo
 
     void DrawList2D::End()
     {
+        TBO_PROFILE_FUNC();
+ 
         m_RenderCommandBuffer->Begin();
 
         // NOTE: Vertex buffers need render command buffer to copy data into GPU so they dont have to create their own

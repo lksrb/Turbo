@@ -47,6 +47,9 @@ AssetRegistry:
   - Asset: 9694007235022222327
     Path: Meshes/Backpack/Backpack.tmesh
     Type: StaticMesh
+  - Asset: 10508148845012856710
+    Path: Prefabs/PressurePlate.tprefab
+    Type: Prefab
   - Asset: 12236788305104757714
     Path: Sources/Default/Cube.fbx
     Type: MeshSource

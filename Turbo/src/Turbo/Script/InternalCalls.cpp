@@ -96,6 +96,15 @@ namespace Turbo {
             });
         }
 
+        static void DebugRenderer_DrawCircle(glm::vec3* position, glm::vec3* rotation, float radius, glm::vec4* color)
+        {
+            Ref<Scene> context = Script::GetCurrentScene();
+            context->AddToDrawList([p = *position, r = *rotation, radius, c = *color](Ref<SceneDrawList> drawList)
+            {
+                drawList->AddDebugCircle(p, r, radius, c);
+            });
+        }
+
 #pragma endregion
 
 #pragma region Logging
@@ -1337,6 +1346,7 @@ namespace Turbo {
 
         // Debug
         TBO_REGISTER_FUNCTION(DebugRenderer_DrawLine);
+        TBO_REGISTER_FUNCTION(DebugRenderer_DrawCircle);
 
         // Logging
         TBO_REGISTER_FUNCTION(Log_String);

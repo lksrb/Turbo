@@ -1,0 +1,39 @@
+Prefab: 10508148845012856710
+Entities:
+  - Entity: 5620245781289802842
+    TagComponent:
+      Tag: PressurePlate
+    Parent: 0
+    Children:
+      []
+    PrefabComponent:
+      AssetHandle: 0
+    TransformComponent:
+      Translation: [0, 0.400503576, 0]
+      Rotation: [0, -0, 0]
+      Scale: [3, 1, 3]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    ScriptComponent:
+      ClassName: Mystery.PressurePlate
+      Fields:
+        []
+    RigidbodyComponent:
+      BodyType: Kinematic
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: true
+      Friction: 0.200000003
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]

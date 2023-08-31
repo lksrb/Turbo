@@ -72,6 +72,7 @@ namespace Turbo
 		// Extension static functions
 		public static float Dot(Quaternion q1, Quaternion q2) => q1.W * q2.W + q1.X * q2.X + q1.Y * q2.Y + q1.Z * q2.Z;
 
+		// From glm
 		public static Quaternion LookAt(Vector3 forward, Vector3 upwards)
 		{
 			forward.Normalize();
@@ -131,7 +132,7 @@ namespace Turbo
 			return quaternion;
 		}
 
-		// From glm::slerp
+		// From glm
 		public static Quaternion Slerp(Quaternion start, Quaternion end, float maxRotationDelta)
 		{
 			// Sadly float.Epsilon is too small 
@@ -141,7 +142,7 @@ namespace Turbo
 			end.Normalize();
 
 			// Calculate the angle between the quaternions
-			float dot = Quaternion.Dot(start, end);
+			float dot = Dot(start, end);
 
 			// if dot < 0, the interpolation will take the long way around the spehere
 			// One quat must be negated
