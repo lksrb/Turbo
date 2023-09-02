@@ -143,7 +143,9 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     ScriptComponent:
-      ClassName: ""
+      ClassName: Mystery.GameManager
+      Fields:
+        []
   - Entity: 10910901954648104857
     TagComponent:
       Tag: BouncyBall
@@ -513,9 +515,9 @@ Entities:
     Children:
       []
     TransformComponent:
-      Translation: [-8.95131889e-05, 0.416976929, -6.19785452]
-      Rotation: [-3.14159226, -2.38418636e-07, -3.14159226]
-      Scale: [0.499999762, 0.499998063, 0.499999195]
+      Translation: [-9.01818275e-05, 14.4301186, 9.33298588]
+      Rotation: [-0.999999881, -2.3841838e-07, -2.76401124e-12]
+      Scale: [0.499967158, 0.499993026, 0.499966621]
     CameraComponent:
       Camera:
         ProjectionType: 0

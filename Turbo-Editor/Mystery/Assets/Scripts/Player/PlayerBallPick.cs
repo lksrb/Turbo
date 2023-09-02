@@ -18,6 +18,8 @@ namespace Mystery
 			m_Rigidbody = m_Player.GetComponent<RigidbodyComponent>();
 
 			m_BouncyBall = m_Player.FindEntityByName("BouncyBall").As<BouncyBall>();
+
+			m_GrabCollider = new AABB(Vector3.Zero, new Vector3(1.5f, 3.0f, 1.5f));
 		}
 
 		protected override void OnUpdate()
@@ -26,7 +28,7 @@ namespace Mystery
 			forward.Y = 0.0f;
 			forward.Normalize();
 
-			m_GrabCollider = new AABB(m_Player.Transform.Translation + forward * m_Player.PickLength, new Vector3(1.0f, 2.0f, 1.0f));
+			m_GrabCollider.Center = m_Player.Transform.Translation + forward * m_Player.PickLength;
 
 			if (m_PickedItem == null && m_Input.IsPickUpButtonDown)
 			{
@@ -60,7 +62,7 @@ namespace Mystery
 			}
 
 			// Debug
-			if(m_Input.IsPickUpButtonDown)
+			if (m_Input.IsPickUpButtonDown)
 			{
 				DebugRenderer.DrawBox(m_GrabCollider.Center, m_Player.Transform.Rotation, m_GrabCollider.Size, Color.Green);
 			}
