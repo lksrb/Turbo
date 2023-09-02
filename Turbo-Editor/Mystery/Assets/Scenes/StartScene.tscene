@@ -153,7 +153,7 @@ Entities:
     PrefabComponent:
       AssetHandle: 0
     TransformComponent:
-      Translation: [0, 11.3999996, 0]
+      Translation: [0, 11.4065409, 13.7322845]
       Rotation: [0, 0, 0]
       Scale: [0.800000012, 0.800000012, 0.800000012]
     StaticMeshRendererComponent:
@@ -457,7 +457,7 @@ Entities:
       - UUID: 18071129446368076905
       - UUID: 17150627184298903217
     TransformComponent:
-      Translation: [0, 2.57470703, 10]
+      Translation: [0, 2.5, 10]
       Rotation: [0, 0, 0]
       Scale: [2, 2, 1.99999952]
     StaticMeshRendererComponent:
@@ -465,6 +465,9 @@ Entities:
     ScriptComponent:
       ClassName: Mystery.Player
       Fields:
+        - Name: LockMovementDeltaMagnifier
+          Type: Float
+          Data: 3
         - Name: LinearVelocityMagnifier
           Type: Float
           Data: 10
@@ -476,12 +479,15 @@ Entities:
           Data: 2
         - Name: PickUpRadius
           Type: Float
-          Data: 2
+          Data: 1
         - Name: PickHeight
           Type: Float
           Data: 0.5
+        - Name: BallThrowPower
+          Type: Float
+          Data: 50
     RigidbodyComponent:
-      BodyType: Dynamic
+      BodyType: Kinematic
       CollisionDetection: Discrete
       GravityScale: 1
       Mass: 1
@@ -507,9 +513,9 @@ Entities:
     Children:
       []
     TransformComponent:
-      Translation: [-8.86917114e-05, 14.7704506, 8.65498543]
-      Rotation: [-1.02149153, 0, 0]
-      Scale: [0.500000119, 0.499998063, 0.499999553]
+      Translation: [-8.95131889e-05, 0.416976929, -6.19785452]
+      Rotation: [-3.14159226, -2.38418636e-07, -3.14159226]
+      Scale: [0.499999762, 0.499998063, 0.499999195]
     CameraComponent:
       Camera:
         ProjectionType: 0
@@ -526,4 +532,4 @@ Entities:
       Fields:
         - Name: Speed
           Type: Float
-          Data: 11.3900003
+          Data: 5

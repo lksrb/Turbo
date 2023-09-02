@@ -2,10 +2,10 @@
 
 namespace Mystery
 {
-	internal class PlayerInput : PlayerLayer
+	internal class PlayerInput : PlayerModule
 	{
-		const MouseCode m_SetDestinationCode = MouseCode.ButtonRight;
-		const MouseCode m_FocusEnemyButtonDown = MouseCode.ButtonLeft;
+		const MouseCode m_SetDestinationCode = MouseCode.ButtonLeft;
+		const MouseCode m_FocusEnemyButtonDown = MouseCode.ButtonRight;
 		const KeyCode m_ShootCode = KeyCode.W;
 		const KeyCode m_PickupCode = KeyCode.F;
 
@@ -25,7 +25,7 @@ namespace Mystery
 			IsFocusButtonDown = Input.IsMouseButtonDown(m_FocusEnemyButtonDown);
 			IsPickUpButtonDown = Input.IsKeyDown(m_PickupCode);
 
-			// Shooting
+			// Ball shoot
 			m_WasShootMouseButtonPressed = m_IsShootKeyReleased;
 			m_IsShootMouseButtonPressed = Input.IsKeyDown(m_ShootCode);
 			m_IsShootKeyReleased = Input.IsKeyUp(m_ShootCode);

@@ -22,7 +22,6 @@ namespace Turbo
 		public override int GetHashCode() => base.GetHashCode();
 
 		public static Vector2 Zero => new Vector2(0.0f, 0.0f);
-
 		public static Vector2 Up => new Vector2(0.0f, 1.0f);
 		public static Vector2 Right => new Vector2(1.0f, 0.0f);
 

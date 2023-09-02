@@ -105,6 +105,19 @@ namespace Turbo {
             });
         }
 
+        static void DebugRenderer_DrawBox(glm::vec3* position, glm::vec3* rotation, glm::vec3* scale, glm::vec4* color)
+        {
+            Ref<Scene> context = Script::GetCurrentScene();
+            context->AddToDrawList([p = *position, r = *rotation, s = *scale, c = *color](Ref<SceneDrawList> drawList)
+            {
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), p)
+                    * glm::toMat4(glm::quat(r))
+                    * glm::scale(glm::mat4(1.0f), s);
+
+                drawList->AddBoxWireframe(transform, c);
+            });
+        }
+
 #pragma endregion
 
 #pragma region Logging
@@ -1347,6 +1360,7 @@ namespace Turbo {
         // Debug
         TBO_REGISTER_FUNCTION(DebugRenderer_DrawLine);
         TBO_REGISTER_FUNCTION(DebugRenderer_DrawCircle);
+        TBO_REGISTER_FUNCTION(DebugRenderer_DrawBox);
 
         // Logging
         TBO_REGISTER_FUNCTION(Log_String);

@@ -132,7 +132,7 @@ namespace Turbo
 			return quaternion;
 		}
 
-		// From glm
+		// From glm.hpp
 		public static Quaternion Slerp(Quaternion start, Quaternion end, float maxRotationDelta)
 		{
 			// Sadly float.Epsilon is too small 

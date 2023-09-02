@@ -1,5 +1,5 @@
 using Turbo;
-using static Mystery.PlayerLayer;
+using static Mystery.PlayerModule;
 
 namespace Mystery
 {
@@ -11,13 +11,15 @@ namespace Mystery
 
 	public class Player : Entity
 	{
-		public float LinearVelocityMagnifier = 0.0f;
-		public float AngularVelocityMagnifier = 0.0f;
-		public float PickLength = 0.0f;
-		public float PickHeight = 0.0f;
-		public float PickUpRadius = 0.0f;
+		public float LinearVelocityMagnifier;
+		public readonly float AngularVelocityMagnifier;
+		public readonly float PickLength;
+		public readonly float PickHeight;
+		public readonly float PickUpRadius;
+		public readonly float LockMovementDeltaMagnifier;
+		public readonly float BallThrowPower;
 
-		private PlayerLayerSystem m_LayerSystem;
+		private PlayerModuleSystem m_Modules;
 
 		private Entity m_TargetCrosshair;
 
@@ -25,14 +27,14 @@ namespace Mystery
 
 		protected override void OnCreate()
 		{
-			m_LayerSystem = new PlayerLayerSystem(this, 3);
+			m_Modules = new PlayerModuleSystem(this, 3);
 
-			m_LayerSystem.PushLayer<PlayerInput>();
-			m_LayerSystem.PushLayer<PlayerMovement>().RayCastHit += OnRayCastHit;
-			m_LayerSystem.PushLayer<PlayerBallPick>();
+			m_Modules.AttachModule<PlayerInput>();
+			m_Modules.AttachModule<PlayerMovement>().m_OnChangeTargetLocation += OnChangeTargetLocation;
+			m_Modules.AttachModule<PlayerBallPick>();
 
 			// Establish event connections
-			m_LayerSystem.Listen<PlayerMovement>().To<PlayerBallPick>();
+			m_Modules.Listen<PlayerMovement>().To<PlayerBallPick>();
 
 			m_Hat = FindEntityByName("Hat");
 			m_TargetCrosshair = FindEntityByName("TargetCrosshair");
@@ -42,7 +44,7 @@ namespace Mystery
 
 		protected override void OnUpdate()
 		{
-			m_LayerSystem.OnUpdate();
+			m_Modules.OnUpdate();
 
 			// Hat
 			var r = m_Hat.Transform.Rotation;
@@ -50,7 +52,7 @@ namespace Mystery
 			m_Hat.Transform.Rotation = r;
 		}
 
-		void OnRayCastHit(Vector3 hitPosition)
+		void OnChangeTargetLocation(Vector3 hitPosition)
 		{
 			var transform = m_TargetCrosshair.Transform;
 			transform.Translation = hitPosition + Vector3.Up * 0.03f;

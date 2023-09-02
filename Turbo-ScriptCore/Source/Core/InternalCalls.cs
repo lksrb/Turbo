@@ -33,6 +33,9 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void DebugRenderer_DrawCircle(ref Vector3 position, ref Vector3 rotation, float radius, ref Color color);
 
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void DebugRenderer_DrawBox(ref Vector3 position, ref  Vector3 rotation, ref Vector3 scale, ref Color color);
+
 		#endregion
 
 		#region Logging
@@ -402,8 +405,8 @@ namespace Turbo
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void Component_Rigidbody_AddForce(ulong uuid, ref Vector3 force, ForceMode mode);
 
-        #endregion
+		#endregion
 
-        #endregion
-    }
+		#endregion
+	}
 }

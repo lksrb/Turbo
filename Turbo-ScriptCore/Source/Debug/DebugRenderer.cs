@@ -11,5 +11,10 @@
 		{
 			InternalCalls.DebugRenderer_DrawCircle(ref position, ref rotation, radius, ref color);
 		}
+
+		public static void DrawBox(Vector3 position, Vector3 rotation, Vector3 scale, Color color)
+		{
+			InternalCalls.DebugRenderer_DrawBox(ref position, ref rotation, ref scale, ref color);
+		}
 	}
 }
