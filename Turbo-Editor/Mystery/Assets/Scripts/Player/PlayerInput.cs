@@ -2,7 +2,7 @@
 
 namespace Mystery
 {
-	internal class PlayerInput : PlayerModule
+	internal class PlayerInput : Layer<Player, PlayerEvent>
 	{
 		const MouseCode m_SetDestinationCode = MouseCode.ButtonLeft;
 		const MouseCode m_FocusEnemyButtonDown = MouseCode.ButtonRight;

@@ -10,7 +10,7 @@ namespace Mystery
 		All = Move | Rotate
 	}
 
-	internal class PlayerMovement : PlayerModule
+	internal class PlayerMovement : Layer<Player, PlayerEvent>
 	{
 		PlayerInput m_Input;
 
@@ -36,8 +36,8 @@ namespace Mystery
 		{
 			m_Input = Get<PlayerInput>();
 
-			m_CameraTransform = m_Player.FindEntityByName("Camera").Transform;
-			m_Rigidbody = m_Player.GetComponent<RigidbodyComponent>();
+			m_CameraTransform = m_Entity.FindEntityByName("Camera").Transform;
+			m_Rigidbody = m_Entity.GetComponent<RigidbodyComponent>();
 			m_CurrentMousePosition = Input.GetMousePosition();
 
 			m_TargetLocation = m_Rigidbody.Position;
@@ -90,7 +90,7 @@ namespace Mystery
 				Vector3 distance = m_TargetLocation - m_Rigidbody.Position;
 				if (distance.Length() > Frame.TimeStep)
 				{
-					m_LinearVelocity = Vector3.Normalize(distance) * m_Player.LinearVelocityMagnifier;
+					m_LinearVelocity = Vector3.Normalize(distance) * m_Entity.LinearVelocityMagnifier;
 				}
 				else
 				{
@@ -112,7 +112,7 @@ namespace Mystery
 			if (m_MovementFlags.HasFlag(MovementFlags.Rotate))
 			{
 				// Smoothly change rotation according to direction towards target
-				m_Rigidbody.Rotation = Quaternion.Slerp(m_Rigidbody.Rotation, m_TargetRotation, Frame.TimeStep * m_Player.AngularVelocityMagnifier);
+				m_Rigidbody.Rotation = Quaternion.Slerp(m_Rigidbody.Rotation, m_TargetRotation, Frame.TimeStep * m_Entity.AngularVelocityMagnifier);
 			}
 		}
 

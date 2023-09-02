@@ -1,5 +1,5 @@
 using Turbo;
-using static Mystery.PlayerModule;
+using static Mystery.Layer<Mystery.Player, Mystery.PlayerEvent>;
 
 namespace Mystery
 {
@@ -19,7 +19,7 @@ namespace Mystery
 		public readonly float LockMovementDeltaMagnifier;
 		public readonly float BallThrowPower;
 
-		private PlayerModuleSystem m_Modules;
+		private LayerSystem<Player, PlayerEvent> m_LayerSystem;
 
 		private Entity m_TargetCrosshair;
 
@@ -27,14 +27,14 @@ namespace Mystery
 
 		protected override void OnCreate()
 		{
-			m_Modules = new PlayerModuleSystem(this, 3);
+			m_LayerSystem = new LayerSystem<Player, PlayerEvent>(this, 3);
 
-			m_Modules.AttachModule<PlayerInput>();
-			m_Modules.AttachModule<PlayerMovement>().m_OnChangeTargetLocation += OnChangeTargetLocation;
-			m_Modules.AttachModule<PlayerBallPick>();
+			m_LayerSystem.PushLayer<PlayerInput>();
+			m_LayerSystem.PushLayer<PlayerMovement>().m_OnChangeTargetLocation += OnChangeTargetLocation;
+			m_LayerSystem.PushLayer<PlayerBallGrab>();
 
 			// Establish event connections
-			m_Modules.Listen<PlayerMovement>().To<PlayerBallPick>();
+			m_LayerSystem.Listen<PlayerMovement>().To<PlayerBallGrab>();
 
 			m_Hat = FindEntityByName("Hat");
 			m_TargetCrosshair = FindEntityByName("TargetCrosshair");
@@ -44,7 +44,7 @@ namespace Mystery
 
 		protected override void OnUpdate()
 		{
-			m_Modules.OnUpdate();
+			m_LayerSystem.OnUpdate();
 
 			// Hat
 			var r = m_Hat.Transform.Rotation;
