@@ -6,6 +6,7 @@ namespace Mystery
 	{
 		private float Current;
 		private bool Started;
+		private readonly bool AutoStart;
 		private readonly float Duration;
 		private readonly bool AutoReset;
 
@@ -15,6 +16,7 @@ namespace Mystery
 			Duration = duration;
 			AutoReset = autoReset;
 			Started = autoStart;
+			AutoStart = autoStart;
 		}
 
 		public static implicit operator bool(Timer timer)
@@ -51,39 +53,10 @@ namespace Mystery
 
 		public void Reset()
 		{
+			if (!AutoStart)
+				Started = false;
+
 			Current = 0.0f;
 		}
-	}
-
-	public class SingleTickTimer
-	{
-		private Timer m_Timer;
-		private bool m_Once;
-
-		public SingleTickTimer(float duration)
-		{
-			m_Timer = new Timer(duration);
-			m_Once = false;
-		}
-
-		public static implicit operator bool(SingleTickTimer timer)
-		{
-			if (!timer.m_Once && timer.m_Timer)
-			{
-				timer.m_Once = true;
-
-				return true;
-			}
-
-			return false;
-		}
-
-		public void Reset()
-		{
-			m_Once = false;
-			m_Timer.Reset();
-		}
-
-		public float Delta => m_Timer.Delta;
 	}
 }

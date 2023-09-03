@@ -3,13 +3,6 @@ using Turbo;
 
 namespace Mystery
 {
-	enum MovementFlags : uint
-	{
-		Move = 1 << 0,
-		Rotate = 1 << 1,
-		All = Move | Rotate
-	}
-
 	internal class PlayerMovement : Layer<Player, PlayerEvent>
 	{
 		PlayerInput m_Input;
@@ -120,10 +113,10 @@ namespace Mystery
 		{
 			switch (playerEvent)
 			{
-				case PlayerEvent.OnBallPicked:
+				case PlayerEvent.BallGrabbed:
 					m_MovementFlags &= ~MovementFlags.Move;
 					break;
-				case PlayerEvent.OnBallThrew:
+				case PlayerEvent.BallThrew:
 					m_MovementFlags |= MovementFlags.Move;
 					break;
 			}

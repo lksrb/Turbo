@@ -17,7 +17,7 @@ namespace Mystery
 		private LayerSystem<TEntity, TEnum> m_System;
 
 		protected virtual void OnAttach() { }
-		//protected virtual void OnDetach() { }
+		protected virtual void OnDetach() { }
 		protected virtual void OnUpdate() { }
 		protected virtual void OnEvent(TEnum layerEvent) { }
 
@@ -66,7 +66,7 @@ namespace Mystery
 				m_Layers.Add(typeof(T), layer);
 				layer.OnAttach();
 
-				return layer as T;
+				return layer;
 			}
 
 			public struct Listener<TListener> where TListener : Layer<TEntity, TEnum>

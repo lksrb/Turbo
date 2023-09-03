@@ -2,7 +2,7 @@
 
 namespace Mystery
 {
-	internal class PlayerBallGrab : Layer<Player, PlayerEvent>
+	internal class PlayerBallThrow : Layer<Player, PlayerEvent>
 	{
 		PlayerInput m_Input;
 
@@ -30,8 +30,6 @@ namespace Mystery
 
 			m_GrabCollider.Center = m_Entity.Transform.Translation + forward * m_Entity.PickLength;
 			
-
-
 			if (m_GrabbedItem == null && m_Input.IsPickUpButtonDown)
 			{
 				if (m_GrabCollider.Contains(m_BouncyBall.Transform.Translation))
@@ -39,7 +37,7 @@ namespace Mystery
 					if (m_BouncyBall.SetHolder(m_Entity))
 					{
 						m_GrabbedItem = m_BouncyBall;
-						Emit(PlayerEvent.OnBallPicked);
+						Emit(PlayerEvent.BallGrabbed);
 					}
 				}
 			}
@@ -57,7 +55,7 @@ namespace Mystery
 					if (m_GrabbedItem.Name == "BouncyBall")
 						rb.AddForce(forward * m_Entity.BallThrowPower, ForceMode.Impulse);
 
-					Emit(PlayerEvent.OnBallThrew);
+					Emit(PlayerEvent.BallThrew);
 					m_BouncyBall.ReleaseFromHolder(m_Entity);
 					m_GrabbedItem = null;
 				}

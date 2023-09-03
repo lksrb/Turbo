@@ -480,7 +480,7 @@ namespace Turbo
 
     void Script::CollectGarbage()
     {
-        TBO_ENGINE_WARN("Collecting garbage...");
+        TBO_ENGINE_WARN("[GC] Collecting garbage...");
 
         // Collect garbage 
         // FIXME: For some reasion throws seg fault
@@ -489,7 +489,7 @@ namespace Turbo
         // Block until finalized
         while (mono_gc_pending_finalizers());
 
-        TBO_ENGINE_WARN("GC Finished...");
+        TBO_ENGINE_WARN("[GC] Finished...");
     }
 
     void Script::ReloadAssemblies()

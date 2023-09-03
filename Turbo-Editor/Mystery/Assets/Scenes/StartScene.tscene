@@ -155,7 +155,7 @@ Entities:
     PrefabComponent:
       AssetHandle: 0
     TransformComponent:
-      Translation: [0, 11.4065409, 13.7322845]
+      Translation: [0, 11.4065409, 0]
       Rotation: [0, 0, 0]
       Scale: [0.800000012, 0.800000012, 0.800000012]
     StaticMeshRendererComponent:
@@ -306,9 +306,6 @@ Entities:
         - Name: Speed
           Type: Float
           Data: 5
-        - Name: FollowPlayer
-          Type: Bool
-          Data: false
         - Name: PickUpRadius
           Type: Float
           Data: 2
