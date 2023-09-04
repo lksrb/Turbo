@@ -5,8 +5,8 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Turbo
-{
+namespace Turbo {
+
     class VulkanRenderCommandBuffer : public RenderCommandBuffer
     {
     public:

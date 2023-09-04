@@ -72,64 +72,55 @@ namespace Turbo
 		// Extension static functions
 		public static float Dot(Quaternion q1, Quaternion q2) => q1.W * q2.W + q1.X * q2.X + q1.Y * q2.Y + q1.Z * q2.Z;
 
-		// From glm
+		public static Quaternion AxisAngle(Vector3 axis, float angle)
+		{
+			// Ensure the axis is normalized
+			axis = Vector3.Normalize(axis);
+
+			// Calculate half angle
+			float halfAngle = angle * 0.5f;
+			float sinHalfAngle = Mathf.Sin(halfAngle);
+
+			// Create the quaternion
+			return new Quaternion(
+				Mathf.Cos(halfAngle),
+				axis.X * sinHalfAngle,
+				axis.Y * sinHalfAngle,
+				axis.Z * sinHalfAngle
+			);
+		}
+
+		public static Quaternion LookAt(Vector3 source, Vector3 target, Vector3 upwards) => LookAt(target - source, upwards);
+
 		public static Quaternion LookAt(Vector3 forward, Vector3 upwards)
 		{
+			// Ensure that the vector is normalized
 			forward.Normalize();
-			upwards.Normalize();
 
-			Vector3 right = Vector3.Cross(upwards, forward);
-			Vector3 newUpwards = Vector3.Cross(forward, right);
+			// Calculate the rotation quaternion
+			float dot = Vector3.Dot(Vector3.Forward, forward);
 
-			float m00 = right.X;
-			float m01 = right.Y;
-			float m02 = right.Z;
-			float m10 = newUpwards.X;
-			float m11 = newUpwards.Y;
-			float m12 = newUpwards.Z;
-			float m20 = forward.X;
-			float m21 = forward.Y;
-			float m22 = forward.Z;
+			if (Mathf.Abs(dot + 1.0f) < 0.000001f)
+			{
+				// Source and target are exactly opposite, so use the up direction
+				return Quaternion.AxisAngle(upwards, Mathf.PI);
+			}
+			else if (Mathf.Abs(dot - 1.0f) < 0.000001f)
+			{
+				// Source and target are already aligned
+				return Quaternion.Identity;
+			}
+			else
+			{
+				// Calculate the rotation axis
+				Vector3 rotationAxis = Vector3.Cross(Vector3.Forward, forward);
 
-			float num8 = (m00 + m11) + m22;
-			Quaternion quaternion = new Quaternion();
-			if (num8 > 0f)
-			{
-				float num = (float)Mathf.Sqrt(num8 + 1f);
-				quaternion.W = num * 0.5f;
-				num = 0.5f / num;
-				quaternion.X = (m12 - m21) * num;
-				quaternion.Y = (m20 - m02) * num;
-				quaternion.Z = (m01 - m10) * num;
-				return quaternion;
+				// Calculate the rotation angle
+				float rotationAngle = Mathf.Acos(dot);
+
+				// Create the quaternion
+				return Quaternion.AxisAngle(rotationAxis, rotationAngle);
 			}
-			if ((m00 >= m11) && (m00 >= m22))
-			{
-				float num7 = (float)Mathf.Sqrt(((1f + m00) - m11) - m22);
-				float num4 = 0.5f / num7;
-				quaternion.X = 0.5f * num7;
-				quaternion.Y = (m01 + m10) * num4;
-				quaternion.Z = (m02 + m20) * num4;
-				quaternion.W = (m12 - m21) * num4;
-				return quaternion;
-			}
-			if (m11 > m22)
-			{
-				float num6 = (float)Mathf.Sqrt(((1f + m11) - m00) - m22);
-				float num3 = 0.5f / num6;
-				quaternion.X = (m10 + m01) * num3;
-				quaternion.Y = 0.5f * num6;
-				quaternion.Z = (m21 + m12) * num3;
-				quaternion.W = (m20 - m02) * num3;
-				return quaternion;
-			}
-			float num5 = (float)Mathf.Sqrt(((1f + m22) - m00) - m11);
-			float num2 = 0.5f / num5;
-			quaternion.X = (m20 + m02) * num2;
-			quaternion.Y = (m21 + m12) * num2;
-			quaternion.Z = 0.5f * num5;
-			quaternion.W = (m01 - m10) * num2;
-			return quaternion;
 		}
 
 		// From glm.hpp

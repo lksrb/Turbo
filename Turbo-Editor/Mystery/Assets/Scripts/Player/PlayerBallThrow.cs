@@ -34,7 +34,7 @@ namespace Mystery
 			{
 				if (m_GrabCollider.Contains(m_BouncyBall.Transform.Translation))
 				{
-					if (m_BouncyBall.SetHolder(m_Entity))
+					if (m_BouncyBall.SetOwner(m_Entity))
 					{
 						m_GrabbedItem = m_BouncyBall;
 						Emit(PlayerEvent.BallGrabbed);
@@ -56,7 +56,7 @@ namespace Mystery
 						rb.AddForce(forward * m_Entity.BallThrowPower, ForceMode.Impulse);
 
 					Emit(PlayerEvent.BallThrew);
-					m_BouncyBall.ReleaseFromHolder(m_Entity);
+					m_BouncyBall.Release(m_Entity);
 					m_GrabbedItem = null;
 				}
 			}

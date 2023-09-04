@@ -29,7 +29,7 @@ namespace Mystery
 				if (emitter == enemy)
 					continue;
 
-				enemy.GetEnemyLayer().OnEnemyEvent(emitter, e);
+				enemy.OnEnemyEvent(emitter, e);
 			}
 		}
 
@@ -37,7 +37,7 @@ namespace Mystery
 		{
 			foreach (var enemy in Get().m_Enemies)
 			{
-				enemy.GetEnemyLayer().OnPlayerEvent(e);
+				enemy.OnPlayerEvent(e);
 			}
 		}
 	}

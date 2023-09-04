@@ -63,7 +63,7 @@ namespace Mystery
 					}
 
 					// Calculate direction
-					Vector3 direction = Vector3.Normalize(m_Rigidbody.Position - result.HitPosition);
+					Vector3 direction = Vector3.Normalize(result.HitPosition - m_Rigidbody.Position);
 
 					// Assign and calculate forward target rotation
 					m_TargetRotation = Quaternion.LookAt(new Vector3(direction.X, 0.0f, direction.Z), Vector3.Up);

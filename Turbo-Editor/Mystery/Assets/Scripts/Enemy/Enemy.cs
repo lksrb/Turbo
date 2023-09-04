@@ -1,5 +1,4 @@
 ﻿using Turbo;
-using static Mystery.Layer<Mystery.Enemy, Mystery.EnemyEvent>;
 
 namespace Mystery
 {
@@ -10,72 +9,75 @@ namespace Mystery
 		BallGrabbed,
 	}
 
-	enum EnemyTarget : uint
-	{
-		TargetBall = 0,
-		TargetPlayer
-	}
-
-	internal interface EnemyManagerObserver
-	{
-		void OnEnemyEvent(Enemy enemy, EnemyEvent enemyEvent);
-		void OnPlayerEvent(PlayerEvent playerEvent);
-	}
-
 	internal class Enemy : Entity
 	{
 		public readonly float Speed;
 		public readonly float PickUpRadius;
 
-		private LayerSystem<Enemy, EnemyEvent> m_LayerSystem;
+		private Vector3 m_Forward = Vector3.Zero; 
+		internal Vector3 Forward => m_Forward; 
+
 		private System.Action<Entity> m_OnHitCallback;
-		private EnemyLayer m_EnemyLayer;
+
+		IEnemyState[] m_EnemyStates;
+		IEnemyState m_CurrentState;
+		EnemyState m_ECurrentState = EnemyState.Count;
 
 		protected override void OnCreate()
 		{
 			EnemyManager.RegisterEnemy(this);
-
 			OnCollisionBegin += Enemy_OnCollisionBegin;
 
-			m_LayerSystem = new LayerSystem<Enemy, EnemyEvent>(this, 1);
+			m_EnemyStates = new IEnemyState[(uint)EnemyState.Count];
+			m_EnemyStates[(uint)EnemyState.ChaseBall] = new EnemyChaseBallState(this);
+			m_EnemyStates[(uint)EnemyState.GrabAndThrowBall] = new EnemyGrabAndThrowBallState(this);
+			m_EnemyStates[(uint)EnemyState.ExhaustedByThrow] = new EnemyExhaustedByThrow(this);
+			m_EnemyStates[(uint)EnemyState.RunAway] = new EnemyRunAwayState(this);
+			m_EnemyStates[(uint)EnemyState.Defend] = new EnemyDefendState(this);
 
-			m_EnemyLayer = m_LayerSystem.PushLayer<EnemyLayer>();
-			m_OnHitCallback += m_LayerSystem.PushLayer<EnemyMovement>().OnHit;
-			m_LayerSystem.PushLayer<EnemyBallThrow>();
-
-			m_LayerSystem.Listen<EnemyMovement>().To<EnemyLayer>();
-			m_LayerSystem.Listen<EnemyMovement>().To<EnemyBallThrow>();
+			ChangeState(EnemyState.ChaseBall);
 		}
 
 		protected override void OnUpdate()
 		{
-			m_LayerSystem.OnUpdate();
+			m_Forward = new Quaternion(Transform.Rotation) * Vector3.Forward;
+			m_Forward.Y = 0.0f;
+			m_Forward.Normalize();
+
+			m_CurrentState.OnUpdate();
 		}
 
-		internal EnemyLayer GetEnemyLayer() => m_EnemyLayer;
-		private void Enemy_OnCollisionBegin(Entity entity) => m_OnHitCallback?.Invoke(entity);
-	}
-
-	// EnemyLayer
-	// EnemyLayer
-	// EnemyLayer
-
-	internal class EnemyLayer : Layer<Enemy, EnemyEvent>, EnemyManagerObserver
-	{
-		public void OnPlayerEvent(PlayerEvent playerEvent)
+		internal void ChangeState(EnemyState state)
 		{
-			if (playerEvent == PlayerEvent.BallGrabbed)
+			if (m_ECurrentState == state)
+				return;
+
+			m_ECurrentState = state;
+
+			m_CurrentState = m_EnemyStates[(uint)m_ECurrentState];
+			m_CurrentState.Enter();
+		}
+
+		private void Enemy_OnCollisionBegin(Entity entity)
+		{
+			m_OnHitCallback?.Invoke(entity);
+		}
+
+		internal void OnEnemyEvent(Enemy other, EnemyEvent e)
+		{
+
+		}
+
+		internal void OnPlayerEvent(PlayerEvent e)
+		{
+			switch (e)
 			{
-				Emit(EnemyEvent.RunFromPlayer);
-			} 
-			else if(playerEvent == PlayerEvent.BallThrew)
-			{
-				Emit(EnemyEvent.ChaseBall);
+				case PlayerEvent.BallGrabbed:
+					ChangeState(EnemyState.RunAway);
+					break;
+				case PlayerEvent.BallThrew:
+					break;
 			}
-		}
-
-		public void OnEnemyEvent(Enemy enemy, EnemyEvent enemyEvent)
-		{
 		}
 	}
 }

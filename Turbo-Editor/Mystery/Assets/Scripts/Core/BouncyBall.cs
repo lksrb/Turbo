@@ -4,26 +4,26 @@ namespace Mystery
 {
 	public class BouncyBall : Entity
 	{
-		private Entity m_Holder;
+		private Entity m_Owner;
 
-		internal bool SetHolder(Entity entity)
+		internal bool SetOwner(Entity entity)
 		{
-			if(m_Holder == null)
+			if (m_Owner == null)
 			{
-				m_Holder = entity;
+				m_Owner = entity;
 				return true;
 			}
 
 			return false;
 		}
-		
-		internal void ReleaseFromHolder(Entity entity)
+
+		internal void Release(Entity entity)
 		{
-			if(m_Holder == entity)
-			{
-				m_Holder = null;
-			}
+			if (m_Owner == entity)
+				m_Owner = null;
 		}
+
+		internal Entity Owner => m_Owner;
 
 		protected override void OnCreate()
 		{
