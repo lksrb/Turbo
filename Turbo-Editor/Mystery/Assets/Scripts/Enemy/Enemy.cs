@@ -11,13 +11,13 @@ namespace Mystery
 
 	internal class Enemy : Entity
 	{
-		public readonly float Speed;
-		public readonly float PickUpRadius;
+		public readonly float Speed = 0.0f;
+		public readonly float PickUpRadius = 0.0f;
 
 		private Vector3 m_Forward = Vector3.Zero; 
 		internal Vector3 Forward => m_Forward; 
 
-		private System.Action<Entity> m_OnHitCallback;
+		private System.Action<Entity> m_OnHitCallback = null;
 
 		IEnemyState[] m_EnemyStates;
 		IEnemyState m_CurrentState;
@@ -30,10 +30,11 @@ namespace Mystery
 
 			m_EnemyStates = new IEnemyState[(uint)EnemyState.Count];
 			m_EnemyStates[(uint)EnemyState.ChaseBall] = new EnemyChaseBallState(this);
-			m_EnemyStates[(uint)EnemyState.GrabAndThrowBall] = new EnemyGrabAndThrowBallState(this);
-			m_EnemyStates[(uint)EnemyState.ExhaustedByThrow] = new EnemyExhaustedByThrow(this);
+			m_EnemyStates[(uint)EnemyState.Attack] = new EnemyAttackState(this);
+			m_EnemyStates[(uint)EnemyState.ExhaustedByAttack] = new EnemyExhaustedByAttack(this);
 			m_EnemyStates[(uint)EnemyState.RunAway] = new EnemyRunAwayState(this);
 			m_EnemyStates[(uint)EnemyState.Defend] = new EnemyDefendState(this);
+			m_EnemyStates[(uint)EnemyState.TryCatchBall] = new EnemyTryCatchBallState(this);
 
 			ChangeState(EnemyState.ChaseBall);
 		}
@@ -70,14 +71,7 @@ namespace Mystery
 
 		internal void OnPlayerEvent(PlayerEvent e)
 		{
-			switch (e)
-			{
-				case PlayerEvent.BallGrabbed:
-					ChangeState(EnemyState.RunAway);
-					break;
-				case PlayerEvent.BallThrew:
-					break;
-			}
+			m_CurrentState.OnPlayerEvent(e);
 		}
 	}
 }

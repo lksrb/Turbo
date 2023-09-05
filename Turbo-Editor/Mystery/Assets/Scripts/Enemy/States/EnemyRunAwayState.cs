@@ -53,5 +53,9 @@ namespace Mystery
 				m_Enemy.ChangeState(EnemyState.ChaseBall);
 			}
 		}
+
+		public void OnPlayerEvent(PlayerEvent playerEvent)
+		{
+		}
 	}
 }

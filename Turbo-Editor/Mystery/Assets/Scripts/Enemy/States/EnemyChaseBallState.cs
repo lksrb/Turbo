@@ -47,10 +47,22 @@ namespace Mystery
 
 			if (m_GrabCollider.Contains(m_BouncyBall.Transform.Translation))
 			{
-				m_Enemy.ChangeState(EnemyState.GrabAndThrowBall);
+				m_Enemy.ChangeState(EnemyState.Attack);
 			}
 
 			DebugRenderer.DrawBox(m_GrabCollider.Center, Vector3.Zero, m_GrabCollider.Size, Color.Green);
+		}
+
+		public void OnPlayerEvent(PlayerEvent playerEvent)
+		{
+			switch (playerEvent)
+			{
+				case PlayerEvent.BallGrabbed:
+					m_Enemy.ChangeState(EnemyState.RunAway);
+					break;
+				case PlayerEvent.BallThrew:
+					break;
+			}
 		}
 	}
 }

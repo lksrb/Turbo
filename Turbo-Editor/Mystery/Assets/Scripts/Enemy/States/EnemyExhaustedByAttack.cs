@@ -2,7 +2,7 @@
 
 namespace Mystery
 {
-	internal class EnemyExhaustedByThrow : IEnemyState
+	internal class EnemyExhaustedByAttack : IEnemyState
 	{
 		Enemy m_Enemy;
 		RigidbodyComponent m_Rigidbody;
@@ -11,7 +11,7 @@ namespace Mystery
 
 		Timer m_ExhaustTimer;
 
-		public EnemyExhaustedByThrow(Enemy enemy)
+		public EnemyExhaustedByAttack(Enemy enemy)
 		{
 			m_Enemy = enemy;
 
@@ -32,8 +32,20 @@ namespace Mystery
 		{
 			if(m_ExhaustTimer)
 			{
-				m_Enemy.ChangeState(EnemyState.ChaseBall);
+				if(m_BouncyBall.Owner == null)
+				{
+					m_Enemy.ChangeState(EnemyState.ChaseBall);
+				} 
+				else
+				{
+					m_Enemy.ChangeState(EnemyState.RunAway);
+				}
+
 			}
+		}
+
+		public void OnPlayerEvent(PlayerEvent playerEvent)
+		{
 		}
 	}
 }

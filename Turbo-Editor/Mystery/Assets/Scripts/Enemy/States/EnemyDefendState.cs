@@ -46,5 +46,15 @@ namespace Mystery
 				m_Enemy.ChangeState(EnemyState.ChaseBall);
 			}
 		}
+
+		public void OnPlayerEvent(PlayerEvent playerEvent)
+		{
+			switch (playerEvent)
+			{
+				case PlayerEvent.BallThrew:
+					m_Enemy.ChangeState(EnemyState.TryCatchBall);
+					break;
+			}
+		}
 	}
 }

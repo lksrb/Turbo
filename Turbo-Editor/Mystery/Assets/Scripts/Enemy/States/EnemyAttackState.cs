@@ -2,7 +2,7 @@
 
 namespace Mystery
 {
-	internal class EnemyGrabAndThrowBallState : IEnemyState
+	internal class EnemyAttackState : IEnemyState
 	{
 		Enemy m_Enemy;
 		BouncyBall m_BouncyBall;
@@ -10,7 +10,7 @@ namespace Mystery
 		Player m_Player;
 		Timer m_ThrowTimer;
 
-		internal EnemyGrabAndThrowBallState(Enemy enemy)
+		internal EnemyAttackState(Enemy enemy)
 		{
 			m_Enemy = enemy;
 			m_BouncyBall = m_Enemy.FindEntityByName("BouncyBall").As<BouncyBall>();
@@ -58,8 +58,12 @@ namespace Mystery
 			{
 				rb.AddForce(m_Enemy.Forward * 50.0f, ForceMode.Impulse);
 				m_BouncyBall.Release(m_Enemy);
-				m_Enemy.ChangeState(EnemyState.ExhaustedByThrow);
+				m_Enemy.ChangeState(EnemyState.ExhaustedByAttack);
 			}
+		}
+
+		public void OnPlayerEvent(PlayerEvent playerEvent)
+		{
 		}
 	}
 }
