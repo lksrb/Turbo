@@ -12,31 +12,25 @@ namespace Mystery
 	internal class Enemy : Entity
 	{
 		public readonly float Speed = 0.0f;
-		public readonly float PickUpRadius = 0.0f;
 
-		private Vector3 m_Forward = Vector3.Zero; 
-		internal Vector3 Forward => m_Forward; 
+		private Vector3 m_Forward = Vector3.Zero;
+		internal Vector3 Forward => m_Forward;
 
-		private System.Action<Entity> m_OnHitCallback = null;
-
-		IEnemyState[] m_EnemyStates;
-		IEnemyState m_CurrentState;
+		Player m_Player;
+		EnemyStateBase[] m_EnemyStates;
+		EnemyStateBase m_CurrentState = null;
 		EnemyState m_ECurrentState = EnemyState.Count;
 
 		protected override void OnCreate()
 		{
+			Log.Info("Enemy instantiated!");
+
 			EnemyManager.RegisterEnemy(this);
-			OnCollisionBegin += Enemy_OnCollisionBegin;
+			m_Player = FindEntityByName("Player").As<Player>();
 
-			m_EnemyStates = new IEnemyState[(uint)EnemyState.Count];
-			m_EnemyStates[(uint)EnemyState.ChaseBall] = new EnemyChaseBallState(this);
-			m_EnemyStates[(uint)EnemyState.Attack] = new EnemyAttackState(this);
-			m_EnemyStates[(uint)EnemyState.ExhaustedByAttack] = new EnemyExhaustedByAttack(this);
-			m_EnemyStates[(uint)EnemyState.RunAway] = new EnemyRunAwayState(this);
-			m_EnemyStates[(uint)EnemyState.Defend] = new EnemyDefendState(this);
-			m_EnemyStates[(uint)EnemyState.TryCatchBall] = new EnemyTryCatchBallState(this);
+			m_EnemyStates = EnemyStateBase.CreateEnemyStates(this, m_Player);
 
-			ChangeState(EnemyState.ChaseBall);
+			ChangeState(EnemyState.RunTowardsPit);
 		}
 
 		protected override void OnUpdate()
@@ -55,13 +49,12 @@ namespace Mystery
 
 			m_ECurrentState = state;
 
-			m_CurrentState = m_EnemyStates[(uint)m_ECurrentState];
-			m_CurrentState.Enter();
-		}
+			if (m_CurrentState != null)
+				m_CurrentState.UnsetCollisionCallbacks();
 
-		private void Enemy_OnCollisionBegin(Entity entity)
-		{
-			m_OnHitCallback?.Invoke(entity);
+			m_CurrentState = m_EnemyStates[(uint)m_ECurrentState];
+			m_CurrentState.SetCollisionCallbacks();
+			m_CurrentState.Enter();
 		}
 
 		internal void OnEnemyEvent(Enemy other, EnemyEvent e)

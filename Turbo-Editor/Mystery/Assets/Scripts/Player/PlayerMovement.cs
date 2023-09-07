@@ -48,25 +48,26 @@ namespace Mystery
 				mouseWorldPosition.Normalize();
 
 				// Create a ray that origins from camera's position and casts to world mouse position
-				Ray ray = new Ray(m_CameraTransform.Translation, mouseWorldPosition * 100.0f);
-
-				// Cast ray that only receives furthest hit - this is because we want to only hit Ground entity since its the furthest
-				if (Physics.CastRay(ray, RayTarget.Furthest, out RayCastResult result))
+				// Query all hits - this is an expensive operation - maybe we shouldnt create new entity classes for each hit
+				if (Physics.CastRayAll(m_CameraTransform.Translation, mouseWorldPosition, Mathf.Infinity, out CastRayAllResult allResult))
 				{
-					if (m_MovementFlags.HasFlag(MovementFlags.Move))
+					foreach(CastRayResult result in allResult)
 					{
-						// Assign target position
-						m_TargetLocation = result.HitPosition;
+						if(result.HitEntity.Name == "TargetCursorGround")
+						{
+							// Assign target position
+							m_TargetLocation = result.HitPosition;
 
-						// Invoke event callback for target cursor
-						m_OnChangeTargetLocation?.Invoke(m_TargetLocation);
+							// Invoke event callback for target cursor
+							m_OnChangeTargetLocation?.Invoke(m_TargetLocation);
+
+							// Calculate direction
+							Vector3 direction = Vector3.Normalize(result.HitPosition - m_Rigidbody.Position);
+
+							// Assign and calculate forward target rotation
+							m_TargetRotation = Quaternion.LookAt(new Vector3(direction.X, 0.0f, direction.Z), Vector3.Up);
+						}
 					}
-
-					// Calculate direction
-					Vector3 direction = Vector3.Normalize(result.HitPosition - m_Rigidbody.Position);
-
-					// Assign and calculate forward target rotation
-					m_TargetRotation = Quaternion.LookAt(new Vector3(direction.X, 0.0f, direction.Z), Vector3.Up);
 				}
 			}
 
@@ -89,7 +90,7 @@ namespace Mystery
 				{
 					m_LinearVelocity = Vector3.Zero;
 				}
-			} 
+			}
 			else // Cannot move
 			{
 				m_LinearVelocity = Vector3.Lerp(m_LinearVelocity, Vector3.Zero, Frame.TimeStep * 5.0f);
@@ -114,10 +115,10 @@ namespace Mystery
 			switch (playerEvent)
 			{
 				case PlayerEvent.BallGrabbed:
-					m_MovementFlags &= ~MovementFlags.Move;
+					//m_MovementFlags &= ~MovementFlags.Move;
 					break;
 				case PlayerEvent.BallThrew:
-					m_MovementFlags |= MovementFlags.Move;
+					//m_MovementFlags |= MovementFlags.Move;
 					break;
 			}
 		}

@@ -23,7 +23,7 @@ namespace Turbo {
         Entity prefabEntity = m_Scene->CreateEntity(entity.GetName());
 
         // RelationshipComponent is not valid anymore after this
-        m_Scene->CopyEntity(entity, prefabEntity);
+        m_Scene->CopyComponents(entity, prefabEntity);
 
         if (first)
         {

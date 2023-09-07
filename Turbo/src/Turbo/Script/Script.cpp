@@ -18,6 +18,7 @@
 #include <mono/metadata/threads.h>
 #include <mono/metadata/attrdefs.h>
 #include <mono/metadata/mono-gc.h>
+#include <stack>
 
 namespace Turbo
 {
@@ -130,6 +131,8 @@ namespace Turbo
         ScriptClassMap ScriptClasses;
 
         std::unordered_map<UUID, Ref<ScriptInstance>> ScriptInstances;
+
+        std::vector<Entity> InvokeLaterScriptEntities;
 
         Ref<Scene> SceneContext = nullptr;
 
@@ -297,6 +300,17 @@ namespace Turbo
         }
 
         instance->InvokeOnUpdate();
+    }
+
+    void Script::DuplicateRuntimeScriptEntity(Entity target, Entity source)
+    {
+        if (!target.HasComponent<ScriptComponent>() || !source.HasComponent<ScriptComponent>())
+            return;
+
+        // TODO: Duplicate script fields
+
+        // Add it to late OnCreate invoke
+        s_Data->InvokeLaterScriptEntities.push_back(target);
     }
 
     Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)
@@ -556,6 +570,11 @@ namespace Turbo
         return s_Data->AppDomain;
     }
 
+    MonoClass* Script::GetMonoClassFromName(const char* nameSpace, const char* name)
+    {
+        return mono_class_from_name(Script::GetCoreAssemblyImage(), nameSpace, name);
+    }
+
     void Script::OnNewFrame(FTime ts)
     {
         TBO_PROFILE_FUNC();
@@ -567,6 +586,10 @@ namespace Turbo
         mono_field_static_set_value(s_Data->FrameVTable, s_Data->FrameTimeStepField, (void*)&ts);
         FTime timeSinceStart = s_Data->SceneContext->TimeSinceStart();
         mono_field_static_set_value(s_Data->FrameVTable, s_Data->FrameTimeSinceStartField, (void*)&timeSinceStart);
+
+        for (Entity entity : s_Data->InvokeLaterScriptEntities)
+            InvokeEntityOnCreate(entity);
+        s_Data->InvokeLaterScriptEntities.clear();
     }
 
     void Script::CopyScriptClassFields(Entity source, Entity destination)

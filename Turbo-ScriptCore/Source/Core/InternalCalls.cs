@@ -130,7 +130,10 @@ namespace Turbo
 		#region Physics
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static void Physics_CastRay(ref Vector3 start, ref Vector3 direction, RayTarget target, out UnmanagedRayCastResult result);
+		internal extern static void Physics_CastRay(ref Vector3 origin, ref Vector3 direction, float length, RayTarget target, out InternalCastRayResult result);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static InternalCastRayResult[] Physics_CastRayAll(ref Vector3 origin, ref Vector3 direction, float length);
 
 		#endregion
 

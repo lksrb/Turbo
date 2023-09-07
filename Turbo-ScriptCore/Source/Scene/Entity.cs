@@ -19,16 +19,16 @@ namespace Turbo
 		}
 
 		// Collision 2D callbacks
-		protected event Action<Entity> OnCollisionBegin2D;
-		protected event Action<Entity> OnCollisionEnd2D;
-		protected event Action<Entity> OnTriggerBegin2D;
-		protected event Action<Entity> OnTriggerEnd2D;
+		public event Action<Entity> OnCollisionBegin2D;
+		public event Action<Entity> OnCollisionEnd2D;
+		public event Action<Entity> OnTriggerBegin2D;
+		public event Action<Entity> OnTriggerEnd2D;
 
 		// Collision 3D callbacks
-		protected event Action<Entity> OnCollisionBegin;
-		protected event Action<Entity> OnCollisionEnd;
-		protected event Action<Entity> OnTriggerBegin;
-		protected event Action<Entity> OnTriggerEnd;
+		public event Action<Entity> OnCollisionBegin;
+		public event Action<Entity> OnCollisionEnd;
+		public event Action<Entity> OnTriggerBegin;
+		public event Action<Entity> OnTriggerEnd;
 
 		// Caching components
 		private Dictionary<Type, Component> m_CachedComponents = new Dictionary<Type, Component>();

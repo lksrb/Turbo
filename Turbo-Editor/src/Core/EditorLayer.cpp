@@ -384,7 +384,7 @@ namespace Turbo::Ed {
                     snapValue = 45.0f;
 
                 f32 snap_values[] = { snapValue, snapValue, snapValue };
-                ImGuizmo::AllowAxisFlip(false);
+                ImGuizmo::AllowAxisFlip(true);
                 ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
                 (ImGuizmo::OPERATION)m_GizmoType, static_cast<ImGuizmo::MODE>(m_GizmoMode), glm::value_ptr(transform),
                 nullptr, snap ? snap_values : nullptr);

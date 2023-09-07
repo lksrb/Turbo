@@ -37,9 +37,9 @@ namespace Mystery
 			m_LayerSystem.Listen<PlayerLayer>().To<PlayerBallThrow>();
 
 			m_Hat = FindEntityByName("Hat");
-			m_TargetCrosshair = FindEntityByName("TargetCrosshair");
+			m_TargetCrosshair = FindEntityByName("TargetCursor");
 
-			Log.Info("Hello entity!");
+			Log.Info("Hello from player!");
 		}
 
 		protected override void OnUpdate()

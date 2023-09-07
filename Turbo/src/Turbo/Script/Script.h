@@ -31,6 +31,8 @@ namespace Turbo
         static void InvokeEntityOnCreate(Entity entity);
         static void InvokeEntityOnUpdate(Entity entity);
 
+        static void DuplicateRuntimeScriptEntity(Entity target, Entity source);
+
         static ScriptFieldInstanceMap& GetEntityFieldMap(UUID uuid);
 
         static void ReloadAssemblies();
@@ -42,6 +44,9 @@ namespace Turbo
 
         static MonoImage* GetCoreAssemblyImage();
         static MonoDomain* GetAppDomain();
+
+        // Temp
+        static MonoClass* GetMonoClassFromName(const char* nameSpace, const char* name);
 
         static void OnNewFrame(FTime ts);
 

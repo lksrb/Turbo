@@ -399,7 +399,7 @@ namespace Turbo {
     Entity Scene::DuplicateEntity(Entity entity)
     {
         Entity duplicated = CreateEntity(entity.GetName());
-        CopyEntity(entity, duplicated);
+        CopyComponents(entity, duplicated);
 
         // Signal entity's parent that an this entity has been duplicated
         Entity parent = entity.GetParent();
@@ -409,9 +409,8 @@ namespace Turbo {
         return duplicated;
     }
 
-    void Scene::CopyEntity(Entity src, Entity dst)
+    void Scene::CopyComponents(Entity src, Entity dst)
     {
-        // Copy components
         Utils::CopyComponentIfExists(AllComponents{}, dst, src);
     }
 
@@ -459,13 +458,10 @@ namespace Turbo {
         // This means that ScriptEntity::OnCreate will be called after first ScriptEntity::OnUpdate
         // It should be okay
          
-         // Invoke C# OnCreate method
+         // Duplicate script entity
         if (entity.HasComponent<ScriptComponent>())
         {
-            m_PostUpdateFuncs.emplace_back([entity]()
-            {
-                Script::InvokeEntityOnCreate(entity);
-            });
+            Script::DuplicateRuntimeScriptEntity(entity, prefabEntity);
         }
 
     }

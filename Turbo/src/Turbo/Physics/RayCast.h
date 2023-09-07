@@ -8,7 +8,7 @@ namespace Turbo {
 
     enum class RayTarget : u32
     {
-        Closest = 0,
+        Nearest = 0,
         Furthest,
         Any
     };
@@ -22,12 +22,10 @@ namespace Turbo {
     };
 
     // Matches C# side
-    struct alignas(16) RayCastResult
+    struct CastRayResult
     {
         glm::vec3 HitPosition{ 0.0f };
         u64 HitEntity = 0;
-
-        inline bool Hit() const { return HitEntity != 0; }
     };
 
 }

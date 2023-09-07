@@ -1079,10 +1079,12 @@ namespace Turbo {
         bool entityDestroyed = false;
         if (entity && ImGui::BeginPopupContextItem(0, 1))
         {
-            if (ImGui::MenuItem("New Child Entity"))
+            if (ImGui::MenuItem("Create Child Entity"))
             {
                 Entity child = m_Context->CreateEntity();
                 child.SetParent(entity);
+
+                m_SetFocusKeyboard = true;
             }
 
             if (ImGui::MenuItem("Destroy Entity"))
@@ -1117,7 +1119,7 @@ namespace Turbo {
 
         if (entityDestroyed)
         {
-            m_Context->GetPostUpdateFuncs().push_back([this, entity]() { m_Context->DestroyEntity(entity); });
+            m_Context->AddToPostUpdate([this, entity]() { m_Context->DestroyEntity(entity); });
             if (m_SelectedEntity == entity)
                 m_SelectedEntity = {};
         }

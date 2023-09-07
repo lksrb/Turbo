@@ -1,15 +1,15 @@
 Scene: StartScene
 Entities:
-  - Entity: 2249767872543139961
+  - Entity: 1109308308055183438
     TagComponent:
-      Tag: Wall
+      Tag: PitGround
     Parent: 15677830570528883313
     Children:
       []
     TransformComponent:
-      Translation: [0, 2.5, -30]
-      Rotation: [1.57079637, 0, 1.57079637]
-      Scale: [5, 1, 60]
+      Translation: [-2.38418579e-07, -5, 12.5856743]
+      Rotation: [0, 0, 0]
+      Scale: [60, 1, 8.90870094]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
@@ -64,7 +64,7 @@ Entities:
       Size: [0.5, 0.5, 0.5]
   - Entity: 3642574379806104447
     TagComponent:
-      Tag: TargetCrosshair
+      Tag: TargetCursor
     Parent: 0
     Children:
       []
@@ -78,6 +78,92 @@ Entities:
       Fade: 0.00499999989
     ScriptComponent:
       ClassName: ""
+  - Entity: 4147271428193270357
+    TagComponent:
+      Tag: EnemySpawner
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [15, 2.5, -10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: Mystery.EnemySpawner
+      Fields:
+        []
+  - Entity: 4955100379761225211
+    TagComponent:
+      Tag: Entity
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 5126911534197244215
+    TagComponent:
+      Tag: Table
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [20.1165295, 1, 25]
+      Rotation: [0, -0, 0]
+      Scale: [5, 1, 5]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.800000012
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 5543682003007385949
+    TagComponent:
+      Tag: Table
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [-21.1186104, 1, 25]
+      Rotation: [0, -0, 0]
+      Scale: [5, 1, 5]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.800000012
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
   - Entity: 6604654774933100929
     TagComponent:
       Tag: Gun
@@ -90,6 +176,20 @@ Entities:
       Scale: [0.499988168, 0.5, 0.499967426]
     StaticMeshRendererComponent:
       Mesh: 14741445282963241461
+  - Entity: 6775284532313853949
+    TagComponent:
+      Tag: EnemySpawner
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [-15, 2.5, -10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: Mystery.EnemySpawner
+      Fields:
+        []
   - Entity: 8113678131103165488
     TagComponent:
       Tag: Wall
@@ -121,6 +221,20 @@ Entities:
     BoxColliderComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
+  - Entity: 8672059430219109791
+    TagComponent:
+      Tag: EnemySpawner
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [0, 2.5, -10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: Mystery.EnemySpawner
+      Fields:
+        []
   - Entity: 9379112465173313586
     TagComponent:
       Tag: Guns
@@ -132,6 +246,64 @@ Entities:
       Translation: [0, 9.53674316e-07, -9.53674316e-07]
       Rotation: [0, -0, 0]
       Scale: [1, 0.999999881, 0.99999994]
+  - Entity: 9887686253664508760
+    TagComponent:
+      Tag: TargetCursorGround
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [0, 0.100000001, 0]
+      Rotation: [0, -0, 0]
+      Scale: [200, 1, 200]
+    RigidbodyComponent:
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: true
+      Friction: 0.200000003
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 10285638444319511325
+    TagComponent:
+      Tag: Hitbox
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [0, 0.414652109, 15.1632357]
+      Rotation: [0, 0, 0]
+      Scale: [60, 1, 0.200000003]
+    RigidbodyComponent:
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.200000003
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
   - Entity: 10399736337540519953
     TagComponent:
       Tag: GameManager
@@ -155,7 +327,7 @@ Entities:
     PrefabComponent:
       AssetHandle: 0
     TransformComponent:
-      Translation: [0, 11.4065409, 0]
+      Translation: [0, 11.4065409, 15.9904366]
       Rotation: [0, 0, 0]
       Scale: [0.800000012, 0.800000012, 0.800000012]
     StaticMeshRendererComponent:
@@ -183,28 +355,16 @@ Entities:
     SphereColliderComponent:
       Offset: [0, 0, 0]
       Radius: 0.5
-  - Entity: 12411588137264639738
-    TagComponent:
-      Tag: Gun
-    Parent: 9379112465173313586
-    Children:
-      []
-    TransformComponent:
-      Translation: [0.579999983, 0, 0]
-      Rotation: [0, 1.57079637, 0]
-      Scale: [0.499989092, 0.5, 0.499946445]
-    StaticMeshRendererComponent:
-      Mesh: 14741445282963241461
-  - Entity: 13185765566710071025
+  - Entity: 11193499519616801857
     TagComponent:
       Tag: Wall
     Parent: 15677830570528883313
     Children:
       []
     TransformComponent:
-      Translation: [30, 4.48850775, -27.1429863]
-      Rotation: [0, 0, 1.57079637]
-      Scale: [0.999907732, 0.999907732, 2.5999999]
+      Translation: [0, 2.5, -30]
+      Rotation: [1.57079637, 0, 1.57079637]
+      Scale: [4.99999952, 0.999999583, 60]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
@@ -226,16 +386,121 @@ Entities:
     BoxColliderComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
-  - Entity: 13262856475694211359
+  - Entity: 11667839011365352740
     TagComponent:
-      Tag: Wall
+      Tag: PitWall
     Parent: 15677830570528883313
     Children:
       []
     TransformComponent:
-      Translation: [30.2577801, 0.785096467, -27.0744267]
-      Rotation: [0, 0, 1.57079637]
-      Scale: [1.14928544, 0.99974966, 3.08016968]
+      Translation: [30, -2.38719988, 12.5681181]
+      Rotation: [0, 0, 0]
+      Scale: [1, 5, 7.31696081]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.200000003
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 11775645013087853118
+    TagComponent:
+      Tag: PitWall
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [0, -2.35805345, 9.54876614]
+      Rotation: [1.57079637, -0, 0]
+      Scale: [60.0000839, 0.999659061, 4.99731159]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.200000003
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 12255493707438735336
+    TagComponent:
+      Tag: Table
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [0, 0.999999881, 25]
+      Rotation: [0, -0, 0]
+      Scale: [5, 1, 5]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.800000012
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 12411588137264639738
+    TagComponent:
+      Tag: Gun
+    Parent: 9379112465173313586
+    Children:
+      []
+    TransformComponent:
+      Translation: [0.579999983, 0, 0]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.499989092, 0.5, 0.499946445]
+    StaticMeshRendererComponent:
+      Mesh: 14741445282963241461
+  - Entity: 13969401454696004624
+    TagComponent:
+      Tag: PitWall
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [0, -2.35805345, 15.6245966]
+      Rotation: [1.57079637, -0, 0]
+      Scale: [60.0000839, 0.999730229, 4.99788094]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
@@ -264,9 +529,9 @@ Entities:
     Children:
       []
     TransformComponent:
-      Translation: [0, 0.000229302837, 0]
+      Translation: [0, 0, 22.5836754]
       Rotation: [0, 0, 0]
-      Scale: [60, 1, 60]
+      Scale: [60, 1, 15]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
@@ -288,29 +553,51 @@ Entities:
     BoxColliderComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
-  - Entity: 15366723444365137784
+  - Entity: 15329377291130766594
     TagComponent:
-      Tag: TargetDummy
-    Parent: 0
+      Tag: Ground
+    Parent: 15677830570528883313
     Children:
       []
     TransformComponent:
-      Translation: [0, 2.5, -10]
+      Translation: [0, 0, -10]
       Rotation: [0, 0, 0]
-      Scale: [2, 2, 2]
+      Scale: [60, 1, 40]
     StaticMeshRendererComponent:
-      Mesh: 3410154700432275184
-    ScriptComponent:
-      ClassName: Mystery.Enemy
-      Fields:
-        - Name: Speed
-          Type: Float
-          Data: 5
-        - Name: PickUpRadius
-          Type: Float
-          Data: 2
+      Mesh: 3411376591522269393
     RigidbodyComponent:
-      BodyType: Dynamic
+      BodyType: Static
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.800000012
+      Restitution: 0
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+  - Entity: 15389954719538067548
+    TagComponent:
+      Tag: PitWall
+    Parent: 15677830570528883313
+    Children:
+      []
+    TransformComponent:
+      Translation: [-30, -2.38719988, 12.5681181]
+      Rotation: [0, 0, 0]
+      Scale: [1, 5, 7.31696081]
+    StaticMeshRendererComponent:
+      Mesh: 3411376591522269393
+    RigidbodyComponent:
+      BodyType: Static
       CollisionDetection: Discrete
       GravityScale: 1
       Mass: 1
@@ -318,17 +605,16 @@ Entities:
       AngularDamping: 0.0500000007
       IsTrigger: false
       Friction: 0.200000003
-      Restitution: 0.699999988
+      Restitution: 0
       LockTranslationX: false
-      LockTranslationY: true
+      LockTranslationY: false
       LockTranslationZ: false
-      LockRotationX: true
-      LockRotationY: true
-      LockRotationZ: true
-    CapsuleColliderComponent:
+      LockRotationX: false
+      LockRotationY: false
+      LockRotationZ: false
+    BoxColliderComponent:
       Offset: [0, 0, 0]
-      Radius: 0.5
-      Height: 1
+      Size: [0.5, 0.5, 0.5]
   - Entity: 15677830570528883313
     TagComponent:
       Tag: Level_DONT_CHANGE_POSITION
@@ -338,11 +624,23 @@ Entities:
       - UUID: 15896153610292560474
       - UUID: 14208558288309981964
       - UUID: 8113678131103165488
-      - UUID: 2249767872543139961
       - UUID: 3315466610038559131
-      - UUID: 16824262994977744674
-      - UUID: 13262856475694211359
-      - UUID: 13185765566710071025
+      - UUID: 12255493707438735336
+      - UUID: 5126911534197244215
+      - UUID: 5543682003007385949
+      - UUID: 15329377291130766594
+      - UUID: 1109308308055183438
+      - UUID: 11775645013087853118
+      - UUID: 15389954719538067548
+      - UUID: 11667839011365352740
+      - UUID: 13969401454696004624
+      - UUID: 8672059430219109791
+      - UUID: 6775284532313853949
+      - UUID: 4147271428193270357
+      - UUID: 9887686253664508760
+      - UUID: 4955100379761225211
+      - UUID: 11193499519616801857
+      - UUID: 10285638444319511325
     PrefabComponent:
       AssetHandle: 15278231866699714988
     TransformComponent:
@@ -374,37 +672,6 @@ Entities:
       Scale: [0.400000006, 0.400000006, 0.400000006]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
-  - Entity: 16824262994977744674
-    TagComponent:
-      Tag: Wall
-    Parent: 15677830570528883313
-    Children:
-      []
-    TransformComponent:
-      Translation: [30, 2.5, -29.060318]
-      Rotation: [0, 0, 1.57079637]
-      Scale: [4.9999795, 0.999844372, 1.25209618]
-    StaticMeshRendererComponent:
-      Mesh: 3411376591522269393
-    RigidbodyComponent:
-      BodyType: Static
-      CollisionDetection: Discrete
-      GravityScale: 1
-      Mass: 1
-      LinearDamping: 0.0500000007
-      AngularDamping: 0.0500000007
-      IsTrigger: false
-      Friction: 0.200000003
-      Restitution: 0
-      LockTranslationX: false
-      LockTranslationY: false
-      LockTranslationZ: false
-      LockRotationX: false
-      LockRotationY: false
-      LockRotationZ: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
   - Entity: 17150627184298903217
     TagComponent:
       Tag: PickPlaceHolder
@@ -456,7 +723,7 @@ Entities:
       - UUID: 18071129446368076905
       - UUID: 17150627184298903217
     TransformComponent:
-      Translation: [0, 2.5, 10]
+      Translation: [-0.263162851, 2.5, 19.1492519]
       Rotation: [0, 0, 0]
       Scale: [2, 2, 1.99999952]
     StaticMeshRendererComponent:
@@ -486,7 +753,7 @@ Entities:
           Type: Float
           Data: 50
     RigidbodyComponent:
-      BodyType: Kinematic
+      BodyType: Dynamic
       CollisionDetection: Discrete
       GravityScale: 1
       Mass: 1

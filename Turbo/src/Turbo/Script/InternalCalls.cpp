@@ -211,11 +211,42 @@ namespace Turbo {
 
 #pragma region Physics
 
-        static void Physics_CastRay(glm::vec3* start, glm::vec3* direction, u32 rayTarget, RayCastResult* outResult)
+        static void Physics_CastRay(glm::vec3* origin, glm::vec3* direction, f32 length, u32 rayTarget, CastRayResult* outResult)
         {
+            if (glm::isinf(length))
+            {
+                length = length >= 0 ? std::numeric_limits<float>::max() : std::numeric_limits<float>::lowest();
+            }
+
             Ref<PhysicsWorld> physicsWorld = Script::GetCurrentScene()->GetPhysicsWorld();
-            Ray ray(*start, *direction);
-            *outResult = physicsWorld->CastRay(ray, (RayTarget)rayTarget);
+            *outResult = physicsWorld->CastRay(Ray(*origin, (*direction) * length), static_cast<RayTarget>(rayTarget));
+        }
+
+        static MonoArray* Physics_CastRayAll(glm::vec3* origin, glm::vec3* direction, f32 length)
+        {
+            if (glm::isinf(length))
+            {
+                length = length >= 0 ? std::numeric_limits<float>::max() : std::numeric_limits<float>::lowest();
+            }
+
+            Ref<PhysicsWorld> physicsWorld = Script::GetCurrentScene()->GetPhysicsWorld();
+            Ray ray(*origin, (*direction) * length);
+
+            std::vector<CastRayResult> results = physicsWorld->CastRay(Ray(*origin, (*direction) * length));
+
+            MonoArray* castRayResults = nullptr;
+
+            if (results.size())
+            {
+                castRayResults = mono_array_new(Script::GetAppDomain(), Script::GetMonoClassFromName("Turbo", "InternalCastRayResult"), results.size());
+
+                for (u64 i = 0; i < results.size(); ++i)
+                {
+                    mono_array_set(castRayResults, CastRayResult, i, results[i]);
+                }
+            }
+
+            return castRayResults;
         }
 
 #pragma endregion
@@ -241,7 +272,8 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
             auto context = Script::GetCurrentScene().Get(); // FIXME: lambda cannot accept const ref
-            context->GetPostUpdateFuncs().push_back([context, entity]() { context->DestroyEntity(entity); });
+
+            context->AddToPostUpdate([context, entity]() { context->DestroyEntity(entity); });
         }
 
         static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
@@ -362,6 +394,8 @@ namespace Turbo {
 
             // Create an array of Entity refs
             MonoArray* monoArray = mono_array_new(appDomain, entityClass->GetMonoClass(), children.size());
+
+            // FIXME: Rewrite, this is garbage
 
             // Allocate new entities
             for (uintptr_t i = 0; i < children.size(); i++)
@@ -1480,6 +1514,7 @@ namespace Turbo {
 
         // Physics 3D
         TBO_REGISTER_FUNCTION(Physics_CastRay);
+        TBO_REGISTER_FUNCTION(Physics_CastRayAll);
 
         // Rigidbody
         TBO_REGISTER_FUNCTION(Component_Rigidbody_Get_LinearVelocity);
@@ -1519,7 +1554,7 @@ namespace Turbo {
             {
                 entity.AddComponent<Component>();
 
-                // Should having a collider be mandatory for 2D physics? 
+                // TODO: Should having a collider be mandatory for 2D physics? 
 
                 if constexpr (std::is_same_v<Component, Rigidbody2DComponent>)
                 {

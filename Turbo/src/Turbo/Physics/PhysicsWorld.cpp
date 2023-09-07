@@ -52,12 +52,13 @@ namespace Turbo {
             if (rb.LockRotationY)    allowedMovement &= ~JPH::EAllowedDOFs::RotationY;
             if (rb.LockRotationZ)    allowedMovement &= ~JPH::EAllowedDOFs::RotationZ;
 
+            bodySettings.mAllowedDOFs = allowedMovement;
+
             // NOTE: Layer and activation might go to the rigidbody component
             bodySettings.mMotionType = static_cast<JPH::EMotionType>(rb.Type);
-            bodySettings.mObjectLayer = rb.Type == RigidbodyType::Static ? 0 : 1;
+            bodySettings.mObjectLayer = rb.Type == RigidbodyType::Static ? Layers::STATIC : Layers::DYNAMIC;
 
-            bodySettings.mAllowedDOFs = allowedMovement;
-            // Override mass calculation because the default mass is too much
+            // Override mass calculation because the default mass is too big
             bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
             bodySettings.mMassPropertiesOverride.mMass = rb.Mass;
 
@@ -280,7 +281,7 @@ namespace Turbo {
         m_OptimizeBoardPhase = true;
     }
 
-    RayCastResult PhysicsWorld::CastRay(const Ray& ray, RayTarget target)
+    CastRayResult PhysicsWorld::CastRay(const Ray& ray, RayTarget target)
     {
         JPH::RayCastSettings settings;
         settings.mBackFaceMode = JPH::EBackFaceMode::IgnoreBackFaces;
@@ -291,7 +292,7 @@ namespace Turbo {
         rayCast.mDirection = { ray.Direction.x, ray.Direction.y, ray.Direction.z };
 
         // Cast ray and return the closest entity
-        if (target == RayTarget::Closest)
+        if (target == RayTarget::Nearest)
         {
             JPH::ClosestHitCollisionCollector<JPH::CastRayCollector> collector;
             // TODO: We should take advantage of Jolt's layer system
@@ -350,11 +351,46 @@ namespace Turbo {
         return {};
     }
 
+    std::vector<CastRayResult> PhysicsWorld::CastRay(const Ray& ray)
+    {
+        std::vector<CastRayResult> results;
+
+        JPH::RayCastSettings settings;
+        settings.mBackFaceMode = JPH::EBackFaceMode::IgnoreBackFaces;
+        settings.mTreatConvexAsSolid = true;
+
+        JPH::RRayCast rayCast;
+        rayCast.mOrigin = { ray.Start.x, ray.Start.y, ray.Start.z };
+        rayCast.mDirection = { ray.Direction.x, ray.Direction.y, ray.Direction.z };
+
+        JPH::AllHitCollisionCollector<JPH::CastRayCollector> collector;
+        // TODO: We should take advantage of Jolt's layer system
+        //m_PhysicsSystem.GetNarrowPhaseQueryNoLock().CastRay(rayCast, settings, collector, JPH::SpecifiedBroadPhaseLayerFilter(BroadPhaseLayers::STATIC), JPH::SpecifiedObjectLayerFilter(Layers::STATIC));
+        m_PhysicsSystem.GetNarrowPhaseQueryNoLock().CastRay(rayCast, settings, collector);
+
+        if (collector.HadHit())
+        {
+            results.resize(collector.mHits.size());
+
+            auto& bodyInterface = GetBodyInterfaceUnsafe();
+
+            for (u64 i = 0; i < results.size(); i++)
+            {
+                auto& hit = collector.mHits[i];
+
+                JPH::Vec3 hitPosition = rayCast.GetPointOnRay(hit.mFraction);
+                results[i] = { glm::vec3(hitPosition.GetX(), hitPosition.GetY(), hitPosition.GetZ()), bodyInterface.GetUserData(hit.mBodyID) };
+            }
+        }
+
+        return results;
+    }
+
     void PhysicsWorld::Simulate(FTime ts)
     {
         TBO_PROFILE_FUNC();
 
-        if(m_OptimizeBoardPhase)
+        if (m_OptimizeBoardPhase)
         {
             m_OptimizeBoardPhase = false;
 

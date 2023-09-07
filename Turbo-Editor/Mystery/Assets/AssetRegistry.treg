@@ -68,6 +68,9 @@ AssetRegistry:
   - Asset: 17677522167731554913
     Path: Meshes/Human.fbx
     Type: MeshSource
+  - Asset: 17677998302576092059
+    Path: Prefabs/Enemy.tprefab
+    Type: Prefab
   - Asset: 17745811398343166228
     Path: Sources/Default/Torus.fbx
     Type: MeshSource

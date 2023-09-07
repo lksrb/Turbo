@@ -9,20 +9,19 @@
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSystem.h>
-//#include <Jolt/Physics/Body/BodyActivationListener.h>
 
 namespace Turbo {
 
     namespace Layers {
-        inline constexpr u8 STATIC = 0;
-        inline constexpr u8 DYNAMIC = 1;
+        inline constexpr JPH::ObjectLayer STATIC = 0;
+        inline constexpr JPH::ObjectLayer DYNAMIC = 1;
 
-        inline constexpr u8 COUNT = 2;
+        inline constexpr u32 COUNT = 2;
     }
 
     namespace BroadPhaseLayers {
-        static inline constexpr JPH::BroadPhaseLayer STATIC(0);
-        static inline constexpr JPH::BroadPhaseLayer DYNAMIC(1);
+        static inline constexpr JPH::BroadPhaseLayer STATIC(Layers::STATIC);
+        static inline constexpr JPH::BroadPhaseLayer DYNAMIC(Layers::DYNAMIC);
     }
 
     // This defines a mapping between object and broadphase layers.
@@ -98,7 +97,8 @@ namespace Turbo {
 
         const JPH::Body* TryGetBodyUnsafe(JPH::BodyID bodyId) const { return m_PhysicsSystem.GetBodyLockInterfaceNoLock().TryGetBody(bodyId); };
 
-        RayCastResult CastRay(const Ray& ray, RayTarget target);
+        CastRayResult CastRay(const Ray& ray, RayTarget target);
+        std::vector<CastRayResult> CastRay(const Ray& ray);
 
         void Simulate(FTime ts);
     private:

@@ -43,7 +43,7 @@ namespace Turbo {
         Entity DuplicateEntity(Entity entity);
 
         // Light copy of an entity - Only components are copied
-        void CopyEntity(Entity src, Entity dst);
+        void CopyComponents(Entity src, Entity dst);
         
         void CreatePrefabEntity(Entity entity, Entity prefabEntity, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
 
@@ -56,7 +56,8 @@ namespace Turbo {
             m_DebugRendererCallbacks.push_back(std::forward<F>(func));
         }
 
-        auto& GetPostUpdateFuncs() { return m_PostUpdateFuncs; }
+        template<typename F>
+        void AddToPostUpdate(F&& func) { m_PostUpdateFuncs.emplace_back(std::move(func)); }
 
         bool Contains(Entity entity) const;
 

@@ -1,0 +1,40 @@
+Prefab: 17677998302576092059
+Entities:
+  - Entity: 3121501014683673834
+    TagComponent:
+      Tag: Enemy
+    Parent: 0
+    Children:
+      []
+    PrefabComponent:
+      AssetHandle: 0
+    TransformComponent:
+      Translation: [0, 2.5, -10]
+      Rotation: [0, -0, 0]
+      Scale: [2, 2, 2]
+    StaticMeshRendererComponent:
+      Mesh: 3410154700432275184
+    ScriptComponent:
+      ClassName: Mystery.Enemy
+      Fields:
+        []
+    RigidbodyComponent:
+      BodyType: Dynamic
+      CollisionDetection: Discrete
+      GravityScale: 1
+      Mass: 1
+      LinearDamping: 0.0500000007
+      AngularDamping: 0.0500000007
+      IsTrigger: false
+      Friction: 0.200000003
+      Restitution: 0.699999988
+      LockTranslationX: false
+      LockTranslationY: false
+      LockTranslationZ: false
+      LockRotationX: true
+      LockRotationY: true
+      LockRotationZ: true
+    CapsuleColliderComponent:
+      Offset: [0, 0, 0]
+      Radius: 0.5
+      Height: 2
