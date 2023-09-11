@@ -274,11 +274,9 @@ namespace Turbo {
         auto& bodyInterface = GetBodyInterfaceUnsafe();
 
         auto& rb = entity.GetComponent<RigidbodyComponent>();
-        bodyInterface.DestroyBody(JPH::BodyID(rb.RuntimeBodyHandle));
-
-        // This will ensure that PhysicsSystem::OptimizeBoardPhase() is called
-        // This may a performance killer so beware
-        m_OptimizeBoardPhase = true;
+        auto bodyId = JPH::BodyID(rb.RuntimeBodyHandle);
+        bodyInterface.RemoveBody(bodyId);
+        bodyInterface.DestroyBody(bodyId);
     }
 
     CastRayResult PhysicsWorld::CastRay(const Ray& ray, RayTarget target)

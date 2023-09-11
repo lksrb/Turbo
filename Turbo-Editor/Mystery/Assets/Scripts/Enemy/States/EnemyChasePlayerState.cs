@@ -31,7 +31,7 @@ namespace Mystery
 			{
 				if(entity.As<BouncyBall>().CanDamage)
 				{
-					ChangeState(EnemyState.Stunned);
+					ChangeState(EnemyState.Dead);
 				}
 			}
 		}

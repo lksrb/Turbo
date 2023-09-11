@@ -56,6 +56,7 @@ project "Turbo"
         "yaml-cpp",
         "msdf-atlas-gen",
         "optick",
+        "JoltPhysics",
         "%{Library.Vulkan}",
         "%{Library.mono}"
     }
@@ -66,9 +67,6 @@ project "Turbo"
         "-IGNORE:4099"
 	}
     
-    --filter "files:dependencies/ImGuizmo/**.cpp"
-      --  flags { "NoPCH" }
-
 	filter "system:windows"
         systemversion "latest"
 
@@ -96,7 +94,7 @@ project "Turbo"
            "%{Library.SPIRV_Cross_Debug}",
            "%{Library.SPIRV_Cross_GLSL_Debug}",
            "%{Library.Assimp_Debug}",
-           "%{Library.JoltPhysics_Debug}" -- Maybe link with release for performance
+           --"%{Library.JoltPhysics_Debug}" 
         }
 
     filter "configurations:Release"
@@ -109,7 +107,7 @@ project "Turbo"
             "%{Library.ShaderC_Release}",
             "%{Library.SPIRV_Cross_Release}",
             "%{Library.SPIRV_Cross_GLSL_Release}",
-            "%{Library.Assimp_Release}",
-            "%{Library.JoltPhysics_Release}"
+            "%{Library.Assimp_Release}"
+           -- "%{Library.JoltPhysics_Release}"
         }
 

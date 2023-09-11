@@ -18,7 +18,6 @@ namespace Turbo {
         void OnRuntimeStart();
         void OnRuntimeStop();
 
-
         // [Runtime]
         void CreateRigidbody(Entity entity);
         void ConstructBoxCollider(Entity entity);

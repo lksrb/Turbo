@@ -93,8 +93,12 @@ namespace Turbo {
         auto inBody1 = world->TryGetBodyUnsafe(inSubShapePair.GetBody1ID());
         auto inBody2 = world->TryGetBodyUnsafe(inSubShapePair.GetBody2ID());
 
-        // This shouldn't happen
-        TBO_ENGINE_ASSERT(inBody1 && inBody2, "[ContactListener::OnContactRemoved] One or both bodies do not exist anymore!");
+        if (!inBody1 || !inBody2)
+        {
+            // Is this the right behavirour?
+            // We cannot simply pass an invalid UUID to the client, can we?
+            return;
+        }
 
         Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(inBody1->GetUserData());
         Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(inBody2->GetUserData());

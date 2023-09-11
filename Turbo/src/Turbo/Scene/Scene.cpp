@@ -367,8 +367,19 @@ namespace Turbo {
     {
         if (!m_Registry.valid(entity))
         {
+            TBO_ENGINE_ERROR("[Scene::DestroyEntity] Entity is not valid!");
             // FIXME: For some reason we are destroying entities that are no longer valid, this is weeeeeeeeeeeeeeeeeeird
             return;
+        }
+
+        if (entity.HasComponent<RigidbodyComponent>())
+        {
+            GetPhysicsWorld()->DestroyRigidbody(entity);
+        }
+
+        if (entity.HasComponent<Rigidbody2DComponent>())
+        {
+            GetPhysicsWorld2D()->DestroyRigidbody(entity);
         }
 
         if (!excludeChildren)
