@@ -1,6 +1,6 @@
-Prefab: 6309218715478289294
+Prefab: 17859777747007098497
 Entities:
-  - Entity: 15220961391059157519
+  - Entity: 8352929270665839208
     TagComponent:
       Tag: BouncyBall
     Parent: 0
@@ -9,11 +9,15 @@ Entities:
     PrefabComponent:
       AssetHandle: 0
     TransformComponent:
-      Translation: [0, 11.3999996, 0]
+      Translation: [0, 11.4065409, 15.9904366]
       Rotation: [0, -0, 0]
       Scale: [0.800000012, 0.800000012, 0.800000012]
     StaticMeshRendererComponent:
       Mesh: 5969331438052008515
+    ScriptComponent:
+      ClassName: Mystery.BouncyBall
+      Fields:
+        []
     RigidbodyComponent:
       BodyType: Dynamic
       CollisionDetection: LinearCast

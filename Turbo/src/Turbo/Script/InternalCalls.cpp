@@ -473,10 +473,7 @@ namespace Turbo {
 
             if (prefab)
             {
-                Entity prefabEntity = prefab->GetPrefabEntity();
-
-                Entity entity = context->CreateEntity(prefabEntity.GetName());
-                context->CreatePrefabEntity(entity, prefabEntity);
+                Entity entity = context->CreatePrefabEntity(prefab->GetPrefabEntity(), {});
 
                 return entity.GetUUID();
             }
@@ -493,11 +490,7 @@ namespace Turbo {
 
             if (prefab)
             {
-                Entity prefabEntity = prefab->GetPrefabEntity();
-
-                Entity entity = context->CreateEntity(prefabEntity.GetName());
-                context->CreatePrefabEntity(entity, prefabEntity, translation);
-
+                Entity entity = context->CreatePrefabEntity(prefab->GetPrefabEntity(), {}, translation);
                 return entity.GetUUID();
             }
 
@@ -515,11 +508,7 @@ namespace Turbo {
 
             if (prefab)
             {
-                Entity prefabEntity = prefab->GetPrefabEntity();
-
-                Entity entity = context->CreateEntity(prefabEntity.GetName());
-                context->CreatePrefabEntity(entity, prefabEntity, translation);
-
+                Entity entity = context->CreatePrefabEntity(prefab->GetPrefabEntity(), {}, translation);
                 return entity.GetUUID();
             }
 
@@ -1281,11 +1270,6 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            auto isNan = glm::isnan(*position);
-
-            if (isNan.x || isNan.y || isNan.z)
-                return;
-
             if (entity.Transform().Translation == *position)
                 return;
 
@@ -1316,14 +1300,6 @@ namespace Turbo {
         static void Component_Rigidbody_Set_Rotation(UUID uuid, glm::quat* rotation)
         {
             Entity entity = GetEntity(uuid);
-
-            auto isNan = glm::isnan(*rotation);
-
-            if (isNan.w || isNan.x || isNan.y || isNan.z)
-                return;
-
-            if (entity.Transform().Rotation == glm::eulerAngles(*rotation))
-                return;
 
             auto scene = Script::GetCurrentScene();
 

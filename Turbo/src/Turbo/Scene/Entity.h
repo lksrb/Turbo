@@ -82,6 +82,7 @@ namespace Turbo
         void SetParentUUID(UUID parentUUID) { GetComponent<RelationshipComponent>().Parent = parentUUID; }
         UUID GetParentUUID() { return GetComponent<RelationshipComponent>().Parent; }
         Entity GetParent() { return m_Scene->FindEntityByUUID(GetParentUUID()); }
+        bool HasParent() { return GetParentUUID() != 0; }
         std::vector<UUID>& GetChildren() { return GetComponent<RelationshipComponent>().Children; }
         bool HasChildren() { return GetChildren().size() != 0; }
 

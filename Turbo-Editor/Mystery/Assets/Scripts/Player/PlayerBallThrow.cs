@@ -1,75 +1,84 @@
-﻿using Turbo;
+﻿using System.Collections.Generic;
+using Turbo;
 
 namespace Mystery
 {
-	internal class PlayerBallThrow : Layer<Player, PlayerEvent>
+	internal class PlayerBallThrow
 	{
-		PlayerInput m_Input;
+		Player m_Player;
 
-		Entity m_GrabbedItem;
-		BouncyBall m_BouncyBall;
-
-		RigidbodyComponent m_Rigidbody;
+		BouncyBall m_GrabbedBall;
 		AABB m_GrabCollider;
+		List<BouncyBall> m_BouncyBalls;
 
-		protected override void OnAttach()
+		internal List<BouncyBall> BouncyBalls => m_BouncyBalls;
+
+		internal PlayerBallThrow(Player player)
 		{
-			m_Input = Get<PlayerInput>();
-			m_Rigidbody = m_Entity.GetComponent<RigidbodyComponent>();
+			m_Player = player;
 
-			m_BouncyBall = m_Entity.FindEntityByName("BouncyBall").As<BouncyBall>();
+			// Grabbing 
+			m_BouncyBalls = new List<BouncyBall>
+			{
+				// First one is already spawned
+				m_Player.FindEntityByName("BouncyBall").As<BouncyBall>()
+			};
 
 			m_GrabCollider = new AABB(Vector3.Zero, new Vector3(1.5f, 3.0f, 1.5f));
 		}
 
-		protected override void OnUpdate()
+		internal void OnUpdate()
 		{
-			Vector3 forward = new Quaternion(m_Entity.Transform.Rotation) * Vector3.Forward;
-			forward.Y = 0.0f;
-			forward.Normalize();
+			bool isGrabButtonDown = Input.IsKeyDown(KeyCode.F);
 
-			m_GrabCollider.Center = m_Entity.Transform.Translation + forward * m_Entity.PickLength;
-			
-			if (m_GrabbedItem == null && m_Input.IsPickUpButtonDown)
+			if (isGrabButtonDown)
 			{
-				if (m_GrabCollider.Contains(m_BouncyBall.Transform.Translation))
+				// Update AABB collider
+				m_GrabCollider.Center = m_Player.CurrentPosition + m_Player.Forward * m_Player.PickLength;
+
+				// If player does not hold any balls => try to catch some
+				if(m_GrabbedBall == null)
 				{
-					if (m_BouncyBall.SetOwner(m_Entity))
+					foreach (var bouncyBall in m_Player.BouncyBalls)
 					{
-						m_GrabbedItem = m_BouncyBall;
-						Emit(PlayerEvent.BallGrabbed);
+						if (m_GrabCollider.Contains(bouncyBall.Transform.Translation))
+						{
+							if (bouncyBall.SetOwner(m_Player))
+							{
+								m_GrabbedBall = bouncyBall;
+							}
+						}
 					}
 				}
-			}
-
-			if (m_GrabbedItem != null)
-			{
-				var rb = m_GrabbedItem.GetComponent<RigidbodyComponent>();
-				rb.Position = m_Rigidbody.Position + forward * m_Entity.PickLength + Vector3.Up * m_Entity.PickHeight;
-				rb.Rotation = m_Rigidbody.Rotation;
-				rb.LinearVelocity = Vector3.Zero;
-				rb.AngularVelocity = Vector3.Zero;
-
-				if (Input.IsKeyUp(KeyCode.F))
+				else // Player holds a ball
 				{
-					if (m_GrabbedItem.Name == "BouncyBall")
-						rb.AddForce(forward * m_Entity.BallThrowPower, ForceMode.Impulse);
+					var rb = m_GrabbedBall.GetComponent<RigidbodyComponent>();
+					rb.Position = m_Player.CurrentPosition + m_Player.Forward * m_Player.PickLength + Vector3.Up * m_Player.PickHeight;
+					rb.Rotation = m_Player.CurrentRotation;
+					rb.LinearVelocity = Vector3.Zero;
+					rb.AngularVelocity = Vector3.Zero;
+				}
+			} 
+			else // Player doesnt hold grab button
+			{
+				// If player's hands are not empty => release ball
+				if(m_GrabbedBall != null)
+				{
+					var rb = m_GrabbedBall.GetComponent<RigidbodyComponent>();
 
-					Emit(PlayerEvent.BallThrew);
-					m_BouncyBall.Release(m_Entity);
-					m_GrabbedItem = null;
+					if (m_GrabbedBall.Name == "BouncyBall")
+						rb.AddForce(m_Player.Forward * m_Player.BallThrowPower, ForceMode.Impulse);
+
+					m_GrabbedBall.Release(m_Player);
+					m_GrabbedBall = null;
 				}
 			}
 
 			// Debug
-			if (m_Input.IsPickUpButtonDown)
+			if (isGrabButtonDown)
 			{
 				DebugRenderer.DrawBox(m_GrabCollider.Center, Vector3.Zero, m_GrabCollider.Size, Color.Green);
 			}
-		}
-
-		protected override void OnEvent(PlayerEvent playerEvent)
-		{
 		}
 	}
 }

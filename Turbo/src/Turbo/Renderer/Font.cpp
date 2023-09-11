@@ -6,6 +6,8 @@
 #include "Turbo/Core/Buffer.h"
 #include "Turbo/Core/FileSystem.h"
 
+#include "Turbo/Renderer/Texture.h"
+
 #define DEFAULT_ANGLE_THRESHOLD 3.0
 #define LCG_MULTIPLIER 6364136223846793005ull
 #define LCG_INCREMENT 1442695040888963407ull
@@ -210,7 +212,12 @@ namespace Turbo
         m_Data = nullptr;
     }
 
-    Ref<Font> Font::GetDefaultFont()
+	Ref<Texture2D> Font::GetAtlasTexture() const
+    {
+        return m_AtlasTexture;
+    }
+
+	Ref<Font> Font::GetDefaultFont()
     {
         static Ref<Font> s_DefaultFont;
 

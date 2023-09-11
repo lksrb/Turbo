@@ -21,7 +21,7 @@ namespace Turbo
         void Set(std::string_view resourceName, const Ref<Texture2D>& texture, u32 index) override;
         void Set(std::string_view resourceName, const Ref<TextureCube>& texture) override;
     private:
-        void UpdateDescriptors();
+        void CreateDescriptors();
     private:
         std::unordered_map<std::string, Ref<VulkanBuffer>> m_UniformBufferMap;
 

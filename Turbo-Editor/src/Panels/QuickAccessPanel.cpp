@@ -1,12 +1,11 @@
 #include "QuickAccessPanel.h"
 
-#include <Turbo/Core/Common.h>
 #include <Turbo/Core/Input.h>
 
 #include <imgui.h>
 
-namespace Turbo::Ed
-{
+namespace Turbo::Ed {
+
     QuickAccessPanel::QuickAccessPanel()
     {
     }

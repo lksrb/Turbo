@@ -30,7 +30,7 @@ namespace Mystery
 
 			m_EnemyStates = EnemyStateBase.CreateEnemyStates(this, m_Player);
 
-			ChangeState(EnemyState.RunTowardsPit);
+			ChangeState(EnemyState.ChasePlayer);
 		}
 
 		protected override void OnUpdate()
@@ -60,11 +60,6 @@ namespace Mystery
 		internal void OnEnemyEvent(Enemy other, EnemyEvent e)
 		{
 
-		}
-
-		internal void OnPlayerEvent(PlayerEvent e)
-		{
-			m_CurrentState.OnPlayerEvent(e);
 		}
 	}
 }

@@ -51,6 +51,8 @@ namespace Turbo
 			return new Vector3(x, y, z);
 		}
 
+		public bool IsNaN() => float.IsNaN(W) || float.IsNaN(X) || float.IsNaN(Y) || float.IsNaN(Z);
+
 		public override int GetHashCode() => (W, X, Y, Z).GetHashCode();
 		public override bool Equals(object obj) => obj is Quaternion other && Equals(other);
 		public bool Equals(Quaternion right) => W == right.W && X == right.X && Y == right.Y && Z == right.Z;
@@ -64,13 +66,27 @@ namespace Turbo
 			Vector3 uuv = Vector3.Cross(qv, uv);
 			return v + ((uv * q.W) + uuv) * 2.0f;
 		}
+
 		public static bool operator ==(Quaternion left, Quaternion right) => left.Equals(right);
 		public static bool operator !=(Quaternion left, Quaternion right) => !(left == right);
+		public static Quaternion operator +(Quaternion q1, Quaternion q2) => Normalize(new Quaternion(q1.W + q2.W, q1.X + q2.X, q1.Y + q2.Y, q1.Z + q2.Z));
+		public static Quaternion operator -(Quaternion q1, Quaternion q2) => Normalize(new Quaternion(q1.W - q2.W, q1.X - q2.X, q1.Y - q2.Y, q1.Z - q2.Z));
+		public static Quaternion operator *(Quaternion q1, Quaternion q2)
+		{
+			Quaternion result = new Quaternion(
+				q1.W * q2.W - q1.X * q2.X - q1.Y * q2.Y - q1.Z * q2.Z, 
+				q1.W * q2.X + q1.X * q2.W + q1.Y * q2.Z - q1.Z * q2.Y,
+				q1.W * q2.Y - q1.X * q2.Z + q1.Y * q2.W + q1.Z * q2.X,
+				q1.W * q2.Z + q1.X * q2.Y - q1.Y * q2.X + q1.Z * q2.W);
+			result.Normalize();
+			return result;
+		}
 
 		public static Quaternion operator -(Quaternion q) => new Quaternion(-q.W, -q.X, -q.Y, -q.Z);
 
 		// Extension static functions
 		public static float Dot(Quaternion q1, Quaternion q2) => q1.W * q2.W + q1.X * q2.X + q1.Y * q2.Y + q1.Z * q2.Z;
+		public static Quaternion Normalize(Quaternion q) { q.Normalize(); return q; }
 
 		public static Quaternion AxisAngle(Vector3 axis, float angle)
 		{
@@ -126,9 +142,6 @@ namespace Turbo
 		// From glm.hpp
 		public static Quaternion Slerp(Quaternion start, Quaternion end, float maxRotationDelta)
 		{
-			// Sadly float.Epsilon is too small 
-			const float minDeltaValue = float.Epsilon;
-
 			start.Normalize();
 			end.Normalize();
 
@@ -143,9 +156,10 @@ namespace Turbo
 				dot = -dot;
 			}
 
-			Quaternion interpolated = Quaternion.Zero;
+			Quaternion result = Quaternion.Zero;
+
 			// Quaternions are very close, perform linear interpolation
-			if (1.0f - dot > minDeltaValue) // Maybe this constant should be maxRotationDelta?
+			if (1.0f - dot > maxRotationDelta)
 			{
 				float theta = Mathf.Acos(dot);
 				// Interpolate using spherical linear interpolation formula
@@ -153,22 +167,32 @@ namespace Turbo
 				float weightStart = Mathf.Sin((1.0f - maxRotationDelta) * theta) / sinTheta;
 				float weightEnd = Mathf.Sin(maxRotationDelta * theta) / sinTheta;
 
-				interpolated.W = weightStart * start.W + weightEnd * end.W;
-				interpolated.X = weightStart * start.X + weightEnd * end.X;
-				interpolated.Y = weightStart * start.Y + weightEnd * end.Y;
-				interpolated.Z = weightStart * start.Z + weightEnd * end.Z;
+				result.W = weightStart * start.W + weightEnd * end.W;
+				result.X = weightStart * start.X + weightEnd * end.X;
+				result.Y = weightStart * start.Y + weightEnd * end.Y;
+				result.Z = weightStart * start.Z + weightEnd * end.Z;
 			}
 			else // Linear interpolation
 			{
-				interpolated.W = Mathf.Mix(start.W, end.W, maxRotationDelta);
-				interpolated.X = Mathf.Mix(start.X, end.X, maxRotationDelta);
-				interpolated.Y = Mathf.Mix(start.Y, end.Y, maxRotationDelta);
-				interpolated.Z = Mathf.Mix(start.Z, end.Z, maxRotationDelta);
+				result = Lerp(start, end, maxRotationDelta);
 			}
 
-			interpolated.Normalize();
+			// Normalize the result
+			result.Normalize();
 
-			return interpolated; // Normalize the result
+			return result;
+		}
+
+		public static Quaternion Lerp(Quaternion start, Quaternion end, float maxRotationDelta)
+		{
+			Quaternion result = new Quaternion(
+				Mathf.Mix(start.W, end.W, maxRotationDelta), 
+				Mathf.Mix(start.X, end.X, maxRotationDelta),
+				Mathf.Mix(start.Y, end.Y, maxRotationDelta),
+				Mathf.Mix(start.Z, end.Z, maxRotationDelta)
+			);
+			result.Normalize();
+			return result;
 		}
 	}
 }

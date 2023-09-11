@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Turbo/Event/WindowEvent.h"
-
 #include "LayerStack.h"
 
 #include <mutex>
@@ -10,6 +8,8 @@ namespace Turbo {
 
     class Window;
     class UserInterfaceLayer;
+    class WindowResizeEvent;
+    class WindowCloseEvent;
 
     class Application
     {

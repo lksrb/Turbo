@@ -1,14 +1,16 @@
 #pragma once
 
-#include "Turbo/Renderer/Image2D.h"
-#include "Turbo/Renderer/Texture.h"
-
 #include <imgui.h>
 
 #include <climits>
 
-namespace Turbo::UI
-{
+namespace Turbo {
+    class Texture2D;
+    class Image2D;
+}
+
+namespace Turbo::UI {
+
     struct ScopedStyleColor
     {
         ScopedStyleColor(ImGuiCol idx, const ImVec4& color, bool predicate = true)
@@ -111,7 +113,7 @@ namespace Turbo::UI
     void OffsetCursorPosY(float yOffset);
 
     // Drag & Drop
-	// Whole window is a drop target
+    // Whole window is a drop target
     bool BeginDragDropTargetWindow();
     void EndDragDropTargetWindow();
 }

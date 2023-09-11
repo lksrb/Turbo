@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Turbo/Core/Common.h>
+#include <filesystem>
 
-namespace Turbo 
-{
+namespace Turbo {
+
     class Project;
 
-    class ProjectSerializer 
+    class ProjectSerializer
     {
     public:
         ProjectSerializer(Ref<Project> project);

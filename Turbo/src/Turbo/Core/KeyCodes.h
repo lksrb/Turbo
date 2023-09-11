@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
+#include "PrimitiveTypes.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     using KeyCode = u32;
 
-    namespace Key
-    {
+    namespace Key {
+
         enum : KeyCode
         {
             // Alphabet

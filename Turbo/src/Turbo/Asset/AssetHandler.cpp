@@ -7,11 +7,40 @@
 #include "Turbo/Renderer/Texture.h"
 #include "Turbo/Solution/Project.h"
 #include "Turbo/Renderer/Mesh.h"
+#include "Turbo/Renderer/MaterialAsset.h"
 
 #include "Turbo/Scene/SceneSerializer.h"
 #include "Turbo/Scene/Prefab.h"
 
 #include <yaml-cpp/yaml.h>
+
+namespace YAML {
+
+    template<>
+    struct convert<glm::vec3>
+    {
+        static Node encode(const glm::vec3& rhs)
+        {
+            Node node;
+            node.push_back(rhs.x);
+            node.push_back(rhs.y);
+            node.push_back(rhs.z);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+
+        static bool decode(const Node& node, glm::vec3& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 3)
+                return false;
+
+            rhs.x = node[0].as<Turbo::f32>();
+            rhs.y = node[1].as<Turbo::f32>();
+            rhs.z = node[2].as<Turbo::f32>();
+            return true;
+        }
+    };
+}
 
 namespace Turbo {
 
@@ -278,6 +307,62 @@ namespace Turbo {
         }
 
         return prefab;
+    }
+
+    bool MaterialAssetHandler::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+    {
+        Ref<MaterialAsset> materialAsset = asset.As<MaterialAsset>();
+
+        std::ofstream fout(Project::GetAssetsPath() / metadata.FilePath);
+
+        if (!fout)
+        {
+            TBO_ENGINE_ERROR("Could not serialize prefab! ({})", metadata.FilePath);
+            return false;
+        }
+
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "MaterialAsset" << YAML::Value;
+        out << YAML::BeginMap;
+        {
+            out << YAML::Key << "Albedo" << YAML::Value << materialAsset->GetAlbedoColor();
+        }
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+
+        fout << out.c_str();
+
+        return true;
+    }
+
+    Ref<Asset> MaterialAssetHandler::TryLoad(const AssetMetadata& metadata)
+    {
+        auto path = Project::GetAssetsPath() / metadata.FilePath;
+
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(path.string());
+        }
+        catch (YAML::Exception e)
+        {
+            TBO_ENGINE_ERROR(e.what());
+            return nullptr;
+        }
+
+        if (!data["MaterialAsset"])
+        {
+            TBO_ENGINE_ERROR("File does not contain mesh data!");
+            return nullptr;
+        }
+
+        auto materialData = data["MaterialAsset"];
+        glm::vec3 albedoColor = materialData["AlbedoColor"].as<glm::vec3>();
+
+        auto materialAsset = Ref<MaterialAsset>::Create();
+        materialAsset->SetAlbedoColor(albedoColor);
+        return materialAsset;
     }
 
 }

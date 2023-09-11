@@ -1,49 +1,28 @@
 #pragma once
 
 #include "Fly.h"
+#include "Font.h"
+#include "Renderer.h"
+#include "ShaderLibrary.h"
+#include "RenderCommandBuffer.h"
+#include "GraphicsPipeline.h"
+#include "Image2D.h"
+#include "Material.h"
+#include "Texture.h"
+#include "RenderPass.h"
+#include "FrameBuffer.h"
+#include "UniformBuffer.h"
+#include "VertexBuffer.h"
+#include "Mesh.h"
+#include "MaterialAsset.h"
+
+#include "SceneDrawList.h"
 
 namespace Turbo {
-
-    class Font;
-    class RenderCommandBuffer;
-    class RendererBuffer;
-    class Shader;
-    class GraphicsPipeline;
-    class Image2D;
-    class Material;
-    class Texture2D;
-    class RenderPass;
-    class FrameBuffer;
-    class UniformBufferSet;
-    class VertexBuffer;
-    class IndexBuffer;
-
-    struct SceneRendererData
-    {
-        glm::mat4 ViewProjectionMatrix = glm::mat4(1.0f);
-        glm::mat4 InversedViewProjectionMatrix = glm::mat4(1.0f);
-        glm::mat4 InversedViewMatrix = glm::mat4(1.0f);
-        glm::mat4 ViewMatrix = glm::mat4(1.0f);
-    };
 
     class DrawList2D
     {
     public:
-        struct Statistics
-        {
-            u32 QuadCount;
-            u32 CircleCount;
-            u32 CircleIndexCount;
-            u32 DrawCalls;
-
-            Statistics() { Reset(); }
-
-            void Reset()
-            {
-                std::memset(this, 0, sizeof(*this));
-            }
-        };
-
         DrawList2D();
         ~DrawList2D();
         DrawList2D(const DrawList2D&) = delete;
@@ -66,7 +45,7 @@ namespace Turbo {
 
         void AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity);
 
-        Statistics GetStatistics() const { return m_Statistics; }
+        DrawList2DStatistics GetStatistics() const { return m_Statistics; }
 
         void OnViewportResize(u32 width, u32 height);
 
@@ -183,7 +162,7 @@ namespace Turbo {
         Ref<RenderPass> m_TargerRenderPass;
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
-        Statistics m_Statistics;
+        DrawList2DStatistics m_Statistics;
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;

@@ -18,6 +18,7 @@ namespace Turbo {
             Handlers[AssetType_MeshSource] = CreateOwned<MeshSourceHandler>();
             Handlers[AssetType_StaticMesh] = CreateOwned<StaticMeshHandler>();
             Handlers[AssetType_Prefab] = CreateOwned<PrefabHandler>();
+            Handlers[AssetType_MaterialAsset] = CreateOwned<PrefabHandler>();
         }
     };
 
@@ -32,7 +33,8 @@ namespace Turbo {
             "Texture2D",
             "MeshSource",
             "StaticMesh",
-            "Prefab"
+            "Prefab",
+            "MaterialAsset"
         };
 
         return s_StringifiedAssetTypeMap[type];
@@ -45,7 +47,8 @@ namespace Turbo {
             { "Texture2D", AssetType_Texture2D },
             { "MeshSource", AssetType_MeshSource },
             { "StaticMesh", AssetType_StaticMesh },
-            { "Prefab", AssetType_Prefab }
+            { "Prefab", AssetType_Prefab },
+            { "MaterialAsset", AssetType_MaterialAsset },
         };
 
         return s_AssetTypeMap.at(type);

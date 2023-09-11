@@ -6,8 +6,6 @@ namespace Turbo::Memory {
 
 }
 
-#define TBO_TRACK_MEMORY 0
-
 #if TBO_TRACK_MEMORY
 
 _NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size) _VCRT_ALLOCATOR

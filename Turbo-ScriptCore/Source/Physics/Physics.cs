@@ -75,7 +75,7 @@ namespace Turbo
 		{
 			direction.Normalize();
 
-			InternalCastRayResult[] results = InternalCalls.Physics_CastRayAll(ref origin, ref direction, length);
+			var results = InternalCalls.Physics_CastRayAll(ref origin, ref direction, length);
 
 			if (results != null)
 			{

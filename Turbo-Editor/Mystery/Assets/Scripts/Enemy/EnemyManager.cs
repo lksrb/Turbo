@@ -32,13 +32,5 @@ namespace Mystery
 				enemy.OnEnemyEvent(emitter, e);
 			}
 		}
-
-		internal static void Emit(PlayerEvent e)
-		{
-			foreach (var enemy in Get().m_Enemies)
-			{
-				enemy.OnPlayerEvent(e);
-			}
-		}
 	}
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
-
 namespace Turbo
 {
     class IndexBuffer : public RefCounted

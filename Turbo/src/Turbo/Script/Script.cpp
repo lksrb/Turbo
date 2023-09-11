@@ -20,10 +20,8 @@
 #include <mono/metadata/mono-gc.h>
 #include <stack>
 
-namespace Turbo
-{
-    namespace Utils
-    {
+namespace Turbo {
+    namespace Utils {
         static ScriptFieldType GetFieldType(MonoClassField* field)
         {
             static const std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
@@ -253,6 +251,7 @@ namespace Turbo
                     instance->SetFieldValueInternal(name, fieldInstance.Buffer);
                 }
             }
+
             //TBO_ENGINE_TRACE("Currently used {} bytes", mono_gc_get_used_size());
         }
 
@@ -292,7 +291,7 @@ namespace Turbo
     {
         auto [script, id] = entity.GetComponent<ScriptComponent, IDComponent>();
         Ref<ScriptInstance> instance = FindEntityInstance(id.ID);
-
+ 
         if (!instance)
         {
             //TBO_CONSOLE_ERROR("Could not find script class! ({0})", script.ClassName);
@@ -309,8 +308,10 @@ namespace Turbo
 
         // TODO: Duplicate script fields
 
-        // Add it to late OnCreate invoke
-        s_Data->InvokeLaterScriptEntities.push_back(target);
+        InvokeEntityOnCreate(target);
+        // For some reason I needed this to invoke latar
+        // TODO: Why?
+        //s_Data->InvokeLaterScriptEntities.push_back(target);
     }
 
     Script::ScriptFieldInstanceMap& Script::GetEntityFieldMap(UUID uuid)

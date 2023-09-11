@@ -38,4 +38,11 @@ namespace Turbo {
         bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
         Ref<Asset> TryLoad(const AssetMetadata& metadata) override;
     };
+
+    class MaterialAssetHandler : public AssetHandler
+    {
+    public:
+        bool Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
+        Ref<Asset> TryLoad(const AssetMetadata& metadata) override;
+    };
 }

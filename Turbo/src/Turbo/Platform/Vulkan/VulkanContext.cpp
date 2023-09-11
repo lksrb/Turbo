@@ -172,9 +172,9 @@ namespace Turbo {
         vkDestroyInstance(m_Instance, nullptr);
     }
 
-    Ref<VulkanContext> VulkanContext::Get()
+    VulkanContext* VulkanContext::Get()
     {
-        return Renderer::GetContext();
+        return static_cast<VulkanContext*>(Renderer::GetContext());
     }
 
     void VulkanContext::CreateInstance()

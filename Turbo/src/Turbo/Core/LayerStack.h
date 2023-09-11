@@ -2,6 +2,8 @@
 
 #include "Layer.h"
 
+#include <vector>
+
 namespace Turbo {
 
     class LayerStack

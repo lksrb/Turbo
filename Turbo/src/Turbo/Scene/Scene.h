@@ -45,7 +45,7 @@ namespace Turbo {
         // Light copy of an entity - Only components are copied
         void CopyComponents(Entity src, Entity dst);
         
-        void CreatePrefabEntity(Entity entity, Entity prefabEntity, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
+        Entity CreatePrefabEntity(Entity prefabEntity, Entity parent, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
 
         void SetViewportOffset(i32 x, i32 y);
         void SetViewportSize(u32 width, u32 height);

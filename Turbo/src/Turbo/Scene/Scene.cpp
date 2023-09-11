@@ -9,6 +9,7 @@
 #include "Turbo/Debug/ScopeTimer.h"
 #include "Turbo/Script/Script.h"
 #include "Turbo/Renderer/Mesh.h"
+#include "Turbo/Renderer/MaterialAsset.h"
 #include "Turbo/Renderer/SceneDrawList.h"
 
 #include "Turbo/Physics/PhysicsWorld.h"
@@ -414,12 +415,20 @@ namespace Turbo {
         Utils::CopyComponentIfExists(AllComponents{}, dst, src);
     }
 
-    void Scene::CreatePrefabEntity(Entity entity, Entity prefabEntity, const glm::vec3* translation, const glm::vec3* rotation, const glm::vec3* scale)
+    Entity Scene::CreatePrefabEntity(Entity prefabEntity, Entity parent, const glm::vec3* translation, const glm::vec3* rotation, const glm::vec3* scale)
     {
+        TBO_ENGINE_ASSERT(prefabEntity.HasComponent<PrefabComponent>());
+            
+        Entity entity = CreateEntity(prefabEntity.GetName());
+
         // Copy components
         Utils::CopyComponentIfExists(AllComponents{}, entity, prefabEntity);
-
-        TBO_ENGINE_ASSERT(prefabEntity.HasComponent<PrefabComponent>());
+        
+        // Override parent (if exists)
+        if (parent && prefabEntity.HasParent())
+        {
+            entity.SetParentUUID(parent.GetUUID());
+        }
 
         // Override transforms
         auto& transform = entity.Transform();
@@ -429,14 +438,10 @@ namespace Turbo {
 
         // Map prefab scene UUIDs to this scene
         auto& children = entity.GetChildren();
-        for (auto& childUUID : children)
+        for (UUID& childUUID : children)
         {
             Entity prefabChild = prefabEntity.m_Scene->FindEntityByUUID(childUUID);
-
-            Entity newChildEntity = CreateEntity(prefabChild.GetName());
-            CreatePrefabEntity(newChildEntity, prefabChild);
-
-            newChildEntity.SetParentUUID(entity.GetUUID());
+            Entity newChildEntity = CreatePrefabEntity(prefabChild, entity);
             childUUID = newChildEntity.GetUUID();
         }
 
@@ -454,16 +459,13 @@ namespace Turbo {
             }
         }
 
-        // To ensure that all entities have correct relationship info when ScriptEntity::OnCreate is called
-        // This means that ScriptEntity::OnCreate will be called after first ScriptEntity::OnUpdate
-        // It should be okay
-         
          // Duplicate script entity
         if (entity.HasComponent<ScriptComponent>())
         {
             Script::DuplicateRuntimeScriptEntity(entity, prefabEntity);
         }
 
+        return entity;
     }
 
     void Scene::SetViewportOffset(i32 x, i32 y)
@@ -670,10 +672,13 @@ namespace Turbo {
             {
                 const auto& smr = view.get<StaticMeshRendererComponent>(entity);
                 auto mesh = AssetManager::GetAsset<StaticMesh>(smr.Mesh);
+
+                // Discard meshes without asset
                 if (mesh == nullptr)
                     continue;
 
-                drawList->AddStaticMesh(mesh, GetWorldSpaceTransformMatrix({ entity, this }), (i32)entity);
+                auto material = AssetManager::GetAsset<MaterialAsset>(smr.Material);
+                drawList->AddStaticMesh(mesh, material, GetWorldSpaceTransformMatrix({ entity, this }), (i32)entity);
             }
         }
 

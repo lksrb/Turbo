@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using static Turbo.Rigidbody2DComponent;
 
 namespace Turbo
@@ -351,12 +352,12 @@ namespace Turbo
 		}
 	}
 
-	// Physics 3D
 	public class StaticMeshRendererComponent : Component
 	{
 		// TODO:
 	}
 
+	// Physics 3D
 	public class RigidbodyComponent : Component
 	{
 		/*public float GravityScale
@@ -380,6 +381,12 @@ namespace Turbo
 			}
 			set
 			{
+				if (value.IsNaN())
+				{
+					Log.Error($"[{MethodBase.GetCurrentMethod().Name}] Value is not a number!");
+					return;
+				}
+
 				InternalCalls.Component_Rigidbody_Set_LinearVelocity(Entity.ID, ref value);
 			}
 		}
@@ -393,6 +400,12 @@ namespace Turbo
 			}
 			set
 			{
+				if (value.IsNaN())
+				{
+					Log.Error($"[{MethodBase.GetCurrentMethod().Name}] Value is not a number!");
+					return;
+				}
+
 				InternalCalls.Component_Rigidbody_Set_AngularVelocity(Entity.ID, ref value);
 			}
 		}
@@ -407,6 +420,12 @@ namespace Turbo
 			}
 			set
 			{
+				if (value.IsNaN())
+				{
+					Log.Error($"[{MethodBase.GetCurrentMethod().Name}] Value is not a number!");
+					return;
+				}
+
 				InternalCalls.Component_Rigidbody_Set_Position(Entity.ID, ref value);
 			}
 		}
@@ -420,6 +439,12 @@ namespace Turbo
 			}
 			set
 			{
+				if (value.IsNaN())
+				{
+					Log.Error($"[{MethodBase.GetCurrentMethod().Name}] Value is not a number!");
+					return;
+				}
+
 				InternalCalls.Component_Rigidbody_Set_Rotation(Entity.ID, ref value);
 			}
 		}
@@ -427,12 +452,24 @@ namespace Turbo
 		// In radians
 		public void Rotate(Vector3 rotation)
 		{
+			if (rotation.IsNaN())
+			{
+				Log.Error($"[{MethodBase.GetCurrentMethod().Name}] Value is not a number!");
+				return;
+			}
+
 			InternalCalls.Component_Rigidbody_Rotate(Entity.ID, ref rotation);
 		}
 
 
 		public void AddForce(Vector3 force, ForceMode mode)
 		{
+			if (force.IsNaN())
+			{
+				Log.Error($"[{MethodBase.GetCurrentMethod().Name}] Value is not a number!");
+				return;
+			}
+
 			InternalCalls.Component_Rigidbody_AddForce(Entity.ID, ref force, mode);
 		}
 	}

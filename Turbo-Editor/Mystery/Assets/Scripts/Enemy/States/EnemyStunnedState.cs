@@ -13,10 +13,6 @@ namespace Mystery
 			Log.Info("Enemy stunned!");
 		}
 
-		internal override void OnPlayerEvent(PlayerEvent playerEvent)
-		{
-		}
-
 		internal override void OnUpdate()
 		{
 		}

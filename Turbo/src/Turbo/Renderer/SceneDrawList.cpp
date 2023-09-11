@@ -1,20 +1,11 @@
 #include "tbopch.h"
 #include "SceneDrawList.h"
 
-#include "Font.h"
-#include "Renderer.h"
-#include "ShaderLibrary.h"
-#include "RenderCommandBuffer.h"
-#include "GraphicsPipeline.h"
-#include "Image2D.h"
-#include "Material.h"
-#include "Texture.h"
-#include "RenderPass.h"
-#include "FrameBuffer.h"
-#include "UniformBuffer.h"
-#include "VertexBuffer.h"
+#include "DrawList2D.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <stdio.h>
 
 namespace Turbo {
 
@@ -112,7 +103,7 @@ namespace Turbo {
             config.Topology = PrimitiveTopology::Triangle;
             config.Layout = VertexBufferLayout
             {
-                { { AttributeType::Vec3, "a_Position" } }
+                { AttributeType::Vec3, "a_Position" }
             };
             m_SkyboxPipeline = GraphicsPipeline::Create(config);
             m_SkyboxPipeline->Invalidate();
@@ -225,15 +216,17 @@ namespace Turbo {
         m_MeshTransformBuffer->SetData(m_RenderCommandBuffer, transformData.data(), transformData.size() * sizeof(TransformData));
     }
 
-    void SceneDrawList::AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity)
+    void SceneDrawList::AddStaticMesh(Ref<StaticMesh> mesh, Ref<MaterialAsset> material, const glm::mat4& transform, i32 entity)
     {
+        //material = material ? material : Renderer::GetWhiteMaterial();
+
         const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
         for (u32 submeshIndex : mesh->GetSubmeshIndices())
         {
             const auto& submesh = submeshes[submeshIndex];
             glm::mat4 submeshTransform = transform * submesh.Transform;
 
-            MeshKey key = { mesh->Handle, submeshIndex };
+            MeshKey key = { mesh->Handle, 0, submeshIndex };
             auto& drawCommand = m_DrawCommands[key];
             drawCommand.Mesh = mesh;
             drawCommand.InstanceCount++;

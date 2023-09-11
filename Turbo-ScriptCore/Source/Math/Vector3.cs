@@ -16,6 +16,7 @@ namespace Turbo
 
 		public float Length() => Mathf.Sqrt(Dot(this, this));
 		public void Normalize() => this *= 1.0f / Length();
+		public bool IsNaN() => float.IsNaN(X) || float.IsNaN(Y) || float.IsNaN(Z);
 
 		public override string ToString() => $"Vector3(X: {X}, Y: {Y}, Z: {Z})";
 

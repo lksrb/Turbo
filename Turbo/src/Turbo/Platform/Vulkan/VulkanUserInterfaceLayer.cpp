@@ -14,7 +14,6 @@
 #include "Turbo/Core/Input.h"
 #include "Turbo/UI/ImGuiStyler.h"
 
-
 #include <IconsFontAwesome6.h>
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -62,7 +61,7 @@ namespace Turbo
 
     void VulkanUserInterfaceLayer::OnAttach()
     {
-        Ref<VulkanContext> vulkanContext = VulkanContext::Get();
+        VulkanContext* vulkanContext = VulkanContext::Get();
         VulkanDevice& device = vulkanContext->GetDevice();
 
         Window* viewportWindow = Application::Get().GetViewportWindow();
@@ -140,7 +139,7 @@ namespace Turbo
         initInfo.Allocator = nullptr;
         initInfo.CheckVkResultFn = [](VkResult result) { TBO_VK_ASSERT(result); };
 
-        Ref<VulkanSwapChain> swapchain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+        VulkanSwapChain* swapchain = static_cast<VulkanSwapChain*>(viewportWindow->GetSwapchain());
         VkRenderPass renderPass = swapchain->GetRenderPass();
 
         ImGui_ImplVulkan_Init(&initInfo, renderPass);
@@ -194,7 +193,7 @@ namespace Turbo
         // Swapchain primary command buffer
         {
             const Window* viewportWindow = Application::Get().GetViewportWindow();
-            Ref<VulkanSwapChain> swapChain = viewportWindow->GetSwapchain().As<VulkanSwapChain>();
+            auto swapChain = static_cast<VulkanSwapChain*>(viewportWindow->GetSwapchain());
             u32 width = viewportWindow->GetWidth();
             u32 height = viewportWindow->GetHeight();
             u32 currentFrame = swapChain->GetCurrentFrame();

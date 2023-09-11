@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
+#include "PrimitiveTypes.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     using MouseCode = u32;
 
-    namespace Mouse
-    {
+    namespace Mouse {
         // From WinUser.h
         enum : MouseCode
         {
@@ -16,4 +15,5 @@ namespace Turbo
             ButtonMiddle = 0x04
         };
     }
+
 }

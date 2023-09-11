@@ -1,14 +1,13 @@
 #pragma once
 
-#include "Turbo/Core/Memory.h"
 #include "Turbo/Core/PrimitiveTypes.h"
 
 namespace Turbo
 {
-    class SwapChain : public RefCounted
+    class SwapChain
     {
     public:
-        static Ref<SwapChain> Create();
+        static SwapChain* Create();
         virtual ~SwapChain();
 
         virtual u32 GetCurrentFrame() const = 0;

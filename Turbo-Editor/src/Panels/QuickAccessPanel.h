@@ -2,7 +2,6 @@
 
 #include "CommandTextFilter.h"
 
-#include <Turbo/Core/Common.h>
 #include <Turbo/Event/KeyEvent.h>
 #include <Turbo/Editor/EditorPanel.h>
 

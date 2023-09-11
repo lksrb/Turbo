@@ -2,7 +2,7 @@
 
 namespace Mystery
 {
-	internal class PlayerInput : Layer<Player, PlayerEvent>
+	internal class PlayerInput
 	{
 		const MouseCode m_SetDestinationCode = MouseCode.ButtonLeft;
 		const MouseCode m_FocusEnemyButtonDown = MouseCode.ButtonRight;
@@ -19,7 +19,7 @@ namespace Mystery
 		private bool m_IsShootMouseButtonPressed = false;
 		internal bool IsShootMouseButtonPressed => m_WasShootMouseButtonPressed && m_IsShootMouseButtonPressed;
 
-		protected override void OnUpdate()
+		internal void OnUpdate()
 		{
 			IsSetDestinationButtonDown = Input.IsMouseButtonDown(m_SetDestinationCode);
 			IsFocusButtonDown = Input.IsMouseButtonDown(m_FocusEnemyButtonDown);

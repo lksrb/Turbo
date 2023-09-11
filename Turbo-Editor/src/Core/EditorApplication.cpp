@@ -1,7 +1,5 @@
 #include <Turbo/Core/EntryPoint.h>
 
-#include <Turbo/Core/Application.h>
-
 #include "EditorLayer.h"
 
 namespace Turbo::Ed {

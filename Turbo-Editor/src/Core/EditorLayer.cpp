@@ -10,7 +10,9 @@
 
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
+#include <Turbo/Editor/PanelManager.h>
 
+#include <Turbo/Renderer/Font.h>
 #include <Turbo/UI/UserInterfaceLayer.h>
 
 #include <Turbo/Asset/AssetManager.h>
@@ -18,9 +20,7 @@
 #include <Turbo/Script/Script.h>
 #include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Solution/ProjectSerializer.h>
-#include <Turbo/Core/FileSystem.h>
 
-#include <Turbo/Renderer/Font.h>
 #include <Turbo/UI/UI.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
@@ -31,8 +31,8 @@
 #include <sstream>
 
 #ifdef TBO_PLATFORM_WIN32
-#define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
-#define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
+    #define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
+    #define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
 #endif
 
 namespace Turbo::Ed {
@@ -339,10 +339,7 @@ namespace Turbo::Ed {
                     else if (path.extension() == ".tprefab" && m_SceneMode == SceneMode::Edit) // Only in edit mode for now
                     {
                         Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(path);
-
-                        Entity prefabEntity = prefab->GetPrefabEntity();
-                        Entity entity = m_CurrentScene->CreateEntity(prefabEntity.GetName());
-                        m_CurrentScene->CreatePrefabEntity(entity, prefabEntity);
+                        m_CurrentScene->CreatePrefabEntity(prefab->GetPrefabEntity(), {});
                     }
                 }
 

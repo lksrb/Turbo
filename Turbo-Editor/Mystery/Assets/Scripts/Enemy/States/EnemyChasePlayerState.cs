@@ -15,15 +15,25 @@ namespace Mystery
 
 		internal override void OnUpdate()
 		{
+			Vector3 distance = m_Player.Transform.Translation - m_Enemy.Transform.Translation;
+			distance.Normalize();
 
-		}
-
-		internal override void OnPlayerEvent(PlayerEvent playerEvent)
-		{
+			// Run straight forward
+			Vector3 linearVelocity = m_Rigidbody.LinearVelocity;
+			linearVelocity = 5.0f * distance;
+			linearVelocity.Y = m_Rigidbody.LinearVelocity.Y;
+			m_Rigidbody.LinearVelocity = linearVelocity;
 		}
 
 		protected override void OnCollisionBegin(Entity entity)
 		{
+			if(entity.Name == "BouncyBall")
+			{
+				if(entity.As<BouncyBall>().CanDamage)
+				{
+					ChangeState(EnemyState.Stunned);
+				}
+			}
 		}
 
 		protected override void OnCollisionEnd(Entity entity)

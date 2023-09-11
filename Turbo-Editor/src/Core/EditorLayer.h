@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Turbo.h>
+#include <Turbo/Editor/PanelManager.h>
 
 namespace Turbo::Ed {
 
@@ -21,6 +22,7 @@ namespace Turbo::Ed {
             None = 0,
             VS2022
         };
+
     protected: // Inherited
         void OnAttach() override;
         void OnDetach() override;

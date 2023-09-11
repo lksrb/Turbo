@@ -12,11 +12,14 @@ namespace Turbo {
     Window::Window(const Window::Config& config)
         : m_Config(config)
     {
+        // Creates vulkan context and debugger
         m_RendererContext = RendererContext::Create();
     }
 
     Window::~Window()
     {
+        delete m_Swapchain;
+        delete m_RendererContext;
     }
 
     Window* Window::Create()
@@ -45,7 +48,9 @@ namespace Turbo {
 
     void Window::InitializeSwapChain()
     {
+        // Creates vulkan surface and device
         m_RendererContext->Initialize();
+
         m_Swapchain = SwapChain::Create();
     }
 

@@ -13,7 +13,7 @@ namespace Turbo
     VulkanMaterial::VulkanMaterial(const Ref<Shader>& shader)
         : Material(shader)
     {
-        UpdateDescriptors();
+        CreateDescriptors();
     }
 
     VulkanMaterial::~VulkanMaterial()
@@ -78,7 +78,7 @@ namespace Turbo
         vkUpdateDescriptorSets(device, 1, &descWrite, 0, nullptr);
     }
 
-    void VulkanMaterial::UpdateDescriptors()
+    void VulkanMaterial::CreateDescriptors()
     {
         VkDevice device = VulkanContext::Get()->GetDevice();
 

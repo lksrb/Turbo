@@ -1,24 +1,11 @@
 #pragma once
 
+#include "Turbo/Core/Core.h"
 #include "Turbo/Core/Log.h"
 
 #include <filesystem>
 
-#ifdef TBO_DEBUG
-#if defined(TBO_PLATFORM_WIN32)
-#define TBO_DEBUGBREAK() __debugbreak()
-#elif defined(TBO_PLATFORM_LINUX)
-#include <signal.h>
-#define TBO_DEBUGBREAK() raise(SIGTRAP)
-#else
-#error "Platform doesn't support debugbreak yet!"
-#endif
-
-#else
-#define TBO_DEBUGBREAK()
-#endif
-#define TBO_ENABLE_ASSERTS
-#ifdef TBO_ENABLE_ASSERTS
+#if TBO_ENABLE_ASSERTS
 
 #define TBO_EXPAND_MACRO(x) x
 #define TBO_STRINGIFY_MACRO(x) #x

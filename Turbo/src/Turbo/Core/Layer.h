@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Turbo/Event/Event.h"
-
+#include "Core.h"
 #include "Time.h"
 
 namespace Turbo {
+
+    class Event;
 
     class TBO_NOVTABLE Layer
     {

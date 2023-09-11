@@ -2,12 +2,13 @@
 
 #include "EditorPanel.h"
 
-#include "Turbo/Core/Common.h"
-#include "Turbo/Scene/Scene.h"
-
 namespace Turbo {
 
-    class PanelManager {
+    class Scene;
+    class Project;
+
+    class PanelManager
+    {
     public:
         template<typename T, typename... Args>
         Ref<T> AddPanel(Args&&... args)
@@ -34,7 +35,7 @@ namespace Turbo {
         void OnDrawUI();
         void OnEvent(Event& e);
     private:
-        std::map<size_t, Ref<EditorPanel>> m_Panels;
+        std::map<u64, Ref<EditorPanel>> m_Panels;
     };
 
 }

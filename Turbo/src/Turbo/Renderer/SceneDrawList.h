@@ -1,22 +1,60 @@
 #pragma once
 
-#include "DrawList2D.h"
-
-#include "Mesh.h"
+#include "Turbo/Asset/Asset.h"
+#include "Turbo/Core/Owned.h"
 
 #include <map>
 
 namespace Turbo {
 
+    class Font;
+    class RenderCommandBuffer;
+    class RendererBuffer;
+    class Shader;
+    class GraphicsPipeline;
+    class Image2D;
+    class Material;
+    class Texture2D;
+    class RenderPass;
+    class FrameBuffer;
+    class UniformBufferSet;
+    class VertexBuffer;
+    class IndexBuffer;
+    class MaterialAsset;
     class StaticMesh;
     class TextureCube;
+    class DrawList2D;
+
+    struct SceneRendererData
+    {
+        glm::mat4 ViewProjectionMatrix = glm::mat4(1.0f);
+        glm::mat4 InversedViewProjectionMatrix = glm::mat4(1.0f);
+        glm::mat4 InversedViewMatrix = glm::mat4(1.0f);
+        glm::mat4 ViewMatrix = glm::mat4(1.0f);
+    };
+
+    // TODO: Merge statistics
+    struct DrawList2DStatistics
+    {
+        u32 QuadCount;
+        u32 CircleCount;
+        u32 CircleIndexCount;
+        u32 DrawCalls;
+
+        DrawList2DStatistics() { Reset(); }
+
+        void Reset()
+        {
+            std::memset(this, 0, sizeof(*this));
+        }
+    };
 
     class SceneDrawList : public RefCounted
     {
     public:
         struct Statistics
         {
-            DrawList2D::Statistics Statistics2D;
+            DrawList2DStatistics Statistics2D;
 
             u32 DrawCalls;
             u32 Instances;
@@ -40,7 +78,7 @@ namespace Turbo {
         void Begin();
         void End();
 
-        void AddStaticMesh(Ref<StaticMesh> mesh, const glm::mat4& transform, i32 entity = -1);
+        void AddStaticMesh(Ref<StaticMesh> mesh, Ref<MaterialAsset> material, const glm::mat4& transform, i32 entity = -1);
         void AddDirectionalLight(const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 1.0f);
         void AddPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f);
         void AddSpotLight(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 5.0f, f32 innerCone = 12.5f, f32 outerCone = 17.5f);
@@ -172,6 +210,7 @@ namespace Turbo {
         struct MeshKey
         {
             AssetHandle MeshHandle;
+            AssetHandle MaterialHandle;
             u32 SubmeshIndex = 0;
 
             bool operator<(const MeshKey& other) const

@@ -21,6 +21,7 @@
 #include "Turbo/Renderer/ShaderLibrary.h"
 #include "Turbo/Renderer/RendererContext.h"
 #include "Turbo/Renderer/Mesh.h"
+#include "Turbo/Renderer/MaterialAsset.h"
 
 namespace Turbo {
 
@@ -84,6 +85,7 @@ namespace Turbo {
         Ref<VertexBuffer> CubeMapVertexBuffer;
         Ref<IndexBuffer> CubeMapIndexBuffer;
         Ref<Texture2D> WhiteTexture;
+        Ref<MaterialAsset> WhiteMaterial;
     };
 
     static VulkanRenderer* s_Renderer;
@@ -120,12 +122,15 @@ namespace Turbo {
             s_Renderer->CubeMapIndexBuffer = IndexBuffer::Create(skyboxIndices.data(), (u32)skyboxIndices.size());
         }
 
-        // Create default white texture
-        s_Renderer->WhiteTexture = Texture2D::Create(0xffffffff);
-
         // Load shaders
         // TODO: Only load shaders that are used
         ShaderLibrary::Init();
+
+        // Create default white texture
+        s_Renderer->WhiteTexture = Texture2D::Create(0xffffffff);
+
+        // Create default white material asset
+        //s_Renderer->WhiteMaterial = Ref<MaterialAsset>::Create();
     }
 
     void Renderer::Shutdown()
@@ -467,12 +472,17 @@ namespace Turbo {
         return s_Renderer->WhiteTexture;
     }
 
+    Ref<MaterialAsset> Renderer::GetWhiteMaterial()
+    {
+        return s_Renderer->WhiteMaterial;
+    }
+
     CommandQueue& Renderer::GetCommandQueue()
     {
         return s_Renderer->RenderQueue;
     }
 
-    Ref<RendererContext> Renderer::GetContext()
+    RendererContext* Renderer::GetContext()
     {
         return Application::Get().GetViewportWindow()->GetRendererContext();
     }

@@ -38,8 +38,8 @@ namespace Turbo {
 
         void InitializeSwapChain();
 
-        Ref<SwapChain> GetSwapchain() const { return m_Swapchain; }
-        Ref<RendererContext> GetRendererContext() const { return m_RendererContext; }
+        SwapChain* GetSwapchain() const { return m_Swapchain; }
+        RendererContext* GetRendererContext() const { return m_RendererContext; }
 
         i32 GetOffsetX() const { return m_OffsetX; }
         i32 GetOffsetY() const { return m_OffsetY; }
@@ -53,8 +53,8 @@ namespace Turbo {
     protected:
         Window(const Window::Config& config);
     protected:
-        Ref<RendererContext> m_RendererContext;
-        Ref<SwapChain> m_Swapchain;
+        RendererContext* m_RendererContext = nullptr;
+        SwapChain* m_Swapchain = nullptr;
 
         i32 m_OffsetX = 0, m_OffsetY = 0;
 

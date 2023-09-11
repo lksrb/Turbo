@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Turbo/Renderer/Texture.h"
-
 #include <filesystem>
 
-namespace Turbo
-{
+namespace Turbo {
+
+    class Texture2D;
+
     class Font : public RefCounted
     {
     public:
@@ -14,7 +14,7 @@ namespace Turbo
         Font(const std::filesystem::path& fontPath);
         ~Font();
 
-        Ref<Texture2D> GetAtlasTexture() const { return m_AtlasTexture; }
+        Ref<Texture2D> GetAtlasTexture() const;
         MSDFData* GetMSDFData() const { return m_Data; }
 
         static Ref<Font> GetDefaultFont();

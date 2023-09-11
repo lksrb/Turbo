@@ -10,6 +10,8 @@
 #include "Turbo/Renderer/Renderer.h"
 #include "Turbo/Script/Script.h"
 
+#include "Turbo/Event/WindowEvent.h"
+
 #include "Turbo/UI/UserInterfaceLayer.h"
 
 namespace Turbo {

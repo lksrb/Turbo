@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Turbo/Core/PrimitiveTypes.h"
+#include "PrimitiveTypes.h"
 
 namespace Turbo
 {

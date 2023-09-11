@@ -1,16 +1,15 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
-#include "Turbo/Scene/Scene.h"
-
-namespace YAML
-{
+namespace YAML {
     class Node;
     class Emitter;
 }
 
-namespace Turbo
-{
+namespace Turbo {
+
+    class Scene;
+    class Entity;
+
     class SceneSerializer
     {
     public:

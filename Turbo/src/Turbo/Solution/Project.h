@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
-
 #include "Turbo/Asset/AssetRegistryBase.h"
 #include "Turbo/Asset/EditorAssetRegistry.h"
 

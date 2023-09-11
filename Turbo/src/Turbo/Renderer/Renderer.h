@@ -18,6 +18,7 @@ namespace Turbo {
     class TextureCube;
     class UniformBuffer;
     class VertexBuffer;
+    class MaterialAsset;
 
     class Renderer
     {
@@ -68,9 +69,10 @@ namespace Turbo {
         static void DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet);
 
         static void CopyImageToBuffer(Ref<RenderCommandBuffer> commandBuffer, Ref<Image2D> image, Ref<RendererBuffer> rendererBuffer);
-        static Ref<RendererContext> GetContext();
+        static RendererContext* GetContext();
         static u32 GetCurrentFrame();
         static Ref<Texture2D> GetWhiteTexture();
+        static Ref<MaterialAsset> GetWhiteMaterial();
     private:
         static CommandQueue& GetResourceRuntimeQueue();
         static CommandQueue& GetResourceQueue();

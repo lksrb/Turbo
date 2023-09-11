@@ -190,7 +190,7 @@ namespace Turbo {
     struct StaticMeshRendererComponent
     {
         AssetHandle Mesh = 0;
-        AssetHandle Material = 0;
+        AssetHandle Material = 0; // This is just a texture for now
 
         StaticMeshRendererComponent() = default;
         StaticMeshRendererComponent(const StaticMeshRendererComponent&) = default;

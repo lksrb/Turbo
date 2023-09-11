@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Turbo/Core/Common.h"
+#include "Turbo/Core/Core.h"
+#include "Turbo/Core/PrimitiveTypes.h"
 
 namespace Turbo {
 
-    enum class EventType 
+    enum class EventType : u32
     {
-        none = 0,
+        None = 0,
         WindowClosed, WindowResize, WindowFocus, WindowKillFocus, WindowMoved,
         KeyPressed, KeyReleased, KeyTyped,
         MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
@@ -22,9 +23,7 @@ namespace Turbo {
         EventCategory_MouseButton   = TBO_BIT(4)
     };
 
-    //using EventCategory = uint32; // => EventCategory_
-
-    typedef u32 EventCategory;
+    using EventCategory = u32;
 
 #define EVENT_CLASS_TYPE(type)  static EventType GetStaticType() { return EventType::type; }\
 								virtual EventType GetEventType() const override { return GetStaticType(); }\
