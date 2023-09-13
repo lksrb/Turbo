@@ -3,7 +3,7 @@
 <center><b><i>"I could have been Turbo?!"</i></b></center> -Dewey
 
 ----
-Turbo is a game engine created by me for me to create games.
+Turbo is a game engine created by me for me to learn and also create games.
 
 ## Specifications
 
@@ -12,6 +12,13 @@ Rendering API: Vulkan
 Language: C++20
 
 Platform: Windows only (for now)
+
+### Features
+- Fast 2D rendering (sprites, textures, ...)
+- Basic 3D rendering (lights, meshes, no shadows yet. )
+- Integrated 3rd party 2D and 3D physics engine
+- Scripted interaction and behaviour
+- Featured Editor Application
 
 ## Getting started
 Using Visual Studio 2022 is recommended. Turbo is not tested on other IDEs/Editors.
