@@ -4,11 +4,11 @@
 #include "Turbo/Core/Platform.h"
 #include "Turbo/Core/FileSystem.h"
 
-#include "Turbo/Audio/Audio.h"
+#include "Turbo/Audio/AudioEngine.h"
 #include "Turbo/Renderer/Mesh.h"
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Renderer/Texture.h"
-#include "Turbo/Script/Script.h"
+#include "Turbo/Script/ScriptEngine.h"
 #include "Turbo/UI/UI.h"
 #include "Turbo/UI/Widgets.h"
 
@@ -395,8 +395,8 @@ namespace Turbo {
                     if (ImGui::MenuItem("Text"))
                     {
                         // TODO: Font assets
-                        //m_SelectedEntity = m_Context->CreateEntity("Text");
-                        //m_SelectedEntity.AddComponent<TextComponent>();
+                        m_SelectedEntity = m_Context->CreateEntity("Text");
+                        m_SelectedEntity.AddComponent<TextComponent>();
                     }
 
                     ImGui::EndMenu();
@@ -809,7 +809,7 @@ namespace Turbo {
             {
                 s_AudioSourcePath = Platform::OpenFileDialog(L"Open Audio File", L"WAV File (*.wav)\0*.wav\0");
                 component.AudioPath = s_AudioSourcePath.string();
-                Audio::Register(entity.GetUUID(), component.AudioPath); // TOOD: Assets
+                AudioEngine::Register(entity.GetUUID(), component.AudioPath); // TOOD: Assets
             }
 
             ImGui::DragFloat("Gain", &component.Gain, 0.05f, 0.0f, 10.0f);
@@ -875,7 +875,7 @@ namespace Turbo {
         {
             if (ImGui::BeginCombo("Scripts", component.ClassName.empty() ? "<No Script>" : component.ClassName.c_str()))
             {
-                const auto& scriptClassMap = Script::GetScriptClassMap();
+                const auto& scriptClassMap = ScriptEngine::GetScriptClassMap();
 
                 bool isSelected = component.ClassName.empty();
                 if (ImGui::Selectable("<No Script>", isSelected))
@@ -906,7 +906,7 @@ namespace Turbo {
 
             if (m_Context->IsRunning())
             {
-                Ref<ScriptInstance> instance = Script::FindEntityInstance(entityUUID);
+                Ref<ScriptInstance> instance = ScriptEngine::FindEntityInstance(entityUUID);
 
                 if (instance)
                 {
@@ -920,15 +920,15 @@ namespace Turbo {
             }
             else // Scene is not running
             {
-                bool entityClassExists = Script::ScriptClassExists(component.ClassName);
+                bool entityClassExists = ScriptEngine::ScriptClassExists(component.ClassName);
 
                 if (entityClassExists)
                 {
-                    Ref<ScriptClass> entityClass = Script::FindEntityClass(component.ClassName);
+                    Ref<ScriptClass> entityClass = ScriptEngine::FindEntityClass(component.ClassName);
 
                     const auto& classFields = entityClass->GetFields();
 
-                    auto& entityFields = Script::GetEntityFieldMap(entityUUID);
+                    auto& entityFields = ScriptEngine::GetEntityFieldMap(entityUUID);
 
                     for (auto& [name, field] : classFields)
                     {

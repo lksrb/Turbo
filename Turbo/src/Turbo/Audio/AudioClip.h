@@ -19,6 +19,6 @@ namespace Turbo
         AudioFile m_AudioFile;
         f32 m_AudioLength = 0;
 
-        friend class Audio;
+        friend class AudioEngine;
     };
 }

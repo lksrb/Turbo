@@ -7,7 +7,6 @@
 
 namespace Turbo {
 
-    // An example contact listener
     class ContactListener : public JPH::ContactListener
     {
     public:

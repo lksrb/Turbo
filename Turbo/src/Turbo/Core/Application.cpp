@@ -5,10 +5,10 @@
 #include "Turbo/Core/Platform.h"
 #include "Turbo/Core/Window.h"
 
-#include "Turbo/Audio/Audio.h"
+#include "Turbo/Audio/AudioEngine.h"
 #include "Turbo/Physics/Physics.h"
 #include "Turbo/Renderer/Renderer.h"
-#include "Turbo/Script/Script.h"
+#include "Turbo/Script/ScriptEngine.h"
 
 #include "Turbo/Event/WindowEvent.h"
 
@@ -47,10 +47,10 @@ namespace Turbo {
         Renderer::Init();
 
         // Initialize audio engine
-        Audio::Init();
+        AudioEngine::Init();
 
         // Initialize mono script engine
-        Script::Init();
+        ScriptEngine::Init();
 
         // Initialize physics engine
         Physics::Init();
@@ -79,8 +79,8 @@ namespace Turbo {
         }
 
         Physics::Shutdown();
-        Script::Shutdown();
-        Audio::Shutdown();
+        ScriptEngine::Shutdown();
+        AudioEngine::Shutdown();
 
         Renderer::Shutdown();
 

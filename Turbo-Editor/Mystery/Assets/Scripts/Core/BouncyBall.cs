@@ -20,8 +20,6 @@ namespace Mystery
 			m_BouncyBallPrefab = Assets.LoadPrefab("Prefabs/BouncyBall.tprefab");
 
 			m_Player = FindEntityByName("Player").As<Player>();
-
-			Log.Info("BouncyBall::OnCreate");
 		}
 
 		protected override void OnUpdate()

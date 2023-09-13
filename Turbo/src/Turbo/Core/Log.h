@@ -1,18 +1,19 @@
 #pragma once
 
-#include <memory>
-#include <spdlog/spdlog.h>
-#include <spdlog/fmt/ostr.h>
+#include "PrimitiveTypes.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
 
 namespace Turbo {
 
     class Log
     {
     public:
-        enum Level
+        enum class Level : u32
         {
             Trace = 0,
             Info,

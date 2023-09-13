@@ -27,7 +27,6 @@ namespace Turbo {
     // This defines a mapping between object and broadphase layers.
     class BPLayerInterface : public JPH::BroadPhaseLayerInterface
     {
-
     public:
         BPLayerInterface()
         {

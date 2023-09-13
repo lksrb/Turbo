@@ -224,4 +224,16 @@ namespace Turbo {
         return it != m_PathRegistry.end() ? it->second : AssetHandle(0);
     }
 
+    bool EditorAssetRegistry::RemoveAsset(AssetHandle handle)
+    {
+        if (!IsAssetHandleValid(handle))
+            return false;
+
+        m_PathRegistry.erase(GetAssetMetadata(handle).FilePath);
+        m_AssetRegistry.erase(handle);
+        m_LoadedAssets.erase(handle);
+
+        return true;
+    }
+
 }

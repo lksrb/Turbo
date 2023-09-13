@@ -90,6 +90,8 @@ namespace Turbo {
             return asset;
         }
 
+        bool RemoveAsset(AssetHandle handle);
+
         template<typename TAsset>
         Ref<Asset> ImportAsset2(const std::filesystem::path& filepath)
         {

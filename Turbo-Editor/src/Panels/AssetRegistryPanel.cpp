@@ -30,7 +30,7 @@ namespace Turbo {
 
     void AssetRegistryPanel::OnDrawUI()
     {
-        static AssetHandle s_SelectedHandle = 0; // TODO: If the asset is removed, this must be reset
+        static AssetHandle s_SelectedHandle = 0;
 
         if (!m_Open)
             return;
@@ -48,16 +48,17 @@ namespace Turbo {
             }
             ImGui::PopItemWidth();
         }
+        auto assetRegistry = Project::GetActive()->GetEditorAssetRegistry();
 
-        auto& assetRegistry = Project::GetActive()->GetEditorAssetRegistry()->GetRegisteredAssets();
-        if (assetRegistry.size())
+        auto& registeredAssets = assetRegistry->GetRegisteredAssets();
+        if (registeredAssets.size())
         {
             ImGui::BeginChild(TBO_RESULTS_ID);
 
             std::vector<FilterResult> filteredAssets;
-            filteredAssets.reserve(assetRegistry.size());
+            filteredAssets.reserve(registeredAssets.size());
 
-            for (const auto& [handle, metadata] : assetRegistry)
+            for (const auto& [handle, metadata] : registeredAssets)
             {
                 const auto& name = metadata.FilePath.stem().string();
                 u32 correctLetters = FilterName(name);
@@ -80,24 +81,42 @@ namespace Turbo {
                 bool selected = s_SelectedHandle == asset.first;
 
                 UI::OffsetCursorPosX(8.0f);
-                if (ImGui::Selectable(assetName.c_str(), &selected))
+                ImGui::Selectable(assetName.c_str(), &selected);
+                if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
                 {
-                    selected = true;
+                    s_SelectedHandle = asset.first;
+                }
+
+                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
+                {
+                    // Open asset editor
+                    m_OpenAssetEditorCallback(s_SelectedHandle);
+                }
+
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                {
+                    ImGui::OpenPopup("AssetContextMenu");
                 }
 
                 ImGui::SameLine(ImGui::GetContentRegionMax().x - 73.0f); // TODO: Make more dynamic
                 ImGui::Text("%s", stringAssetType);
-                if (selected)
-                {
-                    s_SelectedHandle = asset.first;
-
-                    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                    {
-                        // Open asset editor
-                        m_OpenAssetEditorCallback(s_SelectedHandle);
-                    }
-                }
             }
+
+            // Asset context menu
+            if (s_SelectedHandle && ImGui::BeginPopupContextItem("AssetContextMenu"))
+            {
+                if (ImGui::MenuItem("Remove"))
+                {
+                    bool removed = assetRegistry->RemoveAsset(s_SelectedHandle);
+                    TBO_ASSERT(removed);
+                    s_SelectedHandle = 0;
+                }
+
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
+                s_SelectedHandle = {};
 
             ImGui::EndChild();
         }

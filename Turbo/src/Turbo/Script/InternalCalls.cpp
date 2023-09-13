@@ -1,16 +1,16 @@
 ﻿#include "tbopch.h"
 #include "InternalCalls.h"
 
-#include "Script.h"
+#include "ScriptEngine.h"
 #include "ScriptInstance.h"
 
-#include "Turbo/Renderer/SceneDrawList.h"
+#include "Turbo/Renderer/SceneRenderer.h"
 
 #include "Turbo/Physics/PhysicsWorld2D.h"
 #include "Turbo/Physics/PhysicsWorld.h"
 #include "Turbo/Physics/JoltUtils.h"
 
-#include "Turbo/Audio/Audio.h"
+#include "Turbo/Audio/AudioEngine.h"
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Core/Application.h"
 #include "Turbo/Core/Input.h"
@@ -34,7 +34,7 @@ namespace Turbo {
 
     static Entity GetEntity(u64 uuid)
     {
-        auto context = Script::GetCurrentScene();
+        auto context = ScriptEngine::GetCurrentScene();
         Entity entity = context->FindEntityByUUID(uuid);
 
         if (!entity) [[unlikely]]
@@ -53,19 +53,19 @@ namespace Turbo {
 
         static u32 Application_GetWidth()
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
             return context->GetViewportWidth();
         }
 
         static u32 Application_GetHeight()
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
             return context->GetViewportHeight();
         }
 
         static void Application_Close()
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
             Application::Get().Close();
         }
 
@@ -89,32 +89,32 @@ namespace Turbo {
 
         static void DebugRenderer_DrawLine(glm::vec3* start, glm::vec3* end, glm::vec4* color)
         {
-            Ref<Scene> context = Script::GetCurrentScene();
-            context->AddToDrawList([s = *start, e = *end, c = *color](OwnedRef<SceneDrawList> drawList)
+            Ref<Scene> context = ScriptEngine::GetCurrentScene();
+            context->AddToDrawList([s = *start, e = *end, c = *color](OwnedRef<SceneRenderer> drawList)
             {
-                drawList->AddLine(s, e, c);
+                drawList->SubmitLine(s, e, c);
             });
         }
 
         static void DebugRenderer_DrawCircle(glm::vec3* position, glm::vec3* rotation, float radius, glm::vec4* color)
         {
-            Ref<Scene> context = Script::GetCurrentScene();
-            context->AddToDrawList([p = *position, r = *rotation, radius, c = *color](OwnedRef<SceneDrawList> drawList)
+            Ref<Scene> context = ScriptEngine::GetCurrentScene();
+            context->AddToDrawList([p = *position, r = *rotation, radius, c = *color](OwnedRef<SceneRenderer> drawList)
             {
-                drawList->AddDebugCircle(p, r, radius, c);
+                drawList->SubmitDebugCircle(p, r, radius, c);
             });
         }
 
         static void DebugRenderer_DrawBox(glm::vec3* position, glm::vec3* rotation, glm::vec3* scale, glm::vec4* color)
         {
-            Ref<Scene> context = Script::GetCurrentScene();
-            context->AddToDrawList([p = *position, r = *rotation, s = *scale, c = *color](OwnedRef<SceneDrawList> drawList)
+            Ref<Scene> context = ScriptEngine::GetCurrentScene();
+            context->AddToDrawList([p = *position, r = *rotation, s = *scale, c = *color](OwnedRef<SceneRenderer> drawList)
             {
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), p)
                     * glm::toMat4(glm::quat(r))
                     * glm::scale(glm::mat4(1.0f), s);
 
-                drawList->AddBoxWireframe(transform, c);
+                drawList->SubmitBoxWireframe(transform, c);
             });
         }
 
@@ -126,7 +126,7 @@ namespace Turbo {
         {
             char* msg = mono_string_to_utf8(string);
 
-            switch (level)
+            switch (static_cast<Log::Level>(level))
             {
                 case Log::Level::Trace:
                 {
@@ -196,7 +196,7 @@ namespace Turbo {
 
         static u64 Physics2D_RayCast(glm::vec2 a, glm::vec2 b)
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
 
             Ref<PhysicsWorld2D> physicsWorld2d = context->GetPhysicsWorld2D();
 
@@ -218,7 +218,7 @@ namespace Turbo {
                 length = length >= 0 ? std::numeric_limits<float>::max() : std::numeric_limits<float>::lowest();
             }
 
-            Ref<PhysicsWorld> physicsWorld = Script::GetCurrentScene()->GetPhysicsWorld();
+            Ref<PhysicsWorld> physicsWorld = ScriptEngine::GetCurrentScene()->GetPhysicsWorld();
             *outResult = physicsWorld->CastRay(Ray(*origin, (*direction) * length), static_cast<RayTarget>(rayTarget));
         }
 
@@ -229,7 +229,7 @@ namespace Turbo {
                 length = length >= 0 ? std::numeric_limits<float>::max() : std::numeric_limits<float>::lowest();
             }
 
-            Ref<PhysicsWorld> physicsWorld = Script::GetCurrentScene()->GetPhysicsWorld();
+            Ref<PhysicsWorld> physicsWorld = ScriptEngine::GetCurrentScene()->GetPhysicsWorld();
             Ray ray(*origin, (*direction) * length);
 
             std::vector<CastRayResult> results = physicsWorld->CastRay(Ray(*origin, (*direction) * length));
@@ -238,7 +238,7 @@ namespace Turbo {
 
             if (results.size())
             {
-                castRayResults = mono_array_new(Script::GetAppDomain(), Script::GetMonoClassFromName("Turbo", "InternalCastRayResult"), results.size());
+                castRayResults = mono_array_new(ScriptEngine::GetAppDomain(), ScriptEngine::GetMonoClassFromName("Turbo", "InternalCastRayResult"), results.size());
 
                 for (u64 i = 0; i < results.size(); ++i)
                 {
@@ -256,7 +256,7 @@ namespace Turbo {
         static u64 Scene_CreateEntity(u64 parentUUID, MonoString* name)
         {
             char* cString = mono_string_to_utf8(name);
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
             Entity entity = context->CreateEntity(cString);
             TBO_ENGINE_ASSERT(entity);
             mono_free(cString);
@@ -271,14 +271,14 @@ namespace Turbo {
         static void Scene_DestroyEntity(u64 uuid)
         {
             Entity entity = GetEntity(uuid);
-            auto context = Script::GetCurrentScene().Get(); // FIXME: lambda cannot accept const ref
+            auto context = ScriptEngine::GetCurrentScene().Get(); // FIXME: lambda cannot accept const ref
 
             context->AddToPostUpdate([context, entity]() { context->DestroyEntity(entity); });
         }
 
         static void Scene_ScreenToWorldPosition(glm::vec2 screenPosition, glm::vec3* worldPosition) // FIXME: Raycasting
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
             Entity camera = context->FindPrimaryCameraEntity();
 
             if (!camera)
@@ -303,7 +303,7 @@ namespace Turbo {
 
         static void Scene_WorldToScreenPosition(glm::vec3 worldPosition, glm::vec2* screenPosition) // FIXME: Raycasting
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
             Entity entity = context->FindPrimaryCameraEntity();
             TBO_ENGINE_ASSERT(entity);
 
@@ -328,7 +328,7 @@ namespace Turbo {
         {
             char* cString = mono_string_to_utf8(string);
 
-            Entity entity = Script::GetCurrentScene()->FindEntityByName(cString);
+            Entity entity = ScriptEngine::GetCurrentScene()->FindEntityByName(cString);
 
             u64 uuid = 0;
             if (entity)
@@ -387,8 +387,8 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            MonoDomain* appDomain = Script::GetAppDomain();
-            Ref<ScriptClass> entityClass = Script::GetEntityBaseClass();
+            MonoDomain* appDomain = ScriptEngine::GetAppDomain();
+            Ref<ScriptClass> entityClass = ScriptEngine::GetEntityBaseClass();
 
             const auto& children = entity.GetChildren();
 
@@ -409,7 +409,7 @@ namespace Turbo {
 
         static void Entity_UnParent(u64 uuid)
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
             Entity entity = context->FindEntityByUUID(uuid);
 
             if (!entity) [[unlikely]] {
@@ -426,7 +426,7 @@ namespace Turbo {
             if (!entity)
                 return nullptr;
 
-            MonoDomain* appDomain = Script::GetAppDomain();
+            MonoDomain* appDomain = ScriptEngine::GetAppDomain();
 
             MonoString* monoString = mono_string_new(appDomain, entity.GetName().c_str());
             TBO_ENGINE_ASSERT(monoString);
@@ -448,12 +448,12 @@ namespace Turbo {
         // FIXME: Temporary
         static void TryInvokeOnCreateRecursively(Entity entity)
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
 
             // Call C# Entity::OnCreate method
             if (entity.HasComponent<ScriptComponent>())
             {
-                Script::InvokeEntityOnCreate(entity);
+                ScriptEngine::InvokeEntityOnCreate(entity);
             }
 
             const auto& children = entity.GetChildren();
@@ -467,7 +467,7 @@ namespace Turbo {
 
         static u64 Entity_InstantiatePrefab(u64 prefabID)
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
 
             Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
 
@@ -484,7 +484,7 @@ namespace Turbo {
 
         static u64 Entity_InstantiatePrefabWithTranslation(u64 prefabID, glm::vec3* translation)
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
 
             Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
 
@@ -502,7 +502,7 @@ namespace Turbo {
         {
             TBO_ENGINE_ASSERT(false);
 
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
 
             Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
 
@@ -579,7 +579,7 @@ namespace Turbo {
 
         static MonoObject* Component_Script_Get_Instance(UUID uuid)
         {
-            Ref<ScriptInstance> instance = Script::FindEntityInstance(uuid);
+            Ref<ScriptInstance> instance = ScriptEngine::FindEntityInstance(uuid);
             return instance ? instance->GetMonoInstance() : nullptr;
         }
 
@@ -682,7 +682,7 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            MonoDomain* appDomain = Script::GetAppDomain();
+            MonoDomain* appDomain = ScriptEngine::GetAppDomain();
 
             const std::string& text = entity.GetComponent<TextComponent>().Text;
             MonoString* monoString = mono_string_new(appDomain, text.c_str());
@@ -766,10 +766,10 @@ namespace Turbo {
                 return;
 
             // If its already playing, do not play it again
-            if (Audio::IsPlaying(uuid))
+            if (AudioEngine::IsPlaying(uuid))
                 return;
 
-            Audio::Play(uuid, audioSourceComponent.Loop);
+            AudioEngine::Play(uuid, audioSourceComponent.Loop);
         }
 
         static void Component_AudioSource_Stop(u64 uuid)
@@ -783,7 +783,7 @@ namespace Turbo {
             if (audioSourceComponent.AudioPath.empty())
                 return;
 
-            Audio::Stop(uuid);
+            AudioEngine::Stop(uuid);
         }
 
         static void Component_AudioSource_Pause(u64 uuid)
@@ -797,7 +797,7 @@ namespace Turbo {
             if (audioSourceComponent.AudioPath.empty())
                 return;
 
-            Audio::Pause(uuid);
+            AudioEngine::Pause(uuid);
         }
 
         static void Component_AudioSource_Resume(u64 uuid)
@@ -811,7 +811,7 @@ namespace Turbo {
             if (audioSourceComponent.AudioPath.empty())
                 return;
 
-            Audio::Resume(uuid);
+            AudioEngine::Resume(uuid);
         }
 
         static bool Component_AudioSource_IsPlaying(u64 uuid)
@@ -825,7 +825,7 @@ namespace Turbo {
             if (audioSourceComponent.AudioPath.empty())
                 return false;
 
-            return Audio::IsPlaying(uuid);
+            return AudioEngine::IsPlaying(uuid);
         }
 
 #pragma endregion
@@ -1172,7 +1172,7 @@ namespace Turbo {
         static u32 Component_Rigidbody_Get_BodyType(UUID uuid)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1185,7 +1185,7 @@ namespace Turbo {
         static void Component_Rigidbody_Set_BodyType(UUID uuid, u32 rigidbodyType)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             auto& rb = entity.GetComponent<RigidbodyComponent>();
             if (rb.Type == static_cast<RigidbodyType>(rigidbodyType))
@@ -1204,7 +1204,7 @@ namespace Turbo {
         static void Component_Rigidbody_Get_AngularVelocity(UUID uuid, glm::vec3* velocity)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1217,7 +1217,7 @@ namespace Turbo {
         static void Component_Rigidbody_Set_AngularVelocity(UUID uuid, glm::vec3* velocity)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1230,7 +1230,7 @@ namespace Turbo {
         static void Component_Rigidbody_Get_LinearVelocity(UUID uuid, glm::vec3* velocity)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1243,7 +1243,7 @@ namespace Turbo {
         static void Component_Rigidbody_Set_LinearVelocity(UUID uuid, glm::vec3* velocity)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1257,7 +1257,7 @@ namespace Turbo {
         static void Component_Rigidbody_Get_Position(UUID uuid, glm::vec3* outPosition)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1273,7 +1273,7 @@ namespace Turbo {
             if (entity.Transform().Translation == *position)
                 return;
 
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1288,7 +1288,7 @@ namespace Turbo {
         static void Component_Rigidbody_Get_Rotation(UUID uuid, glm::quat* outRotation)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1301,7 +1301,7 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1314,7 +1314,7 @@ namespace Turbo {
         static void Component_Rigidbody_Rotate(UUID uuid, glm::vec3* rotation)
         {
             Entity entity = GetEntity(uuid);
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             // We can now use the unsafe variant since all contact invocations are processed after the simulation
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1337,7 +1337,7 @@ namespace Turbo {
         {
             Entity entity = GetEntity(uuid);
 
-            auto scene = Script::GetCurrentScene();
+            auto scene = ScriptEngine::GetCurrentScene();
 
             auto bodyId = JPH::BodyID(entity.GetComponent<RigidbodyComponent>().RuntimeBodyHandle);
             auto& bodyInterface = scene->GetPhysicsWorld()->GetBodyInterfaceUnsafe();
@@ -1518,7 +1518,7 @@ namespace Turbo {
             std::string_view structName = typeName.substr(pos + 1);
             std::string managedTypename = std::format("Turbo.{}", structName);
 
-            MonoType* type = mono_reflection_type_from_name(managedTypename.data(), Script::GetCoreAssemblyImage());
+            MonoType* type = mono_reflection_type_from_name(managedTypename.data(), ScriptEngine::GetCoreAssemblyImage());
             if (!type)
             {
                 TBO_ENGINE_ERROR("Could not find component type {0}", managedTypename);
@@ -1534,11 +1534,11 @@ namespace Turbo {
 
                 if constexpr (std::is_same_v<Component, Rigidbody2DComponent>)
                 {
-                    Script::GetCurrentScene()->GetPhysicsWorld2D()->CreateRigidbody(entity);
+                    ScriptEngine::GetCurrentScene()->GetPhysicsWorld2D()->CreateRigidbody(entity);
                 }
                 else if constexpr (std::is_same_v<Component, RigidbodyComponent>)
                 {
-                    Script::GetCurrentScene()->GetPhysicsWorld()->CreateRigidbody(entity);
+                    ScriptEngine::GetCurrentScene()->GetPhysicsWorld()->CreateRigidbody(entity);
                 }
             };
             s_EntityRemoveComponentFuncs[type] = [](Entity entity)

@@ -28,7 +28,6 @@ namespace Turbo {
         friend class Ref;
     };
 
-
     template<typename T>
     class Ref
     {
@@ -195,16 +194,19 @@ namespace Turbo {
         template<typename T2>
         WeakRef(const WeakRef<T2>& other)
         {
+            static_assert(std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!");
             m_Instance = (T*)other.m_Instance;
         }
 
         WeakRef(Ref<T> ref)
         {
+            static_assert(std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!");
             m_Instance = ref.Get();
         }
 
         WeakRef(T* instance)
         {
+            static_assert(std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!");
             m_Instance = instance;
         }
 
@@ -226,10 +228,17 @@ namespace Turbo {
             return WeakRef<T2>(*this);
         }
 
+        Ref<T> Lock() const
+        {
+            TBO_ENGINE_ASSERT(IsValid(), "Weak ref is not valid!");
+            return Ref<T>(m_Instance);
+        }
+
     private:
         T* m_Instance = nullptr;
 
         template<typename T2>
         friend class WeakRef;
     };
+
 }

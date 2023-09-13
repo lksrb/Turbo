@@ -8,8 +8,8 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/base_sink.h>
 
-namespace Turbo 
-{
+namespace Turbo {
+
     void Log::Init()
     {
         if (s_Initialized)

@@ -202,7 +202,9 @@ namespace Turbo {
         glm::vec4 Color{ 1.0f };
         f32 KerningOffset = 0.0f;
         f32 LineSpacing = 0.0f;
-        Ref<Font> FontAsset = Font::GetDefaultFont();
+
+        // TODO: Font Asset
+        WeakRef<Font> FontAsset;
 
         TextComponent() = default;
         TextComponent(const TextComponent&) = default;

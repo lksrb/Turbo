@@ -1,18 +1,18 @@
 #include "tbopch.h"
 #include "AudioBackend.h"
 
-#include "Audio.h"
+#include "AudioEngine.h"
 
 #include "Turbo/Platform/XAudio2/XAudio2AudioBackend.h"
 
-namespace Turbo
-{
-    Ref<AudioBackend> AudioBackend::Create()
+namespace Turbo {
+
+    Owned<AudioBackend> AudioBackend::Create()
     {
-        switch(Audio::GetAudioBackend())
+        switch (AudioEngine::GetAudioBackend())
         {
-            case Audio::BackendType::XAudio2:
-                return Ref<XAudio2AudioBackend>::Create();
+            case AudioEngine::BackendType::XAudio2:
+                return Owned<XAudio2AudioBackend>::Create();
         }
 
         TBO_ENGINE_ASSERT(false, "Unknown AudioBackend!");

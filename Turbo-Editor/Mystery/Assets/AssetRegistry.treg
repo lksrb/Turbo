@@ -1,27 +1,9 @@
 AssetRegistry:
-  - Asset: 385693336446331931
-    Path: Meshes/Backpack/Backpack.fbx
-    Type: MeshSource
-  - Asset: 3215580691506807390
-    Path: Meshes/Default/Cone.tmesh
-    Type: StaticMesh
   - Asset: 3410154700432275184
     Path: Meshes/Default/Capsule.tmesh
     Type: StaticMesh
   - Asset: 3411376591522269393
     Path: Meshes/Default/Cube.tmesh
-    Type: StaticMesh
-  - Asset: 3622201754787688956
-    Path: Prefabs/DeliveryBox.tprefab
-    Type: Prefab
-  - Asset: 4550927646632324055
-    Path: Meshes/Default/Cylinder.tmesh
-    Type: StaticMesh
-  - Asset: 5163550985720168621
-    Path: Meshes/Default/Torus.tmesh
-    Type: StaticMesh
-  - Asset: 5537582883319640573
-    Path: Meshes/Default/Plane.tmesh
     Type: StaticMesh
   - Asset: 5969331438052008515
     Path: Meshes/Default/Sphere.tmesh
@@ -32,48 +14,18 @@ AssetRegistry:
   - Asset: 6808730343166568602
     Path: Sources/Default/Sphere.fbx
     Type: MeshSource
-  - Asset: 6827895845365683150
-    Path: Sprites/Crosshair.png
-    Type: Texture2D
-  - Asset: 7338600381720551882
-    Path: Sources/Default/Cylinder.fbx
-    Type: MeshSource
   - Asset: 7897496334454700555
     Path: Sources/Default/Capsule.fbx
     Type: MeshSource
-  - Asset: 9694007235022222327
-    Path: Meshes/Backpack/Backpack.tmesh
-    Type: StaticMesh
-  - Asset: 10508148845012856710
-    Path: Prefabs/PressurePlate.tprefab
-    Type: Prefab
   - Asset: 12236788305104757714
     Path: Sources/Default/Cube.fbx
-    Type: MeshSource
-  - Asset: 12349315777828625957
-    Path: Sources/Default/Cone.fbx
     Type: MeshSource
   - Asset: 14741445282963241461
     Path: Meshes/Pistol_2.tmesh
     Type: StaticMesh
-  - Asset: 15173616464694625659
-    Path: Sources/Default/Plane.fbx
-    Type: MeshSource
-  - Asset: 15173728770675198862
-    Path: Meshes/Human.tmesh
-    Type: StaticMesh
-  - Asset: 17677522167731554913
-    Path: Meshes/Human.fbx
-    Type: MeshSource
   - Asset: 17677998302576092059
     Path: Prefabs/Enemy.tprefab
     Type: Prefab
-  - Asset: 17745811398343166228
-    Path: Sources/Default/Torus.fbx
-    Type: MeshSource
   - Asset: 17859777747007098497
     Path: Prefabs/BouncyBall.tprefab
-    Type: Prefab
-  - Asset: 18297265086836875457
-    Path: Prefabs/DeliveryCapsule.tprefab
     Type: Prefab

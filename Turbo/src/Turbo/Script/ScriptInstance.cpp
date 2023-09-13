@@ -1,7 +1,7 @@
 #include "tbopch.h"
 #include "ScriptInstance.h"
 
-#include "Script.h"
+#include "ScriptEngine.h"
 
 #include "Turbo/Debug/ScopeTimer.h"
 
@@ -17,11 +17,11 @@ namespace Turbo
         : m_ScriptClass(scriptClass), m_Entity(entity)
     {
         // NOTE: Kinda weird
-        Ref<ScriptClass> baseClass = m_ScriptClass->GetBaseClass() ? m_ScriptClass->GetBaseClass() : Script::GetEntityBaseClass();
+        Ref<ScriptClass> baseClass = m_ScriptClass->GetBaseClass() ? m_ScriptClass->GetBaseClass() : ScriptEngine::GetEntityBaseClass();
 
         m_Constructor = baseClass->GetMethod(".ctor", 1);
 
-        MonoObject* instance = mono_object_new(Script::GetAppDomain(), m_ScriptClass->GetMonoClass());
+        MonoObject* instance = mono_object_new(ScriptEngine::GetAppDomain(), m_ScriptClass->GetMonoClass());
 
         // Call default constructor
         mono_runtime_object_init(instance);

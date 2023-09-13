@@ -13,11 +13,12 @@
 #include <Turbo/Editor/PanelManager.h>
 
 #include <Turbo/Renderer/Font.h>
+#include <Turbo/Renderer/Renderer.h>
 #include <Turbo/UI/UserInterfaceLayer.h>
 
 #include <Turbo/Asset/AssetManager.h>
 #include <Turbo/Debug/ScopeTimer.h>
-#include <Turbo/Script/Script.h>
+#include <Turbo/Script/ScriptEngine.h>
 #include <Turbo/Scene/SceneSerializer.h>
 #include <Turbo/Solution/ProjectSerializer.h>
 
@@ -31,8 +32,8 @@
 #include <sstream>
 
 #ifdef TBO_PLATFORM_WIN32
-    #define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
-    #define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
+#define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
+#define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
 #endif
 
 namespace Turbo::Ed {
@@ -129,7 +130,7 @@ namespace Turbo::Ed {
         m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(EditorLayer::CreateProject));
 
         // Render 
-        m_ViewportDrawList = Owned<SceneDrawList>::Create(m_ViewportWidth, m_ViewportHeight);
+        m_ViewportRenderer = Owned<SceneRenderer>::Create(m_ViewportWidth, m_ViewportHeight);
 
         // TODO: Find some better icons
         m_PlayIcon = Texture2D::Create(Icons::PlayButton);
@@ -156,7 +157,7 @@ namespace Turbo::Ed {
     {
         m_CurrentTime = time;
 
-        m_ViewportDrawList->Begin();
+        m_ViewportRenderer->Begin();
 
         switch (m_SceneMode)
         {
@@ -165,12 +166,12 @@ namespace Turbo::Ed {
                 m_EditorCamera.SetActive(m_ViewportHovered && (!ImGuizmo::IsOver() || m_GizmoType == -1));
                 m_EditorCamera.OnUpdate(time.DeltaTime);
 
-                m_CurrentScene->OnEditorUpdate(m_ViewportDrawList, m_EditorCamera, time.DeltaTime);
+                m_CurrentScene->OnEditorUpdate(m_ViewportRenderer, m_EditorCamera, time.DeltaTime);
                 break;
             }
             case SceneMode::Play:
             {
-                m_CurrentScene->OnRuntimeUpdate(m_ViewportDrawList, time.DeltaTime);
+                m_CurrentScene->OnRuntimeUpdate(m_ViewportRenderer, time.DeltaTime);
                 break;
             }
         }
@@ -178,7 +179,7 @@ namespace Turbo::Ed {
         // Render debug lines
         OnOverlayRender();
 
-        m_ViewportDrawList->End();
+        m_ViewportRenderer->End();
     }
 
     void EditorLayer::OnDrawUI()
@@ -309,11 +310,10 @@ namespace Turbo::Ed {
             my = viewportSize.y - my;
             i32 mouseX = (i32)mx;
             i32 mouseY = (i32)my;
-
             m_HoveredEntity = {};
             if (mouseX >= 0 && mouseY >= 0 && mouseX < (i32)m_ViewportWidth && mouseY < (i32)m_ViewportHeight)
             {
-                i32 entityID = m_ViewportDrawList->ReadPixel(mouseX, mouseY);
+                i32 entityID = m_ViewportRenderer->ReadPixel(mouseX, mouseY);
                 m_HoveredEntity = entityID != -1 ? Entity{ (entt::entity)entityID, m_CurrentScene.Get() } : Entity{};
             }
             if (m_ViewportWidth != viewportPanelSize.x || m_ViewportHeight != viewportPanelSize.y)
@@ -323,7 +323,7 @@ namespace Turbo::Ed {
 
             if (m_EditorScene)
             {
-                UI::Image(m_ViewportDrawList->GetFinalImage(), viewportPanelSize, { 0, 1 }, { 1, 0 });
+                UI::Image(m_ViewportRenderer->GetFinalImage(), viewportPanelSize, { 0, 1 }, { 1, 0 });
             }
 
             if (ImGui::BeginDragDropTarget())
@@ -473,7 +473,7 @@ namespace Turbo::Ed {
 
                 if (ImGui::MenuItem("Reload Assembly", "Ctrl+R", nullptr, m_SceneMode == SceneMode::Edit))
                 {
-                    Script::ReloadAssemblies();
+                    ScriptEngine::ReloadAssemblies();
                 }
 
                 if (ImGui::MenuItem("Open solution on start", nullptr, config.OpenSolutionOnStart))
@@ -512,7 +512,7 @@ namespace Turbo::Ed {
             ImGui::DragFloat2("UV0", &uv0[0]);
             ImGui::DragFloat2("UV1", &uv1[0]);
 
-            Ref<Font> defaultFont = Font::GetDefaultFont();
+            Ref<Font> defaultFont = Renderer::GetDefaultFont();
             UI::Image(defaultFont->GetAtlasTexture(), { 512, 512 }, uv0, uv1);
             ImGui::End();
         }
@@ -535,7 +535,7 @@ namespace Turbo::Ed {
         ImGui::Separator();
 
         // TODO: Better statistics
-        auto stats = m_ViewportDrawList->GetStatistics();
+        auto stats = m_ViewportRenderer->GetStatistics();
         ImGui::Text("Quad Count: %d", stats.Statistics2D.QuadCount);
         ImGui::Text("Drawcalls: %d", stats.Statistics2D.DrawCalls + stats.DrawCalls);
         ImGui::Text("Instances: %d", stats.Instances);
@@ -773,7 +773,8 @@ namespace Turbo::Ed {
         auto project = Ref<Project>::Create();
         {
             ProjectSerializer serializer(project);
-            TBO_VERIFY(serializer.Deserialize(configFilePath), "Project loaded!");
+            bool deserialized = serializer.Deserialize(configFilePath);
+            TBO_ASSERT(deserialized, "Failed to deserialize project.");
 
             // Set it as new active project
             Project::SetActive(project);
@@ -798,11 +799,13 @@ namespace Turbo::Ed {
             TBO_ASSERT(std::filesystem::exists(config.ProjectDirectory / config.ScriptModulePath), "No assemblies found!");
 
             // Load project assembly
-            Script::LoadProjectAssembly(config.ProjectDirectory / config.ScriptModulePath);
+            ScriptEngine::LoadProjectAssembly(config.ProjectDirectory / config.ScriptModulePath);
         }
 
         // Open scene
         OpenScene(config.ProjectDirectory / config.AssetsDirectory / config.StartScenePath);
+
+        TBO_INFO("Project opened!");
     }
 
     void EditorLayer::UpdateWindowTitle()
@@ -825,7 +828,7 @@ namespace Turbo::Ed {
         m_CurrentScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         m_EditorCamera.SetViewportSize(width, height);
-        m_ViewportDrawList->OnViewportResize(width, height);
+        m_ViewportRenderer->OnViewportResize(width, height);
 
         TBO_WARN("Viewport resized! {} {}", width, height);
     }
@@ -834,10 +837,10 @@ namespace Turbo::Ed {
     {
         SaveScene();
 
-        // Save project
         auto project = Project::GetActive();
         ProjectSerializer serializer(project);
-        TBO_VERIFY(serializer.Serialize(Project::GetProjectConfigPath()), "[Save Project] Successfully serialized project!");
+        bool serialized = serializer.Serialize(Project::GetProjectConfigPath());
+        TBO_ASSERT(serialized, "Failed to serialize project!");
     }
 
     void EditorLayer::NewScene()
@@ -851,7 +854,8 @@ namespace Turbo::Ed {
         newScene->CreateEntity("Start entity!");
 
         SceneSerializer serializer(newScene);
-        TBO_VERIFY(serializer.Serialize(scenePath), "[NewScene] Successfully serialized scene!");
+        bool serialized = serializer.Serialize(scenePath);
+        TBO_ASSERT(serialized, "Failed to serialize project.");
 
         OpenScene(scenePath);
     }
@@ -901,7 +905,8 @@ namespace Turbo::Ed {
         m_CurrentScene = m_EditorScene;
 
         SceneSerializer serializer(m_EditorScene);
-        TBO_VERIFY(serializer.Deserialize(filepath), "[OpenScene] Successfully deserialized scene!");
+        bool deserialized = serializer.Deserialize(filepath);
+        TBO_ASSERT(deserialized, "Failed to deserialize scene.");
 
         m_EditorScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
@@ -910,6 +915,8 @@ namespace Turbo::Ed {
         m_EditorScenePath = filepath;
 
         UpdateWindowTitle();
+
+        TBO_INFO("Successfully opened a scene!");
     }
 
     void EditorLayer::SaveSceneAs()
@@ -1034,7 +1041,7 @@ namespace Turbo::Ed {
                     * glm::rotate(glm::mat4(1.0f), transform.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))
                     * glm::scale(glm::mat4(1.0f), scale);
 
-                m_ViewportDrawList->AddRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportRenderer->SubmitRect(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
 
             // Circle2D colliders
@@ -1046,7 +1053,7 @@ namespace Turbo::Ed {
 
                 glm::vec3 translation = transform.Translation + glm::vec3(cc2d.Offset, 0.0f);
 
-                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * cc2d.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportRenderer->SubmitDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * cc2d.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
 
             // Box colliders
@@ -1065,7 +1072,7 @@ namespace Turbo::Ed {
                     * rotation
                     * glm::scale(glm::mat4(1.0f), scale);
 
-                m_ViewportDrawList->AddBoxWireframe(transform.GetTransform(), { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportRenderer->SubmitBoxWireframe(transform.GetTransform(), { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
 
             // Sphere colliders
@@ -1078,9 +1085,9 @@ namespace Turbo::Ed {
                 glm::vec3 translation = transform.Translation /* + sc.Offset */;
 
                 // Facing forward, up, right
-                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(glm::radians(90.0f), 0.0f, 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
-                m_ViewportDrawList->AddDebugCircle(translation, glm::vec3(0.0f, glm::radians(90.0f), 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportRenderer->SubmitDebugCircle(translation, glm::vec3(0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportRenderer->SubmitDebugCircle(translation, glm::vec3(glm::radians(90.0f), 0.0f, 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                m_ViewportRenderer->SubmitDebugCircle(translation, glm::vec3(0.0f, glm::radians(90.0f), 0.0f), transform.Scale.x * sc.Radius + 0.003f, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
             }
 #if 1
             // Capsule colliders
@@ -1096,7 +1103,7 @@ namespace Turbo::Ed {
                         * rotation
                         * glm::scale(glm::mat4(1.0f), glm::vec3(transform.Scale.x * cc.Radius + 0.003f));
 
-                    m_ViewportDrawList->AddDebugCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
+                    m_ViewportRenderer->SubmitDebugCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, (i32)entity);
                 }
 
                 // TODO: Create elipse debug outline
@@ -1113,7 +1120,7 @@ namespace Turbo::Ed {
             for (auto e : cameras)
             {
                 Entity entity = { e , m_CurrentScene.Get() };
-                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_CameraIcon, 1.0f, (i32)e);
+                m_ViewportRenderer->SubmitBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_CameraIcon, 1.0f, (i32)e);
             }
 
             // Directional lights
@@ -1123,7 +1130,7 @@ namespace Turbo::Ed {
                 Entity entity = { e , m_CurrentScene.Get() };
                 // TODO: Outlines
                 //m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
-                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_DirectionalLightIcon, 1.0f, (i32)e);
+                m_ViewportRenderer->SubmitBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_DirectionalLightIcon, 1.0f, (i32)e);
             }
 
             // Point lights
@@ -1133,7 +1140,7 @@ namespace Turbo::Ed {
                 Entity entity = { e , m_CurrentScene.Get() };
                 // TODO: Outlines
                 //m_ViewportDrawList->AddCircle(offsetTransform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.035f, 0.005f, (i32)entity);
-                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_PointLightIcon, 1.0f, (i32)e);
+                m_ViewportRenderer->SubmitBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_PointLightIcon, 1.0f, (i32)e);
             }
 
             // Spotlights
@@ -1141,7 +1148,7 @@ namespace Turbo::Ed {
             for (auto e : spotlights)
             {
                 Entity entity = { e , m_CurrentScene.Get() };
-                m_ViewportDrawList->AddBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_SpotLightIcon, 1.0f, (i32)e);
+                m_ViewportRenderer->SubmitBillboardQuad(m_CurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, m_SpotLightIcon, 1.0f, (i32)e);
             }
         }
     }

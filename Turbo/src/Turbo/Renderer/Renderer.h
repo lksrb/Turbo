@@ -5,7 +5,7 @@
 namespace Turbo {
 
     class IndexBuffer;
-    class GraphicsPipeline;
+    class Pipeline;
     class StaticMesh;
     class RenderCommandBuffer;
     class UniformBufferSet;
@@ -19,6 +19,7 @@ namespace Turbo {
     class UniformBuffer;
     class VertexBuffer;
     class MaterialAsset;
+    class Font;
 
     class Renderer
     {
@@ -61,18 +62,19 @@ namespace Turbo {
         static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
         static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer);
 
-        static void PushConstant(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, u32 size, const void* data);
-        static void Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 vertexCount);
-        static void DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount);
-        static void DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 instanceCount, u32 indicesPerInstance);
-        static void DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 transformOffset, u32 subMeshIndex, u32 instanceCount);
-        static void DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet);
+        static void PushConstant(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, u32 size, const void* data);
+        static void Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, Ref<Shader> shader, u32 vertexCount);
+        static void DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, Ref<Shader> shader, u32 indexCount);
+        static void DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, u32 instanceCount, u32 indicesPerInstance);
+        static void DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, u32 transformOffset, u32 subMeshIndex, u32 instanceCount);
+        static void DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet);
 
         static void CopyImageToBuffer(Ref<RenderCommandBuffer> commandBuffer, Ref<Image2D> image, Ref<RendererBuffer> rendererBuffer);
         static OwnedRef<RendererContext> GetContext();
         static u32 GetCurrentFrame();
         static Ref<Texture2D> GetWhiteTexture();
-        static Ref<MaterialAsset> GetWhiteMaterial();
+        //static Ref<MaterialAsset> GetBlackMaterial();
+        static Ref<Font> GetDefaultFont();
     private:
         static CommandQueue& GetResourceRuntimeQueue();
         static CommandQueue& GetResourceQueue();

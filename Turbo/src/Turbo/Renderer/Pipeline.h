@@ -4,18 +4,18 @@
 #include "RenderPass.h"
 #include "VertexBufferLayout.h"
 
-namespace Turbo 
-{
+namespace Turbo {
+
     enum class PrimitiveTopology : u32
     {
         Triangle = 0,
         Line
     };
 
-    class GraphicsPipeline : public RefCounted
+    class Pipeline : public RefCounted
     {
     public:
-        struct Config 
+        struct Config
         {
             Ref<RenderPass> Renderpass;
             Ref<Shader> Shader;
@@ -28,15 +28,15 @@ namespace Turbo
             u32 SubpassIndex = 0;
         };
 
-        static Ref<GraphicsPipeline> Create(const GraphicsPipeline::Config& config);
-        virtual ~GraphicsPipeline();
+        static Ref<Pipeline> Create(const Pipeline::Config& config);
+        virtual ~Pipeline();
 
-        const GraphicsPipeline::Config& GetConfig() const { return m_Config; }
+        const Pipeline::Config& GetConfig() const { return m_Config; }
 
         virtual void Invalidate() = 0;
     protected:
-        GraphicsPipeline(const GraphicsPipeline::Config& config);
+        Pipeline(const Pipeline::Config& config);
 
-        GraphicsPipeline::Config m_Config;
+        Pipeline::Config m_Config;
     };
 }

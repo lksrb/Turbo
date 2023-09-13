@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Turbo/Renderer/GraphicsPipeline.h"
+#include "Turbo/Renderer/Pipeline.h"
 
 #include <vulkan/vulkan.h>
 
 namespace Turbo
 {
-    class VulkanGraphicsPipeline : public GraphicsPipeline
+    class VulkanPipeline : public Pipeline
     {
     public:
-        VulkanGraphicsPipeline(const GraphicsPipeline::Config& config);
-        ~VulkanGraphicsPipeline();
+        VulkanPipeline(const Pipeline::Config& config);
+        ~VulkanPipeline();
 
         VkPipeline GetPipelineHandle() const { return m_Pipeline; }
         VkPipelineLayout GetPipelineLayoutHandle() const { return m_PipelineLayout; }

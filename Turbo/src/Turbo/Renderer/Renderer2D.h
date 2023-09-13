@@ -5,7 +5,7 @@
 #include "Renderer.h"
 #include "ShaderLibrary.h"
 #include "RenderCommandBuffer.h"
-#include "GraphicsPipeline.h"
+#include "Pipeline.h"
 #include "Image2D.h"
 #include "Material.h"
 #include "Texture.h"
@@ -16,16 +16,16 @@
 #include "Mesh.h"
 #include "MaterialAsset.h"
 
-#include "SceneDrawList.h"
+#include "SceneRenderer.h"
 
 namespace Turbo {
 
-    class DrawList2D
+    class Renderer2D
     {
     public:
-        DrawList2D();
-        ~DrawList2D();
-        DrawList2D(const DrawList2D&) = delete;
+        Renderer2D();
+        ~Renderer2D();
+        Renderer2D(const Renderer2D&) = delete;
 
         void Initialize();
 
@@ -34,18 +34,18 @@ namespace Turbo {
 
         void SetSceneData(const SceneRendererData& data);
 
-        void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity);
-        void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity);
-        void AddBillboardQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity);
+        void SubmitQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity);
+        void SubmitSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity);
+        void SubmitBillboardQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity);
 
-        void AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity);
-        void AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity);
-        void AddDebugCircle(const glm::mat4& transform, const glm::vec4& color, i32 entity);
-        void AddRect(const glm::mat4& transform, const glm::vec4& color, i32 entity);
+        void SubmitLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity);
+        void SubmitCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity);
+        void SubmitDebugCircle(const glm::mat4& transform, const glm::vec4& color, i32 entity);
+        void SubmitRect(const glm::mat4& transform, const glm::vec4& color, i32 entity);
 
-        void AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity);
+        void SubmitString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity);
 
-        DrawList2DStatistics GetStatistics() const { return m_Statistics; }
+        Renderer2DStatistics GetStatistics() const { return m_Statistics; }
 
         void OnViewportResize(u32 width, u32 height);
 
@@ -123,7 +123,7 @@ namespace Turbo {
         Ref<Material> m_QuadMaterial;
 
         Ref<Shader> m_QuadShader;
-        Ref<GraphicsPipeline> m_QuadPipeline;
+        Ref<Pipeline> m_QuadPipeline;
 
         // Circles
         CircleVertex* m_CircleVertexBufferBase = nullptr;
@@ -133,7 +133,7 @@ namespace Turbo {
         Ref<VertexBuffer> m_CircleVertexBuffer;
 
         Ref<Shader> m_CircleShader;
-        Ref<GraphicsPipeline> m_CirclePipeline;
+        Ref<Pipeline> m_CirclePipeline;
 
         // Lines
         LineVertex* m_LineVertexBufferBase = nullptr;
@@ -144,7 +144,7 @@ namespace Turbo {
         Ref<VertexBuffer> m_LineVertexBuffer;
 
         Ref<Shader> m_LineShader;
-        Ref<GraphicsPipeline> m_LinePipeline;
+        Ref<Pipeline> m_LinePipeline;
 
         // Text
         TextVertex* m_TextVertexBufferBase = nullptr;
@@ -155,14 +155,14 @@ namespace Turbo {
         Ref<Material> m_TextMaterial;
 
         Ref<Shader> m_TextShader;
-        Ref<GraphicsPipeline> m_TextPipeline;
+        Ref<Pipeline> m_TextPipeline;
 
         Ref<UniformBufferSet> m_UniformBufferSet;
 
         Ref<RenderPass> m_TargerRenderPass;
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
 
-        DrawList2DStatistics m_Statistics;
+        Renderer2DStatistics m_Statistics;
 
         // Texture slots
         std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;

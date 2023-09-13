@@ -147,7 +147,6 @@ namespace Turbo
         atlasPacker.getDimensions(width, height);
         emSize = atlasPacker.getScale();
 
-
         // if MSDF || MTSDF
         u64 coloringSeed = 0;
         bool expensiveColoring = true;
@@ -216,17 +215,4 @@ namespace Turbo
     {
         return m_AtlasTexture;
     }
-
-	Ref<Font> Font::GetDefaultFont()
-    {
-        static Ref<Font> s_DefaultFont;
-
-        if (!s_DefaultFont)
-        {
-            //s_DefaultFont = Ref<Font>::Create("Resources/Fonts/BruceForever/BruceForever-Regular.ttf");
-        }
-
-        return s_DefaultFont;
-    }
-
 }

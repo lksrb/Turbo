@@ -8,7 +8,7 @@ namespace Turbo
     class Entity;
     class Scene;
 
-    class Audio
+    class AudioEngine
     {
     public:
         enum class BackendType : u32

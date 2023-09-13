@@ -9,7 +9,7 @@
 #include <box2d/b2_fixture.h>
 
 #include "Turbo/Scene/Scene.h"
-#include "Turbo/Script/Script.h"
+#include "Turbo/Script/ScriptEngine.h"
 #include "Turbo/Renderer/CommandQueue.h"
 
 namespace Turbo {
@@ -41,8 +41,8 @@ namespace Turbo {
             // NOTE: Not sure if contact pointer will still be alive after PhysicsWorld::Step
             m_ProcessContactsQueue.Submit([uuid1, uuid2, isTrigger1, isTrigger2]()
             {
-                Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(uuid1);
-                Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(uuid2);
+                Ref<ScriptInstance> entityScript1 = ScriptEngine::FindEntityInstance(uuid1);
+                Ref<ScriptInstance> entityScript2 = ScriptEngine::FindEntityInstance(uuid2);
 
                 if (entityScript1)
                 {
@@ -92,8 +92,8 @@ namespace Turbo {
             // NOTE: Not sure if contact pointer will still be alive after PhysicsWorld::Step
             m_ProcessContactsQueue.Submit([uuid1, uuid2, isTrigger1, isTrigger2]()
             {
-                Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(uuid1);
-                Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(uuid2);
+                Ref<ScriptInstance> entityScript1 = ScriptEngine::FindEntityInstance(uuid1);
+                Ref<ScriptInstance> entityScript2 = ScriptEngine::FindEntityInstance(uuid2);
 
                 if (entityScript1)
                 {
@@ -150,7 +150,7 @@ namespace Turbo {
         /// closest hit, 1 to continue
         float ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float fraction) override
         {
-            auto context = Script::GetCurrentScene();
+            auto context = ScriptEngine::GetCurrentScene();
 
             b2FixtureUserData data = fixture->GetUserData();
             m_HitEntity = context->FindEntityByUUID((u64)data.pointer);

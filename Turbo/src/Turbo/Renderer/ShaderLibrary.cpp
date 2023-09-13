@@ -52,7 +52,8 @@ namespace Turbo
         }
 
         // NOTE: We can do this also in parellel to other jobs but because of the printing VulkanShader::Reflect, the console output is screwed up
-        // TODO: Make this parallel 
+
+        // TODO: Separate actual reflection and printing
         for (auto& [_, shader] : s_ShaderLibrary.LoadedShaders)
         {
             Ref<VulkanShader> vulkanShader = shader.As<VulkanShader>();

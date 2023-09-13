@@ -10,7 +10,7 @@
 #include "VulkanImage2D.h"
 #include "VulkanIndexBuffer.h"
 #include "VulkanVertexBuffer.h"
-#include "VulkanGraphicsPipeline.h"
+#include "VulkanPipeline.h"
 #include "VulkanShader.h"
 #include "VulkanUniformBuffer.h"
 
@@ -18,6 +18,7 @@
 #include "Turbo/Core/Window.h"
 
 #include "Turbo/Renderer/Fly.h"
+#include "Turbo/Renderer/Font.h"
 #include "Turbo/Renderer/ShaderLibrary.h"
 #include "Turbo/Renderer/RendererContext.h"
 #include "Turbo/Renderer/Mesh.h"
@@ -85,7 +86,8 @@ namespace Turbo {
         Ref<VertexBuffer> CubeMapVertexBuffer;
         Ref<IndexBuffer> CubeMapIndexBuffer;
         Ref<Texture2D> WhiteTexture;
-        Ref<MaterialAsset> WhiteMaterial;
+        Ref<MaterialAsset> BlackMaterial;
+        Ref<Font> DefaultFont;
     };
 
     static VulkanRenderer* s_Renderer;
@@ -129,8 +131,11 @@ namespace Turbo {
         // Create default white texture
         s_Renderer->WhiteTexture = Texture2D::Create(0xffffffff);
 
-        // Create default white material asset
-        //s_Renderer->WhiteMaterial = Ref<MaterialAsset>::Create();
+        // Create or load default font
+        s_Renderer->DefaultFont = Ref<Font>::Create("Resources/Fonts/BruceForever/BruceForever-Regular.ttf");
+
+        // Create default black material asset
+        //s_Renderer->BlackMaterial = Ref<MaterialAsset>::Create();
     }
 
     void Renderer::Shutdown()
@@ -243,15 +248,15 @@ namespace Turbo {
         });
     }
 
-    void Renderer::Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 vertexCount)
+    void Renderer::Draw(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, Ref<Shader> shader, u32 vertexCount)
     {
         Renderer::Submit([commandBuffer, vertexBuffer, uniformBufferSet, pipeline, shader, vertexCount]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
 
             VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
-            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanPipeline>()->GetPipelineLayoutHandle();
 
             Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
             VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
@@ -269,7 +274,7 @@ namespace Turbo {
         });
     }
 
-    void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, Ref<Shader> shader, u32 indexCount)
+    void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, Ref<Shader> shader, u32 indexCount)
     {
         Renderer::Submit([commandBuffer, vertexBuffer, indexBuffer, uniformBufferSet, pipeline, shader, indexCount]()
         {
@@ -277,8 +282,8 @@ namespace Turbo {
 
             VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
             VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetHandle();
-            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanPipeline>()->GetPipelineLayoutHandle();
 
             Ref<VulkanShader> vkShader = shader.As<VulkanShader>();
             VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
@@ -297,18 +302,18 @@ namespace Turbo {
         });
     }
 
-    void Renderer::PushConstant(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, u32 size, const void* data)
+    void Renderer::PushConstant(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, u32 size, const void* data)
     {
         Renderer::Submit([commandBuffer, pipeline, size, data]()
         {
             VkCommandBuffer vkCommandBuffer = commandBuffer.As<VulkanRenderCommandBuffer>()->GetHandle();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanPipeline>()->GetPipelineLayoutHandle();
 
             vkCmdPushConstants(vkCommandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, size, data);
         });
     }
 
-    void Renderer::DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 instanceCount, u32 indicesPerInstance)
+    void Renderer::DrawInstanced(Ref<RenderCommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer, Ref<VertexBuffer> instanceBuffer, Ref<IndexBuffer> indexBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, u32 instanceCount, u32 indicesPerInstance)
     {
         Renderer::Submit([commandBuffer, vertexBuffer, instanceBuffer, indexBuffer, uniformBufferSet, pipeline, instanceCount, indicesPerInstance]()
         {
@@ -317,8 +322,8 @@ namespace Turbo {
             VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
             VkBuffer vkInstanceBuffer = instanceBuffer.As<VulkanVertexBuffer>()->GetHandle();
             VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetHandle();
-            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanPipeline>()->GetPipelineLayoutHandle();
             Ref<VulkanShader> vkShader = pipeline->GetConfig().Shader.As<VulkanShader>();
             VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
 
@@ -338,7 +343,7 @@ namespace Turbo {
         });
     }
 
-    void Renderer::DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<GraphicsPipeline> pipeline, u32 transformOffset, u32 subMeshIndex, u32 instanceCount)
+    void Renderer::DrawStaticMesh(Ref<RenderCommandBuffer> commandBuffer, Ref<StaticMesh> mesh, Ref<VertexBuffer> transformBuffer, Ref<UniformBufferSet> uniformBufferSet, Ref<Pipeline> pipeline, u32 transformOffset, u32 subMeshIndex, u32 instanceCount)
     {
         Renderer::Submit([commandBuffer, mesh, transformBuffer, uniformBufferSet, pipeline, transformOffset, subMeshIndex, instanceCount]()
         {
@@ -353,8 +358,8 @@ namespace Turbo {
             VkBuffer vkVertexBuffer = vertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
             VkBuffer vkTransformBuffer = transformBuffer.As<VulkanVertexBuffer>()->GetHandle();
             VkBuffer vkIndexBuffer = indexBuffer.As<VulkanIndexBuffer>()->GetHandle();
-            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanPipeline>()->GetPipelineLayoutHandle();
             VkDescriptorSet vkDescriptorSet = shader->GetDescriptorSet();
 
             // Updating or creating descriptor sets
@@ -375,7 +380,7 @@ namespace Turbo {
         });
     }
 
-    void Renderer::DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet)
+    void Renderer::DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet)
     {
         Renderer::Submit([commandBuffer, pipeline, uniformBufferSet]()
         {
@@ -383,8 +388,8 @@ namespace Turbo {
 
             VkBuffer vkVertexBuffer = s_Renderer->CubeMapVertexBuffer.As<VulkanVertexBuffer>()->GetHandle();
             VkBuffer vkIndexBuffer = s_Renderer->CubeMapIndexBuffer.As<VulkanIndexBuffer>()->GetHandle();
-            VkPipeline vkPipeline = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineHandle();
-            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanGraphicsPipeline>()->GetPipelineLayoutHandle();
+            VkPipeline vkPipeline = pipeline.As<VulkanPipeline>()->GetPipelineHandle();
+            VkPipelineLayout vkPipelineLayout = pipeline.As<VulkanPipeline>()->GetPipelineLayoutHandle();
 
             Ref<VulkanShader> vkShader = pipeline->GetConfig().Shader.As<VulkanShader>();
             VkDescriptorSet vkDescriptorSet = vkShader->GetDescriptorSet();
@@ -471,11 +476,19 @@ namespace Turbo {
     {
         return s_Renderer->WhiteTexture;
     }
+/*
 
-    Ref<MaterialAsset> Renderer::GetWhiteMaterial()
+    Ref<MaterialAsset> Renderer::GetBlackMaterial()
     {
-        return s_Renderer->WhiteMaterial;
+        return s_Renderer->BlackMaterial;
+    }*/
+
+
+    Ref<Font> Renderer::GetDefaultFont()
+    {
+        return s_Renderer->DefaultFont;
     }
+
 
     CommandQueue& Renderer::GetCommandQueue()
     {

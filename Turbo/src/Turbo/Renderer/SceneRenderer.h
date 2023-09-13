@@ -11,7 +11,7 @@ namespace Turbo {
     class RenderCommandBuffer;
     class RendererBuffer;
     class Shader;
-    class GraphicsPipeline;
+    class Pipeline;
     class Image2D;
     class Material;
     class Texture2D;
@@ -23,7 +23,7 @@ namespace Turbo {
     class MaterialAsset;
     class StaticMesh;
     class TextureCube;
-    class DrawList2D;
+    class Renderer2D;
 
     struct SceneRendererData
     {
@@ -34,14 +34,14 @@ namespace Turbo {
     };
 
     // TODO: Merge statistics
-    struct DrawList2DStatistics
+    struct Renderer2DStatistics
     {
         u32 QuadCount;
         u32 CircleCount;
         u32 CircleIndexCount;
         u32 DrawCalls;
 
-        DrawList2DStatistics() { Reset(); }
+        Renderer2DStatistics() { Reset(); }
 
         void Reset()
         {
@@ -49,12 +49,12 @@ namespace Turbo {
         }
     };
 
-    class SceneDrawList
+    class SceneRenderer
     {
     public:
         struct Statistics
         {
-            DrawList2DStatistics Statistics2D;
+            Renderer2DStatistics Statistics2D;
 
             u32 DrawCalls;
             u32 Instances;
@@ -72,32 +72,32 @@ namespace Turbo {
             }
         };
 
-        SceneDrawList(u32 width, u32 height);
-        ~SceneDrawList();
+        SceneRenderer(u32 width, u32 height);
+        ~SceneRenderer();
 
         void Begin();
         void End();
 
-        void AddStaticMesh(Ref<StaticMesh> mesh, Ref<MaterialAsset> material, const glm::mat4& transform, i32 entity = -1);
-        void AddDirectionalLight(const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 1.0f);
-        void AddPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f);
-        void AddSpotLight(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 5.0f, f32 innerCone = 12.5f, f32 outerCone = 17.5f);
+        void SubmitStaticMesh(Ref<StaticMesh> mesh, Ref<MaterialAsset> material, const glm::mat4& transform, i32 entity = -1);
+        void SubmitDirectionalLight(const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 1.0f);
+        void SubmitPointLight(const glm::vec3& position, const glm::vec3& radiance, f32 intensity = 1.0f, f32 radius = 10.0f, f32 fallOff = 1.0f);
+        void SubmitSpotLight(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& radiance, f32 intensity = 5.0f, f32 innerCone = 12.5f, f32 outerCone = 17.5f);
 
-        void AddBoxWireframe(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
+        void SubmitBoxWireframe(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
 
-        void AddQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
-        void AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
-        void AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity = -1);
-        void AddBillboardQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, const glm::vec4& color = glm::vec4(1.0f), Ref<Texture2D> texture = nullptr, f32 tiling = 1.0f, i32 entity = -1);
+        void SubmitQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
+        void SubmitQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity = -1);
+        void SubmitSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity = -1);
+        void SubmitBillboardQuad(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, const glm::vec4& color = glm::vec4(1.0f), Ref<Texture2D> texture = nullptr, f32 tiling = 1.0f, i32 entity = -1);
 
-        void AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity = -1);
-        void AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
-        void AddDebugCircle(const glm::vec3& position, const glm::vec3& rotation, f32 radius = 0.5f, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
-        void AddDebugCircle(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
-        void AddRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
-        void AddRect(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
+        void SubmitLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity = -1);
+        void SubmitCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity = -1);
+        void SubmitDebugCircle(const glm::vec3& position, const glm::vec3& rotation, f32 radius = 0.5f, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
+        void SubmitDebugCircle(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
+        void SubmitRect(const glm::vec3& position, const glm::vec2& size = { 1.0f, 1.0f }, f32 rotation = 0.0f, const glm::vec4& color = { 1.0f,1.0f, 1.0f, 1.0f }, i32 entity = -1);
+        void SubmitRect(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), i32 entity = -1);
 
-        void AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset = 0.0f, f32 lineSpacing = 0.0f, i32 entity = -1);
+        void SubmitString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset = 0.0f, f32 lineSpacing = 0.0f, i32 entity = -1);
 
         i32 ReadPixel(u32 x, u32 y);
 
@@ -107,7 +107,7 @@ namespace Turbo {
         Ref<Image2D> GetFinalImage() const;
 
         void SetSceneData(const SceneRendererData& data);
-        SceneDrawList::Statistics GetStatistics() const { return m_Statistics; }
+        SceneRenderer::Statistics GetStatistics() const { return m_Statistics; }
     private:
         void Init();
         void UpdateStatistics();
@@ -128,7 +128,6 @@ namespace Turbo {
             glm::vec4(0.5f, -0.5f, -0.5f, 1.0f),
             glm::vec4(0.5f, 0.5f, -0.5f, 1.0f),
             glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f),
-
         };
 
         struct UBCamera
@@ -138,7 +137,7 @@ namespace Turbo {
             glm::mat4 InversedViewMatrix;
         };
 
-        struct TransformData
+        struct TransformVertexData
         {
             glm::vec4 Tranform[4];
             i32 EntityID;
@@ -206,7 +205,6 @@ namespace Turbo {
         struct MeshKey
         {
             AssetHandle MeshHandle;
-            AssetHandle MaterialHandle;
             u32 SubmeshIndex = 0;
 
             bool operator<(const MeshKey& other) const
@@ -227,7 +225,7 @@ namespace Turbo {
 
         struct MeshTransformMap
         {
-            std::vector<TransformData> Transforms;
+            std::vector<TransformVertexData> Transforms;
             u32 TransformOffset;
         };
 
@@ -238,6 +236,7 @@ namespace Turbo {
         std::map<MeshKey, MeshTransformMap> m_MeshTransformMap;
         std::map<MeshKey, DrawCommand> m_DrawCommands;
         Ref<VertexBuffer> m_MeshTransformBuffer;
+        TransformVertexData* m_TransformVertexData = nullptr;
 
         Ref<RenderCommandBuffer> m_RenderCommandBuffer;
         Ref<UniformBufferSet> m_UniformBufferSet;
@@ -245,19 +244,27 @@ namespace Turbo {
         SceneRendererData m_SceneRendererData;
 
         LightEnvironment m_LightEnvironment;
+
+        // Skybox
         Ref<Material> m_SkyboxMaterial;
-        Ref<Shader> m_SkyboxShader;
-        Ref<GraphicsPipeline> m_SkyboxPipeline;
+        Ref<Pipeline> m_SkyboxPipeline;
         Ref<TextureCube> m_DefaultSkybox;
 
-        Ref<GraphicsPipeline> m_GeometryPipeline;
-        Ref<RenderPass> m_GeometryRenderPass;
+        // Shadows
+        Ref<RenderPass> m_ShadowPass;
+        Ref<Pipeline> m_ShadowPipeline;
+        Ref<FrameBuffer> m_ShadowPassFrameBuffer;
+        
+        // Geometry
+        Ref<Pipeline> m_GeometryPipeline;
+        Ref<RenderPass> m_GeometryPass;
 
-        Ref<RenderPass> m_FinalRenderPass;
+        Ref<RenderPass> m_FinalPass;
         Ref<FrameBuffer> m_TargetFrameBuffer;
-        Owned<DrawList2D> m_DrawList2D;
 
-        SceneDrawList::Statistics m_Statistics;
+        Owned<Renderer2D> m_Renderer2D;
+
+        SceneRenderer::Statistics m_Statistics;
 
         u32 m_ViewportWidth = 0, m_ViewportHeight = 0;
     };

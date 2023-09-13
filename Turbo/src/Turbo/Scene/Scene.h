@@ -11,7 +11,7 @@
 namespace Turbo {
 
     class Entity;
-    class SceneDrawList;
+    class SceneRenderer;
     class PhysicsWorld;
     class PhysicsWorld2D;
 
@@ -33,8 +33,8 @@ namespace Turbo {
         void OnRuntimeStart();
         void OnRuntimeStop();
 
-        void OnEditorUpdate(OwnedRef<SceneDrawList> drawList, const Camera& editorCamera, FTime ts);
-        void OnRuntimeUpdate(OwnedRef<SceneDrawList> drawList, FTime ts);
+        void OnEditorUpdate(OwnedRef<SceneRenderer> renderer, const Camera& editorCamera, FTime ts);
+        void OnRuntimeUpdate(OwnedRef<SceneRenderer> renderer, FTime ts);
 
         static Ref<Scene> Copy(Ref<Scene> other);
 
@@ -54,7 +54,7 @@ namespace Turbo {
         template<typename F>
         void AddToDrawList(F&& func)
         {
-            m_DebugRendererCallbacks.push_back(std::forward<F>(func));
+            m_DebugDrawList.push_back(std::forward<F>(func));
         }
 
         template<typename F>
@@ -104,7 +104,7 @@ namespace Turbo {
         TransformComponent GetWorldSpaceTransform(Entity entity);
         static Ref<Scene> CreateEmpty(u64 capacity) { return Ref<Scene>::Create(true, false, capacity); }
     private:
-        void RenderScene(OwnedRef<SceneDrawList> drawList);
+        void RenderScene(OwnedRef<SceneRenderer> drawList);
     private:
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
@@ -122,7 +122,7 @@ namespace Turbo {
         EntityMap m_EntityIDMap;
         UUIDMap m_UUIDMap;
 
-        std::vector<std::function<void(OwnedRef<SceneDrawList>)>> m_DebugRendererCallbacks;
+        std::vector<std::function<void(OwnedRef<SceneRenderer>)>> m_DebugDrawList;
         std::vector<std::function<void()>> m_PostUpdateFuncs;
 
         bool m_IsEditorScene = false;

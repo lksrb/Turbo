@@ -20,55 +20,56 @@ namespace Turbo
     {
         VkDevice device = VulkanContext::Get()->GetDevice();
 
-        const auto& fbAttachments = m_Config.TargetFrameBuffer->GetConfig().Attachments;
+        const auto& frameBufferAttachments = m_Config.TargetFrameBuffer->GetConfig().Attachments;
 
         bool depthTesting = false;
-        for (auto& attachment : fbAttachments)
+        u32 colorAttachmentCount = 0;
+        for (auto& frameBufferAttachment : frameBufferAttachments)
         {
-            if (attachment.Type == FrameBuffer::AttachmentType_Depth)
+            if (frameBufferAttachment.Type == FrameBuffer::AttachmentType_Color)           colorAttachmentCount++;
+            else if (frameBufferAttachment.Type == FrameBuffer::AttachmentType_SelectionBuffer) colorAttachmentCount++;
+            else if (frameBufferAttachment.Type == FrameBuffer::AttachmentType_Depth)           depthTesting = true;
+        }
+
+        std::vector<VkAttachmentDescription> renderPassAttachments;
+        u32 attachmentIndex = 0;
+
+        for (auto& frameBufferAttachment : frameBufferAttachments)
+        {
+            if (frameBufferAttachment.Type == FrameBuffer::AttachmentType_Color)
             {
-                depthTesting = true;
+                auto& colorAttachment = renderPassAttachments.emplace_back();
+                colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM; // VK_FORMAT_B8G8R8A8_SRGB;
+                colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+                // For beginning of the render pass (vkCmdBeginRenderPass)
+                colorAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+                // For the end of the render pass (vkCmdEndRenderPass)
+                colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                colorAttachment.initialLayout = m_Config.ClearOnLoad ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
-        }
-
-        std::vector<VkAttachmentDescription> attachments;
-
-        // Color attachment
-        {
-            auto& colorAttachment = attachments.emplace_back();
-            colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM; // VK_FORMAT_B8G8R8A8_SRGB;
-            colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            // For beginning of the render pass (vkCmdBeginRenderPass)
-            colorAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
-            // For the end of the render pass (vkCmdEndRenderPass)
-            colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            colorAttachment.initialLayout = m_Config.ClearOnLoad ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        }
-
-        // TODO: Make this more dynamic
-
-        // Selection buffer
-        {
-            auto& selectionAttachment = attachments.emplace_back();
-            selectionAttachment.format = VK_FORMAT_R32_SINT; // VK_FORMAT_B8G8R8A8_SRGB;
-            selectionAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            // For beginning of the render pass (vkCmdBeginRenderPass)
-            selectionAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
-            // For the end of the render pass (vkCmdEndRenderPass)
-            selectionAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            selectionAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            selectionAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            selectionAttachment.initialLayout = m_Config.ClearOnLoad ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            selectionAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            else if (frameBufferAttachment.Type == FrameBuffer::AttachmentType_SelectionBuffer)
+            {
+                auto& selectionAttachment = renderPassAttachments.emplace_back();
+                selectionAttachment.format = VK_FORMAT_R32_SINT;
+                selectionAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+                // For beginning of the render pass (vkCmdBeginRenderPass)
+                selectionAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+                // For the end of the render pass (vkCmdEndRenderPass)
+                selectionAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                selectionAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                selectionAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                selectionAttachment.initialLayout = m_Config.ClearOnLoad ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                selectionAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            }
         }
 
         if (depthTesting)
         {
             // Depth buffer
-            auto& depthAttachment = attachments.emplace_back();
+            auto& depthAttachment = renderPassAttachments.emplace_back();
             depthAttachment.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
             depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
             depthAttachment.loadOp = m_Config.ClearOnLoad ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
@@ -80,35 +81,32 @@ namespace Turbo
         }
 
         // Subpasses and attachment references
-        VkAttachmentReference colorAttachmentRef = {};
-        colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-
-        VkAttachmentReference selectionAttachmentRef = {};
-        selectionAttachmentRef.attachment = 1;
-        selectionAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        VkAttachmentReference attachmentRefs[2];
-        attachmentRefs[0] = colorAttachmentRef;
-        attachmentRefs[1] = selectionAttachmentRef;
+        // Color attachments
+        std::vector<VkAttachmentReference> colorAttachmentRefs(colorAttachmentCount);
+        {
+            for (u32 i = 0; i < colorAttachmentCount; ++i)
+            {
+                auto& attachmentRef = colorAttachmentRefs[i];
+                attachmentRef.attachment = i;
+                attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            }
+        }
 
         // Depth buffer attachment reference
         VkAttachmentReference depthAttachmentRef = {};
-        depthAttachmentRef.attachment = 2;
+        depthAttachmentRef.attachment = colorAttachmentCount;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             
-        std::vector<VkSubpassDescription> subpassDescriptions;
-        std::vector<VkSubpassDependency> subpassDependencies;
-        subpassDescriptions.resize(m_Config.SubPassCount);
-        subpassDependencies.resize(m_Config.SubPassCount);
-
-        for (u32 i = 0; i < subpassDescriptions.size(); ++i)
+        std::vector<VkSubpassDescription> subpassDescriptions(m_Config.SubPassCount);
+        std::vector<VkSubpassDependency> subpassDependencies(m_Config.SubPassCount);
+        
+        for (u64 i = 0; i < subpassDescriptions.size(); ++i)
         {
             auto& subpassDescription = subpassDescriptions[i];
             subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-            subpassDescription.colorAttachmentCount = 2;
-            subpassDescription.pColorAttachments = attachmentRefs;
+            subpassDescription.colorAttachmentCount = colorAttachmentCount;
+            subpassDescription.pColorAttachments = colorAttachmentRefs.data();
             subpassDescription.inputAttachmentCount = 0;
             subpassDescription.pInputAttachments = VK_NULL_HANDLE;
             subpassDescription.preserveAttachmentCount = 0;
@@ -161,8 +159,8 @@ namespace Turbo
         renderPassInfo.pNext = nullptr;
 
         // Attachments
-        renderPassInfo.attachmentCount = (u32)attachments.size();
-        renderPassInfo.pAttachments = attachments.data();
+        renderPassInfo.attachmentCount = (u32)renderPassAttachments.size();
+        renderPassInfo.pAttachments = renderPassAttachments.data();
 
         // Subpasses
         renderPassInfo.subpassCount = (u32)subpassDescriptions.size();

@@ -4,9 +4,9 @@
 #include "Scene.h"
 #include "Entity.h"
 
-#include "Turbo/Audio/Audio.h"
+#include "Turbo/Audio/AudioEngine.h"
 #include "Turbo/Asset/AssetManager.h"
-#include "Turbo/Script/Script.h"
+#include "Turbo/Script/ScriptEngine.h"
 
 #include "Turbo/Core/FileSystem.h"
 
@@ -521,7 +521,7 @@ namespace Turbo
             auto& scriptComponent = entity.GetComponent<ScriptComponent>();
             out << YAML::Key << "ClassName" << YAML::Value << scriptComponent.ClassName;
 
-            Ref<ScriptClass> scriptClass = Script::FindEntityClass(scriptComponent.ClassName);
+            Ref<ScriptClass> scriptClass = ScriptEngine::FindEntityClass(scriptComponent.ClassName);
             if (scriptClass)
             {
                 const auto& fields = scriptClass->GetFields();
@@ -531,7 +531,7 @@ namespace Turbo
                     out << YAML::BeginSeq;
 
                     // Cached fields values
-                    auto& cachedFields = Script::GetEntityFieldMap(uuid);
+                    auto& cachedFields = ScriptEngine::GetEntityFieldMap(uuid);
 
                     for (const auto& [name, field] : fields)
                     {
@@ -870,14 +870,14 @@ namespace Turbo
             if (scriptComponent)
             {
                 std::string className = scriptComponent["ClassName"].as<std::string>();
-                Ref<ScriptClass> entityClass = Script::FindEntityClass(className);
+                Ref<ScriptClass> entityClass = ScriptEngine::FindEntityClass(className);
                 if (entityClass)
                 {
                     auto scriptFields = scriptComponent["Fields"];
                     if (scriptFields)
                     {
                         const auto& fields = entityClass->GetFields();
-                        auto& entityFields = Script::GetEntityFieldMap(uuid);
+                        auto& entityFields = ScriptEngine::GetEntityFieldMap(uuid);
 
                         for (auto scriptField : scriptFields)
                         {

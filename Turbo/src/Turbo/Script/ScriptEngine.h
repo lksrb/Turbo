@@ -7,12 +7,12 @@
 #include "Turbo/Core/UUID.h"
 #include "Turbo/Core/FileWatcher.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     class Scene;
     class Entity;
 
-    class Script
+    class ScriptEngine
     {
     public:
         struct Data;
@@ -64,6 +64,6 @@ namespace Turbo
         static void ReflectProjectAssembly();
         static void OnProjectDirectoryChange(std::filesystem::path path, FileWatcher::FileEvent event);
     private:
-        static inline Script::Data* s_Data = nullptr;
+        static inline ScriptEngine::Data* s_Data = nullptr;
     };
 }

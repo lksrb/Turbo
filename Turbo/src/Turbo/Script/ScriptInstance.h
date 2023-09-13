@@ -92,6 +92,6 @@ namespace Turbo
         u64 m_Entity;
         Ref<ScriptClass> m_ScriptClass;
 
-        friend class Script;
+        friend class ScriptEngine;
     };
 }

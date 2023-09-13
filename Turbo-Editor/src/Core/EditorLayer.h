@@ -68,7 +68,7 @@ namespace Turbo::Ed {
         Ref<Texture2D> m_PlayIcon, m_StopIcon, m_Reset2DIcon, m_CameraIcon,
             m_DirectionalLightIcon, m_PointLightIcon, m_SpotLightIcon;
 
-        Owned<SceneDrawList> m_ViewportDrawList;
+        Owned<SceneRenderer> m_ViewportRenderer;
         SceneMode m_SceneMode = SceneMode::Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
 

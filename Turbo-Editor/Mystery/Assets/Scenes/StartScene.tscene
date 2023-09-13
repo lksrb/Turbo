@@ -1,5 +1,20 @@
 Scene: StartScene
 Entities:
+  - Entity: 2825270229497993452
+    TagComponent:
+      Tag: TextEntity
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Translation: [11.1481724, 2.5, -29.3364277]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextComponent:
+      Text: Wow! Text rendering
+      Color: [1, 1, 1, 1]
+      KerningOffset: 0
+      LineSpacing: 0
   - Entity: 3315466610038559131
     TagComponent:
       Tag: Wall
@@ -210,9 +225,9 @@ Entities:
     Children:
       []
     TransformComponent:
-      Translation: [0, 2.5, -30]
+      Translation: [-4.54044802e-08, 2.5, -30]
       Rotation: [1.57079637, 0, 1.57079637]
-      Scale: [4.99999952, 0.999999583, 60]
+      Scale: [4.99992037, 0.999979794, 59.9987335]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
@@ -234,6 +249,21 @@ Entities:
     BoxColliderComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
+  - Entity: 11609720353309447527
+    TagComponent:
+      Tag: TextEntity
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Translation: [-7.37759781, 2.5, -29.3364277]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextComponent:
+      Text: Wow! Text rendering
+      Color: [1, 1, 1, 1]
+      KerningOffset: 0
+      LineSpacing: 0
   - Entity: 12411588137264639738
     TagComponent:
       Tag: Gun
@@ -449,3 +479,18 @@ Entities:
         - Name: Speed
           Type: Float
           Data: 5
+  - Entity: 18078348018950307908
+    TagComponent:
+      Tag: TextEntity
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Translation: [-26.6170883, 2.5, -29.3364277]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextComponent:
+      Text: Wow! Text rendering
+      Color: [1, 1, 1, 1]
+      KerningOffset: 0
+      LineSpacing: 0

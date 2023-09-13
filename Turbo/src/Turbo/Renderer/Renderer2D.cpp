@@ -1,5 +1,5 @@
 ﻿#include "tbopch.h"
-#include "DrawList2D.h"
+#include "Renderer2D.h"
 
 #include "Renderer.h"
 #include "ShaderLibrary.h"
@@ -7,7 +7,7 @@
 #include "Font.h"
 #include "Font-Internal.h"
 #include "RenderCommandBuffer.h"
-#include "GraphicsPipeline.h"
+#include "Pipeline.h"
 #include "IndexBuffer.h"
 #include "Material.h"
 #include "Texture.h"
@@ -24,16 +24,16 @@
 
 namespace Turbo
 {
-    DrawList2D::DrawList2D()
+    Renderer2D::Renderer2D()
     {
     }
 
-    DrawList2D::~DrawList2D()
+    Renderer2D::~Renderer2D()
     {
         Shutdown();
     }
 
-    void DrawList2D::Initialize()
+    void Renderer2D::Initialize()
     {
         // Render command buffer
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
@@ -72,7 +72,7 @@ namespace Turbo
             m_QuadShader = ShaderLibrary::Get("Renderer2D_Quad");
 
             // Graphics pipeline
-            GraphicsPipeline::Config config = {};
+            Pipeline::Config config = {};
             config.Shader = m_QuadShader;
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
@@ -87,7 +87,7 @@ namespace Turbo
                 { AttributeType::Float, "a_TilingFactor" },
                 { AttributeType::Int, "a_EntityID" },
             };
-            m_QuadPipeline = GraphicsPipeline::Create(config);
+            m_QuadPipeline = Pipeline::Create(config);
             m_QuadPipeline->Invalidate();
 
             // Material
@@ -106,7 +106,7 @@ namespace Turbo
             m_CircleShader = ShaderLibrary::Get("Renderer2D_Circle");
 
             // Graphics pipeline
-            GraphicsPipeline::Config config = {};
+            Pipeline::Config config = {};
             config.Shader = m_CircleShader;
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
@@ -121,7 +121,7 @@ namespace Turbo
                 { AttributeType::Float, "a_Fade" },
                 { AttributeType::Int, "a_EntityID" },
             };
-            m_CirclePipeline = GraphicsPipeline::Create(config);
+            m_CirclePipeline = Pipeline::Create(config);
             m_CirclePipeline->Invalidate();
 
             // Material - Maybe not necessary
@@ -140,7 +140,7 @@ namespace Turbo
             m_LineShader = ShaderLibrary::Get("Renderer2D_Line");
 
             // Graphics pipeline
-            GraphicsPipeline::Config config = {};
+            Pipeline::Config config = {};
             config.Shader = m_LineShader;
             config.Renderpass = m_TargerRenderPass;
             config.Topology = PrimitiveTopology::Line;
@@ -152,7 +152,7 @@ namespace Turbo
                 { AttributeType::Vec4, "a_Color" },
                 { AttributeType::Int, "a_EntityID" },
             };
-            m_LinePipeline = GraphicsPipeline::Create(config);
+            m_LinePipeline = Pipeline::Create(config);
             m_LinePipeline->Invalidate();
         }
 
@@ -168,11 +168,11 @@ namespace Turbo
             m_TextShader = ShaderLibrary::Get("Renderer2D_Text");
 
             // Graphics PipeText
-            GraphicsPipeline::Config config = {};
+            Pipeline::Config config = {};
             config.Shader = m_TextShader;
             config.Topology = PrimitiveTopology::Triangle;
             config.Renderpass = m_TargerRenderPass;
-            config.DepthTesting = false;
+            config.DepthTesting = true;
             config.SubpassIndex = 3;
             config.Layout = VertexBufferLayout
             {
@@ -182,7 +182,7 @@ namespace Turbo
                 { AttributeType::UInt, "a_TexIndex" },
                 { AttributeType::Int, "a_EntityID" },
             };
-            m_TextPipeline = GraphicsPipeline::Create(config);
+            m_TextPipeline = Pipeline::Create(config);
             m_TextPipeline->Invalidate();
 
             // Material
@@ -210,7 +210,7 @@ namespace Turbo
         }
     }
 
-    void DrawList2D::Shutdown()
+    void Renderer2D::Shutdown()
     {
         delete[] m_QuadVertexBufferBase;
         delete[] m_CircleVertexBufferBase;
@@ -218,13 +218,13 @@ namespace Turbo
         delete[] m_TextVertexBufferBase;
     }
 
-    void DrawList2D::Begin()
+    void Renderer2D::Begin()
     {
         ResetStatistics();
         StartBatch();
     }
 
-    void DrawList2D::StartBatch()
+    void Renderer2D::StartBatch()
     {
         // Reset texture indexing
         m_TextureSlotsIndex = 1;
@@ -257,13 +257,13 @@ namespace Turbo
         m_TextVertexBufferPointer = m_TextVertexBufferBase;
     }
 
-    void DrawList2D::FlushAndReset()
+    void Renderer2D::FlushAndReset()
     {
         End();
         StartBatch();
     }
 
-    void DrawList2D::End()
+    void Renderer2D::End()
     {
         TBO_PROFILE_FUNC();
  
@@ -330,7 +330,7 @@ namespace Turbo
                 if (m_FontTextureSlots[i])
                     m_TextMaterial->Set("u_Textures", m_FontTextureSlots[i], i); // FIXME: Clear descriptors, because textures wont unbound automatically
                 else
-                    m_TextMaterial->Set("u_Textures", Font::GetDefaultFont()->GetAtlasTexture(), i);
+                    m_TextMaterial->Set("u_Textures", Renderer::GetDefaultFont()->GetAtlasTexture(), i);
             }
 
             Renderer::DrawIndexed(m_RenderCommandBuffer, m_TextVertexBuffer, m_QuadIndexBuffer, m_UniformBufferSet, m_TextPipeline, m_TextShader, m_TextIndexCount);
@@ -346,7 +346,7 @@ namespace Turbo
         m_RenderCommandBuffer->Submit();
     }
 
-    void DrawList2D::SetSceneData(const SceneRendererData& data)
+    void Renderer2D::SetSceneData(const SceneRendererData& data)
     {
         m_SceneData = data;
         // u_Camera, will be on the set on 0 and bound on 0
@@ -357,9 +357,9 @@ namespace Turbo
         });
     }
 
-    void DrawList2D::AddQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity)
+    void Renderer2D::SubmitQuad(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
-        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        if (m_QuadIndexCount >= Renderer2D::MaxQuadIndices)
         {
             FlushAndReset();
         }
@@ -382,9 +382,9 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void DrawList2D::AddSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity)
+    void Renderer2D::SubmitSprite(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, const std::array<glm::vec2, 4>& textureCoords, f32 tiling, i32 entity)
     {
-        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        if (m_QuadIndexCount >= Renderer2D::MaxQuadIndices)
         {
             FlushAndReset();
         }
@@ -405,7 +405,7 @@ namespace Turbo
             // If the texture is not present in texture stack, add it
             if (textureIndex == 0)
             {
-                if (m_TextureSlotsIndex >= DrawList2D::MaxTextureSlots)
+                if (m_TextureSlotsIndex >= Renderer2D::MaxTextureSlots)
                 {
                     FlushAndReset();
                 }
@@ -432,9 +432,9 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void DrawList2D::AddBillboardQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity)
+    void Renderer2D::SubmitBillboardQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, Ref<Texture2D> texture, f32 tiling, i32 entity)
     {
-        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        if (m_QuadIndexCount >= Renderer2D::MaxQuadIndices)
         {
             FlushAndReset();
         }
@@ -455,7 +455,7 @@ namespace Turbo
             // If the texture is not present in texture stack, add it
             if (textureIndex == 0)
             {
-                if (m_TextureSlotsIndex >= DrawList2D::MaxTextureSlots)
+                if (m_TextureSlotsIndex >= Renderer2D::MaxTextureSlots)
                 {
                     FlushAndReset();
                 }
@@ -507,7 +507,7 @@ namespace Turbo
         m_Statistics.QuadCount++;
     }
 
-    void DrawList2D::AddLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity)
+    void Renderer2D::SubmitLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, i32 entity)
     {
         m_LineVertexBufferPointer->Position = p0;
         m_LineVertexBufferPointer->Color = color;
@@ -522,9 +522,9 @@ namespace Turbo
         m_LineVertexCount += 2;
     }
 
-    void DrawList2D::AddCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
+    void Renderer2D::SubmitCircle(const glm::mat4& transform, const glm::vec4& color, f32 thickness, f32 fade, i32 entity)
     {
-        if (m_QuadIndexCount >= DrawList2D::MaxQuadIndices)
+        if (m_QuadIndexCount >= Renderer2D::MaxQuadIndices)
         {
             FlushAndReset();
         }
@@ -545,7 +545,7 @@ namespace Turbo
         m_Statistics.CircleCount++;
     }
 
-    void DrawList2D::AddDebugCircle(const glm::mat4& transform, const glm::vec4& color, i32 entity)
+    void Renderer2D::SubmitDebugCircle(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
         i32 segments = 32;
         for (i32 i = 0; i < segments; i++)
@@ -558,24 +558,26 @@ namespace Turbo
 
             glm::vec3 p0 = transform * startPosition;
             glm::vec3 p1 = transform * endPosition;
-            AddLine(p0, p1, color, entity);
+            SubmitLine(p0, p1, color, entity);
         }
     }
 
-    void DrawList2D::AddRect(const glm::mat4& transform, const glm::vec4& color, i32 entity)
+    void Renderer2D::SubmitRect(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
         glm::vec3 lineVertices[4];
         for (u32 i = 0; i < 4; ++i)
             lineVertices[i] = transform * m_QuadVertexPositions[i];
 
-        AddLine(lineVertices[0], lineVertices[1], color, entity);
-        AddLine(lineVertices[1], lineVertices[2], color, entity);
-        AddLine(lineVertices[2], lineVertices[3], color, entity);
-        AddLine(lineVertices[3], lineVertices[0], color, entity);
+        SubmitLine(lineVertices[0], lineVertices[1], color, entity);
+        SubmitLine(lineVertices[1], lineVertices[2], color, entity);
+        SubmitLine(lineVertices[2], lineVertices[3], color, entity);
+        SubmitLine(lineVertices[3], lineVertices[0], color, entity);
     }
 
-    void DrawList2D::AddString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity)
+    void Renderer2D::SubmitString(const glm::mat4& transform, const glm::vec4& color, Ref<Font> font, const std::string& string, f32 kerningOffset, f32 lineSpacing, i32 entity)
     {
+        font = font ? font : Renderer::GetDefaultFont();
+
         const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
         const auto& metrics = fontGeometry.getMetrics();
 
@@ -695,7 +697,7 @@ namespace Turbo
         }
     }
 
-    void DrawList2D::OnViewportResize(u32 width, u32 height)
+    void Renderer2D::OnViewportResize(u32 width, u32 height)
     {
         m_ViewportWidth = width;
         m_ViewportHeight = height;
@@ -714,7 +716,7 @@ namespace Turbo
         }
     }
 
-    i32 DrawList2D::ReadPixel(u32 x, u32 y)
+    i32 Renderer2D::ReadPixel(u32 x, u32 y)
     {
         u32 currentFrame = Renderer::GetCurrentFrame();
         const i32* data = (const i32*)m_SelectionBuffers[currentFrame]->GetData();
@@ -728,7 +730,7 @@ namespace Turbo
         return -1;
     }
 
-    void DrawList2D::SetTargetRenderPass(const Ref<RenderPass>& renderPass)
+    void Renderer2D::SetTargetRenderPass(const Ref<RenderPass>& renderPass)
     {
         m_TargerRenderPass = renderPass;
     }

@@ -1,7 +1,7 @@
 #include "tbopch.h"
 #include "ContactListener.h"
 
-#include "Turbo/Script/Script.h"
+#include "Turbo/Script/ScriptEngine.h"
 
 #include <Jolt/Physics/Body/Body.h>
 #include "PhysicsWorld.h"
@@ -30,8 +30,8 @@ namespace Turbo {
     {
         std::scoped_lock<std::mutex> lock(m_ContactCallbackMutex);
 
-        Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(inBody1.GetUserData());
-        Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(inBody2.GetUserData());
+        Ref<ScriptInstance> entityScript1 = ScriptEngine::FindEntityInstance(inBody1.GetUserData());
+        Ref<ScriptInstance> entityScript2 = ScriptEngine::FindEntityInstance(inBody2.GetUserData());
 
         // First entity
         if (entityScript1)
@@ -88,7 +88,7 @@ namespace Turbo {
         // This scope should be locked and since there will be a lot of contacts,
         // we don't want to submit everything
 
-        Ref<PhysicsWorld> world = Script::GetCurrentScene()->GetPhysicsWorld();
+        Ref<PhysicsWorld> world = ScriptEngine::GetCurrentScene()->GetPhysicsWorld();
 
         auto inBody1 = world->TryGetBodyUnsafe(inSubShapePair.GetBody1ID());
         auto inBody2 = world->TryGetBodyUnsafe(inSubShapePair.GetBody2ID());
@@ -100,8 +100,8 @@ namespace Turbo {
             return;
         }
 
-        Ref<ScriptInstance> entityScript1 = Script::FindEntityInstance(inBody1->GetUserData());
-        Ref<ScriptInstance> entityScript2 = Script::FindEntityInstance(inBody2->GetUserData());
+        Ref<ScriptInstance> entityScript1 = ScriptEngine::FindEntityInstance(inBody1->GetUserData());
+        Ref<ScriptInstance> entityScript2 = ScriptEngine::FindEntityInstance(inBody2->GetUserData());
 
         // First entity
         if (entityScript1)

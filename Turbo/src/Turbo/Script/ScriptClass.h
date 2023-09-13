@@ -33,6 +33,6 @@ namespace Turbo
         Ref<ScriptClass> m_BaseClass;
         MonoClass* m_MonoClass;
 
-        friend class Script;
+        friend class ScriptEngine;
     };
 }

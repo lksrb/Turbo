@@ -8,6 +8,6 @@ namespace Turbo
         static void Init();
         static void RegisterComponents();
 
-        friend class Script;
+        friend class ScriptEngine;
     };
 }

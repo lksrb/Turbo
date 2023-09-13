@@ -1,5 +1,5 @@
 #include "tbopch.h"
-#include "VulkanGraphicsPipeline.h"
+#include "VulkanPipeline.h"
 
 #include "VulkanContext.h"
 #include "VulkanShader.h"
@@ -55,16 +55,16 @@ namespace Turbo
         }
     }
 
-    VulkanGraphicsPipeline::VulkanGraphicsPipeline(const GraphicsPipeline::Config& config)
-        : GraphicsPipeline(config)
+    VulkanPipeline::VulkanPipeline(const Pipeline::Config& config)
+        : Pipeline(config)
     {
     }
 
-    VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
+    VulkanPipeline::~VulkanPipeline()
     {
     }
 
-    void VulkanGraphicsPipeline::Invalidate()
+    void VulkanPipeline::Invalidate()
     {
         VkDevice device = VulkanContext::Get()->GetDevice();
 

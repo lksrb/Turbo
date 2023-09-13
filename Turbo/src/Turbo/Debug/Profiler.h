@@ -1,6 +1,6 @@
 #pragma once
 
-#if TBO_ENABLE_PROFILER
+#ifdef TBO_ENABLE_PROFILER
     #include <optick.h>
 
     #define TBO_PROFILE_FRAME(...)          OPTICK_FRAME(__VA_ARGS__)

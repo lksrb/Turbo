@@ -4,8 +4,8 @@
 
 #include <string>
 
-namespace Turbo
-{
+namespace Turbo {
+
     class AudioBackend : public RefCounted
     {
     public:
@@ -25,6 +25,6 @@ namespace Turbo
         virtual void UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) = 0;
         virtual void CalculateSpatial(UUID uuid, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity) = 0;
 
-        static Ref<AudioBackend> Create();
+        static Owned<AudioBackend> Create();
     };
 }

@@ -4,13 +4,13 @@
 #include "Entity.h"
 #include "SceneCamera.h"
 
-#include "Turbo/Audio/Audio.h"
+#include "Turbo/Audio/AudioEngine.h"
 #include "Turbo/Asset/AssetManager.h"
 #include "Turbo/Debug/ScopeTimer.h"
-#include "Turbo/Script/Script.h"
+#include "Turbo/Script/ScriptEngine.h"
 #include "Turbo/Renderer/Mesh.h"
 #include "Turbo/Renderer/MaterialAsset.h"
-#include "Turbo/Renderer/SceneDrawList.h"
+#include "Turbo/Renderer/SceneRenderer.h"
 
 #include "Turbo/Physics/PhysicsWorld.h"
 #include "Turbo/Physics/PhysicsWorld2D.h"
@@ -120,8 +120,8 @@ namespace Turbo {
         auto& physicsWorld3d = m_Registry.emplace<PhysicsWorldComponent>(m_SceneEntity, Ref<PhysicsWorld>::Create(this)).World;
         physicsWorld3d->OnRuntimeStart();
 
-        Audio::OnRuntimeStart(this);
-        Script::OnRuntimeStart(this);
+        AudioEngine::OnRuntimeStart(this);
+        ScriptEngine::OnRuntimeStart(this);
 
         // Instantiate script instances and sets field instances
 
@@ -129,14 +129,14 @@ namespace Turbo {
         for (auto& e : scripts)
         {
             Entity entity = { e, this };
-            Script::CreateScriptInstance(entity);
+            ScriptEngine::CreateScriptInstance(entity);
         }
 
         // Call OnCreate function in each script
         for (auto e : scripts)
         {
             Entity entity = { e, this };
-            Script::InvokeEntityOnCreate(entity);
+            ScriptEngine::InvokeEntityOnCreate(entity);
         }
 
         // Only play audio when listener is present (obviously)
@@ -151,7 +151,7 @@ namespace Turbo {
 
                 if (audioSource.PlayOnAwake)
                 {
-                    Audio::Play(id.ID, audioSource.Loop);
+                    AudioEngine::Play(id.ID, audioSource.Loop);
                 }
             }
         }
@@ -159,8 +159,8 @@ namespace Turbo {
 
     void Scene::OnRuntimeStop()
     {
-        Script::OnRuntimeStop();
-        Audio::OnRuntimeStop();
+        ScriptEngine::OnRuntimeStop();
+        AudioEngine::OnRuntimeStop();
 
         GetPhysicsWorld()->OnRuntimeStop();
         GetPhysicsWorld2D()->OnRuntimeStop();
@@ -168,7 +168,7 @@ namespace Turbo {
         m_Running = false;
     }
 
-    void Scene::OnEditorUpdate(OwnedRef<SceneDrawList> drawList, const Camera& editorCamera, FTime ts)
+    void Scene::OnEditorUpdate(OwnedRef<SceneRenderer> renderer, const Camera& editorCamera, FTime ts)
     {
         TBO_PROFILE_FUNC();
 
@@ -187,17 +187,17 @@ namespace Turbo {
             rendererData.ViewMatrix = cameraView;
             rendererData.InversedViewMatrix = glm::inverse(cameraView);
             rendererData.InversedViewProjectionMatrix = glm::inverse(rendererData.ViewProjectionMatrix);
-            drawList->SetSceneData(rendererData);
+            renderer->SetSceneData(rendererData);
 
-            RenderScene(drawList);
+            RenderScene(renderer);
         }
     }
 
-    void Scene::OnRuntimeUpdate(OwnedRef<SceneDrawList> drawList, FTime ts)
+    void Scene::OnRuntimeUpdate(OwnedRef<SceneRenderer> renderer, FTime ts)
     {
         TBO_PROFILE_FUNC();
 
-        Script::OnNewFrame(ts);
+        ScriptEngine::OnNewFrame(ts);
 
         // Update 3D physics
         GetPhysicsWorld()->Simulate(ts);
@@ -229,7 +229,7 @@ namespace Turbo {
             }
 
             // Updates audio listener positions for 3D spacial calculation
-            Audio::UpdateAudioListener(transform.Translation, transform.Rotation, velocity);
+            AudioEngine::UpdateAudioListener(transform.Translation, transform.Rotation, velocity);
 
             // Audio sources
             auto group = m_Registry.group<AudioSourceComponent>(entt::get<TransformComponent, IDComponent>);
@@ -243,7 +243,7 @@ namespace Turbo {
                     continue;
 
                 // Update volume/gain for each source
-                Audio::SetGain(id.ID, audioSourceComponent.Gain);
+                AudioEngine::SetGain(id.ID, audioSourceComponent.Gain);
 
                 // If audio is not spatial, skip
                 if (!audioSourceComponent.Spatial)
@@ -256,7 +256,7 @@ namespace Turbo {
                     velocity = { vel2d.x, vel2d.y, 0.0f };
                 }
 
-                Audio::CalculateSpatial(id.ID, transform.Translation, transform.Rotation, velocity);
+                AudioEngine::CalculateSpatial(id.ID, transform.Translation, transform.Rotation, velocity);
             }
         }
 
@@ -267,7 +267,7 @@ namespace Turbo {
             for (auto e : view)
             {
                 Entity entity = { e, this };
-                Script::InvokeEntityOnUpdate(entity);
+                ScriptEngine::InvokeEntityOnUpdate(entity);
             }
         }
 
@@ -297,16 +297,16 @@ namespace Turbo {
             rendererData.InversedViewMatrix = cameraTransform;
             rendererData.ViewMatrix = glm::inverse(cameraTransform);
             rendererData.InversedViewProjectionMatrix = glm::inverse(rendererData.ViewProjectionMatrix);
-            drawList->SetSceneData(rendererData);
+            renderer->SetSceneData(rendererData);
 
             // Debug renderer
-            for (auto& func : m_DebugRendererCallbacks)
+            for (auto& func : m_DebugDrawList)
             {
-                func(drawList);
+                func(renderer);
             }
-            m_DebugRendererCallbacks.clear();
+            m_DebugDrawList.clear();
 
-            RenderScene(drawList);
+            RenderScene(renderer);
         }
 
         m_TimeSinceStart += ts;
@@ -372,16 +372,6 @@ namespace Turbo {
             return;
         }
 
-        if (entity.HasComponent<RigidbodyComponent>())
-        {
-            GetPhysicsWorld()->DestroyRigidbody(entity);
-        }
-
-        if (entity.HasComponent<Rigidbody2DComponent>())
-        {
-            GetPhysicsWorld2D()->DestroyRigidbody(entity);
-        }
-
         if (!excludeChildren)
         {
             for (u64 i = 0; i < entity.GetChildren().size(); ++i)
@@ -399,6 +389,14 @@ namespace Turbo {
             {
                 parent.RemoveChild(entity);
             }
+        }
+
+        if (!m_IsEditorScene)
+        {
+            if (entity.HasComponent<RigidbodyComponent>())
+                GetPhysicsWorld()->DestroyRigidbody(entity);
+            if (entity.HasComponent<Rigidbody2DComponent>())
+                GetPhysicsWorld2D()->DestroyRigidbody(entity);
         }
 
         m_EntityIDMap.erase(entity.GetUUID());
@@ -473,7 +471,7 @@ namespace Turbo {
          // Duplicate script entity
         if (entity.HasComponent<ScriptComponent>())
         {
-            Script::DuplicateRuntimeScriptEntity(entity, prefabEntity);
+            ScriptEngine::DuplicateRuntimeScriptEntity(entity, prefabEntity);
         }
 
         return entity;
@@ -549,7 +547,7 @@ namespace Turbo {
 
     Ref<PhysicsWorld> Scene::GetPhysicsWorld() const
     {
-        return  m_Registry.get<PhysicsWorldComponent>(m_SceneEntity).World;
+        return m_Registry.get<PhysicsWorldComponent>(m_SceneEntity).World;
     }
 
     Entity Scene::FindEntityByUUID(UUID uuid)
@@ -634,7 +632,7 @@ namespace Turbo {
         return transform;
     }
 
-    void Scene::RenderScene(OwnedRef<SceneDrawList> drawList)
+    void Scene::RenderScene(OwnedRef<SceneRenderer> renderer)
     {
         TBO_PROFILE_FUNC();
 
@@ -646,7 +644,7 @@ namespace Turbo {
                 const auto& dl = view.get<DirectionalLightComponent>(entity);
                 auto transform = GetWorldSpaceTransform({ entity, this });
                 glm::vec3 direction = -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(0.0f, 0.0f, 1.0f));
-                drawList->AddDirectionalLight(direction, dl.Radiance, dl.Intensity);
+                renderer->SubmitDirectionalLight(direction, dl.Radiance, dl.Intensity);
             }
         }
 
@@ -659,7 +657,7 @@ namespace Turbo {
                 auto transform = GetWorldSpaceTransform({ entity, this });
                 // Rotation does not matter, but i think scale will matter
                 // TODO: Figure out how to composose scale of the ligth and intesity
-                drawList->AddPointLight(GetWorldSpaceTransform({ entity, this }).Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
+                renderer->SubmitPointLight(GetWorldSpaceTransform({ entity, this }).Translation, plc.Radiance, plc.Intensity, plc.Radius, plc.FallOff);
             }
         }
 
@@ -671,7 +669,7 @@ namespace Turbo {
                 const auto& slc = view.get<SpotLightComponent>(entity);
                 auto transform = GetWorldSpaceTransform({ entity, this });
                 glm::vec3 direction = -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(0.0f, 0.0f, 1.0f));
-                drawList->AddSpotLight(transform.Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
+                renderer->SubmitSpotLight(transform.Translation, direction, slc.Radiance, slc.Intensity, slc.InnerCone, slc.OuterCone);
             }
         }
 
@@ -689,7 +687,7 @@ namespace Turbo {
                     continue;
 
                 auto material = AssetManager::GetAsset<MaterialAsset>(smr.Material);
-                drawList->AddStaticMesh(mesh, material, GetWorldSpaceTransformMatrix({ entity, this }), (i32)entity);
+                renderer->SubmitStaticMesh(mesh, material, GetWorldSpaceTransformMatrix({ entity, this }), (i32)entity);
             }
         }
 
@@ -703,7 +701,7 @@ namespace Turbo {
                 {
                     const auto& src = view.get<SpriteRendererComponent>(entity);
                     auto texture = AssetManager::GetAsset<Texture2D>(src.Texture);
-                    drawList->AddSprite(GetWorldSpaceTransformMatrix({ entity, this }), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
+                    renderer->SubmitSprite(GetWorldSpaceTransformMatrix({ entity, this }), src.Color, texture, src.TextureCoords, src.Tiling, (i32)entity);
                 }
             }
 
@@ -714,7 +712,7 @@ namespace Turbo {
                 for (auto entity : view)
                 {
                     const auto& crc = view.get<CircleRendererComponent>(entity);
-                    drawList->AddCircle(GetWorldSpaceTransformMatrix({ entity, this }), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
+                    renderer->SubmitCircle(GetWorldSpaceTransformMatrix({ entity, this }), crc.Color, crc.Thickness, crc.Fade, (i32)entity);
                 }
             }
 
@@ -725,7 +723,7 @@ namespace Turbo {
                 for (auto entity : view)
                 {
                     const auto& tc = view.get<TextComponent>(entity);
-                    drawList->AddString(GetWorldSpaceTransformMatrix({ entity, this }), tc.Color, tc.FontAsset, tc.Text, tc.KerningOffset, tc.LineSpacing);
+                    renderer->SubmitString(GetWorldSpaceTransformMatrix({ entity, this }), tc.Color, nullptr, tc.Text, tc.KerningOffset, tc.LineSpacing, (i32)entity);
                 }
             }
 
@@ -737,7 +735,7 @@ namespace Turbo {
                 for (auto entity : group)
                 {
                     const auto& [transform, lrc] = group.get<TransformComponent, LineRendererComponent>(entity);
-                    drawList->AddLine(transform.Translation, lrc.Destination, lrc.Color, (i32)entity);
+                    renderer->SubmitLine(transform.Translation, lrc.Destination, lrc.Color, (i32)entity);
                 }
             }
         }
@@ -751,7 +749,7 @@ namespace Turbo {
             return;
 
         Entity scriptEntity = { entity, this };
-        Script::CreateScriptInstance(scriptEntity);
+        ScriptEngine::CreateScriptInstance(scriptEntity);
     }
 
     void Scene::OnScriptComponentDestroy(entt::registry& registry, entt::entity entity)
@@ -760,7 +758,7 @@ namespace Turbo {
             return;
 
         Entity scriptEntity = { entity, this };
-        Script::DestroyScriptInstance(scriptEntity);
+        ScriptEngine::DestroyScriptInstance(scriptEntity);
     }
 
     void Scene::OnAudioSourceComponentConstruct(entt::registry& registry, entt::entity entity)
@@ -768,14 +766,14 @@ namespace Turbo {
         auto& audioSource = registry.get<AudioSourceComponent>(entity);
         auto& uuid = registry.get<IDComponent>(entity).ID;
 
-        Audio::Register(uuid, audioSource.AudioPath);
+        AudioEngine::Register(uuid, audioSource.AudioPath);
 
         if (!m_Running)
             return;
 
         if (audioSource.PlayOnAwake)
         {
-            Audio::Play(uuid, audioSource.Loop);
+            AudioEngine::Play(uuid, audioSource.Loop);
         }
     }
 
@@ -783,7 +781,7 @@ namespace Turbo {
     {
         auto& audioSource = registry.get<AudioSourceComponent>(entity);
         UUID uuid = FindUUIDByEntity(entity);
-        Audio::UnRegister(uuid);
+        AudioEngine::UnRegister(uuid);
     }
    
 }
