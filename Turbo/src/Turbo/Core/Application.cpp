@@ -67,8 +67,6 @@ namespace Turbo {
 
     void Application::Shutdown()
     {
-        TBO_ENGINE_WARN("Turbo shutting down...");
-
         // Wait for GPU to finish work
         Renderer::Wait();
 
@@ -85,6 +83,8 @@ namespace Turbo {
         Renderer::Shutdown();
 
         m_ViewportWindow.Reset();
+
+        TBO_ENGINE_WARN("Shutting down...");
     }
 
     void Application::Close()

@@ -35,3 +35,6 @@ This script will ensure that you have the right dependencies and generate```Turb
 
 ## Goals
 Main goals of this game engine is to work and be usable. Also fast yes.
+
+## Preview
+If you want to know what the engine is capable of, checkout [this video](https://youtu.be/5mELHzjvwFU).

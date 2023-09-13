@@ -185,7 +185,6 @@ namespace Turbo
             m_TextPipeline = Pipeline::Create(config);
             m_TextPipeline->Invalidate();
 
-            // Material
             m_TextMaterial = Material::Create({ m_TextShader });
         }
 

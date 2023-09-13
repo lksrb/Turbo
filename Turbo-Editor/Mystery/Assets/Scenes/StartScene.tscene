@@ -309,7 +309,7 @@ Entities:
       Size: [0.5, 0.5, 0.5]
   - Entity: 15677830570528883313
     TagComponent:
-      Tag: Level_DONT_CHANGE_POSITION
+      Tag: Level
     Parent: 0
     Children:
       - UUID: 17176445249178746315
@@ -335,11 +335,11 @@ Entities:
       []
     TransformComponent:
       Translation: [0, 100, 5.73919237e-07]
-      Rotation: [-1.57079637, -0, 0]
+      Rotation: [-1.57079637, 0, 0]
       Scale: [1, 0.999991834, 0.999991834]
     DirectionalLightComponent:
       Radiance: [1, 1, 1]
-      Intensity: 3.7750001
+      Intensity: 3.5
   - Entity: 16217687450096574934
     TagComponent:
       Tag: Hat
@@ -371,7 +371,7 @@ Entities:
     TransformComponent:
       Translation: [-30, 2.5, 0]
       Rotation: [0, 0, 1.57079637]
-      Scale: [4.99965525, 0.999946475, 60]
+      Scale: [4.99954748, 0.999933004, 60]
     StaticMeshRendererComponent:
       Mesh: 3411376591522269393
     RigidbodyComponent:
@@ -492,5 +492,5 @@ Entities:
     TextComponent:
       Text: Wow! Text rendering
       Color: [1, 1, 1, 1]
-      KerningOffset: 0
-      LineSpacing: 0
+      KerningOffset: 3.7252903e-09
+      LineSpacing: 3.7252903e-09
