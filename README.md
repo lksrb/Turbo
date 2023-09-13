@@ -18,7 +18,7 @@ Platform: Windows only (for now)
 - Basic 3D rendering (lights, meshes, no shadows yet. )
 - Integrated 3rd party 2D and 3D physics engine
 - Scripted interaction and behaviour
-- Featured Editor Application
+- Featured editor application
 
 ## Getting started
 Using Visual Studio 2022 is recommended. Turbo is not tested on other IDEs/Editors.
