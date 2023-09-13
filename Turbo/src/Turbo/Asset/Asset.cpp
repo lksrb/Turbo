@@ -14,11 +14,11 @@ namespace Turbo {
 
         AssetHandlers()
         {
-            Handlers[AssetType_Texture2D] = CreateOwned<Texture2DHandler>();
-            Handlers[AssetType_MeshSource] = CreateOwned<MeshSourceHandler>();
-            Handlers[AssetType_StaticMesh] = CreateOwned<StaticMeshHandler>();
-            Handlers[AssetType_Prefab] = CreateOwned<PrefabHandler>();
-            Handlers[AssetType_MaterialAsset] = CreateOwned<PrefabHandler>();
+            Handlers[AssetType_Texture2D] = Owned<Texture2DHandler>::Create();
+            Handlers[AssetType_MeshSource] = Owned<MeshSourceHandler>::Create();
+            Handlers[AssetType_StaticMesh] = Owned<StaticMeshHandler>::Create();
+            Handlers[AssetType_Prefab] = Owned<PrefabHandler>::Create();
+            Handlers[AssetType_MaterialAsset] = Owned<PrefabHandler>::Create();
         }
     };
 

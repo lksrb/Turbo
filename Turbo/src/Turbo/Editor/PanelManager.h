@@ -11,22 +11,22 @@ namespace Turbo {
     {
     public:
         template<typename T, typename... Args>
-        Ref<T> AddPanel(Args&&... args)
+        OwnedRef<T> AddPanel(Args&&... args)
         {
             static_assert(std::is_base_of<EditorPanel, T>::value, "Class must be derived from \"Panel\" base class!");
 
-            Ref<EditorPanel>& panel = m_Panels[typeid(T).hash_code()];
-            panel = Ref<T>::Create(std::forward<Args>(args)...);
+            auto& panel = m_Panels[typeid(T).hash_code()]; 
+            panel = Owned<T>::Create(std::forward<Args>(args)...);
             // ...
             return panel;
         }
 
         template<typename T>
-        Ref<T> GetPanel()
+        OwnedRef<T> GetPanel()
         {
             static_assert(std::is_base_of<EditorPanel, T>::value, "Class must be derived from \"Panel\" base class!");
 
-            return m_Panels.at(typeid(T).hash_code());
+            return m_Panels.at(typeid(T).hash_code()).As<T>();
         }
 
         void OnProjectChanged(const Ref<Project>& project);
@@ -35,7 +35,7 @@ namespace Turbo {
         void OnDrawUI();
         void OnEvent(Event& e);
     private:
-        std::map<u64, Ref<EditorPanel>> m_Panels;
+        std::map<u64, Owned<EditorPanel>> m_Panels;
     };
 
 }

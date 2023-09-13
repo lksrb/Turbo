@@ -5,9 +5,9 @@
 
 namespace Turbo {
 
-    RendererContext* RendererContext::Create()
+    Owned<RendererContext> RendererContext::Create()
     {
-        return new VulkanContext();
+        return Owned<VulkanContext>::Create();
     }
 
 }

@@ -90,7 +90,7 @@ namespace Turbo {
         static void DebugRenderer_DrawLine(glm::vec3* start, glm::vec3* end, glm::vec4* color)
         {
             Ref<Scene> context = Script::GetCurrentScene();
-            context->AddToDrawList([s = *start, e = *end, c = *color](Ref<SceneDrawList> drawList)
+            context->AddToDrawList([s = *start, e = *end, c = *color](OwnedRef<SceneDrawList> drawList)
             {
                 drawList->AddLine(s, e, c);
             });
@@ -99,7 +99,7 @@ namespace Turbo {
         static void DebugRenderer_DrawCircle(glm::vec3* position, glm::vec3* rotation, float radius, glm::vec4* color)
         {
             Ref<Scene> context = Script::GetCurrentScene();
-            context->AddToDrawList([p = *position, r = *rotation, radius, c = *color](Ref<SceneDrawList> drawList)
+            context->AddToDrawList([p = *position, r = *rotation, radius, c = *color](OwnedRef<SceneDrawList> drawList)
             {
                 drawList->AddDebugCircle(p, r, radius, c);
             });
@@ -108,7 +108,7 @@ namespace Turbo {
         static void DebugRenderer_DrawBox(glm::vec3* position, glm::vec3* rotation, glm::vec3* scale, glm::vec4* color)
         {
             Ref<Scene> context = Script::GetCurrentScene();
-            context->AddToDrawList([p = *position, r = *rotation, s = *scale, c = *color](Ref<SceneDrawList> drawList)
+            context->AddToDrawList([p = *position, r = *rotation, s = *scale, c = *color](OwnedRef<SceneDrawList> drawList)
             {
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), p)
                     * glm::toMat4(glm::quat(r))

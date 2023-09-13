@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Turbo/Core/Time.h"
+#include "Turbo/Core/Memory.h"
 
 #include "Turbo/Scene/Components.h"
 
@@ -32,18 +33,18 @@ namespace Turbo {
         void OnRuntimeStart();
         void OnRuntimeStop();
 
-        void OnEditorUpdate(Ref<SceneDrawList> drawList, const Camera& editorCamera, FTime ts);
-        void OnRuntimeUpdate(Ref<SceneDrawList> drawList, FTime ts);
+        void OnEditorUpdate(OwnedRef<SceneDrawList> drawList, const Camera& editorCamera, FTime ts);
+        void OnRuntimeUpdate(OwnedRef<SceneDrawList> drawList, FTime ts);
 
         static Ref<Scene> Copy(Ref<Scene> other);
 
-        Entity CreateEntity(const std::string& tag = "");
-        Entity CreateEntityWithUUID(UUID uuid, const  std::string& tag = "");
+        Entity CreateEntity(std::string_view tag = "");
+        Entity CreateEntityWithUUID(UUID uuid, std::string_view tag = "");
         void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
         Entity DuplicateEntity(Entity entity);
 
         // Light copy of an entity - Only components are copied
-        void CopyComponents(Entity src, Entity dst);
+        void CopyComponents(Entity dst, Entity src);
         
         Entity CreatePrefabEntity(Entity prefabEntity, Entity parent, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
 
@@ -103,7 +104,7 @@ namespace Turbo {
         TransformComponent GetWorldSpaceTransform(Entity entity);
         static Ref<Scene> CreateEmpty(u64 capacity) { return Ref<Scene>::Create(true, false, capacity); }
     private:
-        void RenderScene(Ref<SceneDrawList> drawList);
+        void RenderScene(OwnedRef<SceneDrawList> drawList);
     private:
         void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity);
         void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity);
@@ -121,7 +122,7 @@ namespace Turbo {
         EntityMap m_EntityIDMap;
         UUIDMap m_UUIDMap;
 
-        std::vector<std::function<void(Ref<SceneDrawList>)>> m_DebugRendererCallbacks;
+        std::vector<std::function<void(OwnedRef<SceneDrawList>)>> m_DebugRendererCallbacks;
         std::vector<std::function<void()>> m_PostUpdateFuncs;
 
         bool m_IsEditorScene = false;

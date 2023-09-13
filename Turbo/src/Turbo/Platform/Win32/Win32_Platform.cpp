@@ -69,7 +69,7 @@ namespace Turbo {
         OPENFILENAME ofn = {};
         WCHAR szFile[MAX_PATH] = { 0 };
         ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = dynamic_cast<Win32_Window*>(Application::Get().GetViewportWindow())->GetHandle();
+        ofn.hwndOwner = Application::Get().GetViewportWindow().As<Win32_Window>()->GetHandle();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = sizeof(szFile);
         ofn.lpstrFilter = filter;
@@ -144,7 +144,7 @@ namespace Turbo {
         WCHAR szFile[MAX_PATH] = { 0 };
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
         ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = dynamic_cast<Win32_Window*>(Application::Get().GetViewportWindow())->GetHandle();
+        ofn.hwndOwner = Application::Get().GetViewportWindow().As<Win32_Window>()->GetHandle();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = sizeof(szFile);
         ofn.lpstrFilter = wfilter;

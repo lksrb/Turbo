@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Memory.h"
 #include "LayerStack.h"
 
 #include <mutex>
@@ -42,7 +43,7 @@ namespace Turbo {
         void Close();
 
         UserInterfaceLayer* GetUserInterfaceLayer() const { return m_UserInterfaceLayer; }
-        Window* GetViewportWindow() const { return m_ViewportWindow; }
+        OwnedRef<Window> GetViewportWindow() const { return m_ViewportWindow; }
 
         template<typename F>
         void SubmitToMainThread(F&& func)
@@ -78,7 +79,7 @@ namespace Turbo {
         f32 m_LastFrameTime = 0.0f;
 
         UserInterfaceLayer* m_UserInterfaceLayer = nullptr;
-        Window* m_ViewportWindow = nullptr;
+        Owned<Window> m_ViewportWindow;
 
         LayerStack m_LayerStack;
         Application::Config m_Config;

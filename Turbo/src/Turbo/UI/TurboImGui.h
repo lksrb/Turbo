@@ -9,6 +9,6 @@
 
 namespace ImGui {
 
-    VkDescriptorSet RegisterTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
+    VkDescriptorSet GetOrRegisterTextureDescriptor(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
 
 }

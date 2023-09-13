@@ -67,9 +67,12 @@ namespace Turbo::Ed {
         bool m_ViewportHovered = false, m_ViewportFocused = false;
         Ref<Texture2D> m_PlayIcon, m_StopIcon, m_Reset2DIcon, m_CameraIcon,
             m_DirectionalLightIcon, m_PointLightIcon, m_SpotLightIcon;
-        Ref<SceneDrawList> m_ViewportDrawList;
+
+        Owned<SceneDrawList> m_ViewportDrawList;
         SceneMode m_SceneMode = SceneMode::Edit;
         Ref<Scene> m_EditorScene, m_RuntimeScene, m_CurrentScene;
+
+        // Reference counting is only useful for rendering, I dont see any benefit having them everywhere
 
         std::filesystem::path m_EditorScenePath;
         std::filesystem::path m_CurrentPath;

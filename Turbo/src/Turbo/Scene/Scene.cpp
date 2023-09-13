@@ -168,7 +168,7 @@ namespace Turbo {
         m_Running = false;
     }
 
-    void Scene::OnEditorUpdate(Ref<SceneDrawList> drawList, const Camera& editorCamera, FTime ts)
+    void Scene::OnEditorUpdate(OwnedRef<SceneDrawList> drawList, const Camera& editorCamera, FTime ts)
     {
         TBO_PROFILE_FUNC();
 
@@ -193,7 +193,7 @@ namespace Turbo {
         }
     }
 
-    void Scene::OnRuntimeUpdate(Ref<SceneDrawList> drawList, FTime ts)
+    void Scene::OnRuntimeUpdate(OwnedRef<SceneDrawList> drawList, FTime ts)
     {
         TBO_PROFILE_FUNC();
 
@@ -337,12 +337,12 @@ namespace Turbo {
         return newScene;
     }
 
-    Entity Scene::CreateEntity(const std::string& tag)
+    Entity Scene::CreateEntity(std::string_view tag)
     {
         return CreateEntityWithUUID(UUID(), tag);
     }
 
-    Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& tag)
+    Entity Scene::CreateEntityWithUUID(UUID uuid, std::string_view tag)
     {
         //TBO_ENGINE_ASSERT(m_Statistics.CurrentEntities != 150);
 
@@ -411,7 +411,7 @@ namespace Turbo {
     Entity Scene::DuplicateEntity(Entity entity)
     {
         Entity duplicated = CreateEntity(entity.GetName());
-        CopyComponents(entity, duplicated);
+        CopyComponents(duplicated, entity);
 
         // Signal entity's parent that an this entity has been duplicated
         Entity parent = entity.GetParent();
@@ -421,7 +421,7 @@ namespace Turbo {
         return duplicated;
     }
 
-    void Scene::CopyComponents(Entity src, Entity dst)
+    void Scene::CopyComponents(Entity dst, Entity src)
     {
         Utils::CopyComponentIfExists(AllComponents{}, dst, src);
     }
@@ -634,7 +634,7 @@ namespace Turbo {
         return transform;
     }
 
-    void Scene::RenderScene(Ref<SceneDrawList> drawList)
+    void Scene::RenderScene(OwnedRef<SceneDrawList> drawList)
     {
         TBO_PROFILE_FUNC();
 

@@ -69,7 +69,7 @@ namespace Turbo {
         static void DrawSkybox(Ref<RenderCommandBuffer> commandBuffer, Ref<GraphicsPipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet);
 
         static void CopyImageToBuffer(Ref<RenderCommandBuffer> commandBuffer, Ref<Image2D> image, Ref<RendererBuffer> rendererBuffer);
-        static RendererContext* GetContext();
+        static OwnedRef<RendererContext> GetContext();
         static u32 GetCurrentFrame();
         static Ref<Texture2D> GetWhiteTexture();
         static Ref<MaterialAsset> GetWhiteMaterial();

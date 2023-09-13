@@ -5,7 +5,7 @@
 
 static std::unordered_map<VkImageView, VkDescriptorSet> s_DescriptorSetCache;
 
-VkDescriptorSet ImGui::RegisterTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
+VkDescriptorSet ImGui::GetOrRegisterTextureDescriptor(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
 {
     if (s_DescriptorSetCache.find(image_view) != s_DescriptorSetCache.end())
     {

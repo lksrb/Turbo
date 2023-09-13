@@ -43,7 +43,7 @@ namespace Turbo {
         m_ViewportWindow->InitializeSwapChain();
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Application::OnEvent));
 
-        // Initialize rendering
+        // Initialize renderer
         Renderer::Init();
 
         // Initialize audio engine
@@ -84,7 +84,7 @@ namespace Turbo {
 
         Renderer::Shutdown();
 
-        delete m_ViewportWindow;
+        m_ViewportWindow.Reset();
     }
 
     void Application::Close()

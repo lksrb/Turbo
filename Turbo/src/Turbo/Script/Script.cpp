@@ -336,7 +336,7 @@ namespace Turbo {
         ReflectProjectAssembly();
 
         // Start watching the path
-        s_Data->ProjectPathWatcher = CreateOwned<FileWatcher>(FileWatcher::NotifyEvent_All, false, Script::OnProjectDirectoryChange);
+        s_Data->ProjectPathWatcher = Owned<FileWatcher>::Create(FileWatcher::NotifyEvent_All, false, Script::OnProjectDirectoryChange);
         s_Data->ProjectPathWatcher->Watch(s_Data->ProjectAssemblyPath.parent_path());
         s_Data->AssemblyReloadPending = false;
 
@@ -426,7 +426,7 @@ namespace Turbo {
 
             Application::Get().SubmitToMainThread([]()
             {
-                s_Data->ProjectPathWatcher.reset();
+                s_Data->ProjectPathWatcher.Reset();
 
                 Script::ReloadAssemblies();
             });

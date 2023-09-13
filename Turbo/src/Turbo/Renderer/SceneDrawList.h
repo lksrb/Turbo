@@ -49,7 +49,7 @@ namespace Turbo {
         }
     };
 
-    class SceneDrawList : public RefCounted
+    class SceneDrawList
     {
     public:
         struct Statistics
@@ -113,14 +113,6 @@ namespace Turbo {
         void UpdateStatistics();
         void PreRender();
     private:
-        static constexpr u32 MaxCubes = 100;
-        static constexpr u32 MaxCubeVertices = 24 * MaxCubes;
-        static constexpr u32 MaxCubeIndices = 6 * MaxCubes;
-
-        static constexpr u32 MaxDirectionalLights = 64;
-        static constexpr u32 MaxPointLights = 64;
-        static constexpr u32 MaxSpotLights = 64;
-
         // For now
         static constexpr u32 MaxTransforms = 4096;
 
@@ -187,6 +179,10 @@ namespace Turbo {
         // FIXME: Padding fuckery, currently works for 64 but other numbers are not tested
         struct alignas(16) LightEnvironment
         {
+            static constexpr u32 MaxDirectionalLights = 64;
+            static constexpr u32 MaxPointLights = 64;
+            static constexpr u32 MaxSpotLights = 64;
+
             DirectionalLight DirectionalLights[MaxDirectionalLights];
             u32 DirectionalLightCount = 0;
 

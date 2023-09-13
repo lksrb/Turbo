@@ -26,7 +26,7 @@ namespace Turbo {
         };
 
         virtual ~Window();
-        static Window* Create();
+        static Owned<Window> Create();
 
         virtual void ProcessEvents() = 0;
         virtual void Show() = 0;
@@ -38,8 +38,8 @@ namespace Turbo {
 
         void InitializeSwapChain();
 
-        SwapChain* GetSwapchain() const { return m_Swapchain; }
-        RendererContext* GetRendererContext() const { return m_RendererContext; }
+        OwnedRef<SwapChain> GetSwapchain() const { return m_Swapchain; }
+        OwnedRef<RendererContext> GetRendererContext() const { return m_RendererContext; }
 
         i32 GetOffsetX() const { return m_OffsetX; }
         i32 GetOffsetY() const { return m_OffsetY; }
@@ -53,8 +53,8 @@ namespace Turbo {
     protected:
         Window(const Window::Config& config);
     protected:
-        RendererContext* m_RendererContext = nullptr;
-        SwapChain* m_Swapchain = nullptr;
+        Owned<RendererContext> m_RendererContext;
+        Owned<SwapChain> m_Swapchain;
 
         i32 m_OffsetX = 0, m_OffsetY = 0;
 

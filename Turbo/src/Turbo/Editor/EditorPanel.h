@@ -5,9 +5,9 @@
 
 #include "Turbo/Scene/Scene.h"
 
-namespace Turbo
-{
-    class TBO_NOVTABLE EditorPanel : public RefCounted
+namespace Turbo {
+
+    class TBO_NOVTABLE EditorPanel
     {
     public:
         virtual ~EditorPanel() = default;

@@ -61,10 +61,10 @@ namespace Turbo
 
     void VulkanUserInterfaceLayer::OnAttach()
     {
-        VulkanContext* vulkanContext = VulkanContext::Get();
+        OwnedRef<VulkanContext> vulkanContext = VulkanContext::Get();
         VulkanDevice& device = vulkanContext->GetDevice();
 
-        Window* viewportWindow = Application::Get().GetViewportWindow();
+        OwnedRef<Window> window = Application::Get().GetViewportWindow();
 
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -118,8 +118,7 @@ namespace Turbo
         pool_info.pPoolSizes = poolSizes;
         TBO_VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool));
 #ifdef TBO_PLATFORM_WIN32
-        Win32_Window* window = dynamic_cast<Win32_Window*>(viewportWindow);
-        ImGui_ImplWin32_Init(window->GetHandle());
+        ImGui_ImplWin32_Init(window.As<Win32_Window>()->GetHandle());
 #endif
         // Custom CreateVkSurface function
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
@@ -139,9 +138,7 @@ namespace Turbo
         initInfo.Allocator = nullptr;
         initInfo.CheckVkResultFn = [](VkResult result) { TBO_VK_ASSERT(result); };
 
-        VulkanSwapChain* swapchain = static_cast<VulkanSwapChain*>(viewportWindow->GetSwapchain());
-        VkRenderPass renderPass = swapchain->GetRenderPass();
-
+        VkRenderPass renderPass = window->GetSwapchain().As<VulkanSwapChain>()->GetRenderPass();
         ImGui_ImplVulkan_Init(&initInfo, renderPass);
 
         // Submits and wait till the command buffer is finished
@@ -192,10 +189,11 @@ namespace Turbo
 
         // Swapchain primary command buffer
         {
-            const Window* viewportWindow = Application::Get().GetViewportWindow();
-            auto swapChain = static_cast<VulkanSwapChain*>(viewportWindow->GetSwapchain());
-            u32 width = viewportWindow->GetWidth();
-            u32 height = viewportWindow->GetHeight();
+            OwnedRef<Window> window = Application::Get().GetViewportWindow();
+            OwnedRef<VulkanSwapChain> swapChain = window->GetSwapchain().As<VulkanSwapChain>();
+
+            u32 width = window->GetWidth();
+            u32 height = window->GetHeight();
             u32 currentFrame = swapChain->GetCurrentFrame();
 
             VkCommandBufferBeginInfo beginInfo = {};

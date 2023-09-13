@@ -6,6 +6,7 @@
 
 // ----- Core -----------------
 #include "Turbo/Core/Core.h"
+#include "Turbo/Core/Memory.h"
 #include "Turbo/Core/PrimitiveTypes.h"
 #include "Turbo/Core/Application.h"
 #include "Turbo/Core/Input.h"

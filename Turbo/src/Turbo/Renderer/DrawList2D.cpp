@@ -38,7 +38,7 @@ namespace Turbo
         // Render command buffer
         m_RenderCommandBuffer = RenderCommandBuffer::Create();
 
-        Window* window = Application::Get().GetViewportWindow();
+        OwnedRef<Window> window = Application::Get().GetViewportWindow();
         m_ViewportWidth = window->GetWidth();
         m_ViewportHeight = window->GetHeight();
 

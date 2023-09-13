@@ -18,11 +18,11 @@ namespace Turbo {
 
     Window::~Window()
     {
-        delete m_Swapchain;
-        delete m_RendererContext;
+        m_Swapchain.Reset();
+        m_RendererContext.Reset();
     }
 
-    Window* Window::Create()
+    Owned<Window> Window::Create()
     {
         const auto& appConfig = Application::Get().GetConfig();
 
@@ -39,7 +39,7 @@ namespace Turbo {
         config.SwapChainTarget = !appConfig.EnableUI;
 
 #ifdef TBO_PLATFORM_WIN32
-        return new Win32_Window(config);
+        return Owned<Win32_Window>::Create(config);
 #else
     #error Platform not supported!
         return nullptr;

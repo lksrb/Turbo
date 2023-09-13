@@ -3,8 +3,8 @@
 #include "Image2D.h"
 #include "FrameBuffer.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     class RenderPass : public RefCounted
     {
     public:

@@ -482,7 +482,7 @@ namespace Turbo {
         return s_Renderer->RenderQueue;
     }
 
-    RendererContext* Renderer::GetContext()
+    OwnedRef<RendererContext> Renderer::GetContext()
     {
         return Application::Get().GetViewportWindow()->GetRendererContext();
     }

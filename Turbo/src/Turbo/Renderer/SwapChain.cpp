@@ -3,18 +3,10 @@
 
 #include "Turbo/Platform/Vulkan/VulkanSwapChain.h"
 
-namespace Turbo
-{
-    SwapChain::SwapChain()
-    {
-    }
+namespace Turbo {
 
-    SwapChain::~SwapChain()
+    Owned<SwapChain> SwapChain::Create()
     {
-    }
-
-    SwapChain* SwapChain::Create()
-    {
-        return new VulkanSwapChain();
+        return Owned<VulkanSwapChain>::Create();
     }
 }

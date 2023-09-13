@@ -7,8 +7,8 @@ namespace Turbo
     class SwapChain
     {
     public:
-        static SwapChain* Create();
-        virtual ~SwapChain();
+        static Owned<SwapChain> Create();
+        virtual ~SwapChain() = default;
 
         virtual u32 GetCurrentFrame() const = 0;
         virtual u32 GetCurrentImageIndex() const = 0;
@@ -16,6 +16,6 @@ namespace Turbo
         virtual void SwapFrame() = 0;
         virtual void Resize(u32 width, u32 height) = 0;
     protected:
-        SwapChain();
+        SwapChain() = default;
     };
 }

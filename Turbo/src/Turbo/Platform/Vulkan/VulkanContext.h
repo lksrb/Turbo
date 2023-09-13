@@ -16,7 +16,7 @@ namespace Turbo {
     public:
         void Initialize() override;
         void Shutdown() override;
-        static VulkanContext* Get();
+        static OwnedRef<VulkanContext> Get();
 
         VkInstance GetInstance() const { return m_Instance; }
         VkSurfaceKHR GetSurface() const { return m_Surface; }

@@ -49,7 +49,8 @@ namespace Turbo {
 
     void Input::Update()
     {
-        Win32_Window* window = (Win32_Window*)Application::Get().GetViewportWindow();
+        OwnedRef<Win32_Window> window = Application::Get().GetViewportWindow().As<Win32_Window>();
+
         s_Data.LastCursorPos = window->GetLastCursorPosition();
         s_Data.VirtualCursorPos = window->GetVirtualCursorPosition();
 
@@ -102,7 +103,7 @@ namespace Turbo {
         s_Data.LastMode = s_Data.Mode;
         s_Data.Mode = cursorMode;
 
-        Win32_Window* window = (Win32_Window*)Application::Get().GetViewportWindow();
+        OwnedRef<Win32_Window> window = Application::Get().GetViewportWindow().As<Win32_Window>();
 
         if (s_Data.Mode == CursorMode_Locked)
         {
@@ -141,7 +142,6 @@ namespace Turbo {
 
     std::pair<i32, i32> Input::GetMousePosition()
     {
-        Win32_Window* window = (Win32_Window*)Application::Get().GetViewportWindow();
         POINT mousePosition = s_Data.Mode != CursorMode_Locked ? s_Data.LastCursorPos : s_Data.VirtualCursorPos;
         return { mousePosition.x, mousePosition.y };
     }

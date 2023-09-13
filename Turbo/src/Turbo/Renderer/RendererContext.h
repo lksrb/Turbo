@@ -9,6 +9,7 @@ namespace Turbo {
         virtual void Initialize() = 0;
         virtual void Shutdown() = 0;
 
-        static RendererContext* Create();
+        static Owned<RendererContext>  Create();
     };
+
 }

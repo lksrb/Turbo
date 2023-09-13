@@ -19,7 +19,7 @@ namespace Turbo
 
         if (vulkanImage->GetImageView())
         {
-            const auto textureID = ImGui::RegisterTexture(vulkanImage->GetSampler(), vulkanImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            const auto textureID = ImGui::GetOrRegisterTextureDescriptor(vulkanImage->GetSampler(), vulkanImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             ImGui::Image(textureID, size, uv0, uv1, tint_col, border_col);
         }
     }
@@ -28,7 +28,7 @@ namespace Turbo
     {
         Ref<VulkanImage2D> vulkanImage = texture->GetImage().As<VulkanImage2D>();
 
-        const auto textureID = ImGui::RegisterTexture(vulkanImage->GetSampler(), vulkanImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        const auto textureID = ImGui::GetOrRegisterTextureDescriptor(vulkanImage->GetSampler(), vulkanImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         
         return ImGui::ImageButton(textureID, size, uv0, uv1, frame_padding, bg_col, tint_col);
     }

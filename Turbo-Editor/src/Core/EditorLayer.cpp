@@ -116,7 +116,7 @@ namespace Turbo::Ed {
         m_MSBuildPath = Utils::GetMSBuildPath();
 
         // Panels
-        m_PanelManager = CreateOwned<PanelManager>();
+        m_PanelManager = Owned<PanelManager>::Create();
         m_PanelManager->AddPanel<SceneHierarchyPanel>();
         //m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
@@ -129,7 +129,7 @@ namespace Turbo::Ed {
         m_PanelManager->AddPanel<CreateProjectPopupPanel>(TBO_BIND_FN(EditorLayer::CreateProject));
 
         // Render 
-        m_ViewportDrawList = Ref<SceneDrawList>::Create(m_ViewportWidth, m_ViewportHeight);
+        m_ViewportDrawList = Owned<SceneDrawList>::Create(m_ViewportWidth, m_ViewportHeight);
 
         // TODO: Find some better icons
         m_PlayIcon = Texture2D::Create(Icons::PlayButton);

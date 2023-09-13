@@ -172,9 +172,9 @@ namespace Turbo {
         vkDestroyInstance(m_Instance, nullptr);
     }
 
-    VulkanContext* VulkanContext::Get()
+    OwnedRef<VulkanContext> VulkanContext::Get()
     {
-        return static_cast<VulkanContext*>(Renderer::GetContext());
+        return Renderer::GetContext().As<VulkanContext>();
     }
 
     void VulkanContext::CreateInstance()
@@ -254,12 +254,12 @@ namespace Turbo {
     void VulkanContext::CreateWindowSurface()
     {
 #ifdef TBO_PLATFORM_WIN32
-        Win32_Window* win32 = dynamic_cast<Win32_Window*>(Application::Get().GetViewportWindow());
+        OwnedRef<Win32_Window> window = Application::Get().GetViewportWindow().As<Win32_Window>();
 
         VkWin32SurfaceCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-        createInfo.hinstance = win32->GetInstance();
-        createInfo.hwnd = win32->GetHandle();
+        createInfo.hinstance = window->GetInstance();
+        createInfo.hwnd = window->GetHandle();
         TBO_VK_ASSERT(vkCreateWin32SurfaceKHR(m_Instance, &createInfo, nullptr, &m_Surface));
 #endif
     }

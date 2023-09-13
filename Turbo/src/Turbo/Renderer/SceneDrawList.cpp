@@ -45,7 +45,7 @@ namespace Turbo {
         m_TargetFrameBuffer->Invalidate(m_ViewportWidth, m_ViewportHeight);
 
         // Create draw list for 2D
-        m_DrawList2D = CreateOwned<DrawList2D>();
+        m_DrawList2D = Owned<DrawList2D>::Create();
         m_DrawList2D->SetTargetRenderPass(m_FinalRenderPass);
         m_DrawList2D->Initialize();
 

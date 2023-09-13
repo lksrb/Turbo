@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PrimitiveTypes.h"
+
 #include <atomic>
 
 namespace Turbo {
