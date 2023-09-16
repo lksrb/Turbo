@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Turbo/Core/MouseCodes.h"
+
 namespace Turbo::Mouse {
 
     // From WinUser.h
