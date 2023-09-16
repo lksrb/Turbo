@@ -6,7 +6,7 @@
 
 namespace Turbo {
 
-    class AudioBackend : public RefCounted
+    class AudioBackend
     {
     public:
         virtual ~AudioBackend() = default;

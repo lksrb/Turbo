@@ -48,7 +48,7 @@ namespace Turbo {
     };
 
     // Behaves almost exactly like std::unique_ptr except we create an OwnedRef.
-    // OwnedRef is a reference class containing the pointer to provide it when needed
+    // OwnedRef is a reference class containing the pointer to provide T's methods
     template<typename T>
     class Owned
     {

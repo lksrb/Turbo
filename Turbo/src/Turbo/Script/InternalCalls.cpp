@@ -187,7 +187,7 @@ namespace Turbo {
 
         static void Input_SetCursorMode(u32 cursorMode)
         {
-            Input::SetCursorMode((CursorMode)cursorMode);
+            Input::SetCursorMode(static_cast<CursorMode>(cursorMode));
         }
 
 #pragma endregion

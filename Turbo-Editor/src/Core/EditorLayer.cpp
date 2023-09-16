@@ -32,8 +32,8 @@
 #include <sstream>
 
 #ifdef TBO_PLATFORM_WIN32
-#define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
-#define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
+    #define TBO_VS2022_REGISTRY_KEY L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\devenv.exe"
+    #define TBO_GEN_SOLUTION_FILE "Win32-GenerateSolution.bat"
 #endif
 
 namespace Turbo::Ed {
@@ -190,7 +190,7 @@ namespace Turbo::Ed {
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
         // because it would be confusing to have two docking targets within each others.
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
-
+        
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
         ImGui::SetNextWindowSize(viewport->WorkSize);

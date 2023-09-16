@@ -32,12 +32,4 @@
     #define TBO_NOVTABLE
 #endif
 
-// Asserts enable
-#define TBO_ENABLE_ASSERTS 1
 #include "Assert.h"
-
-// Enable profiler
-#define TBO_ENABLE_PROFILER 0
-
-// Enable tracking memory
-#define TBO_TRACK_MEMORY 0

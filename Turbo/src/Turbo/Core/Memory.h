@@ -2,9 +2,8 @@
 
 #include <memory>
 
-namespace Turbo::Memory {
-
-}
+// Enable tracking memory
+#define TBO_TRACK_MEMORY 0
 
 #if TBO_TRACK_MEMORY
 

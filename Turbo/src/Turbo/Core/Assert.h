@@ -5,6 +5,9 @@
 
 #include <filesystem>
 
+// Asserts enable
+#define TBO_ENABLE_ASSERTS 1
+
 #if TBO_ENABLE_ASSERTS
     #define TBO_EXPAND_MACRO(x) x
     #define TBO_STRINGIFY_MACRO(x) #x

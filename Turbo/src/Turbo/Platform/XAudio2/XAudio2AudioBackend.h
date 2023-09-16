@@ -9,8 +9,8 @@
 
 #include <map>
 
-namespace Turbo
-{
+namespace Turbo {
+
     class XAudio2Debugger : public IXAudio2EngineCallback
     {
         virtual void OnProcessingPassStart() override

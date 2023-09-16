@@ -1,5 +1,8 @@
 #pragma once
 
+// Enable profiler
+#define TBO_ENABLE_PROFILER 0
+
 #if TBO_ENABLE_PROFILER
     #include <optick.h>
 

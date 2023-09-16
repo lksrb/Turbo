@@ -3,8 +3,8 @@
 #include "KeyCodes.h"
 #include "MouseCodes.h"
 
-namespace Turbo 
-{
+namespace Turbo {
+
     enum CursorMode : u32
     {
         CursorMode_Normal = 0,

@@ -32,8 +32,8 @@ static const float s_ChannelAzimuths[9][8] =
 #define TBO_CHOOSE_CHANNEL_AZIMUTHS(x) const_cast<f32*>(s_ChannelAzimuths[x])
 #define TBO_MAX_CHANNELS 8
 
-namespace Turbo
-{
+namespace Turbo {
+
     XAudio2AudioBackend::XAudio2AudioBackend()
     {
         // Create COM

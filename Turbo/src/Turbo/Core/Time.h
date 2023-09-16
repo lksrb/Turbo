@@ -2,8 +2,8 @@
 
 #include "PrimitiveTypes.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     struct FTime
     {
     public:
