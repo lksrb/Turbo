@@ -3,7 +3,6 @@
 
 #include "Turbo/Core/Application.h"
 #include "Win32_Window.h"
-#include "Win32_Utils.h"
 
 #include <imgui_internal.h>
 #include <WinUser.h>
@@ -67,16 +66,12 @@ namespace Turbo {
 
     bool Input::IsKeyPressed(const KeyCode keyCode)
     {
-        Win32Code win32Code = Utils::GetWin32CodeFromKeyCode(keyCode);
-
-        return Utils::IsViewportFocused() && (::GetAsyncKeyState(win32Code) & TBO_HOLD) != 0;
+        return Utils::IsViewportFocused() && (::GetAsyncKeyState(keyCode) & TBO_HOLD) != 0;
 
     }
     bool Input::IsKeyReleased(const KeyCode keyCode)
     {
-        Win32Code win32Code = Utils::GetWin32CodeFromKeyCode(keyCode);
-
-        return Utils::IsViewportFocused() && (::GetAsyncKeyState(win32Code) & TBO_HOLD) == 0;
+        return Utils::IsViewportFocused() && (::GetAsyncKeyState(keyCode) & TBO_HOLD) == 0;
     }
 
     bool Input::IsMouseButtonPressed(const MouseCode mouseCode)

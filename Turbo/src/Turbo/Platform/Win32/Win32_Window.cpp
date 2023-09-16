@@ -1,7 +1,6 @@
 #include "tbopch.h"
 
 #include "Win32_Window.h"
-#include "Win32_Utils.h"
 
 #include "Turbo/Core/Application.h"
 #include "Turbo/Core/Platform.h"
@@ -266,8 +265,7 @@ namespace Turbo {
                 if (wParam < 256) // ?? 
                 {
                     bool isKeyDown = uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN;
-
-                    KeyCode keyCode = Utils::GetKeyCodeFromWin32Code((Win32Code)wParam);
+                    KeyCode keyCode = static_cast<u32>(wParam);
 
                     if (isKeyDown)
                     {
