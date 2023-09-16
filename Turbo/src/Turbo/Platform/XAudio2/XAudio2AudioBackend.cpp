@@ -15,7 +15,7 @@
 #define BACK_RIGHT_AZIMUTH      3 * X3DAUDIO_PI / 4
 #define BACK_CENTER_AZIMUTH     X3DAUDIO_PI
 
-static const float s_ChannelAzimuths[9][8] =
+static constexpr ::Turbo::f32 s_ChannelAzimuths[9][8] =
 {
     /* 0 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
     /* 1 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
@@ -29,7 +29,7 @@ static const float s_ChannelAzimuths[9][8] =
 };
 
 
-#define TBO_CHOOSE_CHANNEL_AZIMUTHS(x) const_cast<f32*>(s_ChannelAzimuths[x])
+#define TBO_CHOOSE_CHANNEL_AZIMUTHS(x) const_cast<::Turbo::f32*>(s_ChannelAzimuths[x])
 #define TBO_MAX_CHANNELS 8
 
 namespace Turbo {
