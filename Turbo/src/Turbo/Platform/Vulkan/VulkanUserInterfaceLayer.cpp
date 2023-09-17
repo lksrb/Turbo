@@ -1,8 +1,8 @@
 #include "tbopch.h"
 
 #ifdef TBO_PLATFORM_WIN32
-    #define VK_USE_PLATFORM_WIN32_KHR
-    #include "Turbo/Platform/Win32/Win32_Window.h"
+#define VK_USE_PLATFORM_WIN32_KHR
+#include "Turbo/Platform/Win32/Win32_Window.h"
 #endif
 #include "VulkanUserInterfaceLayer.h"
 
@@ -24,8 +24,8 @@
 // Copy this line into your .cpp file to forward declare the function.
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-namespace Turbo
-{
+namespace Turbo {
+
 #ifdef TBO_PLATFORM_WIN32
     static int ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewport, ImU64 vkInstance, const void* vkAllocator, ImU64* outVkSurface)
     {
@@ -41,8 +41,8 @@ namespace Turbo
     }
 #endif
 
-    namespace Utils
-    {
+    namespace Utils {
+
         static ImGuiMouseCursor ImGuiCursorToCursorMode(CursorMode cursorMode)
         {
             switch (cursorMode)
@@ -51,7 +51,7 @@ namespace Turbo
                 case Turbo::CursorMode_Hidden: return ImGuiMouseCursor_None;
                 case Turbo::CursorMode_Locked: return ImGuiMouseCursor_None;
             }
-            
+
             TBO_ENGINE_ERROR("Invalid cursor mode!");
 
             return ImGuiMouseCursor_None;

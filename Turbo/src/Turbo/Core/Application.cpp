@@ -40,8 +40,10 @@ namespace Turbo {
     {
         // Create window
         m_ViewportWindow = Window::Create();
-        m_ViewportWindow->InitializeSwapChain();
         m_ViewportWindow->SetEventCallback(TBO_BIND_FN(Application::OnEvent));
+
+        // Create renderer context and initialize swapchain
+        m_ViewportWindow->InitializeSwapChain();
 
         // Initialize renderer
         Renderer::Init();

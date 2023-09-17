@@ -37,7 +37,7 @@ namespace Turbo
 
         virtual void SetData(const void* data) = 0;
 
-        size_t Size() const { return m_Config.Size; }
+        u64 Size() const { return m_Config.Size; }
         const void* GetData() const { return m_Data; }
     protected:
         RendererBuffer(const RendererBuffer::Config& config);

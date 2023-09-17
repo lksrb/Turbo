@@ -2,8 +2,8 @@
 
 #include "Turbo/Core/Buffer.h"
 
-namespace Turbo
-{
+namespace Turbo {
+
     struct AudioFile
     {
         u32 ChunkSize = 0;

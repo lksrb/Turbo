@@ -15,24 +15,22 @@
 #define BACK_RIGHT_AZIMUTH      3 * X3DAUDIO_PI / 4
 #define BACK_CENTER_AZIMUTH     X3DAUDIO_PI
 
-static constexpr ::Turbo::f32 s_ChannelAzimuths[9][8] =
-{
-    /* 0 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-    /* 1 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-    /* 2 */   { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f },
-    /* 2.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, LOW_FREQUENCY_AZIMUTH, 0.f, 0.f, 0.f, 0.f, 0.f },
-    /* 4.0 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f, 0.f, 0.f },
-    /* 4.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f, 0.f },
-    /* 5.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f },
-    /* 6.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, BACK_CENTER_AZIMUTH, 0.f },
-    /* 7.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, LEFT_AZIMUTH, RIGHT_AZIMUTH }
-};
-
-
-#define TBO_CHOOSE_CHANNEL_AZIMUTHS(x) const_cast<::Turbo::f32*>(s_ChannelAzimuths[x])
 #define TBO_MAX_CHANNELS 8
 
 namespace Turbo {
+
+    static constexpr const f32 s_ChannelAzimuths[9][8] =
+    {
+        /* 0 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+        /* 1 */   { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+        /* 2 */   { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f },
+        /* 2.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, LOW_FREQUENCY_AZIMUTH, 0.f, 0.f, 0.f, 0.f, 0.f },
+        /* 4.0 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f, 0.f, 0.f },
+        /* 4.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.f, 0.f, 0.f },
+        /* 5.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, 0.0f, 0.0f },
+        /* 6.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, BACK_CENTER_AZIMUTH, 0.0f },
+        /* 7.1 */ { FRONT_LEFT_AZIMUTH, FRONT_RIGHT_AZIMUTH, FRONT_CENTER_AZIMUTH, LOW_FREQUENCY_AZIMUTH, BACK_LEFT_AZIMUTH, BACK_RIGHT_AZIMUTH, LEFT_AZIMUTH, RIGHT_AZIMUTH }
+    };
 
     XAudio2AudioBackend::XAudio2AudioBackend()
     {
@@ -228,7 +226,7 @@ namespace Turbo {
         m_AudioData.erase(it);
     }
 
-    static const bool s_2D = false; // TODO: Figure out where this belongs
+    static constexpr bool s_2D = false; // TODO: Figure out where this belongs
 
     void XAudio2AudioBackend::UpdateAudioListener(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& velocity)
     {
@@ -239,7 +237,7 @@ namespace Turbo {
         m_AudioListener.pCone = NULL;
 
         // NOTE: For now, orientation is not strictly necessary
-        if (s_2D)
+        if constexpr (s_2D)
         {
 #if 0
             glm::vec3 orientRight = {};
@@ -258,14 +256,14 @@ namespace Turbo {
         }
 
         glm::vec3 orientFront = {};
-        orientFront.x = cosf(rotation.x) * sinf(rotation.y);
-        orientFront.y = -sinf(rotation.x);
-        orientFront.z = cosf(rotation.x) * cosf(rotation.y);
+        orientFront.x = glm::cos(rotation.x) * glm::sin(rotation.y);
+        orientFront.y = -glm::sin(rotation.x);
+        orientFront.z = glm::cos(rotation.x) * glm::cos(rotation.y);
 
         glm::vec3 orientTop = {};
-        orientTop.x = sinf(rotation.x) * sinf(rotation.y);
-        orientTop.x = cosf(rotation.x);
-        orientTop.x = sinf(rotation.x) * cosf(rotation.y);
+        orientTop.x = glm::sin(rotation.x) * glm::sin(rotation.y);
+        orientTop.x = glm::cos(rotation.x);
+        orientTop.x = glm::sin(rotation.x) * glm::cos(rotation.y);
 
         m_AudioListener.OrientFront = { orientFront.x, orientFront.y, orientFront.z };
         m_AudioListener.OrientTop = { orientTop.x, orientTop.y, orientTop.z };
@@ -276,14 +274,14 @@ namespace Turbo {
         f32 outputMatrix[TBO_MAX_CHANNELS * TBO_MAX_CHANNELS]{ 1.0f };
 
         glm::vec3 orientFront = {};
-        orientFront.x = cosf(rotation.x) * sinf(rotation.y);
-        orientFront.y = -sinf(rotation.x);
-        orientFront.z = cosf(rotation.x) * cosf(rotation.y);
+        orientFront.x = glm::cos(rotation.x) * glm::sin(rotation.y);
+        orientFront.y = -glm::sin(rotation.x);
+        orientFront.z = glm::cos(rotation.x) * glm::cos(rotation.y);
 
         glm::vec3 orientTop = {};
-        orientTop.x = sinf(rotation.x) * sinf(rotation.y);
-        orientTop.x = cosf(rotation.x);
-        orientTop.x = sinf(rotation.x) * cosf(rotation.y);
+        orientTop.x = glm::sin(rotation.x) * glm::sin(rotation.y);
+        orientTop.x = glm::cos(rotation.x);
+        orientTop.x = glm::sin(rotation.x) * glm::cos(rotation.y);
 
         auto& sourceVoice = m_AudioData.at(uuid).SourceVoice;
 
@@ -315,7 +313,7 @@ namespace Turbo {
         sourceEmitter.pReverbCurve = NULL;
         sourceEmitter.CurveDistanceScaler = 1.0f;
         sourceEmitter.DopplerScaler = 0.0f;
-        sourceEmitter.pChannelAzimuths = TBO_CHOOSE_CHANNEL_AZIMUTHS(sourceInputChannels);
+        sourceEmitter.pChannelAzimuths = const_cast<f32*>(s_ChannelAzimuths[sourceInputChannels]);
 
         // DSP Settings
         X3DAUDIO_DSP_SETTINGS dspSettings = {};

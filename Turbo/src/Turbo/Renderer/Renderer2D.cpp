@@ -546,8 +546,8 @@ namespace Turbo
 
     void Renderer2D::SubmitDebugCircle(const glm::mat4& transform, const glm::vec4& color, i32 entity)
     {
-        i32 segments = 32;
-        for (i32 i = 0; i < segments; i++)
+        constexpr i32 segments = 32;
+        for (i32 i = 0; i < segments; ++i)
         {
             f32 angle = 2.0f * glm::pi<f32>() * (f32)i / segments;
             glm::vec4 startPosition = { glm::cos(angle), glm::sin(angle), 0.0f, 1.0f };
@@ -720,7 +720,7 @@ namespace Turbo
         u32 currentFrame = Renderer::GetCurrentFrame();
         const i32* data = (const i32*)m_SelectionBuffers[currentFrame]->GetData();
 
-        size_t index = (y * m_ViewportWidth + x);
+        u32 index = y * m_ViewportWidth + x;
         if (index < (m_SelectionBuffers[currentFrame]->Size() / sizeof(i32)))
         {
             return data[index];

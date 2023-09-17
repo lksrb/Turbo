@@ -9,15 +9,16 @@ Turbo is a game engine created by me for me to learn and also create games.
 
 Rendering API: Vulkan
 
-Language: C++20
+Language: C++ 20
 
 Platform: Windows only (for now)
 
 ### Features
 - Fast 2D rendering (sprites, textures, ...)
-- Basic 3D rendering (lights, meshes, no shadows yet. )
+- Basic 3D rendering (lights, meshes, ...)
 - Integrated 3rd party 2D and 3D physics engine
 - Scripted interaction and behaviour
+- Audio system
 - Featured editor application
 
 ## Getting started
@@ -31,7 +32,7 @@ You do not have to intall the submodules, python scripts will handle that for yo
 <ins>**2. Setting up the project**</ins>
 
 Navigate to `scripts` folder and run [Setup.bat](https://github.com/lksrb/Turbo/blob/main/scripts/Setup.bat). 
-This script will ensure that you have the right dependencies and generate```Turbo.sln```into the root folder.
+This script will ensure that you have the right dependencies and generate ```Turbo.sln``` into the root folder.
 
 ## Goals
 Main goals of this game engine is to work and be usable. Also fast yes.
