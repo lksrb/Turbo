@@ -7,5 +7,7 @@
 		ButtonRight = 0x0002, 
 		ButtonMiddle = 0x0004
 	}
+#else
+	#error "Platoform not supported yet."
 #endif
 }
