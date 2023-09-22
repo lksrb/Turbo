@@ -16,10 +16,10 @@
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross/spirv_cross.hpp>
 
-namespace Turbo
-{
-    namespace Utils
-    {
+namespace Turbo {
+
+    namespace Utils {
+
         static ShaderStage ShaderTypeFromString(const std::string& type)
         {
             if (type == "vertex")
@@ -133,6 +133,9 @@ namespace Turbo
         }
     }
 
+    static std::filesystem::path s_CachedPath = "Resources/Cache/Shaders";
+
+
     VulkanShader::VulkanShader(const Shader::Config& config)
         : Shader(config)
     {
@@ -205,8 +208,15 @@ namespace Turbo
 
     void VulkanShader::CheckIfUpToDate()
     {
+        if (!FileSystem::Exists(s_CachedPath))
+        {
+            // Cache folder does not exists, create one and compile shaders
+            std::filesystem::create_directory(s_CachedPath);
+            m_Compile = true;
+        }
+
         std::filesystem::path metadataPath = m_Config.ShaderPath;
-        metadataPath.concat(".metadata");
+        metadataPath.concat(".shadermeta");
 
         std::ifstream stream(metadataPath, std::ios_base::in);
 
@@ -240,15 +250,6 @@ namespace Turbo
 
     void VulkanShader::CompileOrGetCompiledShaders()
     {
-        std::filesystem::path cachedPath = "Resources/Cache/Shaders";
-
-        if (!FileSystem::Exists(cachedPath))
-        {
-            // Cache folder does not exists, create one and compile shaders
-            std::filesystem::create_directory(cachedPath);
-            m_Compile = true;
-        }
-
         // Clear shaders
         for (ShaderStage shaderStage = 0; shaderStage < ShaderStage_Count; ++shaderStage)
         {
@@ -533,7 +534,7 @@ namespace Turbo
         }
 
         // Sampler Cube
-        for(auto& samplerCubeInfo : m_Resources.SamplerCubeInfos)
+        for (auto& samplerCubeInfo : m_Resources.SamplerCubeInfos)
         {
             auto& descriptorBinding = descriptorSetLayoutBindings.emplace_back();
             descriptorBinding = {};

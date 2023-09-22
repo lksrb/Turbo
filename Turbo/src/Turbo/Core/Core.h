@@ -6,19 +6,19 @@
     #if defined(TBO_PLATFORM_WIN32)
         #if _MSC_VER && !__INTEL_COMPILER
             #define TBO_DEBUGBREAK() __debugbreak()
-        #else 
-            #include <assert.h>
-            #define TBO_DEBUGBREAK() assert(false)
         #endif
     #elif defined(TBO_PLATFORM_LINUX)
         #include <signal.h>
         #define TBO_DEBUGBREAK() raise(SIGTRAP)
-    #else
-        #error "Platform doesn't support debugbreak yet!"
     #endif
     
-    #else
-        #define TBO_DEBUGBREAK()
+    // If platform does not support debugbreak, use assert instead
+    #ifndef TBO_DEBUGBREAK
+        #include <assert.h>
+        #define TBO_DEBUGBREAK() assert(false)
+    #endif
+#else
+    #define TBO_DEBUGBREAK()
 #endif
 
 // Useful preprocessors

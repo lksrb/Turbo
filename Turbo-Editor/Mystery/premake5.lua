@@ -1,23 +1,24 @@
+TurboRootDirectory = "../../"
 
 workspace "Mystery"
-    startproject "Mystery"
+    	startproject "Mystery"
 	configurations {
 	    "Debug",
-		"Release",
+	    "Release"
     }
 
 group "Turbo"
 project "Turbo-ScriptCore"
-    location "C:/dev/.cpp/Turbo/Turbo-ScriptCore"
+    location "%{TurboRootDirectory}Turbo-ScriptCore"
     language "C#"
 	kind "SharedLib"
 	dotnetframework "4.7.2"
 
-	targetdir ("C:/dev/.cpp/Turbo/Turbo-Editor/Resources/Scripts")
-	objdir ("C:/dev/.cpp/Turbo/Turbo-Editor/Resources/Scripts/Intermediates")
+	targetdir ("%{TurboRootDirectory}Turbo-Editor/Resources/Scripts")
+	objdir ("%{TurboRootDirectory}Turbo-Editor/Resources/Scripts/Intermediates")
 
     files {
-        "C:/dev/.cpp/Turbo/Turbo-ScriptCore/Source/**.cs"
+        "%{TurboRootDirectory}Turbo-ScriptCore/Source/**.cs"
     }
 
     filter "system:windows"

@@ -787,7 +787,7 @@ namespace Turbo::Ed {
 
         // Building assemblies
         {
-            // Execute premake and wait for it to finish"
+            // Execute premake and wait for it to finish
             Platform::Execute(config.ProjectDirectory / TBO_GEN_SOLUTION_FILE, Utils::GetIDEToString(m_CurrentIDE), config.ProjectDirectory, true);
 
             if (m_CurrentIDE == DevEnv::VS2022)

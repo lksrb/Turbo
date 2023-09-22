@@ -1,7 +1,0 @@
-C:\dev\.cpp\Turbo\Turbo-Editor\SandboxProject\Binaries\Intermediates\Debug\SandboxProject.csproj.AssemblyReference.cache
-C:\dev\.cpp\Turbo\Turbo-Editor\SandboxProject\Binaries\Intermediates\Debug\SandboxProject.csproj.CoreCompileInputs.cache
-C:\dev\.cpp\Turbo\Turbo-Editor\SandboxProject\Binaries\Intermediates\Debug\SandboxProject.csproj.CopyComplete
-C:\dev\.cpp\Turbo\Turbo-Editor\SandboxProject\Binaries\Intermediates\Debug\SandboxProject.dll
-C:\dev\.cpp\Turbo\Turbo-Editor\SandboxProject\Binaries\Intermediates\Debug\SandboxProject.pdb
-C:\dev\.cpp\Turbo\Turbo-Editor\SandboxProject\Binaries\SandboxProject.dll
-C:\dev\.cpp\Turbo\Turbo-Editor\SandboxProject\Binaries\SandboxProject.pdb

@@ -5,8 +5,7 @@
 #include <filesystem>
 #include <functional>
 
-namespace Turbo::Ed
-{
+namespace Turbo::Ed {
 
     // Modal window
     class CreateProjectPopupPanel : public EditorPanel

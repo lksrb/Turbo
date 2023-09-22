@@ -2,9 +2,9 @@
 #include "Memory.h"
 
 #if TBO_TRACK_MEMORY
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
+    #define _CRTDBG_MAP_ALLOC
+    #include <stdlib.h>
+    #include <crtdbg.h>
 #endif
 
 namespace Turbo::Memory {

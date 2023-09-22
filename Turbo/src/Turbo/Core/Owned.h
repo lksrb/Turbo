@@ -30,6 +30,7 @@ namespace Turbo {
         inline operator bool() noexcept { return static_cast<bool>(m_RefPointer); }
         inline operator bool() const noexcept { return static_cast<bool>(m_RefPointer); }
     private:
+        OwnedRef() = default;
         template<typename T2>
         explicit OwnedRef(T2* pointer)
             : m_RefPointer((T*)pointer)
@@ -39,12 +40,10 @@ namespace Turbo {
         template<typename T2>
         friend class OwnedRef;
 
-        OwnedRef() = default;
+        template<typename T2>
+        friend class Owned;
 
         T* m_RefPointer;
-
-        template<typename T>
-        friend class Owned;
     };
 
     // Behaves almost exactly like std::unique_ptr except we create an OwnedRef.
@@ -58,7 +57,7 @@ namespace Turbo {
         {
         }
 
-        constexpr Owned(nullptr_t) noexcept 
+        constexpr Owned(std::nullptr_t) noexcept 
             : m_Pointer(nullptr) 
         {
         }
@@ -136,7 +135,7 @@ namespace Turbo {
         inline operator bool() noexcept { return static_cast<bool>(m_Pointer); }
         inline operator bool() const noexcept { return static_cast<bool>(m_Pointer); }
 
-        inline Owned& operator=(nullptr_t) noexcept { Reset(); return *this; }
+        inline Owned& operator=(std::nullptr_t) noexcept { Reset(); return *this; }
 
         // No copy constructor or copy assign
         Owned(const Owned&) = delete;

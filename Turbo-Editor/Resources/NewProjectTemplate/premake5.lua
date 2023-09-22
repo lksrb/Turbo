@@ -1,3 +1,4 @@
+TurboRootDirectory = "../../"
 
 workspace "%PROJECT_NAME%"
     startproject "%PROJECT_NAME%"
@@ -8,16 +9,16 @@ workspace "%PROJECT_NAME%"
 
 group "Turbo"
 project "Turbo-ScriptCore"
-    location "%TURBO_PATH%/Turbo-ScriptCore"
+    location "%{TurboRootDirectory}Turbo-ScriptCore"
     language "C#"
 	kind "SharedLib"
 	dotnetframework "4.7.2"
 
-	targetdir ("%TURBO_PATH%/Turbo-Editor/Resources/Scripts")
-	objdir ("%TURBO_PATH%/Turbo-Editor/Resources/Scripts/Intermediates")
+	targetdir ("%{TurboRootDirectory}Turbo-Editor/Resources/Scripts")
+	objdir ("%{TurboRootDirectory}Turbo-Editor/Resources/Scripts/Intermediates")
 
     files {
-        "%TURBO_PATH%/Turbo-ScriptCore/Source/**.cs"
+        "%{TurboRootDirectory}Turbo-ScriptCore/Source/**.cs"
     }
 
     filter "system:windows"

@@ -17,14 +17,14 @@ namespace Turbo {
      * Import Asset - This means that we want to import a new asset into into the registry and serialize it
      */
     template<typename T>
-    static Ref<Asset> AssetIO::Import(const std::filesystem::path& filepath)
+    Ref<Asset> AssetIO::Import(const std::filesystem::path& filepath)
     {
         TBO_ENGINE_ASSERT(false);
         return nullptr;
     }
 
     template<>
-    static Ref<Asset> AssetIO::Import<Texture2D>(const std::filesystem::path& filepath)
+    Ref<Asset> AssetIO::Import<Texture2D>(const std::filesystem::path& filepath)
     {
         Ref<Texture2D> texture = Texture2D::Create(filepath.string());
         if (!texture->IsLoaded())
@@ -34,7 +34,7 @@ namespace Turbo {
     }
 
     template<>
-    static Ref<Asset> AssetIO::Import<MeshSource>(const std::filesystem::path& filepath)
+    Ref<Asset> AssetIO::Import<MeshSource>(const std::filesystem::path& filepath)
     {
         Ref<MeshSource> meshSource = Ref<MeshSource>::Create(filepath.string());
         if (!meshSource->IsLoaded())

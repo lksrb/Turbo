@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using Turbo;
+using System.Collections.Generic;
 
 namespace Mystery
 {
-	// State machine
 	public class Player : Entity
 	{
 		public readonly float LinearVelocityMagnifier;
