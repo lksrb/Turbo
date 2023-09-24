@@ -38,4 +38,4 @@ This script will ensure that you have the right dependencies and generate ```Tur
 Main goals of this game engine is to work and be usable. Also fast yes.
 
 ## Preview
-If you want to know what the engine is capable of, checkout [this video](https://youtu.be/5mELHzjvwFU).
+If you want to know what the engine is capable of, checkout [this video](https://youtu.be/-1Uh4TBPJYE) or [this video](https://youtu.be/5mELHzjvwFU).
