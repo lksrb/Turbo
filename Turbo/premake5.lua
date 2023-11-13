@@ -20,7 +20,8 @@ project "Turbo"
 
         "dependencies/ImGuizmo/**.h",
         "dependencies/ImGuizmo/**.cpp",
-
+        "dependencies/imgui-node-editor/**.h",
+        "dependencies/imgui-node-editor/**.cpp",
         "dependencies/IconFontCppHeaders/**.h",
         "dependencies/IconFontCppHeaders/**.cpp"
     }
@@ -39,6 +40,7 @@ project "Turbo"
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImGuizmo}",
+	  "%{IncludeDir.imgui_node_editor}",
         "%{IncludeDir.IconFontCppHeaders}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.stb}",

@@ -23,6 +23,7 @@ project "Turbo-Editor"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.imgui_node_editor}",
 		"%{IncludeDir.IconFontCppHeaders}",
 		"%{IncludeDir.entt}",
 	}

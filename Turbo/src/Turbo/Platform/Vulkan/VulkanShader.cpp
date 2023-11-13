@@ -83,7 +83,6 @@ namespace Turbo {
 
         static VkFormat AttributeTypeToVulkanFormat(spirv_cross::SPIRType::BaseType type, uint32_t size)
         {
-
             if (type == spirv_cross::SPIRType::BaseType::Float)
             {
                 switch (size)
@@ -134,7 +133,6 @@ namespace Turbo {
     }
 
     static std::filesystem::path s_CachedPath = "Resources/Cache/Shaders";
-
 
     VulkanShader::VulkanShader(const Shader::Config& config)
         : Shader(config)

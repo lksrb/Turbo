@@ -7,6 +7,7 @@
 #include "../Panels/AssetRegistryPanel.h"
 #include "../Panels/CreateProjectPopupPanel.h"
 #include "../Panels/AssetEditorPanel.h"
+#include "../Panels/VisualScriptingPanel.h"
 
 #include <Turbo/Editor/SceneHierarchyPanel.h>
 #include <Turbo/Editor/EditorConsolePanel.h>
@@ -25,6 +26,7 @@
 #include <Turbo/UI/UI.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
+#include <GraphEditor.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -122,6 +124,7 @@ namespace Turbo::Ed {
         //m_PanelManager->AddPanel<QuickAccessPanel>();
         m_PanelManager->AddPanel<ContentBrowserPanel>();
         m_PanelManager->AddPanel<EditorConsolePanel>();
+        m_PanelManager->AddPanel<VisualScriptingPanel>();
         m_PanelManager->AddPanel<AssetRegistryPanel>([this](AssetHandle handle) // TODO: AssetRegistryPanel should own AssetEditorPanel
         {
             m_PanelManager->GetPanel<AssetEditorPanel>()->OpenAsset(handle);
@@ -528,6 +531,7 @@ namespace Turbo::Ed {
 
             ImGui::End();
         }
+
         ImGui::Begin("Statistics & Renderer");
         ImGui::Text("Hovered entity: %s", m_HoveredEntity ? m_HoveredEntity.GetName().c_str() : "");
         ImGui::Text("Timestep: %.5f ms", m_CurrentTime.DeltaTime.ms());
