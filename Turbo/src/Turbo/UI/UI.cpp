@@ -28,9 +28,14 @@ namespace Turbo
     {
         Ref<VulkanImage2D> vulkanImage = texture->GetImage().As<VulkanImage2D>();
 
-        const auto textureID = ImGui::GetOrRegisterTextureDescriptor(vulkanImage->GetSampler(), vulkanImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        bool pressed = false;
+        if (vulkanImage->GetImageView())
+        {
+            const auto textureID = ImGui::GetOrRegisterTextureDescriptor(vulkanImage->GetSampler(), vulkanImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            pressed = ImGui::ImageButton(textureID, size, uv0, uv1, frame_padding, bg_col, tint_col);
+        }
         
-        return ImGui::ImageButton(textureID, size, uv0, uv1, frame_padding, bg_col, tint_col);
+        return pressed;
     }
 
     bool UI::DragByte(const char* label, char* v, float v_speed , char v_min , char v_max , const char* format, ImGuiSliderFlags flags )

@@ -52,8 +52,7 @@ project "Turbo-Editor"
 
 			postbuildcommands
 			{
-				-- Apparently this is not necessary but I doubt that when releasing an executable like that
-				--"{COPYDIR} \"%{LibraryDir.VulkanSDK_DebugDLL}\" \"%{cfg.targetdir}\"",
+				"{COPYDIR} \"%{LibraryDir.VulkanSDK_DebugDLL}\" \"%{cfg.targetdir}\"",
 				'{COPY} "%{Binaries.Assimp_Debug}" "%{cfg.targetdir}"'
 			}
 			
@@ -64,7 +63,7 @@ project "Turbo-Editor"
 			
 			postbuildcommands
 			{
-				--"{COPYDIR} \"%{LibraryDir.VulkanSDK}\" \"%{cfg.targetdir}\"",
+				"{COPYDIR} \"%{LibraryDir.VulkanSDK}\" \"%{cfg.targetdir}\"",
 				'{COPY} "%{Binaries.Assimp_Release}" "%{cfg.targetdir}"'
 			}
 			
