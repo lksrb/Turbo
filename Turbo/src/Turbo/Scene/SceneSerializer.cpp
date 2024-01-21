@@ -555,7 +555,7 @@ namespace Turbo
                             WRITE_SCRIPT_FIELD(Short, i16);
                             WRITE_SCRIPT_FIELD(Int, i32);
                             WRITE_SCRIPT_FIELD(Long, i64);
-                            WRITE_SCRIPT_FIELD(UByte, u32); // NOTE: Encoding as unsigned integer cause YAML's weird formatting for unsigned chars
+                            WRITE_SCRIPT_FIELD(UByte, u32); // NOTE: Encoding byte as unsigned integer cause YAML's weird formatting for unsigned chars
                             WRITE_SCRIPT_FIELD(UShort, u16);
                             WRITE_SCRIPT_FIELD(UInt, u32);
                             WRITE_SCRIPT_FIELD(ULong, u64);

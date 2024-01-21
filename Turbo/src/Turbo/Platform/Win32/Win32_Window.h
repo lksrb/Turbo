@@ -27,8 +27,6 @@ namespace Turbo
     private:
         void InitializeWindow();
         LRESULT CALLBACK ProcessWin32Events(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-        static LRESULT CALLBACK Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     private:
         POINT m_LastCursorPosition = {};
         POINT m_VirtualCursorPosition = {}; // To keep track of cursor position even if its disabled

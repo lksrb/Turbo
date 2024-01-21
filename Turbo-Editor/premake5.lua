@@ -43,7 +43,8 @@ project "Turbo-Editor"
 		systemversion "latest"
 
 		defines {
-            "TBO_PLATFORM_WIN32"
+            "TBO_PLATFORM_WIN32",
+	    "_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS"
         }
 
 		filter "configurations:Debug"

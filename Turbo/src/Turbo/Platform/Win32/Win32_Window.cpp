@@ -21,22 +21,6 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 
 namespace Turbo {
 
-    LRESULT CALLBACK Win32_Window::Win32Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
-        // User Interface
-        if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
-            return 0;
-
-        Win32_Window* currentWindow = reinterpret_cast<Win32_Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));;
-
-        if (currentWindow)
-        {
-            return currentWindow->ProcessWin32Events(hWnd, uMsg, wParam, lParam);
-        }
-
-        return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-
     const wchar_t* s_ClassName = L"MY WINDOW HOLY MOLY";
 
     Win32_Window::Win32_Window(const Window::Config& config)
@@ -69,7 +53,21 @@ namespace Turbo {
         wndClass.hInstance = m_Instance;
         wndClass.hIcon = reinterpret_cast<HICON>(::LoadImage(nullptr, iconPath.c_str(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE));
         wndClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-        wndClass.lpfnWndProc = Win32_Window::Win32Procedure;
+        wndClass.lpfnWndProc = [](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT 
+        {
+            // User Interface
+            if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+                return 0;
+
+            Win32_Window* currentWindow = reinterpret_cast<Win32_Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));;
+
+            if (currentWindow)
+            {
+                return currentWindow->ProcessWin32Events(hWnd, uMsg, wParam, lParam);
+            }
+
+            return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
+        };
 
         RegisterClass(&wndClass);
 

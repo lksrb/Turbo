@@ -59,7 +59,7 @@ Library["XAudio2"] =				"xaudio2.lib"
 
 --Windows
 Library["WinSock"] =				"Ws2_32.lib"
-Library["WinMM"] =					"Winmm.lib"
+Library["WinMM"] =				"Winmm.lib"
 Library["WinVersion"] =				"Version.lib"
 Library["WinBcryp"] =				"Bcrypt.lib"
 

@@ -23,3 +23,6 @@
 [submodule "dependencies/msdf-atlas-gen"]
 	path = dependencies/msdf-atlas-gen
 	url = https://github.com/TheCherno/msdf-atlas-gen.git
+[submodule "dependencies/imgui-node-editor"]
+	path = dependencies/imgui-node-editor
+	url = https://github.com/lksrb/imgui-node-editor.git

@@ -37,7 +37,6 @@ namespace Turbo {
 
         VkResult err = vkCreateWin32SurfaceKHR((VkInstance)vkInstance, &createInfo, (const VkAllocationCallbacks*)vkAllocator, (VkSurfaceKHR*)outVkSurface);
         return err;
-        return -1;
     }
 #endif
 

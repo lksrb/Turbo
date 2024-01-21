@@ -25,6 +25,7 @@ namespace Turbo {
     enum class CollisionDetectionType : u32 { Discrete = 0, LinearCast };
 
     using BodyHandle = u32;
+    using VisualScriptHandle = UUID;
 
     struct TagComponent
     {
@@ -248,6 +249,14 @@ namespace Turbo {
         ScriptComponent() = default;
         ScriptComponent(const std::string& className) : ClassName(className) {};
         ScriptComponent(const ScriptComponent&) = default;
+    };
+
+    struct VisualScriptComponent
+    {
+        VisualScriptHandle Handle;
+
+        VisualScriptComponent() = default;
+        VisualScriptComponent(const VisualScriptComponent&) = default;
     };
 
     // Physics 2D

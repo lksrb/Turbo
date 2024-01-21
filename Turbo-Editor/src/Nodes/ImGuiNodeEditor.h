@@ -79,7 +79,7 @@ namespace Turbo::UI {
         Diamond 
     };
 
-    // Maybe mode this to Widgets.h ?
+    // Maybe move this to Widgets.h ?
 
     // From imgui-node-editor blueprints example
     void DrawIcon(ImDrawList* drawList, const ImVec2& a, const ImVec2& b, IconType type, bool filled, ImU32 color, ImU32 innerColor);
